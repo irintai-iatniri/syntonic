@@ -1,0 +1,33 @@
+[package]
+name = "syntonic-core"
+version = "0.1.0"
+edition = "2021"
+license = "Proprietary"
+
+[lib]
+name = "syntonic_core"
+crate-type = ["cdylib"]
+
+[features]
+default = ["cpu"]
+cpu = []
+cuda = ["cudarc"]
+
+[dependencies]
+pyo3 = { version = "0.21", features = ["extension-module", "num-complex"] }
+ndarray = "0.15"
+ndarray-linalg = { version = "0.16", features = ["openblas-system"] }
+num-complex = "0.4"
+num-traits = "0.2"
+rand = "0.8"
+thiserror = "1.0"
+cudarc = { version = "0.12", optional = true, features = ["cuda-12060", "nvrtc", "cublas"] }
+lazy_static = "1.4"
+half = "2.3"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[profile.release]
+lto = true
+codegen-units = 1
