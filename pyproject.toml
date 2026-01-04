@@ -54,9 +54,9 @@ docs = [
 ]
 
 [tool.maturin]
-features = ["pyo3/extension-module"]
+features = ["pyo3/extension-module", "cuda"]
 python-source = "python"
-module-name = "syntonic._core"
+module-name = "syntonic.core"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -91,7 +91,7 @@ dev = [
 [tool.maturin]
 features = ["pyo3/extension-module"]
 python-source = "python"
-module-name = "syntonic._core"
+module-name = "syntonic.core"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -150,7 +150,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Sequence, Union, Optional, Tuple
 import numpy as np
 
-from syntonic._core import TensorStorage  # Rust backend
+from syntonic.core import TensorStorage  # Rust backend
 from syntonic.core.dtype import DType, float64, complex128, get_dtype
 from syntonic.core.device import Device, cpu, cuda
 from syntonic.exceptions import SyntonicError, DeviceError
@@ -835,7 +835,7 @@ def cuda(device_id: int = 0) -> Device:
 def cuda_is_available() -> bool:
     """Check if CUDA is available."""
     try:
-        from syntonic._core import check_cuda_available
+        from syntonic.core import check_cuda_available
         return check_cuda_available()
     except ImportError:
         return False
@@ -845,7 +845,7 @@ def cuda_device_count() -> int:
     """Get number of CUDA devices."""
     if not cuda_is_available():
         return 0
-    from syntonic._core import get_cuda_device_count
+    from syntonic.core import get_cuda_device_count
     return get_cuda_device_count()
 
 
@@ -1085,7 +1085,7 @@ impl TensorStorage {
 """Linear algebra operations for Syntonic."""
 
 from syntonic.core.state import State
-from syntonic._core import linalg as _linalg
+from syntonic.core import linalg as _linalg
 from typing import Tuple, Optional
 
 

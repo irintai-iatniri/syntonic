@@ -24,7 +24,7 @@ PI = np.pi
 
 # Try to import syntonic CUDA support
 try:
-    from syntonic._core import (
+    from syntonic.core import (
         cuda_is_available,
         cuda_device_count,
         TensorStorage,

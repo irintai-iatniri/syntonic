@@ -23,7 +23,7 @@ Usage:
     True
 """
 
-from syntonic._core import Quaternion, Octonion
+from syntonic.core import Quaternion, Octonion
 
 # Unit quaternions (basis elements)
 I = Quaternion(0.0, 1.0, 0.0, 0.0)  # i

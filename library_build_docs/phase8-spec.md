@@ -82,9 +82,9 @@ Level 3: HOW-TO GUIDES (15-30 minutes)
     └── Consciousness Analysis
 
 Level 4: API REFERENCE (as needed)
-    ├── syn.state
-    ├── syn.op (DHSR operators)
-    ├── syn.lattice (E₈, D₄)
+    ├── syn.core (State, DType, Device)
+    ├── syn.crt (DHSR operators)
+    ├── syn.srt (geometry, lattices: E₈, D₄, T⁴)
     ├── syn.physics
     ├── syn.applications
     └── syn.nn
@@ -624,16 +624,16 @@ if __name__ == "__main__":
     
     # Audit all submodules
     import syntonic.core
-    import syntonic.op
-    import syntonic.lattice
+    import syntonic.crt
+    import syntonic.srt
     import syntonic.physics
     import syntonic.applications
     import syntonic.nn
-    
+
     for module in [
         syntonic.core,
-        syntonic.op,
-        syntonic.lattice,
+        syntonic.crt,
+        syntonic.srt,
         syntonic.physics,
         syntonic.applications,
         syntonic.nn,
@@ -827,7 +827,7 @@ for _ in range(20):
 # Plot the trajectory
 plt.figure(figsize=(10, 5))
 plt.plot(syntony_history, 'b-o')
-plt.axhline(y=syn.phi - syn.q, color='gold', linestyle='--', label='φ - q')
+plt.axhline(y=syn.PHI_NUMERIC - syn.Q_DEFICIT_NUMERIC, color='gold', linestyle='--', label='φ - q')
 plt.xlabel('Cycle')
 plt.ylabel('Syntony S(Ψ)')
 plt.title('Syntony Evolution Through DHSR Cycles')
@@ -1171,8 +1171,8 @@ class BottleneckFinder:
         ('state_creation', lambda n: syn.state.random((n,))),
         ('dhsr_cycle', lambda s: s.recurse()),
         ('syntony_compute', lambda s: s.syntony),
-        ('e8_lattice', lambda: syn.lattice.E8()),
-        ('golden_cone', lambda e8: e8.golden_cone()),
+        ('e8_lattice', lambda: syn.srt.e8_lattice()),
+        ('golden_cone', lambda: syn.srt.golden_cone()),
         ('particle_mass', lambda: syn.physics.compute_electron_mass()),
     ]
     
@@ -1222,7 +1222,7 @@ class BottleneckFinder:
         
         # E8 lattice (only once, expensive)
         bench = self.profiler.benchmark(
-            lambda: syn.lattice.E8(),
+            lambda: syn.srt.e8_lattice(),
             n_runs=10
         )
         results.append({'name': 'e8_lattice', **bench})
@@ -1295,7 +1295,7 @@ CUDA-specific profiling for Syntonic GPU operations.
 
 import syntonic as syn
 
-if not syn.cuda.is_available():
+if not syn.cuda_is_available():
     raise ImportError("CUDA not available")
 
 import torch
@@ -1805,13 +1805,13 @@ def winding_state():
 @pytest.fixture
 def e8_lattice():
     """E8 lattice fixture."""
-    return syn.lattice.E8()
+    return syn.srt.e8_lattice()
 
 
 @pytest.fixture(params=['cpu', pytest.param('cuda', marks=pytest.mark.gpu)])
 def device(request):
     """Parametrized device fixture."""
-    if request.param == 'cuda' and not syn.cuda.is_available():
+    if request.param == 'cuda' and not syn.cuda_is_available():
         pytest.skip("CUDA not available")
     return syn.device(request.param)
 

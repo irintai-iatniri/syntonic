@@ -2458,7 +2458,7 @@ print(f"  Convergence rate: {stability['convergence_rate']:.4f}")
 
 ## Backend Information
 
-Syntonic uses a Rust backend (`syntonic._core`) compiled via PyO3/maturin for high-performance operations. The Python layer is NumPy-free for core operations, with optional NumPy/SciPy integration for advanced features like `expm` and `logm`.
+Syntonic uses a Rust backend (`syntonic.core`) compiled via PyO3/maturin for high-performance operations. The Python layer is NumPy-free for core operations, with optional NumPy/SciPy integration for advanced features like `expm` and `logm`.
 
 ### Rust Backend Components
 

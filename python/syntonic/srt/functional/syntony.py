@@ -23,7 +23,7 @@ import math
 from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
 from syntonic.srt.geometry.winding import WindingState, winding_state
 from syntonic.srt.spectral.knot_laplacian import KnotLaplacian
-from syntonic._core import enumerate_windings_exact_norm
+from syntonic.core import enumerate_windings_exact_norm
 
 if TYPE_CHECKING:
     from syntonic import State
@@ -328,7 +328,7 @@ class SyntonyFunctional:
         Returns:
             Tuple of (effective_coefficients, syntony_value)
         """
-        from syntonic._core import enumerate_windings_by_norm
+        from syntonic.core import enumerate_windings_by_norm
 
         # Generate thermal distribution using Rust enumerator (~50x speedup)
         coefficients = {}

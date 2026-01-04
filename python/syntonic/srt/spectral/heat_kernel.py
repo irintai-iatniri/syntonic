@@ -23,7 +23,7 @@ import cmath
 
 from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
 from syntonic.srt.geometry.winding import WindingState, winding_state, enumerate_windings_by_norm
-from syntonic._core import (
+from syntonic.core import (
     heat_kernel_trace as _heat_kernel_trace,
     heat_kernel_weighted as _heat_kernel_weighted,
     heat_kernel_derivative as _heat_kernel_derivative,

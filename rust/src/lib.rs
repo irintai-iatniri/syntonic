@@ -37,6 +37,16 @@ use exact::{
     FundamentalConstant,
     CorrectionLevel,
     PySymExpr,
+    Structure,
+};
+
+// Linear algebra operations
+use linalg::{
+    py_mm, py_mm_add, py_mm_tn, py_mm_nt, py_mm_tt,
+    py_mm_hn, py_mm_nh, py_bmm,
+    py_mm_phi, py_phi_bracket, py_phi_antibracket,
+    py_mm_corrected, py_mm_golden_phase, py_mm_golden_weighted,
+    py_projection_sum,
 };
 
 // =============================================================================
@@ -140,6 +150,31 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(knot_heat_kernel_trace, m)?)?;
     m.add_function(wrap_pyfunction!(knot_spectral_zeta, m)?)?;
     m.add_function(wrap_pyfunction!(knot_spectral_zeta_complex, m)?)?;
+
+    // === Structure enum for correction factors ===
+    m.add_class::<Structure>()?;
+
+    // === Linear Algebra Operations ===
+    // Core matmul
+    m.add_function(wrap_pyfunction!(py_mm, m)?)?;
+    m.add_function(wrap_pyfunction!(py_mm_add, m)?)?;
+    // Transpose variants
+    m.add_function(wrap_pyfunction!(py_mm_tn, m)?)?;
+    m.add_function(wrap_pyfunction!(py_mm_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(py_mm_tt, m)?)?;
+    // Hermitian variants
+    m.add_function(wrap_pyfunction!(py_mm_hn, m)?)?;
+    m.add_function(wrap_pyfunction!(py_mm_nh, m)?)?;
+    // Batched
+    m.add_function(wrap_pyfunction!(py_bmm, m)?)?;
+    // SRT-specific operations
+    m.add_function(wrap_pyfunction!(py_mm_phi, m)?)?;
+    m.add_function(wrap_pyfunction!(py_phi_bracket, m)?)?;
+    m.add_function(wrap_pyfunction!(py_phi_antibracket, m)?)?;
+    m.add_function(wrap_pyfunction!(py_mm_corrected, m)?)?;
+    m.add_function(wrap_pyfunction!(py_mm_golden_phase, m)?)?;
+    m.add_function(wrap_pyfunction!(py_mm_golden_weighted, m)?)?;
+    m.add_function(wrap_pyfunction!(py_projection_sum, m)?)?;
 
     Ok(())
 }

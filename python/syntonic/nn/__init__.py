@@ -20,7 +20,7 @@ Where S_model is the model syntony, optimizing for both
 task performance AND representational coherence.
 
 Example:
-    >>> import syntonic.nn as snn
+    >>> from syntonic import nn as snn
     >>> model = snn.SyntonicMLP(784, [512, 256], 10)
     >>> optimizer = snn.SyntonicAdam(model.parameters(), lr=0.001)
     >>> criterion = snn.SyntonicLoss(nn.CrossEntropyLoss())

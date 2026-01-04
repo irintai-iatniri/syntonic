@@ -35,7 +35,7 @@ Syntonic is a hybrid Python/Rust library implementing Syntony Recursion Theory (
 
 ### Language Split
 
-- **Rust (`rust/src/`)**: Performance-critical tensor operations, hypercomplex types (Quaternion, Octonion), and exact arithmetic. Compiled via maturin/PyO3 to `syntonic._core`.
+- **Rust (`rust/src/`)**: Performance-critical tensor operations, hypercomplex types (Quaternion, Octonion), and exact arithmetic. Compiled via maturin/PyO3 to `syntonic.core`.
 - **Python (`python/syntonic/`)**: High-level API, CRT/SRT operators, physics derivations.
 
 ### Core Modules

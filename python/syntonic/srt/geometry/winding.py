@@ -6,7 +6,7 @@ of winding numbers on the internal 4-torus. These are the fundamental
 quantum numbers in SRT from which all charges derive.
 
 This module re-exports the high-performance Rust implementation from
-syntonic._core. The Rust WindingState provides ~50x speedup for
+syntonic.core. The Rust WindingState provides ~50x speedup for
 enumeration operations.
 
 Example:
@@ -22,7 +22,7 @@ from __future__ import annotations
 from typing import Iterator, List, Dict
 
 # Re-export Rust WindingState and enumeration functions
-from syntonic._core import (
+from syntonic.core import (
     WindingState,
     enumerate_windings as _enumerate_windings,
     enumerate_windings_by_norm as _enumerate_windings_by_norm,

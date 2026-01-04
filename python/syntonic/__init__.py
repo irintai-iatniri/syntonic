@@ -89,10 +89,10 @@ from syntonic import crt
 # SRT submodule (spectral and geometry)
 from syntonic import srt
 
-# Applications submodule (Phase 6 - Applied Sciences)
+# Applications submodule
 from syntonic import applications
 
-# Neural Networks submodule (Phase 7 - CRT-Native Deep Learning)
+# Neural Networks submodule
 from syntonic import nn
 
 __all__ = [

@@ -21,7 +21,7 @@ from typing import Dict, List, Optional, Callable, Iterator, TYPE_CHECKING
 
 from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
 from syntonic.srt.geometry.winding import WindingState, enumerate_windings
-from syntonic._core import (
+from syntonic.core import (
     partition_function as _partition_function,
     theta_sum_combined as _theta_sum_combined,
     compute_golden_weights as _compute_golden_weights,

@@ -29,7 +29,7 @@ Usage:
 """
 
 import math
-from syntonic._core import (
+from syntonic.core import (
     Rational,
     GoldenExact,
     FundamentalConstant,
@@ -42,7 +42,7 @@ from syntonic._core import (
 
 # Try to import PySymExpr if available
 try:
-    from syntonic._core import PySymExpr as SymExpr
+    from syntonic.core import PySymExpr as SymExpr
 except ImportError:
     SymExpr = None
 

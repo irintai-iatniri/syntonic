@@ -24,7 +24,7 @@ import math
 
 from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
 from syntonic.srt.geometry.winding import WindingState, winding_state, enumerate_windings_by_norm
-from syntonic._core import (
+from syntonic.core import (
     theta_series_evaluate as _theta_series_evaluate,
     theta_series_weighted as _theta_series_weighted,
     theta_series_derivative as _theta_series_derivative,

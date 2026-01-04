@@ -27,7 +27,7 @@ import math
 
 from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
 from syntonic.srt.geometry.winding import WindingState, winding_state, enumerate_windings_by_norm
-from syntonic._core import (
+from syntonic.core import (
     knot_eigenvalue as _knot_eigenvalue,
     compute_knot_eigenvalues as _compute_knot_eigenvalues,
     knot_heat_kernel_trace as _knot_heat_kernel_trace,
