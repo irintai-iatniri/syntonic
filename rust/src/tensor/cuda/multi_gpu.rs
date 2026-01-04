@@ -3,7 +3,6 @@
 //! Provides scatter/gather operations and GPU-to-GPU transfers.
 
 use cudarc::driver::{CudaSlice, DeviceSlice};
-use std::sync::Arc;
 
 use super::device_manager::{CudaError, get_device, DeviceManager};
 use crate::tensor::storage::{TensorStorage, CpuData, DeviceType, CudaData};

@@ -167,3 +167,72 @@ pub fn py_projection_sum(
 
     matmul::projection_sum(psi, &proj_vec, &coefficients).map_err(|e| e.into())
 }
+
+/// Generalized matrix multiply: C = α × op(A) × op(B) + β × C
+///
+/// BLAS-style GEMM with transpose specification using strings:
+/// - "N" - use matrix as-is
+/// - "T" - transpose the matrix
+/// - "H" - conjugate transpose (Hermitian, for complex)
+///
+/// If c is None, computes C = α × op(A) × op(B).
+#[pyfunction]
+#[pyo3(name = "linalg_mm_gemm")]
+pub fn py_mm_gemm(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    trans_a: &str,
+    trans_b: &str,
+    alpha: f64,
+    beta: f64,
+    c: Option<&TensorStorage>,
+) -> PyResult<TensorStorage> {
+    let ta = match trans_a.to_uppercase().as_str() {
+        "N" | "NONE" => matmul::Transpose::None,
+        "T" | "TRANS" => matmul::Transpose::Trans,
+        "H" | "CONJTRANS" | "HERMITIAN" => matmul::Transpose::ConjTrans,
+        _ => return Err(pyo3::exceptions::PyValueError::new_err(
+            format!("Invalid transpose '{}': use 'N', 'T', or 'H'", trans_a)
+        )),
+    };
+    let tb = match trans_b.to_uppercase().as_str() {
+        "N" | "NONE" => matmul::Transpose::None,
+        "T" | "TRANS" => matmul::Transpose::Trans,
+        "H" | "CONJTRANS" | "HERMITIAN" => matmul::Transpose::ConjTrans,
+        _ => return Err(pyo3::exceptions::PyValueError::new_err(
+            format!("Invalid transpose '{}': use 'N', 'T', or 'H'", trans_b)
+        )),
+    };
+    matmul::mm_gemm(a, b, ta, tb, alpha, beta, c).map_err(|e| e.into())
+}
+
+/// Direct q-deficit correction: (1 ± q/N) × (A × B)
+///
+/// Unlike `mm_corrected` which uses Structure enum, this allows
+/// specifying dimension N directly.
+///
+/// Standard dimensions:
+/// - E₈: 248 (adjoint), 240 (roots), 120 (positive), 8 (rank)
+/// - E₆: 78 (adjoint), 36 (golden cone), 27 (fundamental)
+/// - D₄: 24 (kissing number)
+/// - G₂: 14 (adjoint)
+#[pyfunction]
+#[pyo3(name = "linalg_mm_q_corrected_direct")]
+pub fn py_mm_q_corrected_direct(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    n: u32,
+    sign: i8,
+) -> PyResult<TensorStorage> {
+    matmul::mm_q_corrected_direct(a, b, n, sign).map_err(|e| e.into())
+}
+
+/// Direct q-deficit scalar: (1 ± q/N)
+///
+/// Returns the raw correction factor without matrix multiplication.
+/// Useful for applying q-corrections to individual values.
+#[pyfunction]
+#[pyo3(name = "linalg_q_correction_scalar")]
+pub fn py_q_correction_scalar(n: u32, sign: i8) -> f64 {
+    matmul::q_correction_scalar(n, sign)
+}

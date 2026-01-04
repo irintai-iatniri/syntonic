@@ -47,6 +47,7 @@ impl From<MatmulError> for pyo3::PyErr {
 }
 
 /// Transpose operation for matmul
+/// Used in generalized gemm API for BLAS-style operation specification
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Transpose {
     /// No transpose (N)
@@ -232,6 +233,56 @@ pub fn mm_tt(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, Matm
     mm(&a_t, &b_t)
 }
 
+/// Generalized matrix multiply: C = α × op(A) × op(B) + β × C
+///
+/// BLAS-style GEMM with transpose specification using the `Transpose` enum:
+/// - `Transpose::None` - use matrix as-is
+/// - `Transpose::Trans` - transpose the matrix
+/// - `Transpose::ConjTrans` - conjugate transpose (Hermitian, for complex)
+///
+/// This unifies mm_tn(), mm_nt(), mm_tt(), mm_hn(), mm_nh() into one function.
+pub fn mm_gemm(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    trans_a: Transpose,
+    trans_b: Transpose,
+    alpha: f64,
+    beta: f64,
+    c: Option<&TensorStorage>,
+) -> Result<TensorStorage, MatmulError> {
+    // Apply transpose operations based on enum values
+    let a_op = match trans_a {
+        Transpose::None => a.clone_storage_internal(),
+        Transpose::Trans => transpose_internal(a)?,
+        Transpose::ConjTrans => conj_transpose_internal(a)?,
+    };
+
+    let b_op = match trans_b {
+        Transpose::None => b.clone_storage_internal(),
+        Transpose::Trans => transpose_internal(b)?,
+        Transpose::ConjTrans => conj_transpose_internal(b)?,
+    };
+
+    // Compute A × B (or op(A) × op(B))
+    let ab = mm(&a_op, &b_op)?;
+
+    // Apply scaling and accumulate
+    match c {
+        Some(c_mat) => {
+            // C = α × (A × B) + β × C
+            mm_add(&a_op, &b_op, c_mat, alpha, beta)
+        }
+        None => {
+            // C = α × (A × B)
+            if (alpha - 1.0).abs() < 1e-15 {
+                Ok(ab)
+            } else {
+                mul_scalar_internal(&ab, alpha)
+            }
+        }
+    }
+}
+
 // =============================================================================
 // Hermitian Variants (for complex matrices)
 // =============================================================================
@@ -404,6 +455,47 @@ pub fn mm_corrected(
     let result = mm(a, b)?;
     let correction = structure.correction(sign).eval_f64();
     mul_scalar_internal(&result, correction)
+}
+
+/// Direct q-deficit correction: (1 ± q/N) × (A × B)
+///
+/// Unlike `mm_corrected` which uses the Structure enum, this function
+/// allows specifying the dimension N directly. This is useful for:
+/// - Custom structures not in the standard hierarchy
+/// - Testing with arbitrary dimensions
+/// - Fine-grained control over correction factors
+///
+/// The correction factor is: (1 + sign×q/N) where q ≈ 0.027395
+///
+/// Standard dimensions from the SRT hierarchy:
+/// - E₈: N=248 (adjoint), N=240 (roots), N=120 (positive roots), N=8 (rank)
+/// - E₆: N=78 (adjoint), N=36 (golden cone), N=27 (fundamental)
+/// - D₄: N=24 (kissing number)
+/// - G₂: N=14 (adjoint)
+pub fn mm_q_corrected_direct(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    n: u32,
+    sign: i8,
+) -> Result<TensorStorage, MatmulError> {
+    let result = mm(a, b)?;
+    let correction = correction_factor(n, sign);
+    mul_scalar_internal(&result, correction)
+}
+
+/// Direct q-deficit scalar: (1 ± q/N) × scalar
+///
+/// Returns the raw correction factor without matrix multiplication.
+/// Useful for applying q-corrections to individual values.
+///
+/// Uses q_deficit() directly for numeric evaluation.
+pub fn q_correction_scalar(n: u32, sign: i8) -> f64 {
+    let q = q_deficit();
+    if sign >= 0 {
+        1.0 + q / (n as f64)
+    } else {
+        1.0 - q / (n as f64)
+    }
 }
 
 /// Complex phase matmul: e^{iπn/φ} × (A × B)

@@ -242,6 +242,11 @@ impl<T: cudarc::driver::DeviceRepr> PooledSlice<T> {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
+
+    /// Get a reference to the pool this slice belongs to
+    pub fn pool(&self) -> &Arc<MemoryPool> {
+        &self.pool
+    }
 }
 
 impl<T: cudarc::driver::DeviceRepr> std::ops::Deref for PooledSlice<T> {

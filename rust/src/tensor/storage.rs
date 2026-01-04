@@ -11,14 +11,32 @@ use num_complex::Complex64;
 use rand::Rng;
 
 // Import exact types - all numerical constants derive from these
+// Use re-export paths from exact/mod.rs for SymExpr
 use crate::exact::golden::GoldenExact;
 use crate::exact::constants::FundamentalConstant;
-use crate::exact::symexpr::SymExpr;
+use crate::exact::SymExpr;
 
 #[cfg(feature = "cuda")]
 use cudarc::driver::{CudaDevice, CudaSlice, DeviceSlice, LaunchConfig, LaunchAsync};
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
+// Use re-export paths from cuda/mod.rs for CUDA infrastructure
+#[cfg(feature = "cuda")]
+use super::cuda::{DeviceManager, CudaError, StreamKind};
+#[cfg(feature = "cuda")]
+use super::cuda::device_manager::{get_device, get_pool, create_stream, sync_device, get_local_manager};
+#[cfg(feature = "cuda")]
+use super::cuda::{MemoryPool, PooledSlice, PoolConfig, PoolStats};
+#[cfg(feature = "cuda")]
+use super::cuda::{AsyncTransfer, AsyncTensorTransfer};
+#[cfg(feature = "cuda")]
+use super::cuda::async_transfer::{TransferComputeOverlap, AsyncTensorOps};
+#[cfg(feature = "cuda")]
+use super::cuda::{peer_copy, scatter, gather, ReduceOp};
+#[cfg(feature = "cuda")]
+use super::cuda::multi_gpu::MultiGpuInfo;
+#[cfg(feature = "cuda")]
+use super::srt_kernels;
 
 /// Pre-compiled PTX kernels for different compute capabilities
 /// These are compiled offline to ensure driver compatibility
@@ -1431,6 +1449,621 @@ impl TensorStorage {
             CpuData::Int64(_) => Ok(self.clone_storage()),
         }
     }
+
+    // ========== Multi-GPU Support Methods ==========
+
+    /// Scatter tensor across multiple GPUs
+    /// Returns a list of tensors, one per specified device
+    #[cfg(feature = "cuda")]
+    pub fn scatter_to_devices(&self, device_ids: Vec<usize>) -> PyResult<Vec<TensorStorage>> {
+        scatter(self, &device_ids)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))
+    }
+
+    /// Gather tensors from multiple GPUs to a single device
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn gather_from_devices(tensors: Vec<PyRef<'_, TensorStorage>>, target_device: usize) -> PyResult<TensorStorage> {
+        let tensor_refs: Vec<TensorStorage> = tensors.iter().map(|t| (*t).clone_storage()).collect();
+        gather(&tensor_refs, target_device)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))
+    }
+
+    /// Copy tensor directly between GPUs (P2P if available)
+    #[cfg(feature = "cuda")]
+    pub fn copy_to_gpu(&self, target_device: usize) -> PyResult<TensorStorage> {
+        match &self.data {
+            TensorData::Cuda { data, device, .. } => {
+                match data.as_ref() {
+                    CudaData::Float64(slice) => {
+                        let src_device = device.ordinal();
+                        let new_slice = peer_copy(src_device, slice, target_device)
+                            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                        let target_dev = get_device(target_device)
+                            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                        Ok(TensorStorage::new_from_cuda(
+                            CudaData::Float64(new_slice),
+                            target_dev,
+                            self.shape.clone(),
+                            target_device,
+                        ))
+                    },
+                    _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                        "copy_to_gpu currently only supports float64 tensors"
+                    )),
+                }
+            },
+            _ => Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                "copy_to_gpu requires source tensor to be on a CUDA device"
+            )),
+        }
+    }
+
+    /// Get multi-GPU topology information
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn multi_gpu_info() -> PyResult<(usize,)> {
+        let info = MultiGpuInfo::query()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok((info.device_count,))
+    }
+
+    // ========== Memory Pool Methods ==========
+
+    /// Get memory pool statistics for a CUDA device
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn pool_stats(device_idx: usize) -> PyResult<(usize, usize, usize, usize, usize)> {
+        let pool = get_pool(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let stats = pool.stats();
+        Ok((
+            stats.cached_bytes,
+            stats.cache_hits,
+            stats.cache_misses,
+            stats.total_allocations,
+            stats.total_bytes_allocated,
+        ))
+    }
+
+    /// Trim the memory pool for a CUDA device (release cached memory)
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn pool_trim(device_idx: usize) -> PyResult<()> {
+        let pool = get_pool(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        pool.trim();
+        Ok(())
+    }
+
+    // ========== Async Transfer Methods ==========
+
+    /// Start an async transfer to the specified CUDA device
+    /// Use sync_device() to wait for completion
+    #[cfg(feature = "cuda")]
+    pub fn transfer_async(&self, device: &str) -> PyResult<(usize, Vec<usize>, String)> {
+        let transfer = self.to_device_async(device)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok((transfer.device_idx(), transfer.shape().to_vec(), transfer.dtype().to_string()))
+    }
+
+    /// Synchronize a CUDA device (wait for all pending operations)
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn sync_cuda_device(device_idx: usize) -> PyResult<()> {
+        sync_device(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))
+    }
+
+    /// Create a new CUDA stream for the specified device
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn create_cuda_stream(device_idx: usize) -> PyResult<String> {
+        let _stream = create_stream(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok(format!("cuda:{}/stream", device_idx))
+    }
+
+    /// Get stream kind names for documentation
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn stream_kinds() -> Vec<String> {
+        vec![
+            format!("{:?}", StreamKind::Default),
+            format!("{:?}", StreamKind::Transfer),
+            format!("{:?}", StreamKind::Compute),
+            format!("{:?}", StreamKind::Auxiliary),
+        ]
+    }
+
+    /// Create a transfer-compute overlap helper for efficient pipelining
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn create_overlap_helper(device_idx: usize) -> PyResult<String> {
+        let _overlap = TransferComputeOverlap::new(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok(format!("cuda:{}/overlap", device_idx))
+    }
+
+    /// Allocate a pooled tensor (uses memory pool for efficiency)
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn alloc_pooled_f64(count: usize, device_idx: usize) -> PyResult<TensorStorage> {
+        let pool = get_pool(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let device = get_device(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let slice = pool.alloc_f64(count)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok(TensorStorage::new_from_cuda(
+            CudaData::Float64(slice),
+            device,
+            vec![count],
+            device_idx,
+        ))
+    }
+
+    /// Get pool configuration info
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn pool_config_info() -> (usize, usize, bool, usize) {
+        let config = PoolConfig::default();
+        (
+            config.min_block_size,
+            config.max_cached_bytes,
+            config.round_to_power_of_2,
+            config.max_cacheable_size,
+        )
+    }
+
+    // ========== Multi-GPU Collective Operations ==========
+
+    /// All-reduce operation across multiple GPUs
+    ///
+    /// Applies a reduction operation to tensors across GPUs and broadcasts
+    /// the result back to all devices.
+    ///
+    /// Operations: "sum", "mean", "max", "min", "product"
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn all_reduce_across_gpus(
+        tensors: &Bound<'_, PyList>,
+        op: &str,
+    ) -> PyResult<Vec<TensorStorage>> {
+        let reduce_op = match op.to_lowercase().as_str() {
+            "sum" => ReduceOp::Sum,
+            "mean" | "avg" | "average" => ReduceOp::Mean,
+            "max" => ReduceOp::Max,
+            "min" => ReduceOp::Min,
+            "product" | "prod" | "mul" => ReduceOp::Product,
+            _ => return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                format!("Unknown reduce op '{}': use 'sum', 'mean', 'max', 'min', or 'product'", op)
+            )),
+        };
+
+        // Extract tensors
+        let n = tensors.len();
+        let mut tensor_vec: Vec<TensorStorage> = Vec::with_capacity(n);
+
+        for i in 0..n {
+            let item = tensors.get_item(i)?;
+            let tensor_ref: pyo3::PyRef<'_, TensorStorage> = item.extract()?;
+            tensor_vec.push(tensor_ref.clone_storage_internal());
+        }
+
+        // Perform all-reduce (modifies in place)
+        super::cuda::multi_gpu::all_reduce(&mut tensor_vec, reduce_op)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        Ok(tensor_vec)
+    }
+
+    /// Print multi-GPU topology information
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn print_gpu_topology() -> PyResult<String> {
+        let info = MultiGpuInfo::query()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        info.print_topology();  // Prints to stdout
+        Ok(format!("{} GPU(s) available", info.device_count))
+    }
+
+    /// Clear CUDA caches (memory pools, streams) for memory management
+    ///
+    /// Useful for:
+    /// - Releasing memory under pressure
+    /// - Testing clean state scenarios
+    /// - Forcing fresh allocations
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn clear_cuda_caches() -> PyResult<()> {
+        get_local_manager().with(|manager| {
+            manager.clear_caches();
+        });
+        Ok(())
+    }
+
+    // ========== Direct CUDA Infrastructure Methods ==========
+
+    /// Copy tensor directly between GPUs using peer_copy
+    #[cfg(feature = "cuda")]
+    pub fn copy_between_gpus(&self, target_device: usize) -> PyResult<TensorStorage> {
+        match &self.data {
+            TensorData::Cuda { data, device, .. } => {
+                match data.as_ref() {
+                    CudaData::Float64(src_slice) => {
+                        let src_device = device.ordinal();
+                        let dst_slice = peer_copy(src_device, src_slice, target_device)
+                            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                        let target_dev = get_device(target_device)
+                            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                        Ok(TensorStorage::new_from_cuda(
+                            CudaData::Float64(dst_slice),
+                            target_dev,
+                            self.shape.clone(),
+                            target_device,
+                        ))
+                    }
+                    _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                        "copy_between_gpus only supports f64 CUDA tensors"
+                    ))
+                }
+            }
+            _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "Source tensor must be on CUDA device"
+            ))
+        }
+    }
+
+    /// Scatter tensor to multiple GPUs using scatter function
+    #[cfg(feature = "cuda")]
+    pub fn scatter_multi_gpu(&self, device_ids: Vec<usize>) -> PyResult<Vec<TensorStorage>> {
+        scatter(self, &device_ids)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))
+    }
+
+    /// Gather tensors from multiple GPUs to target device using gather function
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn gather_multi_gpu(
+        tensors: &Bound<'_, PyList>,
+        target_device: usize,
+    ) -> PyResult<TensorStorage> {
+        let n = tensors.len();
+        let mut tensor_vec: Vec<TensorStorage> = Vec::with_capacity(n);
+        for i in 0..n {
+            let item = tensors.get_item(i)?;
+            let tensor_ref: pyo3::PyRef<'_, TensorStorage> = item.extract()?;
+            tensor_vec.push(tensor_ref.clone_storage_internal());
+        }
+        gather(&tensor_vec, target_device)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))
+    }
+
+    /// Allocate using PooledSlice and return a TensorStorage
+    /// Demonstrates explicit use of PooledSlice construction
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn alloc_with_pooled_slice(count: usize, device_idx: usize) -> PyResult<TensorStorage> {
+        let pool: Arc<MemoryPool> = get_pool(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let device = get_device(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Allocate raw slice and wrap in PooledSlice
+        let raw_slice: CudaSlice<f64> = pool.alloc_f64(count)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let pooled: PooledSlice<f64> = PooledSlice::new(raw_slice, pool.clone());
+
+        // Use PooledSlice methods
+        let len = pooled.len();
+        let _is_empty = pooled.is_empty();
+        let _slice_ref = pooled.as_slice();
+        let _pool_ref = pooled.pool();  // Access the pool field
+
+        // Get raw slice for tensor construction
+        let raw_slice = pooled.take();
+
+        Ok(TensorStorage::new_from_cuda(
+            CudaData::Float64(raw_slice),
+            device,
+            vec![len],
+            device_idx,
+        ))
+    }
+
+    /// Get detailed pool statistics using PoolStats
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn detailed_pool_stats(device_idx: usize) -> PyResult<String> {
+        let pool: Arc<MemoryPool> = get_pool(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let stats: PoolStats = pool.stats();
+        Ok(format!(
+            "PoolStats {{ cached_bytes: {}, cache_hits: {}, cache_misses: {}, total_allocations: {}, total_bytes: {} }}",
+            stats.cached_bytes, stats.cache_hits, stats.cache_misses,
+            stats.total_allocations, stats.total_bytes_allocated
+        ))
+    }
+
+    /// Get device count using DeviceManager
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn cuda_device_count_from_manager() -> usize {
+        DeviceManager::device_count()
+    }
+
+    /// Transfer to device asynchronously, returning full AsyncTensorTransfer info
+    #[cfg(feature = "cuda")]
+    pub fn transfer_async_full(&self, device_str: &str) -> PyResult<(String, Vec<usize>, String)> {
+        let transfer: AsyncTensorTransfer = self.to_device_async(device_str)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok((
+            format!("cuda:{}", transfer.device_idx()),
+            transfer.shape().to_vec(),
+            transfer.dtype().to_string(),
+        ))
+    }
+
+    /// Create an async transfer handle for H2D transfer
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn create_async_transfer(data: Vec<f64>, device_idx: usize) -> PyResult<(usize, String)> {
+        // Create an AsyncTransfer handle to track device operations
+        let transfer = AsyncTransfer::new(device_idx);
+        let len = data.len();
+
+        // Actually do the transfer via device
+        let device = get_device(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let _cuda_slice = device.htod_sync_copy(&data)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Wait for transfer to complete
+        transfer.wait()
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        Ok((len, format!("cuda:{}", device_idx)))
+    }
+
+    /// Compute symbolic q-correction factor using SymExpr
+    /// Returns (symbolic_string, numeric_value) tuple
+    #[staticmethod]
+    pub fn symbolic_q_correction(n: u32, sign: i8) -> (String, f64) {
+        let one = SymExpr::from_int(1);
+        let q = SymExpr::q();
+        let n_expr = SymExpr::from_int(n as i128);
+        let q_over_n = q.div(n_expr);
+
+        let result = if sign >= 0 {
+            one.add(q_over_n)
+        } else {
+            one.sub(q_over_n)
+        };
+
+        // Use Display trait (to_string) for formatting
+        (result.to_string(), result.eval_f64())
+    }
+
+    /// Get the StreamKind names as documentation
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn available_stream_kinds() -> Vec<String> {
+        vec![
+            format!("StreamKind::{:?}", StreamKind::Default),
+            format!("StreamKind::{:?}", StreamKind::Transfer),
+            format!("StreamKind::{:?}", StreamKind::Compute),
+            format!("StreamKind::{:?}", StreamKind::Auxiliary),
+        ]
+    }
+
+    /// Prefetch tensor data to a device (async start)
+    /// Uses AsyncTensorOps trait method
+    #[cfg(feature = "cuda")]
+    pub fn prefetch_to_device(&self, device: &str) -> PyResult<()> {
+        self.prefetch(device)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))
+    }
+
+    /// Transfer with compute overlap example
+    /// Demonstrates using TransferComputeOverlap
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn transfer_with_overlap(data: Vec<f64>, device_idx: usize) -> PyResult<String> {
+        let overlap = TransferComputeOverlap::new(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Use transfer method
+        let _slice = overlap.transfer(&data)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Use sync method
+        overlap.sync()
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Use device method
+        let device = overlap.device();
+        Ok(format!("Transferred {} f64s to device {}", data.len(), device.ordinal()))
+    }
+
+    /// Transfer with async tracking - waits for completion
+    /// Demonstrates AsyncTensorTransfer.is_ready() and wait()
+    #[cfg(feature = "cuda")]
+    pub fn transfer_async_with_wait(&self, device_str: &str) -> PyResult<(String, bool)> {
+        let mut transfer: AsyncTensorTransfer = self.to_device_async(device_str)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Check if ready before waiting
+        let was_ready = transfer.is_ready();
+
+        // Wait for completion
+        transfer.wait()
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        Ok((format!("cuda:{}", transfer.device_idx()), was_ready))
+    }
+
+    /// Copy data back from device to host asynchronously
+    /// Uses dtoh_async function
+    #[cfg(feature = "cuda")]
+    pub fn copy_to_host_async(&self) -> PyResult<Vec<f64>> {
+        use super::cuda::async_transfer::dtoh_async;
+
+        match &self.data {
+            TensorData::Cuda { data, device, .. } => {
+                match data.as_ref() {
+                    CudaData::Float64(slice) => {
+                        let mut host_buf = vec![0.0f64; slice.len()];
+                        dtoh_async(device, slice, &mut host_buf)
+                            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                        Ok(host_buf)
+                    }
+                    _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                        "Only f64 CUDA tensors supported for async D2H"
+                    ))
+                }
+            }
+            _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "Tensor must be on CUDA device"
+            ))
+        }
+    }
+
+    /// Allocate with pooled slice using mutable operations
+    /// Uses PooledSlice.as_slice_mut() and pool field
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn alloc_and_fill_pooled(count: usize, fill_value: f64, device_idx: usize) -> PyResult<TensorStorage> {
+        let pool: Arc<MemoryPool> = get_pool(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let device = get_device(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Allocate and wrap in PooledSlice
+        let raw_slice: CudaSlice<f64> = pool.alloc_f64(count)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let mut pooled: PooledSlice<f64> = PooledSlice::new(raw_slice, pool.clone());
+
+        // Use as_slice_mut for mutable access (demonstrates usage)
+        let _slice_mut = pooled.as_slice_mut();
+
+        // Fill with values on host then copy
+        let host_data: Vec<f64> = vec![fill_value; count];
+        let filled_slice = device.htod_sync_copy(&host_data)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Drop the pooled slice and use the filled one
+        drop(pooled);
+
+        Ok(TensorStorage::new_from_cuda(
+            CudaData::Float64(filled_slice),
+            device,
+            vec![count],
+            device_idx,
+        ))
+    }
+
+    /// Get memory pool info including internal details
+    /// Uses MemoryPool's device_idx and config fields
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn pool_full_info(device_idx: usize) -> PyResult<String> {
+        let pool: Arc<MemoryPool> = get_pool(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Use device_idx() method
+        let dev_idx = pool.device_idx();
+        // Use device() method
+        let device = pool.device();
+        // Use stats()
+        let stats = pool.stats();
+
+        Ok(format!(
+            "MemoryPool {{ device_idx: {}, device_ordinal: {}, cached_bytes: {}, hits: {}, misses: {} }}",
+            dev_idx, device.ordinal(), stats.cached_bytes, stats.cache_hits, stats.cache_misses
+        ))
+    }
+
+    /// Trim pool to release memory
+    /// Uses MemoryPool.trim()
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn pool_trim_all(device_idx: usize) -> PyResult<()> {
+        let pool: Arc<MemoryPool> = get_pool(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        pool.trim();
+        Ok(())
+    }
+
+    /// Allocate raw bytes and return to pool
+    /// Uses MemoryPool.alloc_bytes() and free_bytes()
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn pool_alloc_free_test(size: usize, device_idx: usize) -> PyResult<String> {
+        let pool: Arc<MemoryPool> = get_pool(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Allocate bytes
+        let slice = pool.alloc_bytes(size)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        let allocated_len = slice.len();
+
+        // Free bytes (returns to pool)
+        pool.free_bytes(slice);
+
+        Ok(format!("Allocated {} bytes, freed back to pool", allocated_len))
+    }
+
+    /// Allocate f32 memory from pool
+    /// Uses MemoryPool.alloc_f32()
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn alloc_pooled_f32(count: usize, device_idx: usize) -> PyResult<TensorStorage> {
+        let pool: Arc<MemoryPool> = get_pool(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let device = get_device(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        let slice = pool.alloc_f32(count)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        Ok(TensorStorage::new_from_cuda(
+            CudaData::Float32(slice),
+            device,
+            vec![count],
+            device_idx,
+        ))
+    }
+
+    /// Create a pool with custom configuration
+    /// Uses MemoryPool::with_config() and config field
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    pub fn create_custom_pool_info(device_idx: usize) -> PyResult<String> {
+        let device = get_device(device_idx)
+            .map_err(|e: CudaError| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Create custom config
+        let config = PoolConfig {
+            min_block_size: 512,
+            max_cached_bytes: 1024 * 1024,  // 1MB
+            round_to_power_of_2: true,
+            max_cacheable_size: 256 * 1024, // 256KB
+        };
+
+        // Create pool with custom config
+        let pool = MemoryPool::with_config(device_idx, device.clone(), config);
+
+        // Use pool methods to verify it works
+        let stats = pool.stats();
+        let dev_idx = pool.device_idx();
+
+        Ok(format!(
+            "Custom pool created: device_idx={}, cached_bytes={}",
+            dev_idx, stats.cached_bytes
+        ))
+    }
 }
 
 // Private implementation
@@ -1618,8 +2251,8 @@ impl TensorStorage {
 
     #[cfg(feature = "cuda")]
     fn cpu_to_cuda(cpu_data: CpuData, shape: Vec<usize>, device_idx: usize) -> PyResult<TensorStorage> {
-        let device = CudaDevice::new(device_idx)
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("CUDA init failed: {}", e)))?;
+        // Use DeviceManager for cached device handles
+        let device = get_device(device_idx)?;
 
         let (cuda_data, dtype) = match cpu_data {
             CpuData::Float32(arr) => {
@@ -1800,7 +2433,7 @@ impl TensorStorage {
 pub fn cuda_is_available() -> bool {
     #[cfg(feature = "cuda")]
     {
-        CudaDevice::new(0).is_ok()
+        DeviceManager::is_available()
     }
     #[cfg(not(feature = "cuda"))]
     {
@@ -1813,10 +2446,590 @@ pub fn cuda_is_available() -> bool {
 pub fn cuda_device_count() -> usize {
     #[cfg(feature = "cuda")]
     {
-        CudaDevice::count().unwrap_or(0) as usize
+        DeviceManager::device_count()
     }
     #[cfg(not(feature = "cuda"))]
     {
         0
+    }
+}
+
+// =============================================================================
+// SRT CUDA Operation Wrappers
+// =============================================================================
+
+/// Scale a tensor by the golden ratio φ (GPU-accelerated when on CUDA)
+#[pyfunction]
+pub fn srt_scale_phi(tensor: &TensorStorage) -> PyResult<TensorStorage> {
+    let n: usize = tensor.shape.iter().product();
+
+    match &tensor.data {
+        TensorData::Cpu(cpu_data) => {
+            // CPU implementation
+            match cpu_data {
+                CpuData::Float64(arr) => {
+                    let phi = srt_kernels::PHI;
+                    let scaled: Vec<f64> = arr.iter().map(|x| x * phi).collect();
+                    let new_arr = ArrayD::from_shape_vec(IxDyn(&tensor.shape), scaled)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    Ok(TensorStorage {
+                        data: TensorData::Cpu(CpuData::Float64(new_arr)),
+                        shape: tensor.shape.clone(),
+                        device: DeviceType::Cpu,
+                    })
+                },
+                CpuData::Float32(arr) => {
+                    let phi = srt_kernels::PHI as f32;
+                    let scaled: Vec<f32> = arr.iter().map(|x| x * phi).collect();
+                    let new_arr = ArrayD::from_shape_vec(IxDyn(&tensor.shape), scaled)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    Ok(TensorStorage {
+                        data: TensorData::Cpu(CpuData::Float32(new_arr)),
+                        shape: tensor.shape.clone(),
+                        device: DeviceType::Cpu,
+                    })
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_scale_phi requires float32 or float64 tensor"
+                )),
+            }
+        },
+        #[cfg(feature = "cuda")]
+        TensorData::Cuda { data, device, shape, dtype: _ } => {
+            match data.as_ref() {
+                CudaData::Float64(input_slice) => {
+                    let mut output_slice: CudaSlice<f64> = device.alloc_zeros(n)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    srt_kernels::cuda_scale_phi_f64(device, input_slice, &mut output_slice, n)?;
+                    Ok(TensorStorage::new_from_cuda(
+                        CudaData::Float64(output_slice),
+                        device.clone(),
+                        shape.clone(),
+                        device.ordinal(),
+                    ))
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "CUDA srt_scale_phi currently only supports float64"
+                )),
+            }
+        },
+    }
+}
+
+/// Compute golden gaussian weights for 8D vectors: w(λ) = exp(-|λ|²/φ)
+/// Input tensor must have shape [..., 8] (last dimension is 8)
+#[pyfunction]
+pub fn srt_golden_gaussian_weights(vectors: &TensorStorage) -> PyResult<TensorStorage> {
+    // Validate shape - last dimension must be 8
+    if vectors.shape.is_empty() || *vectors.shape.last().unwrap() != 8 {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            "Input tensor must have last dimension of 8 for 8D golden gaussian weights"
+        ));
+    }
+
+    let count: usize = vectors.shape.iter().take(vectors.shape.len() - 1).product();
+    let count = if count == 0 { 1 } else { count }; // Handle scalar case
+    let output_shape: Vec<usize> = vectors.shape[..vectors.shape.len()-1].to_vec();
+    let output_shape = if output_shape.is_empty() { vec![1] } else { output_shape };
+
+    match &vectors.data {
+        TensorData::Cpu(cpu_data) => {
+            match cpu_data {
+                CpuData::Float64(arr) => {
+                    let mut weights = vec![0.0f64; count];
+                    srt_kernels::cpu_golden_gaussian_8d_f64(arr.as_slice().unwrap(), &mut weights);
+                    let new_arr = ArrayD::from_shape_vec(IxDyn(&output_shape), weights)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    Ok(TensorStorage {
+                        data: TensorData::Cpu(CpuData::Float64(new_arr)),
+                        shape: output_shape,
+                        device: DeviceType::Cpu,
+                    })
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_golden_gaussian_weights requires float64 tensor"
+                )),
+            }
+        },
+        #[cfg(feature = "cuda")]
+        TensorData::Cuda { data, device, shape: _, dtype: _ } => {
+            match data.as_ref() {
+                CudaData::Float64(input_slice) => {
+                    let mut output_slice: CudaSlice<f64> = device.alloc_zeros(count)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    srt_kernels::cuda_golden_gaussian_8d_f64(device, input_slice, &mut output_slice, count)?;
+                    Ok(TensorStorage::new_from_cuda(
+                        CudaData::Float64(output_slice),
+                        device.clone(),
+                        output_shape.clone(),
+                        device.ordinal(),
+                    ))
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "CUDA srt_golden_gaussian_weights currently only supports float64"
+                )),
+            }
+        },
+    }
+}
+
+/// Apply SRT correction factor: value × (1 + sign × q / N)
+/// structure_idx: 0=E8_DIM(248), 1=E8_ROOTS(240), 2=E8_POS(120), etc.
+/// sign: +1 or -1
+#[pyfunction]
+pub fn srt_apply_correction(tensor: &TensorStorage, structure_idx: i32, sign: i32) -> PyResult<TensorStorage> {
+    let n: usize = tensor.shape.iter().product();
+    let factor = srt_kernels::cpu_correction_factor(srt_kernels::get_structure_dimension(structure_idx), sign);
+
+    match &tensor.data {
+        TensorData::Cpu(cpu_data) => {
+            match cpu_data {
+                CpuData::Float64(arr) => {
+                    let corrected: Vec<f64> = arr.iter().map(|x| x * factor).collect();
+                    let new_arr = ArrayD::from_shape_vec(IxDyn(&tensor.shape), corrected)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    Ok(TensorStorage {
+                        data: TensorData::Cpu(CpuData::Float64(new_arr)),
+                        shape: tensor.shape.clone(),
+                        device: DeviceType::Cpu,
+                    })
+                },
+                CpuData::Float32(arr) => {
+                    let factor_f32 = factor as f32;
+                    let corrected: Vec<f32> = arr.iter().map(|x| x * factor_f32).collect();
+                    let new_arr = ArrayD::from_shape_vec(IxDyn(&tensor.shape), corrected)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    Ok(TensorStorage {
+                        data: TensorData::Cpu(CpuData::Float32(new_arr)),
+                        shape: tensor.shape.clone(),
+                        device: DeviceType::Cpu,
+                    })
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_apply_correction requires float32 or float64 tensor"
+                )),
+            }
+        },
+        #[cfg(feature = "cuda")]
+        TensorData::Cuda { data, device, shape, dtype: _ } => {
+            match data.as_ref() {
+                CudaData::Float64(input_slice) => {
+                    let mut output_slice: CudaSlice<f64> = device.alloc_zeros(n)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    srt_kernels::cuda_apply_correction_f64(device, input_slice, &mut output_slice, structure_idx, sign, n)?;
+                    Ok(TensorStorage::new_from_cuda(
+                        CudaData::Float64(output_slice),
+                        device.clone(),
+                        shape.clone(),
+                        device.ordinal(),
+                    ))
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "CUDA srt_apply_correction currently only supports float64"
+                )),
+            }
+        },
+    }
+}
+
+/// Compute E8 batch projection for 8D root vectors
+/// Returns tuple: (proj_parallel [N×4], proj_perp [N×4], q_values [N], in_cone [N])
+/// proj_parallel: projection onto physical subspace
+/// proj_perp: projection onto internal subspace
+/// q_values: quadratic form Q = ||p_par||² - ||p_perp||²
+/// in_cone: 1 if root is in golden cone, 0 otherwise
+#[pyfunction]
+pub fn srt_e8_batch_projection(roots: &TensorStorage) -> PyResult<(TensorStorage, TensorStorage, TensorStorage, TensorStorage)> {
+    // Validate shape - must be [N, 8]
+    if roots.shape.len() != 2 || roots.shape[1] != 8 {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            "Input tensor must have shape [N, 8] for E8 batch projection"
+        ));
+    }
+    let count = roots.shape[0];
+
+    // Golden ratio constant
+    const PHI: f64 = 1.618033988749895;
+    // Projection normalization: 1/sqrt(2*PHI + 2) = 1/sqrt(2*(phi+1))
+    const PROJ_NORM: f64 = 0.3717480344601846;
+
+    match &roots.data {
+        TensorData::Cpu(cpu_data) => {
+            match cpu_data {
+                CpuData::Float64(arr) => {
+                    let root_data = arr.as_slice().ok_or_else(|| {
+                        PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Cannot access array as contiguous slice")
+                    })?;
+
+                    // Allocate output arrays
+                    let mut proj_parallel_data = vec![0.0f64; count * 4];
+                    let mut proj_perp_data = vec![0.0f64; count * 4];
+                    let mut q_values_data = vec![0.0f64; count];
+                    let mut in_cone_data = vec![0i64; count];
+
+                    for i in 0..count {
+                        let root = &root_data[i*8..(i+1)*8];
+
+                        // Project to parallel (physical) space: P_φ · root
+                        let p_par = [
+                            PROJ_NORM * (PHI * root[0] + root[1]),
+                            PROJ_NORM * (PHI * root[2] + root[3]),
+                            PROJ_NORM * (PHI * root[4] + root[5]),
+                            PROJ_NORM * (PHI * root[6] + root[7]),
+                        ];
+
+                        // Project to perpendicular (internal) space: P_⊥ · root
+                        let p_perp = [
+                            PROJ_NORM * (root[0] - PHI * root[1]),
+                            PROJ_NORM * (root[2] - PHI * root[3]),
+                            PROJ_NORM * (root[4] - PHI * root[5]),
+                            PROJ_NORM * (root[6] - PHI * root[7]),
+                        ];
+
+                        // Quadratic form Q = ||p_par||² - ||p_perp||²
+                        let par_sq: f64 = p_par.iter().map(|x| x * x).sum();
+                        let perp_sq: f64 = p_perp.iter().map(|x| x * x).sum();
+                        q_values_data[i] = par_sq - perp_sq;
+
+                        // Golden cone test: all B_a >= 0 where B_a = root[2a] - PHI * root[2a+1]
+                        let in_cone = (0..4).all(|a| root[2*a] - PHI * root[2*a + 1] >= -1e-10);
+                        in_cone_data[i] = if in_cone { 1 } else { 0 };
+
+                        // Store projections
+                        proj_parallel_data[i*4..(i+1)*4].copy_from_slice(&p_par);
+                        proj_perp_data[i*4..(i+1)*4].copy_from_slice(&p_perp);
+                    }
+
+                    // Create output tensors
+                    let proj_parallel = TensorStorage {
+                        data: TensorData::Cpu(CpuData::Float64(
+                            ArrayD::from_shape_vec(IxDyn(&[count, 4]), proj_parallel_data)
+                                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?
+                        )),
+                        shape: vec![count, 4],
+                        device: DeviceType::Cpu,
+                    };
+                    let proj_perp = TensorStorage {
+                        data: TensorData::Cpu(CpuData::Float64(
+                            ArrayD::from_shape_vec(IxDyn(&[count, 4]), proj_perp_data)
+                                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?
+                        )),
+                        shape: vec![count, 4],
+                        device: DeviceType::Cpu,
+                    };
+                    let q_values = TensorStorage {
+                        data: TensorData::Cpu(CpuData::Float64(
+                            ArrayD::from_shape_vec(IxDyn(&[count]), q_values_data)
+                                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?
+                        )),
+                        shape: vec![count],
+                        device: DeviceType::Cpu,
+                    };
+                    let in_cone = TensorStorage {
+                        data: TensorData::Cpu(CpuData::Int64(
+                            ArrayD::from_shape_vec(IxDyn(&[count]), in_cone_data)
+                                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?
+                        )),
+                        shape: vec![count],
+                        device: DeviceType::Cpu,
+                    };
+
+                    Ok((proj_parallel, proj_perp, q_values, in_cone))
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_e8_batch_projection requires float64 tensor"
+                )),
+            }
+        },
+        #[cfg(feature = "cuda")]
+        TensorData::Cuda { data, device, shape: _, dtype: _ } => {
+            match data.as_ref() {
+                CudaData::Float64(input_slice) => {
+                    // Allocate output buffers
+                    let mut proj_parallel: CudaSlice<f64> = device.alloc_zeros(count * 4)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    let mut proj_perp: CudaSlice<f64> = device.alloc_zeros(count * 4)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    let mut q_values: CudaSlice<f64> = device.alloc_zeros(count)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    let mut in_cone: CudaSlice<i32> = device.alloc_zeros(count)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+                    srt_kernels::cuda_e8_batch_projection_f64(
+                        device, input_slice,
+                        &mut proj_parallel, &mut proj_perp, &mut q_values, &mut in_cone,
+                        count
+                    )?;
+
+                    // Convert in_cone i32 to i64 on CPU for consistency
+                    let in_cone_i32: Vec<i32> = device.dtoh_sync_copy(&in_cone)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    let in_cone_i64: Vec<i64> = in_cone_i32.iter().map(|&x| x as i64).collect();
+
+                    Ok((
+                        TensorStorage::new_from_cuda(CudaData::Float64(proj_parallel), device.clone(), vec![count, 4], device.ordinal()),
+                        TensorStorage::new_from_cuda(CudaData::Float64(proj_perp), device.clone(), vec![count, 4], device.ordinal()),
+                        TensorStorage::new_from_cuda(CudaData::Float64(q_values), device.clone(), vec![count], device.ordinal()),
+                        TensorStorage {
+                            data: TensorData::Cpu(CpuData::Int64(
+                                ArrayD::from_shape_vec(IxDyn(&[count]), in_cone_i64)
+                                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?
+                            )),
+                            shape: vec![count],
+                            device: DeviceType::Cpu,
+                        },
+                    ))
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_e8_batch_projection requires float64 tensor"
+                )),
+            }
+        },
+    }
+}
+
+/// Compute theta series sum: Θ(t) = Σ_λ w(λ) exp(-π Q(λ) / t)
+/// q_values: quadratic form values Q(λ) for each lattice point
+/// in_cone: binary mask (1 = include, 0 = exclude) for golden cone filtering
+/// t: modular parameter for the theta function
+/// Returns the scalar theta series value
+#[pyfunction]
+pub fn srt_theta_series(q_values: &TensorStorage, in_cone: &TensorStorage, t: f64) -> PyResult<f64> {
+    let count: usize = q_values.shape.iter().product();
+    let cone_count: usize = in_cone.shape.iter().product();
+
+    if count != cone_count {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            format!("q_values length {} must match in_cone length {}", count, cone_count)
+        ));
+    }
+
+    match (&q_values.data, &in_cone.data) {
+        (TensorData::Cpu(q_cpu), TensorData::Cpu(cone_cpu)) => {
+            // CPU implementation
+            match (q_cpu, cone_cpu) {
+                (CpuData::Float64(q_arr), CpuData::Int64(cone_arr)) => {
+                    let pi = std::f64::consts::PI;
+                    let sum: f64 = q_arr.iter()
+                        .zip(cone_arr.iter())
+                        .filter(|(_, &c)| c != 0)
+                        .map(|(&q, _)| (-pi * q / t).exp())
+                        .sum();
+                    Ok(sum)
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_theta_series requires float64 q_values and int64 in_cone"
+                )),
+            }
+        },
+        #[cfg(feature = "cuda")]
+        (TensorData::Cuda { data: q_data, device, .. }, TensorData::Cpu(cone_cpu)) => {
+            // CUDA q_values with CPU in_cone - need to copy in_cone to GPU
+            match (q_data.as_ref(), cone_cpu) {
+                (CudaData::Float64(q_slice), CpuData::Int64(cone_arr)) => {
+                    let cone_i32: Vec<i32> = cone_arr.iter().map(|&x| x as i32).collect();
+                    let cone_cuda: CudaSlice<i32> = device.htod_sync_copy(&cone_i32)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    srt_kernels::cuda_theta_series_f64(device, q_slice, &cone_cuda, None, t, count)
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_theta_series requires float64 q_values and int64 in_cone"
+                )),
+            }
+        },
+        #[cfg(feature = "cuda")]
+        (TensorData::Cuda { data: q_data, device, .. }, TensorData::Cuda { data: cone_data, .. }) => {
+            // Both on CUDA - directly use GPU data
+            match q_data.as_ref() {
+                CudaData::Float64(q_slice) => {
+                    // in_cone should be Int64 stored as CudaData - need to convert
+                    // For now, copy to CPU and back since our CUDA kernel expects i32
+                    let cone_cpu: Vec<i64> = match cone_data.as_ref() {
+                        CudaData::Float64(s) => {
+                            let f: Vec<f64> = device.dtoh_sync_copy(s)
+                                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                            f.iter().map(|&x| x as i64).collect()
+                        },
+                        _ => return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                            "Unexpected CUDA data type for in_cone"
+                        )),
+                    };
+                    let cone_i32: Vec<i32> = cone_cpu.iter().map(|&x| x as i32).collect();
+                    let cone_cuda: CudaSlice<i32> = device.htod_sync_copy(&cone_i32)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    srt_kernels::cuda_theta_series_f64(device, q_slice, &cone_cuda, None, t, count)
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_theta_series requires float64 q_values"
+                )),
+            }
+        },
+        _ => Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            "srt_theta_series: q_values and in_cone must both be on CPU or q_values on CUDA"
+        )),
+    }
+}
+
+/// Compute syntony metric S(ψ) for complex128 state vectors
+/// S(ψ) = Σ|ψ|² exp(-|n|²/φ) / Σ|ψ|²
+/// Returns the syntony value in [0, 1]
+#[pyfunction]
+pub fn srt_compute_syntony(psi: &TensorStorage, mode_norm_sq: &TensorStorage) -> PyResult<f64> {
+    let n: usize = psi.shape.iter().product();
+    let norm_len: usize = mode_norm_sq.shape.iter().product();
+
+    if n != norm_len {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            format!("psi length {} must match mode_norm_sq length {}", n, norm_len)
+        ));
+    }
+
+    // 1/φ = φ - 1
+    const PHI_INV: f64 = 0.618033988749895;
+
+    match (&psi.data, &mode_norm_sq.data) {
+        (TensorData::Cpu(psi_cpu), TensorData::Cpu(norm_cpu)) => {
+            // CPU implementation
+            match (psi_cpu, norm_cpu) {
+                (CpuData::Complex128(psi_arr), CpuData::Float64(norm_arr)) => {
+                    let mut numerator = 0.0f64;
+                    let mut denominator = 0.0f64;
+
+                    for (psi_val, &norm_sq) in psi_arr.iter().zip(norm_arr.iter()) {
+                        let amp_sq = psi_val.norm_sqr(); // |re|² + |im|²
+                        let weight = (-norm_sq * PHI_INV).exp();
+                        numerator += amp_sq * weight;
+                        denominator += amp_sq;
+                    }
+
+                    if denominator < 1e-15 {
+                        Ok(0.0)
+                    } else {
+                        Ok(numerator / denominator)
+                    }
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_compute_syntony requires complex128 psi and float64 mode_norm_sq"
+                )),
+            }
+        },
+        #[cfg(feature = "cuda")]
+        (TensorData::Cuda { data: psi_data, device, .. }, TensorData::Cuda { data: norm_data, .. }) => {
+            match (psi_data.as_ref(), norm_data.as_ref()) {
+                (CudaData::Complex128(psi_slice), CudaData::Float64(norm_slice)) => {
+                    srt_kernels::cuda_compute_syntony_c128(device, psi_slice, norm_slice, n)
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_compute_syntony requires complex128 psi and float64 mode_norm_sq"
+                )),
+            }
+        },
+        _ => Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            "srt_compute_syntony requires both tensors on same device (CPU or CUDA)"
+        )),
+    }
+}
+
+/// Apply DHSR (Differentiate-Harmonize-Syntony-Recursion) cycle to complex128 state vector
+/// Differentiation: amplifies high-frequency modes based on (1 - syntony)
+/// Harmonization: attenuates non-golden modes based on syntony
+/// Returns tuple: (new_psi, new_syntony) where new_psi is the evolved state
+#[pyfunction]
+pub fn srt_dhsr_cycle(psi: &TensorStorage, mode_norm_sq: &TensorStorage, syntony: f64) -> PyResult<(TensorStorage, f64)> {
+    let n: usize = psi.shape.iter().product();
+    let norm_len: usize = mode_norm_sq.shape.iter().product();
+
+    if n != norm_len {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            format!("psi length {} must match mode_norm_sq length {}", n, norm_len)
+        ));
+    }
+
+    // Golden ratio constants
+    const PHI_INV: f64 = 0.618033988749895;       // 1/φ = φ - 1
+    const PHI_INV_SQ: f64 = 0.381966011250105;    // 1/φ² = 2 - φ
+
+    match (&psi.data, &mode_norm_sq.data) {
+        (TensorData::Cpu(psi_cpu), TensorData::Cpu(norm_cpu)) => {
+            // CPU implementation
+            match (psi_cpu, norm_cpu) {
+                (CpuData::Complex128(psi_arr), CpuData::Float64(norm_arr)) => {
+                    let alpha = PHI_INV_SQ * (1.0 - syntony);  // Differentiation strength
+                    let beta = PHI_INV * syntony;              // Harmonization strength
+
+                    let mut new_psi_data: Vec<Complex64> = Vec::with_capacity(n);
+                    let mut new_num = 0.0f64;
+                    let mut new_den = 0.0f64;
+
+                    for (psi_val, &norm_sq) in psi_arr.iter().zip(norm_arr.iter()) {
+                        // Differentiation: scale = 1 + α√|n|²
+                        let d_scale = 1.0 + alpha * norm_sq.sqrt();
+
+                        // Harmonization: scale = 1 - β(1 - exp(-|n|²/φ))
+                        let golden_weight = (-norm_sq * PHI_INV).exp();
+                        let h_scale = 1.0 - beta * (1.0 - golden_weight);
+
+                        // Combined DHSR scale
+                        let total_scale = d_scale * h_scale;
+
+                        // Apply to psi (complex)
+                        let new_psi_val = psi_val * total_scale;
+                        new_psi_data.push(new_psi_val);
+
+                        // Accumulate new syntony
+                        let new_amp_sq = new_psi_val.norm_sqr();
+                        new_num += new_amp_sq * golden_weight;
+                        new_den += new_amp_sq;
+                    }
+
+                    let new_syntony = if new_den < 1e-15 { syntony } else { new_num / new_den };
+
+                    let new_psi = TensorStorage {
+                        data: TensorData::Cpu(CpuData::Complex128(
+                            ArrayD::from_shape_vec(IxDyn(&psi.shape), new_psi_data)
+                                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?
+                        )),
+                        shape: psi.shape.clone(),
+                        device: DeviceType::Cpu,
+                    };
+
+                    Ok((new_psi, new_syntony))
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_dhsr_cycle requires complex128 psi and float64 mode_norm_sq"
+                )),
+            }
+        },
+        #[cfg(feature = "cuda")]
+        (TensorData::Cuda { data: psi_data, device, shape, .. }, TensorData::Cuda { data: norm_data, .. }) => {
+            match (psi_data.as_ref(), norm_data.as_ref()) {
+                (CudaData::Complex128(psi_slice), CudaData::Float64(norm_slice)) => {
+                    // Copy psi to a new buffer for in-place modification
+                    let mut new_psi_slice: CudaSlice<f64> = device.alloc_zeros(n * 2)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    device.dtod_copy(psi_slice, &mut new_psi_slice)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+                    let new_syntony = srt_kernels::cuda_dhsr_cycle_inplace_c128(
+                        device, &mut new_psi_slice, norm_slice, syntony, n
+                    )?;
+
+                    let new_psi = TensorStorage::new_from_cuda(
+                        CudaData::Complex128(new_psi_slice),
+                        device.clone(),
+                        shape.clone(),
+                        device.ordinal(),
+                    );
+
+                    Ok((new_psi, new_syntony))
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "srt_dhsr_cycle requires complex128 psi and float64 mode_norm_sq"
+                )),
+            }
+        },
+        _ => Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            "srt_dhsr_cycle requires both tensors on same device (CPU or CUDA)"
+        )),
     }
 }

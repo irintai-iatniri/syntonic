@@ -519,6 +519,8 @@ pub fn cuda_dhsr_cycle_inplace_c128(
 }
 
 /// Apply SRT correction factor: value × (1 + sign × q / N)
+/// structure_idx should be one of the structure:: constants:
+///   E8_DIM(0), E8_ROOTS(1), E8_POS(2), E6_DIM(3), E6_CONE(4), E6_27(5), D4_KISSING(6), G2_DIM(7)
 #[cfg(feature = "cuda")]
 pub fn cuda_apply_correction_f64(
     device: &Arc<CudaDevice>,
@@ -528,6 +530,19 @@ pub fn cuda_apply_correction_f64(
     sign: i32,
     n: usize,
 ) -> PyResult<()> {
+    // Validate structure index using structure constants
+    let valid_idx = matches!(
+        structure_idx,
+        structure::E8_DIM | structure::E8_ROOTS | structure::E8_POS |
+        structure::E6_DIM | structure::E6_CONE | structure::E6_27 |
+        structure::D4_KISSING | structure::G2_DIM
+    );
+    if !valid_idx {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            format!("Invalid structure index {}. Use structure::E8_DIM, E8_ROOTS, etc.", structure_idx)
+        ));
+    }
+
     ensure_srt_kernels_loaded(device)?;
 
     let func = device.get_func("srt_corr", "apply_correction_f64")

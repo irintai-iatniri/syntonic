@@ -2,10 +2,10 @@
 //!
 //! Provides stream-based transfers for overlapping transfers with compute.
 
-use cudarc::driver::{CudaDevice, CudaSlice, CudaStream};
+use cudarc::driver::{CudaDevice, CudaSlice};
 use std::sync::Arc;
 
-use super::device_manager::{CudaError, get_device, create_stream};
+use super::device_manager::{CudaError, get_device};
 use crate::tensor::storage::{TensorStorage, CpuData, DeviceType};
 
 /// Handle for tracking an async transfer

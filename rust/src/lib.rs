@@ -7,7 +7,9 @@ mod linalg;
 mod winding;
 mod spectral;
 
-use tensor::storage::{TensorStorage, cuda_is_available, cuda_device_count};
+use tensor::storage::{TensorStorage, cuda_is_available, cuda_device_count,
+    srt_scale_phi, srt_golden_gaussian_weights, srt_apply_correction,
+    srt_e8_batch_projection, srt_theta_series, srt_compute_syntony, srt_dhsr_cycle};
 use tensor::srt_kernels;
 use hypercomplex::{Quaternion, Octonion};
 
@@ -47,6 +49,8 @@ use linalg::{
     py_mm_phi, py_phi_bracket, py_phi_antibracket,
     py_mm_corrected, py_mm_golden_phase, py_mm_golden_weighted,
     py_projection_sum,
+    // New generalized functions
+    py_mm_gemm, py_mm_q_corrected_direct, py_q_correction_scalar,
 };
 
 // =============================================================================
@@ -119,6 +123,15 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(srt_structure_dimension, m)?)?;
     m.add_function(wrap_pyfunction!(srt_correction_factor, m)?)?;
 
+    // === SRT Tensor Operations (GPU-accelerated when on CUDA) ===
+    m.add_function(wrap_pyfunction!(srt_scale_phi, m)?)?;
+    m.add_function(wrap_pyfunction!(srt_golden_gaussian_weights, m)?)?;
+    m.add_function(wrap_pyfunction!(srt_apply_correction, m)?)?;
+    m.add_function(wrap_pyfunction!(srt_e8_batch_projection, m)?)?;
+    m.add_function(wrap_pyfunction!(srt_theta_series, m)?)?;
+    m.add_function(wrap_pyfunction!(srt_compute_syntony, m)?)?;
+    m.add_function(wrap_pyfunction!(srt_dhsr_cycle, m)?)?;
+
     // === Winding State ===
     m.add_class::<WindingState>()?;
     m.add_class::<WindingStateIterator>()?;
@@ -175,6 +188,10 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_mm_golden_phase, m)?)?;
     m.add_function(wrap_pyfunction!(py_mm_golden_weighted, m)?)?;
     m.add_function(wrap_pyfunction!(py_projection_sum, m)?)?;
+    // Generalized GEMM and q-correction operations
+    m.add_function(wrap_pyfunction!(py_mm_gemm, m)?)?;
+    m.add_function(wrap_pyfunction!(py_mm_q_corrected_direct, m)?)?;
+    m.add_function(wrap_pyfunction!(py_q_correction_scalar, m)?)?;
 
     Ok(())
 }

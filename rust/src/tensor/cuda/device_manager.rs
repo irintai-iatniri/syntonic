@@ -168,12 +168,12 @@ impl Default for DeviceManager {
     }
 }
 
-/// Thread-local device manager for non-Send types
+// Thread-local device manager for non-Send types
 thread_local! {
     static LOCAL_MANAGER: DeviceManager = DeviceManager::new();
 }
 
-/// Get a thread-local device manager
+/// Get a thread-local device manager (for non-Send types like CudaStream)
 pub fn get_local_manager() -> &'static std::thread::LocalKey<DeviceManager> {
     &LOCAL_MANAGER
 }
