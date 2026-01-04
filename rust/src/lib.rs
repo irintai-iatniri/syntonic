@@ -2,14 +2,33 @@ use pyo3::prelude::*;
 
 mod tensor;
 mod hypercomplex;
-mod symbolic;
 mod exact;
 mod linalg;
+mod winding;
+mod spectral;
 
 use tensor::storage::{TensorStorage, cuda_is_available, cuda_device_count};
 use tensor::srt_kernels;
 use hypercomplex::{Quaternion, Octonion};
-use symbolic::{GoldenNumber, Expr, SRTConstants};
+
+// Winding state and enumeration
+use winding::{
+    WindingState, WindingStateIterator,
+    enumerate_windings, enumerate_windings_by_norm, enumerate_windings_exact_norm, count_windings,
+};
+
+// Spectral operations
+use spectral::{
+    theta_series_evaluate, theta_series_weighted, theta_series_derivative,
+    heat_kernel_trace, heat_kernel_weighted, heat_kernel_derivative,
+    compute_eigenvalues, compute_golden_weights, compute_norm_squared,
+    spectral_zeta, spectral_zeta_weighted,
+    partition_function, theta_sum_combined,
+    count_by_generation, filter_by_generation,
+    // Knot Laplacian operations
+    knot_eigenvalue, compute_knot_eigenvalues,
+    knot_heat_kernel_trace, knot_spectral_zeta, knot_spectral_zeta_complex,
+};
 
 // New exact arithmetic types
 use exact::{
@@ -83,17 +102,44 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Quaternion>()?;
     m.add_class::<Octonion>()?;
 
-    // === Legacy types (to be phased out) ===
-    m.add_class::<GoldenNumber>()?;  // Legacy: use GoldenExact instead
-    m.add_class::<Expr>()?;           // Legacy: use SymExpr instead
-    m.add_class::<SRTConstants>()?;   // Legacy: use FundamentalConstant instead
-
     // === SRT Constants ===
     m.add_function(wrap_pyfunction!(srt_phi, m)?)?;
     m.add_function(wrap_pyfunction!(srt_phi_inv, m)?)?;
     m.add_function(wrap_pyfunction!(srt_q_deficit, m)?)?;
     m.add_function(wrap_pyfunction!(srt_structure_dimension, m)?)?;
     m.add_function(wrap_pyfunction!(srt_correction_factor, m)?)?;
+
+    // === Winding State ===
+    m.add_class::<WindingState>()?;
+    m.add_class::<WindingStateIterator>()?;
+    m.add_function(wrap_pyfunction!(enumerate_windings, m)?)?;
+    m.add_function(wrap_pyfunction!(enumerate_windings_by_norm, m)?)?;
+    m.add_function(wrap_pyfunction!(enumerate_windings_exact_norm, m)?)?;
+    m.add_function(wrap_pyfunction!(count_windings, m)?)?;
+
+    // === Spectral Operations ===
+    m.add_function(wrap_pyfunction!(theta_series_evaluate, m)?)?;
+    m.add_function(wrap_pyfunction!(theta_series_weighted, m)?)?;
+    m.add_function(wrap_pyfunction!(theta_series_derivative, m)?)?;
+    m.add_function(wrap_pyfunction!(heat_kernel_trace, m)?)?;
+    m.add_function(wrap_pyfunction!(heat_kernel_weighted, m)?)?;
+    m.add_function(wrap_pyfunction!(heat_kernel_derivative, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_eigenvalues, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_golden_weights, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_norm_squared, m)?)?;
+    m.add_function(wrap_pyfunction!(spectral_zeta, m)?)?;
+    m.add_function(wrap_pyfunction!(spectral_zeta_weighted, m)?)?;
+    m.add_function(wrap_pyfunction!(partition_function, m)?)?;
+    m.add_function(wrap_pyfunction!(theta_sum_combined, m)?)?;
+    m.add_function(wrap_pyfunction!(count_by_generation, m)?)?;
+    m.add_function(wrap_pyfunction!(filter_by_generation, m)?)?;
+
+    // === Knot Laplacian Operations ===
+    m.add_function(wrap_pyfunction!(knot_eigenvalue, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_knot_eigenvalues, m)?)?;
+    m.add_function(wrap_pyfunction!(knot_heat_kernel_trace, m)?)?;
+    m.add_function(wrap_pyfunction!(knot_spectral_zeta, m)?)?;
+    m.add_function(wrap_pyfunction!(knot_spectral_zeta_complex, m)?)?;
 
     Ok(())
 }

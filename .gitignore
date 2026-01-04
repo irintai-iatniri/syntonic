@@ -1,5 +1,6 @@
 # Rust
 target/
+Cargo.lock
 
 # Python
 __pycache__/
@@ -7,10 +8,15 @@ __pycache__/
 *$py.class
 .pytest_cache/
 .coverage
+.hypothesis/
 *.so
+*.pyd
 build/
 dist/
 *.egg-info/
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
 # Environments
 .env
@@ -18,6 +24,70 @@ dist/
 env/
 venv/
 ENV/
+env.bak/
+venv.bak/
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # OS-specific
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Documentation
+docs/_build/
+docs/build/
+*.pdf
+*.docx
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# CUDA/GPU
+*.ptx
+*.cubin
+*.fatbin
+
+# AI/Assistant
+.claude/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+.cache/
+
+# Logs
+*.log
+logs/
+
+# Performance profiling
+*.prof
+*.lprof
+
+# Testing artifacts
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Distribution
+*.tar.gz
+*.whl
+
+# Development
+.debug/
+*.orig
+*.rej
