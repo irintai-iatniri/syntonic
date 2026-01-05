@@ -6,6 +6,7 @@ mod exact;
 mod linalg;
 mod winding;
 mod spectral;
+mod resonant;
 
 use tensor::storage::{TensorStorage, cuda_is_available, cuda_device_count,
     srt_scale_phi, srt_golden_gaussian_weights, srt_apply_correction,
@@ -41,6 +42,9 @@ use exact::{
     PySymExpr,
     Structure,
 };
+
+// Resonant Engine types
+use resonant::{ResonantTensor, ResonantEvolver, RESConfig, RESResult};
 
 // Linear algebra operations
 use linalg::{
@@ -106,6 +110,12 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<FundamentalConstant>()?;
     m.add_class::<CorrectionLevel>()?;
     m.add_class::<PySymExpr>()?;
+
+    // === Resonant Engine ===
+    m.add_class::<ResonantTensor>()?;
+    m.add_class::<ResonantEvolver>()?;
+    m.add_class::<RESConfig>()?;
+    m.add_class::<RESResult>()?;
 
     // === Core Tensor Operations ===
     m.add_class::<TensorStorage>()?;

@@ -63,6 +63,15 @@ const PTX_CORR_SM86: &str = include_str!("../../kernels/ptx/corrections_sm86.ptx
 #[cfg(feature = "cuda")]
 const PTX_CORR_SM90: &str = include_str!("../../kernels/ptx/corrections_sm90.ptx");
 
+#[cfg(feature = "cuda")]
+const PTX_RESONANT_SM75: &str = include_str!("../../kernels/ptx/resonant_d_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_RESONANT_SM80: &str = include_str!("../../kernels/ptx/resonant_d_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_RESONANT_SM86: &str = include_str!("../../kernels/ptx/resonant_d_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_RESONANT_SM90: &str = include_str!("../../kernels/ptx/resonant_d_sm90.ptx");
+
 // =============================================================================
 // Kernel Function Lists
 // =============================================================================
@@ -141,6 +150,19 @@ const CORR_FUNCS: &[&str] = &[
     "get_q_deficit", "get_structure_dimension",
 ];
 
+/// Resonant D-phase functions
+#[cfg(feature = "cuda")]
+const RESONANT_FUNCS: &[&str] = &[
+    "resonant_d_phase_f64", "resonant_d_phase_f32",
+    "resonant_d_phase_batch_f64",
+    "resonant_compute_syntony_f64", "resonant_compute_syntony_f32",
+    "resonant_snap_gradient_f64",
+    "resonant_argmax_syntony_f64",
+    "resonant_box_muller_f64", "resonant_box_muller_f32",
+    "resonant_residual_modulated_noise_f64",
+    "resonant_compute_dwell_f64",
+];
+
 // =============================================================================
 // PTX Selection Based on Compute Capability
 // =============================================================================
@@ -188,6 +210,15 @@ fn select_corr_ptx(major: i32, minor: i32) -> &'static str {
     else if cc >= 86 { PTX_CORR_SM86 }
     else if cc >= 80 { PTX_CORR_SM80 }
     else { PTX_CORR_SM75 }
+}
+
+#[cfg(feature = "cuda")]
+fn select_resonant_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 { PTX_RESONANT_SM90 }
+    else if cc >= 86 { PTX_RESONANT_SM86 }
+    else if cc >= 80 { PTX_RESONANT_SM80 }
+    else { PTX_RESONANT_SM75 }
 }
 
 // =============================================================================
@@ -267,6 +298,15 @@ pub fn ensure_srt_kernels_loaded(device: &Arc<CudaDevice>) -> PyResult<()> {
         CORR_FUNCS,
     ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
         format!("Failed to load corrections kernels: {}", e)
+    ))?;
+
+    // Load resonant D-phase operations
+    device.load_ptx(
+        cudarc::nvrtc::Ptx::from_src(select_resonant_ptx(major, minor)),
+        "srt_resonant",
+        RESONANT_FUNCS,
+    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+        format!("Failed to load resonant_d kernels: {}", e)
     ))?;
 
     Ok(())
@@ -591,4 +631,155 @@ pub fn get_structure_dimension(idx: i32) -> i32 {
         7 => 14,   // G₂ dim
         _ => 1,
     }
+}
+
+// =============================================================================
+// Resonant Engine CUDA Operations
+// =============================================================================
+
+/// Execute D-phase: lattice → flux with stochastic noise
+#[cfg(feature = "cuda")]
+pub fn cuda_resonant_d_phase_f64(
+    device: &Arc<CudaDevice>,
+    flux: &mut CudaSlice<f64>,        // Output: ephemeral floats
+    lattice: &CudaSlice<f64>,         // Input: crystallized values
+    mode_norm_sq: &CudaSlice<f64>,    // |n|² for each mode
+    noise: &CudaSlice<f64>,           // Pre-generated Gaussian noise
+    syntony: f64,                      // Current syntony S
+    noise_scale: f64,                  // Base noise amplitude
+    n: usize,
+) -> PyResult<()> {
+    ensure_srt_kernels_loaded(device)?;
+
+    let func = device.get_func("srt_resonant", "resonant_d_phase_f64")
+        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            "Kernel resonant_d_phase_f64 not found"
+        ))?;
+
+    unsafe {
+        func.launch(
+            launch_cfg_256(n),
+            (flux, lattice, mode_norm_sq, noise, syntony, noise_scale, n as i32)
+        )
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Execute batch D-phase for RES population
+#[cfg(feature = "cuda")]
+pub fn cuda_resonant_d_phase_batch_f64(
+    device: &Arc<CudaDevice>,
+    flux_batch: &mut CudaSlice<f64>,
+    lattice_batch: &CudaSlice<f64>,
+    mode_norm_sq: &CudaSlice<f64>,
+    noise_batch: &CudaSlice<f64>,
+    syntonies: &CudaSlice<f64>,
+    noise_scale: f64,
+    n: usize,
+    pop_size: usize,
+) -> PyResult<()> {
+    ensure_srt_kernels_loaded(device)?;
+
+    let func = device.get_func("srt_resonant", "resonant_d_phase_batch_f64")
+        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            "Kernel resonant_d_phase_batch_f64 not found"
+        ))?;
+
+    let total = n * pop_size;
+    unsafe {
+        func.launch(
+            launch_cfg_256(total),
+            (flux_batch, lattice_batch, mode_norm_sq, noise_batch, syntonies,
+             noise_scale, n as i32, pop_size as i32)
+        )
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Compute syntony on flux values
+#[cfg(feature = "cuda")]
+pub fn cuda_resonant_compute_syntony_f64(
+    device: &Arc<CudaDevice>,
+    flux: &CudaSlice<f64>,
+    mode_norm_sq: &CudaSlice<f64>,
+    n: usize,
+) -> PyResult<f64> {
+    ensure_srt_kernels_loaded(device)?;
+
+    let mut numerator: CudaSlice<f64> = device.alloc_zeros(1)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+    let mut denominator: CudaSlice<f64> = device.alloc_zeros(1)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    let func = device.get_func("srt_resonant", "resonant_compute_syntony_f64")
+        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            "Kernel resonant_compute_syntony_f64 not found"
+        ))?;
+
+    let cfg = launch_cfg_reduce(n, 2 * std::mem::size_of::<f64>());
+
+    unsafe {
+        func.launch(cfg, (&mut numerator, &mut denominator, flux, mode_norm_sq, n as i32))
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    let mut host_num = [0.0f64];
+    let mut host_den = [0.0f64];
+    device.dtoh_sync_copy_into(&numerator, &mut host_num)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+    device.dtoh_sync_copy_into(&denominator, &mut host_den)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    if host_den[0] < 1e-15 {
+        Ok(0.0)
+    } else {
+        Ok(host_num[0] / host_den[0])
+    }
+}
+
+/// Compute snap gradient for directed exploration
+#[cfg(feature = "cuda")]
+pub fn cuda_resonant_snap_gradient_f64(
+    device: &Arc<CudaDevice>,
+    gradient: &mut CudaSlice<f64>,
+    flux: &CudaSlice<f64>,
+    lattice: &CudaSlice<f64>,
+    mode_norm_sq: &CudaSlice<f64>,
+    n: usize,
+) -> PyResult<()> {
+    ensure_srt_kernels_loaded(device)?;
+
+    let func = device.get_func("srt_resonant", "resonant_snap_gradient_f64")
+        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            "Kernel resonant_snap_gradient_f64 not found"
+        ))?;
+
+    unsafe {
+        func.launch(launch_cfg_256(n), (gradient, flux, lattice, mode_norm_sq, n as i32))
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Box-Muller transform: uniform → Gaussian noise
+#[cfg(feature = "cuda")]
+pub fn cuda_resonant_box_muller_f64(
+    device: &Arc<CudaDevice>,
+    gaussian: &mut CudaSlice<f64>,
+    uniform: &CudaSlice<f64>,
+    n: usize,
+) -> PyResult<()> {
+    ensure_srt_kernels_loaded(device)?;
+
+    let func = device.get_func("srt_resonant", "resonant_box_muller_f64")
+        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            "Kernel resonant_box_muller_f64 not found"
+        ))?;
+
+    unsafe {
+        func.launch(launch_cfg_256(n), (gaussian, uniform, n as i32))
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
 }

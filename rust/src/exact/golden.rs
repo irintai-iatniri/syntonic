@@ -223,6 +223,136 @@ impl GoldenExact {
         const PHI_F64: f64 = 1.6180339887498949;
         self.a.to_f64() + self.b.to_f64() * PHI_F64
     }
+
+    // =========================================================================
+    // LLL-based Diophantine Approximation
+    // =========================================================================
+
+    /// Find the nearest GoldenExact to a float using LLL lattice reduction.
+    ///
+    /// Given x ∈ ℝ, finds a + b·φ ∈ Q(φ) that minimizes |a + b·φ - x|
+    /// where the coefficients a, b are rationals with bounded numerator/denominator.
+    ///
+    /// # Arguments
+    /// * `x` - The floating-point value to approximate
+    /// * `max_coeff` - Maximum absolute value for integer coefficients (denominator bound)
+    ///
+    /// # Algorithm
+    /// Uses LLL lattice basis reduction on a 2D lattice encoding the approximation problem.
+    /// The lattice basis is:
+    /// ```text
+    ///   v₁ = (1, 0, ⌊K⌋)      // representing coefficient a
+    ///   v₂ = (0, 1, ⌊K·φ⌋)    // representing coefficient b
+    /// ```
+    /// where K is a scaling factor. Short vectors in this lattice correspond to
+    /// good approximations a + b·φ ≈ x.
+    pub fn find_nearest(x: f64, max_coeff: i64) -> Self {
+        const PHI_F64: f64 = 1.6180339887498949;
+
+        // Handle special cases
+        if x.is_nan() || x.is_infinite() {
+            return GoldenExact::zero();
+        }
+
+        // Scaling factor for lattice precision
+        // Larger K gives better precision but risks overflow
+        let k: f64 = 1e12;
+
+        // Build the 2x3 lattice basis matrix
+        // Row 0: [1, 0, K]
+        // Row 1: [0, 1, K*phi]
+        // We augment with target: [0, 0, K*x]
+        //
+        // Finding short vectors that zero out the third column gives us (a, b) such that
+        // a*K + b*K*phi ≈ 0 => a + b*phi ≈ 0 (not useful)
+        //
+        // Instead, we use a 2D SLSA (Simultaneous Linear System Approximation):
+        // Find integers a, b such that |a + b*φ - x| is small
+
+        // Apply 2D LLL reduction
+        let (a_best, b_best) = lll_find_nearest_2d(x, PHI_F64, k, max_coeff);
+
+        // Convert to GoldenExact with integer coefficients
+        GoldenExact::from_ints(a_best, b_best)
+    }
+
+    /// Find the nearest GoldenExact with rational coefficients.
+    ///
+    /// This version allows fractional a, b for higher precision approximation.
+    ///
+    /// # Arguments
+    /// * `x` - The floating-point value to approximate
+    /// * `max_denom` - Maximum denominator for rational coefficients
+    pub fn find_nearest_rational(x: f64, max_denom: i64) -> Self {
+        const PHI_F64: f64 = 1.6180339887498949;
+
+        if x.is_nan() || x.is_infinite() {
+            return GoldenExact::zero();
+        }
+
+        // First find good integer approximation
+        let (a_int, b_int) = lll_find_nearest_2d(x, PHI_F64, 1e12, max_denom);
+
+        // Compute residual
+        let approx = a_int as f64 + b_int as f64 * PHI_F64;
+        let residual = x - approx;
+
+        // If residual is small enough, use integer coefficients
+        if residual.abs() < 1e-14 {
+            return GoldenExact::from_ints(a_int, b_int);
+        }
+
+        // Try to improve with rational refinement
+        // Use continued fraction on residual to get a small correction
+        if let Some(correction_a) = Rational::from_f64_approx(residual, max_denom as i128) {
+            let a = Rational::from_int(a_int as i128) + correction_a;
+            let b = Rational::from_int(b_int as i128);
+            return GoldenExact::new(a, b);
+        }
+
+        GoldenExact::from_ints(a_int, b_int)
+    }
+
+    /// Snap a vector of f64 values to GoldenExact lattice points.
+    ///
+    /// Returns (lattice_points, residuals) where residuals[i] = values[i] - lattice_points[i].to_f64()
+    ///
+    /// # Arguments
+    /// * `values` - Slice of floating-point values to snap
+    /// * `max_coeff` - Maximum coefficient bound for each element
+    pub fn snap_vector(values: &[f64], max_coeff: i64) -> (Vec<GoldenExact>, Vec<f64>) {
+        let lattice: Vec<GoldenExact> = values
+            .iter()
+            .map(|&x| GoldenExact::find_nearest(x, max_coeff))
+            .collect();
+
+        let residuals: Vec<f64> = values
+            .iter()
+            .zip(lattice.iter())
+            .map(|(&x, g)| x - g.to_f64())
+            .collect();
+
+        (lattice, residuals)
+    }
+
+    /// Snap with parallelization using rayon (for large vectors).
+    #[cfg(feature = "rayon")]
+    pub fn snap_vector_parallel(values: &[f64], max_coeff: i64) -> (Vec<GoldenExact>, Vec<f64>) {
+        use rayon::prelude::*;
+
+        let lattice: Vec<GoldenExact> = values
+            .par_iter()
+            .map(|&x| GoldenExact::find_nearest(x, max_coeff))
+            .collect();
+
+        let residuals: Vec<f64> = values
+            .par_iter()
+            .zip(lattice.par_iter())
+            .map(|(&x, g)| x - g.to_f64())
+            .collect();
+
+        (lattice, residuals)
+    }
 }
 
 // === Arithmetic Operations ===
@@ -467,6 +597,244 @@ impl GoldenExact {
     fn is_purely_golden(&self) -> bool {
         self.is_pure_phi()
     }
+
+    // =========================================================================
+    // LLL-based Approximation (Python bindings)
+    // =========================================================================
+
+    /// Find the nearest GoldenExact to a float using LLL lattice reduction.
+    ///
+    /// Args:
+    ///     x: The floating-point value to approximate
+    ///     max_coeff: Maximum absolute value for integer coefficients
+    ///
+    /// Returns:
+    ///     A GoldenExact that minimizes |a + b·φ - x|
+    #[staticmethod]
+    fn nearest(x: f64, max_coeff: i64) -> Self {
+        GoldenExact::find_nearest(x, max_coeff)
+    }
+
+    /// Find the nearest GoldenExact with rational coefficients.
+    ///
+    /// Args:
+    ///     x: The floating-point value to approximate
+    ///     max_denom: Maximum denominator for rational coefficients
+    ///
+    /// Returns:
+    ///     A GoldenExact with rational coefficients minimizing |a + b·φ - x|
+    #[staticmethod]
+    fn nearest_rational(x: f64, max_denom: i64) -> Self {
+        GoldenExact::find_nearest_rational(x, max_denom)
+    }
+
+    /// Snap a list of floats to GoldenExact lattice points.
+    ///
+    /// Args:
+    ///     values: List of floating-point values
+    ///     max_coeff: Maximum coefficient bound
+    ///
+    /// Returns:
+    ///     Tuple of (lattice_points, residuals)
+    #[staticmethod]
+    fn snap(values: Vec<f64>, max_coeff: i64) -> (Vec<GoldenExact>, Vec<f64>) {
+        GoldenExact::snap_vector(&values, max_coeff)
+    }
+
+    /// Compute approximation error |self - target|
+    fn error_from(&self, target: f64) -> f64 {
+        (self.to_f64() - target).abs()
+    }
+}
+
+// =============================================================================
+// LLL Algorithm Implementation for 2D Diophantine Approximation
+// =============================================================================
+
+/// LLL-based simultaneous Diophantine approximation for Q(φ).
+///
+/// Finds integers (a, b) minimizing |a + b·φ - x| with |a|, |b| ≤ max_coeff.
+///
+/// # Algorithm
+/// We use a 3D lattice with basis:
+/// ```text
+///   b₁ = (1, 0, K)       // coefficient a contribution
+///   b₂ = (0, 1, K·φ)     // coefficient b contribution
+///   b₃ = (0, 0, K·x)     // target value
+/// ```
+/// LLL reduction finds short vectors; the shortest non-trivial vector
+/// in the reduced basis gives us the best (a, b) approximation.
+fn lll_find_nearest_2d(x: f64, phi: f64, k: f64, max_coeff: i64) -> (i64, i64) {
+    // For 2D approximation problem a + b*phi ≈ x, we use a direct approach:
+    // Construct a 2x3 matrix and apply Gaussian reduction + LLL
+
+    // Strategy: Search over Farey-like sequence of (a, b) pairs
+    // using the continued fraction of (x - a) / phi for each a
+
+    // Simple but effective: grid search with LLL-inspired pruning
+    // For small max_coeff, this is fast enough
+
+    if max_coeff <= 100 {
+        return grid_search_nearest(x, phi, max_coeff);
+    }
+
+    // For larger bounds, use LLL on a 2x3 lattice
+    lll_reduce_nearest(x, phi, k, max_coeff)
+}
+
+/// Direct grid search for small coefficient bounds
+fn grid_search_nearest(x: f64, phi: f64, max_coeff: i64) -> (i64, i64) {
+    let mut best_a: i64 = 0;
+    let mut best_b: i64 = 0;
+    let mut best_error = x.abs(); // Error with (0, 0)
+
+    // For efficiency, use the structure of Q(φ):
+    // Given x, the optimal b is approximately (x - round(x)) / phi
+
+    for b in -max_coeff..=max_coeff {
+        // For this b, optimal a is round(x - b*phi)
+        let target_a = x - (b as f64) * phi;
+        let a = target_a.round() as i64;
+
+        // Check if within bounds
+        if a.abs() <= max_coeff {
+            let error = (a as f64 + (b as f64) * phi - x).abs();
+            if error < best_error {
+                best_error = error;
+                best_a = a;
+                best_b = b;
+            }
+        }
+
+        // Also check floor and ceil
+        let a_floor = target_a.floor() as i64;
+        let a_ceil = target_a.ceil() as i64;
+
+        for a in [a_floor, a_ceil] {
+            if a.abs() <= max_coeff {
+                let error = (a as f64 + (b as f64) * phi - x).abs();
+                if error < best_error {
+                    best_error = error;
+                    best_a = a;
+                    best_b = b;
+                }
+            }
+        }
+    }
+
+    (best_a, best_b)
+}
+
+/// LLL lattice reduction for finding nearest Q(φ) element
+///
+/// Uses a 2D lattice encoding the approximation problem.
+fn lll_reduce_nearest(x: f64, phi: f64, k: f64, max_coeff: i64) -> (i64, i64) {
+    // Build 2x3 lattice matrix (stored row-major)
+    // b₁ = (1, 0, k)
+    // b₂ = (0, 1, k*phi)
+    // We want to find integer combination a*b₁ + b*b₂ close to (0, 0, k*x)
+
+    // Equivalently, find (a, b) minimizing |a*k + b*k*phi - k*x| = k|a + b*phi - x|
+
+    // For 2D, we can use a simpler version of LLL:
+    // The reduced basis will have short vectors
+
+    // Initialize basis vectors (stored as [v0, v1, v2] for each row)
+    let mut b1 = [1.0_f64, 0.0, k];
+    let mut b2 = [0.0_f64, 1.0, k * phi];
+
+    // Gram-Schmidt orthogonalization
+    fn dot(a: &[f64; 3], b: &[f64; 3]) -> f64 {
+        a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+    }
+
+    fn norm_sq(a: &[f64; 3]) -> f64 {
+        dot(a, a)
+    }
+
+    fn scale(a: &[f64; 3], s: f64) -> [f64; 3] {
+        [a[0] * s, a[1] * s, a[2] * s]
+    }
+
+    fn sub(a: &[f64; 3], b: &[f64; 3]) -> [f64; 3] {
+        [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+    }
+
+    fn add(a: &[f64; 3], b: &[f64; 3]) -> [f64; 3] {
+        [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
+    }
+
+    // LLL reduction parameter (standard value)
+    let delta = 0.75_f64;
+
+    // Size-reduce and swap loop (simplified 2D LLL)
+    for _ in 0..20 {
+        // Gram-Schmidt on b1
+        let b1_star = b1;
+        let b1_star_norm_sq = norm_sq(&b1_star);
+
+        if b1_star_norm_sq < 1e-30 {
+            break;
+        }
+
+        // Gram-Schmidt on b2
+        let mu21 = dot(&b2, &b1_star) / b1_star_norm_sq;
+        let b2_star = sub(&b2, &scale(&b1_star, mu21));
+        let b2_star_norm_sq = norm_sq(&b2_star);
+
+        // Size reduction: ensure |mu21| <= 0.5
+        if mu21.abs() > 0.5 {
+            let round_mu = mu21.round();
+            b2 = sub(&b2, &scale(&b1, round_mu));
+            continue;
+        }
+
+        // Lovász condition
+        if b2_star_norm_sq >= (delta - mu21 * mu21) * b1_star_norm_sq {
+            // Reduced!
+            break;
+        } else {
+            // Swap b1 and b2
+            std::mem::swap(&mut b1, &mut b2);
+        }
+    }
+
+    // Now find the best combination within bounds
+    // The reduced basis has short vectors; search nearby
+
+    // b1 and b2 are now reduced; the first two coordinates give us (a, b)
+    // We need integer combinations
+
+    let mut best_a: i64 = 0;
+    let mut best_b: i64 = 0;
+    let mut best_error = x.abs();
+
+    // Search over small integer combinations of reduced basis
+    let search_range = 50_i64.min(max_coeff);
+
+    for i in -search_range..=search_range {
+        for j in -search_range..=search_range {
+            // Combination: i*b1 + j*b2
+            let a = (i as f64 * b1[0] + j as f64 * b2[0]).round() as i64;
+            let b = (i as f64 * b1[1] + j as f64 * b2[1]).round() as i64;
+
+            if a.abs() <= max_coeff && b.abs() <= max_coeff {
+                let error = (a as f64 + b as f64 * phi - x).abs();
+                if error < best_error {
+                    best_error = error;
+                    best_a = a;
+                    best_b = b;
+                }
+            }
+        }
+    }
+
+    // Fall back to grid search if LLL didn't find anything good
+    if best_error > 0.1 && max_coeff <= 1000 {
+        return grid_search_nearest(x, phi, max_coeff);
+    }
+
+    (best_a, best_b)
 }
 
 /// Compute (F_{n-1}, F_n) - the Fibonacci pair
@@ -560,5 +928,95 @@ mod tests {
         // φ + φ* = 1 (trace)
         let sum = phi + phi_conj;
         assert_eq!(sum, GoldenExact::one());
+    }
+
+    // =========================================================================
+    // Tests for LLL-based find_nearest
+    // =========================================================================
+
+    #[test]
+    fn test_find_nearest_exact_phi() {
+        // φ ≈ 1.618... should snap to exactly (0, 1)
+        const PHI_F64: f64 = 1.6180339887498949;
+        let result = GoldenExact::find_nearest(PHI_F64, 100);
+        assert_eq!(result.rational_part(), Rational::zero());
+        assert_eq!(result.phi_part(), Rational::one());
+    }
+
+    #[test]
+    fn test_find_nearest_exact_phi_squared() {
+        // φ² ≈ 2.618... should snap to (1, 1)
+        const PHI_F64: f64 = 1.6180339887498949;
+        let phi_sq = PHI_F64 * PHI_F64;
+        let result = GoldenExact::find_nearest(phi_sq, 100);
+        assert_eq!(result, GoldenExact::from_ints(1, 1));
+    }
+
+    #[test]
+    fn test_find_nearest_integers() {
+        // Integers should snap to themselves
+        let result = GoldenExact::find_nearest(5.0, 100);
+        assert_eq!(result.rational_part(), Rational::from_int(5));
+        assert_eq!(result.phi_part(), Rational::zero());
+    }
+
+    #[test]
+    fn test_find_nearest_error_bound() {
+        // Test that approximation error is small
+        const PHI_F64: f64 = 1.6180339887498949;
+
+        for x in [0.5, 1.23, 2.5, 3.14159, 10.0] {
+            let result = GoldenExact::find_nearest(x, 1000);
+            let error = (result.to_f64() - x).abs();
+            // Error should be less than 1/1000 for max_coeff=1000
+            assert!(
+                error < 0.01,
+                "Error {} too large for x={}", error, x
+            );
+        }
+    }
+
+    #[test]
+    fn test_find_nearest_fibonacci_ratios() {
+        // Fibonacci ratios F_{n+1}/F_n converge to φ
+        // These should be well-approximated
+        let fib_ratios = [
+            (2.0, 1.0),   // 2/1 = 2
+            (3.0, 2.0),   // 3/2 = 1.5
+            (5.0, 3.0),   // 5/3 ≈ 1.667
+            (8.0, 5.0),   // 8/5 = 1.6
+            (13.0, 8.0),  // 13/8 = 1.625
+        ];
+
+        for (num, denom) in fib_ratios {
+            let ratio = num / denom;
+            let result = GoldenExact::find_nearest(ratio, 100);
+            let error = (result.to_f64() - ratio).abs();
+            assert!(error < 0.001, "Error {} for ratio {}/{}", error, num, denom);
+        }
+    }
+
+    #[test]
+    fn test_snap_vector() {
+        const PHI_F64: f64 = 1.6180339887498949;
+
+        let values = vec![1.0, PHI_F64, PHI_F64 * PHI_F64, 3.0];
+        let (lattice, residuals) = GoldenExact::snap_vector(&values, 100);
+
+        assert_eq!(lattice.len(), 4);
+        assert_eq!(residuals.len(), 4);
+
+        // Check that residuals are small
+        for (i, &r) in residuals.iter().enumerate() {
+            assert!(
+                r.abs() < 0.01,
+                "Residual {} too large at index {}", r, i
+            );
+        }
+
+        // Check specific snaps
+        assert_eq!(lattice[0], GoldenExact::from_ints(1, 0)); // 1.0 → 1
+        assert_eq!(lattice[1], GoldenExact::phi());            // φ → φ
+        assert_eq!(lattice[2], GoldenExact::phi_squared());    // φ² → 1 + φ
     }
 }

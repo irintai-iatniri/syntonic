@@ -16,6 +16,10 @@ use crate::exact::golden::GoldenExact;
 use crate::exact::constants::FundamentalConstant;
 use crate::exact::SymExpr;
 
+// SRT kernel constants and functions (non-CUDA)
+#[cfg(not(feature = "cuda"))]
+use super::srt_kernels;
+
 #[cfg(feature = "cuda")]
 use cudarc::driver::{CudaDevice, CudaSlice, DeviceSlice, LaunchConfig, LaunchAsync};
 #[cfg(feature = "cuda")]
