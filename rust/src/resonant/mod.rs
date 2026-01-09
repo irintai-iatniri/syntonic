@@ -50,10 +50,20 @@
 mod tensor;
 mod crystallize;
 mod evolver;
+mod attractor;
+mod retrocausal;
+pub mod phi_ops;
+pub mod golden_norm;
+pub mod syntonic_softmax;
 
 pub use tensor::{ResonantTensor, ResonantPhase, ResonantError};
 pub use crystallize::crystallize_with_dwell;
 pub use evolver::{ResonantEvolver, RESConfig, RESResult, Q_DEFICIT};
+pub use attractor::AttractorMemory;
+pub use retrocausal::harmonize_with_attractor_pull;
+pub use phi_ops::{PhiResidualMode, phi_residual, phi_residual_relu};
+pub use golden_norm::{GoldenNormMode, golden_batch_norm_1d, golden_batch_norm_2d};
+pub use syntonic_softmax::{SyntonicSoftmaxMode, SyntonicSoftmaxState, syntonic_softmax_py};
 
 // Re-export key constants
 pub const PHI: f64 = 1.6180339887498948482;

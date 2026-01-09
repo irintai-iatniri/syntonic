@@ -38,6 +38,8 @@ use std::cmp::Ordering;
 use crate::exact::GoldenExact;
 use super::tensor::{ResonantTensor, ResonantError};
 use super::crystallize::compute_lattice_syntony;
+use super::attractor::AttractorMemory;
+use super::retrocausal::harmonize_with_attractor_pull;
 use super::{PHI, PHI_INV_SQ};
 
 /// Universal syntony deficit q - NOT a hyperparameter!
@@ -80,6 +82,27 @@ pub struct RESConfig {
     /// Convergence threshold (stop if improvement < threshold)
     #[pyo3(get, set)]
     pub convergence_threshold: f64,
+
+    // === Retrocausal RES Parameters ===
+    /// Enable retrocausal attractor-guided harmonization
+    #[pyo3(get, set)]
+    pub enable_retrocausal: bool,
+
+    /// Maximum number of attractors to store
+    #[pyo3(get, set)]
+    pub attractor_capacity: usize,
+
+    /// Retrocausal pull strength (0.0 = disabled, 1.0 = full pull)
+    #[pyo3(get, set)]
+    pub attractor_pull_strength: f64,
+
+    /// Minimum syntony threshold for attractor storage
+    #[pyo3(get, set)]
+    pub attractor_min_syntony: f64,
+
+    /// Temporal decay rate for attractors (per generation)
+    #[pyo3(get, set)]
+    pub attractor_decay_rate: f64,
 }
 
 impl Default for RESConfig {
@@ -93,6 +116,12 @@ impl Default for RESConfig {
             noise_scale: 0.01,
             max_generations: 1000,
             convergence_threshold: 1e-6,
+            // Retrocausal defaults (opt-in)
+            enable_retrocausal: false,
+            attractor_capacity: 32,
+            attractor_pull_strength: 0.3,
+            attractor_min_syntony: 0.7,
+            attractor_decay_rate: 0.98,
         }
     }
 }
@@ -109,7 +138,12 @@ impl RESConfig {
         precision=100,
         noise_scale=0.01,
         max_generations=1000,
-        convergence_threshold=1e-6
+        convergence_threshold=1e-6,
+        enable_retrocausal=false,
+        attractor_capacity=32,
+        attractor_pull_strength=0.3,
+        attractor_min_syntony=0.7,
+        attractor_decay_rate=0.98
     ))]
     fn py_new(
         population_size: usize,
@@ -120,6 +154,11 @@ impl RESConfig {
         noise_scale: f64,
         max_generations: usize,
         convergence_threshold: f64,
+        enable_retrocausal: bool,
+        attractor_capacity: usize,
+        attractor_pull_strength: f64,
+        attractor_min_syntony: f64,
+        attractor_decay_rate: f64,
     ) -> Self {
         RESConfig {
             population_size,
@@ -130,6 +169,11 @@ impl RESConfig {
             noise_scale,
             max_generations,
             convergence_threshold,
+            enable_retrocausal,
+            attractor_capacity,
+            attractor_pull_strength,
+            attractor_min_syntony,
+            attractor_decay_rate,
         }
     }
 
@@ -204,11 +248,20 @@ pub struct ResonantEvolver {
 
     /// Convergence window for checking stagnation
     convergence_window: Vec<f64>,
+
+    /// Attractor memory for retrocausal influence
+    attractor_memory: AttractorMemory,
 }
 
 impl ResonantEvolver {
     /// Create a new evolver with configuration.
     pub fn new(config: RESConfig) -> Self {
+        let attractor_memory = AttractorMemory::new(
+            config.attractor_capacity,
+            config.attractor_min_syntony,
+            config.attractor_decay_rate,
+        );
+
         ResonantEvolver {
             config,
             best_tensor: None,
@@ -217,12 +270,19 @@ impl ResonantEvolver {
             syntony_history: Vec::new(),
             template: None,
             convergence_window: Vec::new(),
+            attractor_memory,
         }
     }
 
     /// Create an evolver from a template tensor.
     pub fn from_template(template: &ResonantTensor, config: RESConfig) -> Self {
         let syntony = template.syntony();
+        let attractor_memory = AttractorMemory::new(
+            config.attractor_capacity,
+            config.attractor_min_syntony,
+            config.attractor_decay_rate,
+        );
+
         ResonantEvolver {
             config,
             best_tensor: Some(template.clone()),
@@ -231,6 +291,7 @@ impl ResonantEvolver {
             syntony_history: vec![syntony],
             template: Some(template.clone()),
             convergence_window: vec![syntony],
+            attractor_memory,
         }
     }
 
@@ -325,6 +386,26 @@ impl ResonantEvolver {
             .collect()
     }
 
+    /// Apply retrocausal harmonization to survivors.
+    ///
+    /// Uses attractor memory to bias harmonization toward proven high-syntony states.
+    fn apply_retrocausal_harmonization(
+        &self,
+        survivors: Vec<ResonantTensor>
+    ) -> Result<Vec<ResonantTensor>, ResonantError> {
+        survivors
+            .into_iter()
+            .map(|mut t| {
+                harmonize_with_attractor_pull(
+                    &mut t,
+                    &self.attractor_memory,
+                    self.config.attractor_pull_strength
+                )?;
+                Ok(t)
+            })
+            .collect()
+    }
+
     /// Select the winner from evaluated candidates.
     ///
     /// Winner is selected by: score = syntony (since we don't have external fitness yet)
@@ -333,6 +414,16 @@ impl ResonantEvolver {
             .into_iter()
             .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal))
             .map(|(t, _)| t)
+    }
+
+    /// Select the winner from evaluated candidates, returning both tensor and score.
+    ///
+    /// Winner is selected by: score = syntony (since we don't have external fitness yet)
+    fn select_winner_with_score(&self, evaluated: &[(ResonantTensor, f64)]) -> Option<(ResonantTensor, f64)> {
+        evaluated
+            .iter()
+            .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal))
+            .map(|(t, s)| (t.clone(), *s))
     }
 
     /// Run one generation of evolution.
@@ -351,20 +442,38 @@ impl ResonantEvolver {
         let mutants = self.spawn_mutants(&parent);
 
         // Step 2: Filter by lattice syntony (CPU, cheap)
-        let survivors = self.filter_by_lattice_syntony(mutants);
+        let mut survivors = self.filter_by_lattice_syntony(mutants);
 
-        // Step 3: Evaluate survivors (CPU D→H cycle)
+        // Step 3: RETROCAUSAL HARMONIZATION (if enabled)
+        if self.config.enable_retrocausal && !self.attractor_memory.is_empty() {
+            survivors = self.apply_retrocausal_harmonization(survivors)?;
+        }
+
+        // Step 4: Evaluate survivors (CPU D→H cycle)
         let evaluated = self.evaluate_survivors_cpu(survivors);
 
-        // Step 4: Select winner
-        if let Some(winner) = self.select_winner(evaluated) {
+        // Step 5: Select winner and update attractors
+        if let Some((winner, _score)) = self.select_winner_with_score(&evaluated) {
             let winner_syntony = winner.syntony();
+
+            // Store high-syntony candidates as attractors
+            if self.config.enable_retrocausal {
+                for (tensor, _) in &evaluated {
+                    let syntony = tensor.syntony();
+                    self.attractor_memory.maybe_add(tensor, syntony, self.generation);
+                }
+            }
 
             // Update best if improved
             if winner_syntony > self.best_syntony {
                 self.best_syntony = winner_syntony;
                 self.best_tensor = Some(winner);
             }
+        }
+
+        // Apply temporal decay to attractors
+        if self.config.enable_retrocausal {
+            self.attractor_memory.apply_decay();
         }
 
         // Update tracking

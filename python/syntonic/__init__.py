@@ -24,6 +24,10 @@ from syntonic.core import (
     # State class
     State,
     state,
+    ResonantTensor,
+    RESConfig,
+    RESResult,
+    ResonantEvolver,
     # Data types
     DType,
     float32,
@@ -92,8 +96,13 @@ from syntonic import srt
 # Applications submodule
 from syntonic import applications
 
-# Neural Networks submodule
-from syntonic import nn
+# Neural Networks submodule (optional, may require PyTorch)
+try:
+    from syntonic import nn
+except (ImportError, NameError):
+    # This happens if PyTorch is missing or if there are broken dependencies
+    # in the legacy Torch code. We ignore it for pure-resonant mode.
+    nn = None
 
 __all__ = [
     # Version
@@ -102,6 +111,10 @@ __all__ = [
     # State
     'State',
     'state',
+    'ResonantTensor',
+    'RESConfig',
+    'RESResult',
+    'ResonantEvolver',
     # DTypes
     'DType',
     'float32',

@@ -11,6 +11,11 @@ from syntonic.nn.architectures.syntonic_mlp import (
     SyntonicMLP,
     SyntonicLinear,
 )
+from syntonic.nn.architectures.syntonic_mlp_pure import (
+    PureSyntonicMLP,
+    PureSyntonicLinear,
+    PureDeepSyntonicMLP,
+)
 from syntonic.nn.architectures.syntonic_cnn import (
     SyntonicConv2d,
     RecursionConvBlock,
@@ -20,6 +25,11 @@ from syntonic.nn.architectures.embeddings import (
     SyntonicEmbedding,
     WindingEmbedding,
     PositionalEncoding,
+)
+from syntonic.nn.architectures.embeddings_pure import (
+    PureSyntonicEmbedding,
+    PureWindingEmbedding,
+    PurePositionalEncoding,
 )
 from syntonic.nn.architectures.syntonic_attention import (
     SyntonicAttention,
@@ -36,12 +46,20 @@ from syntonic.nn.architectures.syntonic_transformer import (
 __all__ = [
     'SyntonicMLP',
     'SyntonicLinear',
+    # Pure versions
+    'PureSyntonicMLP',
+    'PureSyntonicLinear',
+    'PureDeepSyntonicMLP',
     'SyntonicConv2d',
     'RecursionConvBlock',
     'SyntonicCNN',
     'SyntonicEmbedding',
     'WindingEmbedding',
     'PositionalEncoding',
+    # Pure embedding versions
+    'PureSyntonicEmbedding',
+    'PureWindingEmbedding',
+    'PurePositionalEncoding',
     'SyntonicAttention',
     'GnosisAttention',
     'MultiHeadSyntonicAttention',

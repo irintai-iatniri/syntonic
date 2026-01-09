@@ -2,38 +2,28 @@
 Winding State Embedding - Maps winding states to neural embeddings.
 
 This module provides WindingStateEmbedding, which maps discrete T^4 winding
-states |n₇, n₈, n₉, n₁₀⟩ to continuous learned embeddings in neural space.
+states |n₇, n₈, n₉, n₁₀⟩ to continuous learned embeddings using the Rust backend.
 
-NOTE: This is different from the existing WindingEmbedding in
-architectures/embeddings.py, which maps token indices to torus positions.
-Here we map WindingState objects (physical states) to learned embeddings.
+NO PYTORCH OR NUMPY DEPENDENCIES.
 """
 
 from __future__ import annotations
-import torch
-import torch.nn as nn
-from typing import List, Dict, Optional
 import math
+import random
+from typing import List, Dict, Optional
 
-try:
-    from syntonic.srt.geometry.winding import enumerate_windings, WindingState
-except ImportError:
-    from syntonic._core import enumerate_windings, WindingState
+from syntonic._core import enumerate_windings, WindingState, ResonantTensor, GoldenExact
+
+PHI = (1 + math.sqrt(5)) / 2
 
 
-class WindingStateEmbedding(nn.Module):
+class WindingStateEmbedding:
     """
     Embedding layer for winding states.
 
     Maps discrete winding states |n₇, n₈, n₉, n₁₀⟩ to learned continuous
-    embeddings. Each unique winding state gets its own learnable parameter vector.
-
-    Example:
-        >>> from syntonic.physics.fermions.windings import ELECTRON_WINDING
-        >>> embed = WindingStateEmbedding(max_n=5, embed_dim=64)
-        >>> x = embed(ELECTRON_WINDING)
-        >>> x.shape
-        torch.Size([64])
+    embeddings. Each unique winding state gets its own learnable parameter vector
+    stored as a ResonantTensor.
     """
 
     def __init__(
@@ -41,6 +31,7 @@ class WindingStateEmbedding(nn.Module):
         max_n: int = 5,
         embed_dim: int = 64,
         init_scale: Optional[float] = None,
+        precision: int = 100,
     ):
         """
         Initialize winding state embedding.
@@ -49,67 +40,47 @@ class WindingStateEmbedding(nn.Module):
             max_n: Maximum winding number (enumerates [-max_n, max_n]^4)
             embed_dim: Embedding dimension
             init_scale: Initialization scale (defaults to 1/sqrt(embed_dim))
+            precision: Lattice precision for exact arithmetic
         """
-        super().__init__()
-
         self.max_n = max_n
         self.embed_dim = embed_dim
+        self.precision = precision
 
         # Enumerate all winding states in the range
         self.windings = enumerate_windings(max_n)
         self.num_windings = len(self.windings)
 
-        # Create learnable embeddings for each winding
-        # Using ParameterDict allows string keys and avoids tensor indexing issues
-        self.embeddings = nn.ParameterDict()
-        for w in self.windings:
-            key = self._winding_key(w)
-            param = nn.Parameter(torch.randn(embed_dim))
-            self.embeddings[key] = param
-
-        # Store mode norms |n|² for each winding
+        # Create embeddings for each winding state
+        self.embeddings: Dict[str, ResonantTensor] = {}
         self.mode_norms: Dict[str, int] = {}
+
+        if init_scale is None:
+            init_scale = 1.0 / math.sqrt(embed_dim)
+
         for w in self.windings:
             key = self._winding_key(w)
-            self.mode_norms[key] = w.norm_squared
+            mode_norm_sq = w.norm_squared
+            self.mode_norms[key] = mode_norm_sq
 
-        # Initialize embeddings
-        self._initialize_embeddings(init_scale)
+            # Golden initialization: scale by exp(-|n|²/(2φ))
+            golden_scale = math.exp(-mode_norm_sq / (2 * PHI))
+            
+            # Generate embedding data
+            embed_data = [
+                random.gauss(0, init_scale * golden_scale)
+                for _ in range(embed_dim)
+            ]
+            mode_norms_list = [float(i**2) for i in range(embed_dim)]
+            
+            self.embeddings[key] = ResonantTensor(
+                embed_data, [embed_dim], mode_norms_list, precision
+            )
 
     def _winding_key(self, w: WindingState) -> str:
-        """
-        Generate string key for winding state.
-
-        Args:
-            w: WindingState object
-
-        Returns:
-            String key "n7,n8,n9,n10"
-        """
+        """Generate string key for winding state."""
         return f"{w.n7},{w.n8},{w.n9},{w.n10}"
 
-    def _initialize_embeddings(self, init_scale: Optional[float] = None):
-        """
-        Initialize embeddings with appropriate scaling.
-
-        Uses Xavier-style initialization scaled by mode norm.
-
-        Args:
-            init_scale: Custom initialization scale
-        """
-        if init_scale is None:
-            init_scale = 1.0 / math.sqrt(self.embed_dim)
-
-        for key, param in self.embeddings.items():
-            # Golden initialization: scale by exp(-|n|²/(2φ))
-            # This gives higher-norm windings smaller initial embeddings
-            PHI = 1.6180339887498949
-            mode_norm_sq = self.mode_norms[key]
-            golden_scale = math.exp(-mode_norm_sq / (2 * PHI))
-
-            nn.init.normal_(param, mean=0.0, std=init_scale * golden_scale)
-
-    def forward(self, winding: WindingState) -> torch.Tensor:
+    def forward(self, winding: WindingState) -> ResonantTensor:
         """
         Get embedding for a single winding state.
 
@@ -117,7 +88,7 @@ class WindingStateEmbedding(nn.Module):
             winding: WindingState object
 
         Returns:
-            Embedding tensor of shape (embed_dim,)
+            Embedding ResonantTensor of shape (embed_dim,)
         """
         key = self._winding_key(winding)
         if key not in self.embeddings:
@@ -127,7 +98,7 @@ class WindingStateEmbedding(nn.Module):
             )
         return self.embeddings[key]
 
-    def batch_forward(self, windings: List[WindingState]) -> torch.Tensor:
+    def batch_forward(self, windings: List[WindingState]) -> ResonantTensor:
         """
         Get embeddings for a batch of winding states.
 
@@ -135,64 +106,63 @@ class WindingStateEmbedding(nn.Module):
             windings: List of WindingState objects
 
         Returns:
-            Embeddings tensor of shape (batch_size, embed_dim)
+            Embeddings ResonantTensor of shape (batch_size, embed_dim)
         """
-        embeddings = [self.forward(w) for w in windings]
-        return torch.stack(embeddings, dim=0)
+        # Collect all embeddings as flat data
+        batch_data = []
+        for w in windings:
+            embed = self.forward(w)
+            batch_data.extend(embed.to_floats())
+        
+        # Create batched tensor
+        batch_size = len(windings)
+        mode_norms = [float(i**2) for i in range(batch_size * self.embed_dim)]
+        
+        return ResonantTensor(
+            batch_data,
+            [batch_size, self.embed_dim],
+            mode_norms,
+            self.precision
+        )
 
     def get_mode_norm(self, winding: WindingState) -> int:
-        """
-        Get mode norm squared |n|² for a winding state.
-
-        Args:
-            winding: WindingState object
-
-        Returns:
-            Mode norm squared
-        """
+        """Get mode norm squared |n|² for a winding state."""
         key = self._winding_key(winding)
         return self.mode_norms[key]
 
-    def get_all_mode_norms(self, windings: List[WindingState]) -> torch.Tensor:
-        """
-        Get mode norms for a batch of windings.
+    def get_all_mode_norms(self, windings: List[WindingState]) -> List[float]:
+        """Get mode norms for a batch of windings."""
+        return [float(self.get_mode_norm(w)) for w in windings]
 
-        Args:
-            windings: List of WindingState objects
+    def parameters(self) -> List[ResonantTensor]:
+        """Return all embedding tensors for training."""
+        return list(self.embeddings.values())
 
-        Returns:
-            Tensor of mode norms, shape (batch_size,)
-        """
-        norms = [self.get_mode_norm(w) for w in windings]
-        return torch.tensor(norms, dtype=torch.float32)
-
-    def extra_repr(self) -> str:
+    def __repr__(self) -> str:
         return (
-            f"max_n={self.max_n}, embed_dim={self.embed_dim}, "
-            f"num_windings={self.num_windings}"
+            f"WindingStateEmbedding(max_n={self.max_n}, embed_dim={self.embed_dim}, "
+            f"num_windings={self.num_windings})"
         )
 
 
 if __name__ == "__main__":
-    # Example usage
-    from syntonic.physics.fermions.windings import (
-        ELECTRON_WINDING,
-        MUON_WINDING,
-        UP_WINDING,
-    )
-
-    embed = WindingStateEmbedding(max_n=5, embed_dim=64)
+    # Test the pure WindingStateEmbedding
+    print("Testing WindingStateEmbedding...")
+    
+    embed = WindingStateEmbedding(max_n=2, embed_dim=16)
     print(f"Embedding: {embed}")
-
-    # Single winding
-    x = embed(ELECTRON_WINDING)
-    print(f"Electron embedding shape: {x.shape}")
-    print(f"Electron mode norm: {embed.get_mode_norm(ELECTRON_WINDING)}")
-
+    
+    # Get some windings
+    windings = embed.windings[:3]
+    print(f"First 3 windings: {windings}")
+    
+    # Single embedding
+    e = embed.forward(windings[0])
+    print(f"Single embedding shape: {e.shape}")
+    print(f"Single embedding syntony: {e.syntony:.4f}")
+    
     # Batch
-    windings = [ELECTRON_WINDING, MUON_WINDING, UP_WINDING]
     X = embed.batch_forward(windings)
-    print(f"Batch embeddings shape: {X.shape}")
-
-    norms = embed.get_all_mode_norms(windings)
-    print(f"Batch mode norms: {norms}")
+    print(f"Batch shape: {X.shape}")
+    
+    print("SUCCESS")

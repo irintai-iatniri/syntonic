@@ -117,6 +117,21 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RESConfig>()?;
     m.add_class::<RESResult>()?;
 
+    // === Phi-Residual Operations ===
+    m.add_class::<resonant::PhiResidualMode>()?;
+    m.add_function(wrap_pyfunction!(resonant::phi_residual, m)?)?;
+    m.add_function(wrap_pyfunction!(resonant::phi_residual_relu, m)?)?;
+
+    // === Golden Batch Normalization ===
+    m.add_class::<resonant::GoldenNormMode>()?;
+    m.add_function(wrap_pyfunction!(resonant::golden_norm::golden_batch_norm_1d_py, m)?)?;
+    m.add_function(wrap_pyfunction!(resonant::golden_norm::golden_batch_norm_2d_py, m)?)?;
+
+    // === Syntonic Softmax ===
+    m.add_class::<resonant::SyntonicSoftmaxMode>()?;
+    m.add_class::<resonant::SyntonicSoftmaxState>()?;
+    m.add_function(wrap_pyfunction!(resonant::syntonic_softmax_py, m)?)?;
+
     // === Core Tensor Operations ===
     m.add_class::<TensorStorage>()?;
     m.add_function(wrap_pyfunction!(cuda_is_available, m)?)?;

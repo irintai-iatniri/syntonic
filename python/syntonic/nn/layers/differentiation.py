@@ -7,17 +7,19 @@ D̂[x] = x + ReLU(W_D·x + b_D)
 - W_D weights serve as αᵢ coupling analogs
 - Increases representational complexity (Fire/novelty)
 
+NO PYTORCH OR NUMPY DEPENDENCIES - Pure Rust backend.
+
 Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from typing import Optional
 
+from syntonic._core import ResonantTensor
+from syntonic.nn.layers.resonant_linear import ResonantLinear
 
-class DifferentiationLayer(nn.Module):
+
+class DifferentiationLayer:
     """
     Neural layer implementing differentiation D̂.
 
@@ -32,11 +34,13 @@ class DifferentiationLayer(nn.Module):
     - W_D weights control coupling strength to possibility projectors
 
     Example:
+        >>> from syntonic._core import ResonantTensor
         >>> layer = DifferentiationLayer(256)
-        >>> x = torch.randn(32, 256)
-        >>> y = layer(x)
+        >>> data = [0.1] * 256 * 32
+        >>> x = ResonantTensor(data, [32, 256])
+        >>> y = layer.forward(x)
         >>> y.shape
-        torch.Size([32, 256])
+        [32, 256]
     """
 
     def __init__(
@@ -55,107 +59,111 @@ class DifferentiationLayer(nn.Module):
             bias: Include bias term
             alpha_scale: Scaling factor for differentiation strength
         """
-        super().__init__()
         out_features = out_features or in_features
 
         self.in_features = in_features
         self.out_features = out_features
-        self.linear = nn.Linear(in_features, out_features, bias=bias)
+        self.linear = ResonantLinear(in_features, out_features, bias=bias)
         self.alpha_scale = alpha_scale
 
-        # Initialize with small weights (gentle differentiation initially)
-        nn.init.xavier_uniform_(self.linear.weight, gain=0.1)
-        if bias:
-            nn.init.zeros_(self.linear.bias)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
         Apply D̂: x → x + α·ReLU(W_D·x + b_D)
 
         The residual connection preserves input while adding complexity.
+
+        Args:
+            x: Input tensor of shape [..., in_features]
+
+        Returns:
+            Output tensor with differentiation applied
         """
-        # Differentiation: add complexity via nonlinearity
-        d_x = self.alpha_scale * F.relu(self.linear(x))
+        # Linear transformation
+        d_x = self.linear.forward(x)
+
+        # ReLU activation (in-place)
+        d_x.relu()
+
+        # Scale by alpha
+        if self.alpha_scale != 1.0:
+            d_x = d_x.scalar_mul(self.alpha_scale)
 
         # Residual: D̂[x] = x + differentiation
         if d_x.shape == x.shape:
-            return x + d_x
+            return x.elementwise_add(d_x)
         else:
-            # If dimensions change, use projection
+            # If dimensions change, use projection only
             return d_x
 
-    def complexity_increase(self, x: torch.Tensor) -> float:
-        """Measure how much complexity D̂ added."""
-        with torch.no_grad():
-            d_x = self(x)
-            return torch.norm(d_x - x).item() / (torch.norm(x).item() + 1e-8)
-
-    def extra_repr(self) -> str:
-        return f'in_features={self.in_features}, out_features={self.out_features}, alpha_scale={self.alpha_scale}'
-
-
-class DifferentiationModule(nn.Module):
-    """
-    Multi-head differentiation for transformer architectures.
-
-    Applies differentiation with multiple "possibility projectors",
-    analogous to Σᵢ αᵢ P̂ᵢ[Ψ] in the continuous D̂ operator.
-
-    Example:
-        >>> module = DifferentiationModule(512, n_heads=8)
-        >>> x = torch.randn(32, 100, 512)  # [batch, seq, d_model]
-        >>> y = module(x)
-        >>> y.shape
-        torch.Size([32, 100, 512])
-    """
-
-    def __init__(
-        self,
-        d_model: int,
-        n_heads: int,
-        dropout: float = 0.1,
-    ):
+    def complexity_increase(self, x: ResonantTensor) -> float:
         """
-        Initialize multi-head differentiation.
+        Measure how much complexity D̂ added.
 
-        Args:
-            d_model: Model dimension
-            n_heads: Number of differentiation heads
-            dropout: Dropout rate
+        Returns:
+            Relative increase in norm: ||D̂[x] - x|| / ||x||
         """
-        super().__init__()
-        self.d_model = d_model
-        self.n_heads = n_heads
-        self.head_dim = d_model // n_heads
+        d_x = self.forward(x)
 
-        # Multi-head projections (possibility spaces)
-        self.projectors = nn.ModuleList([
-            nn.Linear(d_model, self.head_dim)
-            for _ in range(n_heads)
-        ])
+        # Compute norms
+        x_floats = x.to_floats()
+        d_x_floats = d_x.to_floats()
 
-        # Recombine
-        self.out_proj = nn.Linear(d_model, d_model)
-        self.dropout = nn.Dropout(dropout)
-        self.norm = nn.LayerNorm(d_model)
+        # Compute ||d_x - x||
+        diff_norm_sq = sum((d_x_floats[i] - x_floats[i])**2 for i in range(len(x_floats)))
+        diff_norm = diff_norm_sq ** 0.5
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Multi-head differentiation.
+        # Compute ||x||
+        x_norm_sq = sum(x_floats[i]**2 for i in range(len(x_floats)))
+        x_norm = x_norm_sq ** 0.5
 
-        Each head projects onto a different possibility subspace,
-        then recombines with ReLU nonlinearity.
-        """
-        # Apply each projector
-        heads = [F.relu(proj(x)) for proj in self.projectors]
+        return diff_norm / (x_norm + 1e-8)
 
-        # Concatenate and project back
-        concat = torch.cat(heads, dim=-1)
-        out = self.out_proj(concat)
-        out = self.dropout(out)
+    def __repr__(self) -> str:
+        return f'DifferentiationLayer(in_features={self.in_features}, out_features={self.out_features}, alpha_scale={self.alpha_scale})'
 
-        # Residual + norm
-        return self.norm(x + out)
 
-    def extra_repr(self) -> str:
-        return f'd_model={self.d_model}, n_heads={self.n_heads}'
+# NOTE: DifferentiationModule is BLOCKED until concat() API is implemented
+# It requires concatenating multi-head outputs along the feature dimension
+#
+# class DifferentiationModule:
+#     """
+#     Multi-head differentiation for transformer architectures.
+#
+#     BLOCKED: Requires concat() API for concatenating heads
+#
+#     Applies differentiation with multiple "possibility projectors",
+#     analogous to Σᵢ αᵢ P̂ᵢ[Ψ] in the continuous D̂ operator.
+#     """
+#     pass
+
+
+if __name__ == "__main__":
+    # Test the pure DifferentiationLayer
+    from syntonic._core import ResonantTensor
+
+    print("Testing DifferentiationLayer...")
+    layer = DifferentiationLayer(4, 4, bias=True, alpha_scale=0.5)
+    print(f"Layer: {layer}")
+
+    # Create input
+    x_data = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+    x = ResonantTensor(x_data, [2, 4])
+    print(f"Input syntony: {x.syntony:.4f}")
+
+    # Forward pass
+    y = layer.forward(x)
+    print(f"Output shape: {y.shape}")
+    print(f"Output syntony: {y.syntony:.4f}")
+
+    # Complexity increase
+    complexity = layer.complexity_increase(x)
+    print(f"Complexity increase: {complexity:.4f}")
+
+    # Test with dimension change
+    print("\nTesting dimension change (4 -> 8)...")
+    layer2 = DifferentiationLayer(4, 8, bias=True)
+    y2 = layer2.forward(x)
+    print(f"Output shape: {y2.shape}")
+    print(f"Output syntony: {y2.syntony:.4f}")
+
+    print("\nSUCCESS - DifferentiationLayer refactored!")

@@ -17,9 +17,6 @@ The flux is EPHEMERAL - it only exists during D-phase, then destroyed.
 """
 
 from __future__ import annotations
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from typing import Tuple, Optional
 import math
 import time
@@ -115,100 +112,69 @@ class ResonantWindingDHSRBlock(nn.Module):
         prev_syntony: float,
     ) -> Tuple[torch.Tensor, float, bool]:
         """
-        Forward pass through Resonant DHSR cycle.
+        Forward pass through Resonant DHSR cycle (Batched).
 
-        THE DANCE:
-        1. Input x is in "flux-like" state (PyTorch tensor)
-        2. Convert to ResonantTensor (establish lattice)
-        3. wake_flux() → lattice to GPU
-        4. differentiate() → D̂ on GPU
-        5. crystallize_with_dwell() → Ĥ + snap to Q(φ)
-        6. destroy_shadow() → flux = None
-        7. Convert back to PyTorch tensor
-
-        Args:
-            x: Input tensor (batch, dim)
-            mode_norms: |n|² for each feature (dim,)
-            prev_syntony: Previous syntony value
-
-        Returns:
-            x_new: Transformed state (batch, dim)
-            syntony_new: New syntony value (exact from lattice)
-            accepted: Whether block was validated (ΔS > threshold)
+        THE UNIFIED CYCLE (Batched):
+        1. wake_flux(): project lattice to flux (performed in Rust constructor)
+        2. differentiate(): D̂ flux on GPU/CPU
+        3. crystallize(): Ĥ + snap back to Q(φ) lattice
+        4. destroy_shadow(): clear flux
         """
         batch_size = x.shape[0]
-        results = []
-
-        # Process each sample through the resonant cycle
-        for i in range(batch_size):
-            # Get single sample
-            sample = x[i].detach().cpu().numpy().tolist()
-            norms = mode_norms.cpu().numpy().tolist()
-
-            # === CREATE RESONANT TENSOR (LATTICE INITIALIZATION) ===
-            # Start in Crystalline phase
-            rt = ResonantTensor(
-                data=sample,
-                shape=[self.dim],
-                mode_norm_sq=norms,
-                precision=self.precision
-            )
-
-            # === THE DANCE ===
-            # This is THE critical part - the dual-state dance
-
-            # Track timing for φ-dwell verification
-            d_start = time.perf_counter()
-
-            # STEP 1: wake_flux() - Project lattice → GPU
-            # rt.wake_flux()  # Would be called if using actual GPU
-            # For now, simulated with cpu_cycle which does the full dance
-
-            # STEP 2-4: Complete DHSR cycle (wake → diff → crystallize → destroy)
-            flux_syntony = rt.cpu_cycle(
-                noise_scale=self.noise_scale,
-                precision=self.precision
-            )
-
-            d_end = time.perf_counter()
-            self.last_d_duration = d_end - d_start
-
-            # === EXTRACT LATTICE STATE ===
-            # rt is now back in Crystalline phase (flux destroyed)
-            lattice_syntony = rt.syntony  # Exact Q(φ) measure
-            new_data = rt.to_list()  # Project lattice → floats for PyTorch
-
-            results.append((new_data, flux_syntony, lattice_syntony))
-
-        # Convert back to PyTorch tensor
-        x_new = torch.tensor(
-            [r[0] for r in results],
-            dtype=x.dtype,
-            device=x.device
+        
+        # 1. Prepare data and norms
+        # PROJECT TO RESONANT ENGINE (Wake Flux)
+        x_flat = x.detach().cpu().numpy().flatten().tolist()
+        norms_flat = (mode_norms.detach().cpu().numpy().tolist()) * batch_size
+        
+        rt = ResonantTensor(
+            data=x_flat,
+            shape=[batch_size, self.dim],
+            mode_norm_sq=norms_flat,
+            precision=self.precision
         )
 
-        # Apply prime filter (if enabled)
+        # 2. EXECUTE DHSR CYCLE (D̂ + Ĥ + Crystallize)
+        d_start = time.perf_counter()
+        
+        # batch_cpu_cycle handles the complete phase transition
+        batch_syntonies = rt.batch_cpu_cycle(
+            noise_scale=self.noise_scale,
+            precision=self.precision
+        )
+
+        self.last_d_duration = time.perf_counter() - d_start
+
+        # 3. EXTRACTION AND MÖBIUS FILTERING (with STE)
+        # Result is natively in Crystalline phase
+        new_data = np.array(rt.to_list()).reshape(batch_size, self.dim)
+        x_crystalline = torch.from_numpy(new_data).to(x.device).to(x.dtype)
+
+        # Straight-Through Estimator: 
+        # Output values are crystalline, but gradients pass through original flux
+        x_new = (x_crystalline - x).detach() + x
+
+        # Apply prime filter (Möbius Selection)
         if self.prime_filter is not None:
             x_new = self.prime_filter(x_new)
 
-        # Use lattice syntony as canonical measure
-        avg_lattice_syntony = sum(r[2] for r in results) / batch_size
-        syntony_new = avg_lattice_syntony
+        # Update syntony (average of batch)
+        syntony_new = sum(batch_syntonies) / batch_size
 
-        # Blockchain consensus
+        # 4. TEMPORAL BLOCKCHAIN RECORDING
         delta_syntony = abs(syntony_new - prev_syntony)
         accepted = delta_syntony > self.consensus_threshold
 
         if accepted:
             self.total_blocks_validated += 1
-            # Record to blockchain
+            # Record average state to immutable ledger
             self.temporal_record = torch.cat([
                 self.temporal_record,
                 x_new.mean(dim=0, keepdim=True).detach()
             ], dim=0)
             self.syntony_record = torch.cat([
                 self.syntony_record,
-                torch.tensor([syntony_new])
+                torch.tensor([syntony_new], device=x.device)
             ], dim=0)
         else:
             self.total_blocks_rejected += 1

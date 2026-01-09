@@ -71,6 +71,8 @@ if actual_h_duration < target_h_duration:
 
 The "spare time" is used productively to increase lattice precision, not wasted.
 
+Implementation note: φ-dwell now ramps lattice snap precision multiplicatively by φ (up to a capped bound) while re-snap uses the tightened `find_nearest` (LLL + local search + residual refinement) to keep residuals near 1e-12.
+
 ## 1.3 File Structure
 
 ```

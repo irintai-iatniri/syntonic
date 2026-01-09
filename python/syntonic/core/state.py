@@ -508,6 +508,64 @@ class State:
         """Element-wise absolute value."""
         return self._with_storage(self._storage.abs())
 
+    def exp(self) -> 'State':
+        """Element-wise exponential."""
+        return self._with_storage(self._storage.exp())
+
+    def exp_golden(self) -> 'State':
+        """Golden exponential: exp(-x/φ).
+        
+        Used for computing golden measure weights w(n) = exp(-|n|²/φ).
+        This is the unique optimal measure from SRT Axiom 4.
+        """
+        return self._with_storage(self._storage.exp_golden())
+
+    def layer_norm(
+        self,
+        weight: Optional['State'] = None,
+        bias: Optional['State'] = None,
+        eps: float = 1e-5,
+        golden_target: bool = True,
+    ) -> 'State':
+        """Layer normalization with optional golden target variance.
+        
+        Args:
+            weight: Optional scale parameter (gamma)
+            bias: Optional shift parameter (beta)
+            eps: Numerical stability epsilon
+            golden_target: If True, normalize to variance = 1/φ ≈ 0.618
+                          (SRT syntonic equilibrium)
+        
+        Returns:
+            Normalized state
+        """
+        w_storage = weight._storage if weight is not None else None
+        b_storage = bias._storage if bias is not None else None
+        return self._with_storage(
+            self._storage.layer_norm(w_storage, b_storage, eps, golden_target)
+        )
+
+    def dropout(
+        self,
+        p: float = 0.5,
+        training: bool = True,
+        seed: Optional[int] = None,
+    ) -> 'State':
+        """Apply dropout regularization.
+        
+        Uses inverted dropout: active units scaled by 1/(1-p).
+        At inference (training=False), returns identity.
+        
+        Args:
+            p: Dropout probability (0 ≤ p < 1)
+            training: Whether in training mode
+            seed: Optional RNG seed for reproducibility
+        
+        Returns:
+            State with dropout applied
+        """
+        return self._with_storage(self._storage.dropout(p, training, seed))
+
     # ========== Complex Operations ==========
 
     def conj(self) -> 'State':

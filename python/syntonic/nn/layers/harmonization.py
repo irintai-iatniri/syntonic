@@ -7,17 +7,19 @@ Harmonization Layer: Ĥ operator in neural network form.
 - Tanh stabilizes toward syntony projection
 - Creates coherence and integration (Whispers)
 
+NO PYTORCH OR NUMPY DEPENDENCIES - Pure Rust backend.
+
 Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from typing import Optional
 
+from syntonic._core import ResonantTensor
+from syntonic.nn.layers.resonant_linear import ResonantLinear
 
-class HarmonizationLayer(nn.Module):
+
+class HarmonizationLayer:
     """
     Neural layer implementing harmonization Ĥ.
 
@@ -33,11 +35,13 @@ class HarmonizationLayer(nn.Module):
     - Creates stable, integrated representations (Whispers)
 
     Example:
+        >>> from syntonic._core import ResonantTensor
         >>> layer = HarmonizationLayer(256)
-        >>> x = torch.randn(32, 256)
-        >>> y = layer(x)
+        >>> data = [0.1] * 256 * 32
+        >>> x = ResonantTensor(data, [32, 256])
+        >>> y = layer.forward(x)
         >>> y.shape
-        torch.Size([32, 256])
+        [32, 256]
     """
 
     def __init__(
@@ -58,111 +62,128 @@ class HarmonizationLayer(nn.Module):
             beta_scale: Damping strength (β in Ĥ formula)
             gamma_scale: Syntony projection strength (γ)
         """
-        super().__init__()
         out_features = out_features or in_features
 
         self.in_features = in_features
         self.out_features = out_features
 
         # Damping pathway: -β·σ(W_H·x + b_H)
-        self.damping = nn.Linear(in_features, out_features, bias=bias)
+        self.damping = ResonantLinear(in_features, out_features, bias=bias)
         self.beta_scale = beta_scale
 
         # Syntony projection: +γ·tanh(W_S·x + b_S)
-        self.syntony_proj = nn.Linear(in_features, out_features, bias=bias)
+        self.syntony_proj = ResonantLinear(in_features, out_features, bias=bias)
         self.gamma_scale = gamma_scale
 
-        # Initialize
-        nn.init.xavier_uniform_(self.damping.weight, gain=0.1)
-        nn.init.xavier_uniform_(self.syntony_proj.weight, gain=0.5)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
         Apply Ĥ: x → x - β·σ(W_H·x) + γ·tanh(W_S·x)
-        """
-        # Damping: reduce complexity
-        damp = self.beta_scale * torch.sigmoid(self.damping(x))
-
-        # Syntony projection: stabilize toward coherence
-        syntony = self.gamma_scale * torch.tanh(self.syntony_proj(x))
-
-        # Harmonization: x - damping + syntony
-        if damp.shape == x.shape:
-            return x - damp + syntony
-        else:
-            return syntony - damp
-
-    def coherence_gain(self, x: torch.Tensor) -> float:
-        """Measure coherence increase from harmonization."""
-        with torch.no_grad():
-            h_x = self(x)
-            # Coherence as reduction in variance
-            var_before = torch.var(x).item()
-            var_after = torch.var(h_x).item()
-            return (var_before - var_after) / (var_before + 1e-8)
-
-    def extra_repr(self) -> str:
-        return f'in_features={self.in_features}, out_features={self.out_features}, beta={self.beta_scale}, gamma={self.gamma_scale}'
-
-
-class HarmonizationModule(nn.Module):
-    """
-    Multi-component harmonization for transformer architectures.
-
-    Combines multiple harmonization pathways analogous to
-    Σᵢ βᵢ Q̂ᵢ[Ψ] + γ Ŝ_op[Ψ] in continuous Ĥ.
-
-    Example:
-        >>> module = HarmonizationModule(512, n_heads=8)
-        >>> x = torch.randn(32, 100, 512)
-        >>> y = module(x)
-        >>> y.shape
-        torch.Size([32, 100, 512])
-    """
-
-    def __init__(
-        self,
-        d_model: int,
-        n_heads: int,
-        dropout: float = 0.1,
-    ):
-        """
-        Initialize multi-component harmonization.
 
         Args:
-            d_model: Model dimension
-            n_heads: Number of harmonization components
-            dropout: Dropout rate
+            x: Input tensor of shape [..., in_features]
+
+        Returns:
+            Harmonized output tensor
         """
-        super().__init__()
-        self.d_model = d_model
-        self.n_heads = n_heads
+        # Damping pathway: σ(W_H·x)
+        damp = self.damping.forward(x)
+        damp.sigmoid(precision=100)
 
-        # Harmonization components
-        self.damping_heads = nn.ModuleList([
-            nn.Linear(d_model, d_model // n_heads)
-            for _ in range(n_heads)
-        ])
+        # Scale by beta
+        if self.beta_scale != 1.0:
+            damp = damp.scalar_mul(self.beta_scale)
 
-        self.syntony_proj = nn.Linear(d_model, d_model)
-        self.out_proj = nn.Linear(d_model, d_model)
-        self.dropout = nn.Dropout(dropout)
-        self.norm = nn.LayerNorm(d_model)
+        # Syntony projection pathway: tanh(W_S·x)
+        syntony = self.syntony_proj.forward(x)
+        syntony.tanh(precision=100)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Multi-component harmonization."""
-        # Damping from each head
-        damps = [torch.sigmoid(head(x)) for head in self.damping_heads]
-        total_damp = torch.cat(damps, dim=-1)
+        # Scale by gamma
+        if self.gamma_scale != 1.0:
+            syntony = syntony.scalar_mul(self.gamma_scale)
 
-        # Syntony projection
-        syntony = torch.tanh(self.syntony_proj(x))
+        # Harmonization: x - damping + syntony
+        # Negate damping
+        neg_damp = damp.negate()
 
-        # Combine
-        out = self.out_proj(syntony - 0.5 * total_damp)
-        out = self.dropout(out)
+        # Combine: x - damp + syntony
+        if damp.shape == x.shape:
+            result = x.elementwise_add(neg_damp)
+            result = result.elementwise_add(syntony)
+            return result
+        else:
+            # If dimensions change, combine damp and syntony only
+            result = syntony.elementwise_add(neg_damp)
+            return result
 
-        return self.norm(x + out)
+    def coherence_gain(self, x: ResonantTensor) -> float:
+        """
+        Measure coherence increase from harmonization.
 
-    def extra_repr(self) -> str:
-        return f'd_model={self.d_model}, n_heads={self.n_heads}'
+        Coherence is measured as reduction in variance.
+
+        Returns:
+            Relative variance reduction: (var_before - var_after) / var_before
+        """
+        h_x = self.forward(x)
+
+        # Compute variance before
+        x_floats = x.to_floats()
+        x_mean = sum(x_floats) / len(x_floats)
+        x_var = sum((v - x_mean)**2 for v in x_floats) / len(x_floats)
+
+        # Compute variance after
+        h_floats = h_x.to_floats()
+        h_mean = sum(h_floats) / len(h_floats)
+        h_var = sum((v - h_mean)**2 for v in h_floats) / len(h_floats)
+
+        return (x_var - h_var) / (x_var + 1e-8)
+
+    def __repr__(self) -> str:
+        return f'HarmonizationLayer(in_features={self.in_features}, out_features={self.out_features}, beta={self.beta_scale}, gamma={self.gamma_scale})'
+
+
+# NOTE: HarmonizationModule is BLOCKED until concat() API is implemented
+# It requires concatenating multi-head damping outputs
+#
+# class HarmonizationModule:
+#     """
+#     Multi-component harmonization for transformer architectures.
+#
+#     BLOCKED: Requires concat() API for concatenating damping heads
+#
+#     Combines multiple harmonization pathways analogous to
+#     Σᵢ βᵢ Q̂ᵢ[Ψ] + γ Ŝ_op[Ψ] in continuous Ĥ.
+#     """
+#     pass
+
+
+if __name__ == "__main__":
+    # Test the pure HarmonizationLayer
+    from syntonic._core import ResonantTensor
+
+    print("Testing HarmonizationLayer...")
+    layer = HarmonizationLayer(4, 4, bias=True, beta_scale=0.5, gamma_scale=1.0)
+    print(f"Layer: {layer}")
+
+    # Create input
+    x_data = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+    x = ResonantTensor(x_data, [2, 4])
+    print(f"Input syntony: {x.syntony:.4f}")
+
+    # Forward pass
+    y = layer.forward(x)
+    print(f"Output shape: {y.shape}")
+    print(f"Output syntony: {y.syntony:.4f}")
+
+    # Coherence gain
+    coherence = layer.coherence_gain(x)
+    print(f"Coherence gain: {coherence:.4f}")
+
+    # Test with dimension change
+    print("\nTesting dimension change (4 -> 8)...")
+    layer2 = HarmonizationLayer(4, 8, bias=True)
+    y2 = layer2.forward(x)
+    print(f"Output shape: {y2.shape}")
+    print(f"Output syntony: {y2.syntony:.4f}")
+
+    print("\nSUCCESS - HarmonizationLayer refactored!")

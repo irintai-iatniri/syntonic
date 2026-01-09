@@ -30,9 +30,10 @@ except ImportError:
     RESONANT_AVAILABLE = False
     ResonantTensor = None
 
-from syntonic.nn.winding.embedding import WindingStateEmbedding
+from syntonic.nn.winding.resonant_embedding import ResonantWindingEmbedding
 from syntonic.nn.winding.fibonacci_hierarchy import FibonacciHierarchy
-from syntonic.nn.winding.dhsr_block import WindingDHSRBlock
+from syntonic.nn.winding.resonant_dhsr_block import ResonantWindingDHSRBlock
+from syntonic.nn.layers.resonant_linear import ResonantLinear
 
 PHI = (1 + math.sqrt(5)) / 2  # Golden ratio ~ 1.618
 Q_DEFICIT = 0.027395146920  # Universal syntony deficit
@@ -88,8 +89,8 @@ class WindingNet(nn.Module):
         self.num_blocks = num_blocks
         self.output_dim = output_dim
 
-        # 1. Winding embedding layer
-        self.winding_embed = WindingStateEmbedding(
+        # 1. Resonant Winding embedding layer
+        self.winding_embed = ResonantWindingEmbedding(
             max_n=max_winding,
             embed_dim=base_dim,
         )
@@ -99,10 +100,10 @@ class WindingNet(nn.Module):
         layer_dims = self.fib_hierarchy.get_layer_dims(base_dim)
         self.layer_dims = layer_dims
 
-        # 3. DHSR blocks (one per Fibonacci level)
+        # 3. Resonant DHSR blocks (one per Fibonacci level)
         self.blocks = nn.ModuleList()
         for i in range(num_blocks):
-            block = WindingDHSRBlock(
+            block = ResonantWindingDHSRBlock(
                 dim=layer_dims[i],
                 fib_expand_factor=self.fib_hierarchy.get_expansion_factor(i),
                 use_prime_filter=use_prime_filter,
@@ -111,19 +112,18 @@ class WindingNet(nn.Module):
             )
             self.blocks.append(block)
 
-        # 4. Transitions between Fibonacci levels
+        # 4. Transitions between Fibonacci levels (Resonant)
         self.transitions = nn.ModuleList()
         for i in range(num_blocks - 1):
-            self.transitions.append(nn.Linear(layer_dims[i], layer_dims[i + 1]))
+            self.transitions.append(
+                ResonantLinear(layer_dims[i], layer_dims[i + 1], precision=64)
+            )
 
-        # 5. Output projection
-        # Use the dimension after the last transition (if any) or last block
+        # 5. Output projection (Resonant)
         final_dim = layer_dims[num_blocks - 1]
-        self.output_proj = nn.Linear(final_dim, output_dim)
+        self.output_proj = ResonantLinear(final_dim, output_dim, precision=64)
 
         # 6. Mode norms per layer
-        # For now, use simple squared index as mode norm
-        # In future, could derive from actual winding state structure
         self.mode_norms = nn.ParameterList([
             nn.Parameter(
                 torch.arange(dim).pow(2).float(), requires_grad=False
@@ -145,17 +145,16 @@ class WindingNet(nn.Module):
         Returns:
             predictions: (batch, output_dim) logits
         """
-        # Embed windings
+        # 1. Embed windings
         x = self.winding_embed.batch_forward(winding_states)
-        batch_size = x.shape[0]
-
+        
         # Initial syntony
         syntony = 0.5
         syntonies = []
 
-        # Pass through DHSR blocks
+        # 2. Pass through DHSR blocks
         for i, block in enumerate(self.blocks):
-            # DHSR cycle
+            # DHSR cycle (Unified Lattice ↔ Flux)
             x, syntony_new, accepted = block(
                 x,
                 self.mode_norms[i],
@@ -169,14 +168,11 @@ class WindingNet(nn.Module):
             if i < len(self.transitions):
                 x = F.relu(self.transitions[i](x))
 
-        # Network syntony = average over blocks
+        # 3. Final metrics and Output
         self.network_syntony = sum(syntonies) / len(syntonies)
         self.layer_syntonies = syntonies
 
-        # Output projection
-        y = self.output_proj(x)
-
-        return y
+        return self.output_proj(x)
 
     def compute_loss(
         self,
@@ -249,126 +245,8 @@ class WindingNet(nn.Module):
             raise ValueError(f"Block index {block_idx} out of range (have {len(self.blocks)} blocks)")
         return self.blocks[block_idx].get_blockchain()
 
-    def crystallize_weights(self, precision: int = 100) -> None:
-        """
-        Crystallize all network weights to Q(φ) lattice.
-
-        This method snaps all trainable parameters to the exact golden field
-        Q(φ) = {a + b·φ : a,b ∈ Z}, eliminating floating-point drift.
-
-        Call this after training to obtain exact resonant weights.
-
-        Args:
-            precision: Bit precision for exact arithmetic (default: 100)
-
-        Raises:
-            RuntimeError: If ResonantTensor is not available
-        """
-        if not RESONANT_AVAILABLE:
-            raise RuntimeError(
-                "ResonantTensor not available. Install with exact arithmetic support."
-            )
-
-        print(f"Crystallizing weights to Q(φ) lattice (precision={precision})...")
-
-        with torch.no_grad():
-            for name, param in self.named_parameters():
-                if param.requires_grad:
-                    # Get flattened data
-                    original_shape = param.shape
-                    data = param.data.cpu().numpy().flatten().tolist()
-                    numel = len(data)
-
-                    # Create mode norms (simple: i²)
-                    mode_norms = [float(i**2) for i in range(numel)]
-
-                    # Create ResonantTensor
-                    rt = ResonantTensor(
-                        data=data,
-                        shape=[numel],
-                        mode_norm_sq=mode_norms,
-                        precision=precision
-                    )
-
-                    # Crystallize to Q(φ) lattice
-                    # Note: We don't run cpu_cycle here, just get the lattice values
-                    crystallized = rt.to_list()
-
-                    # Update parameter
-                    param.data = torch.tensor(
-                        crystallized,
-                        dtype=param.dtype,
-                        device=param.device
-                    ).reshape(original_shape)
-
-        print("✓ All weights crystallized to Q(φ) lattice")
-
-    def forward_exact(self, winding_states: List[WindingState]) -> torch.Tensor:
-        """
-        Inference using exact ResonantTensor evolution.
-
-        This method performs forward pass using exact Q(φ) lattice arithmetic
-        with no floating-point approximations. Requires crystallized weights.
-
-        Note: No gradients are computed in this mode.
-
-        Args:
-            winding_states: List of input winding configurations
-
-        Returns:
-            predictions: (batch, output_dim) logits with exact Q(φ) values
-
-        Raises:
-            RuntimeError: If ResonantTensor is not available
-        """
-        if not RESONANT_AVAILABLE:
-            raise RuntimeError(
-                "ResonantTensor not available. Install with exact arithmetic support."
-            )
-
-        # Embed windings (still uses float embeddings)
-        # TODO: Could also crystallize embeddings for full exact mode
-        x = self.winding_embed.batch_forward(winding_states)
-        batch_size = x.shape[0]
-
-        # Initial syntony
-        syntony = 0.5
-        syntonies = []
-
-        # Pass through DHSR blocks with exact=True if supported
-        for i, block in enumerate(self.blocks):
-            # Check if block supports exact mode
-            if hasattr(block, 'forward'):
-                sig = inspect.signature(block.forward)
-                if 'use_exact' in sig.parameters:
-                    # Block supports exact mode (e.g., ResonantWindingDHSRBlock)
-                    x, syntony_new, accepted = block(
-                        x, self.mode_norms[i], syntony, use_exact=True
-                    )
-                else:
-                    # Fall back to regular forward
-                    x, syntony_new, accepted = block(
-                        x, self.mode_norms[i], syntony
-                    )
-            else:
-                # Old-style block
-                x, syntony_new, accepted = block(x, self.mode_norms[i], syntony)
-
-            syntonies.append(syntony_new)
-            syntony = syntony_new
-
-            # Transition to next Fibonacci level
-            if i < len(self.transitions):
-                x = F.relu(self.transitions[i](x))
-
-        # Network syntony = average over blocks
-        self.network_syntony = sum(syntonies) / len(syntonies)
-        self.layer_syntonies = syntonies
-
-        # Output projection
-        y = self.output_proj(x)
-
-        return y
+    # Removed crystallize_weights and forward_exact
+    # The unified DHSR cycle handles these phases natively in forward()
 
     def extra_repr(self) -> str:
         return (

@@ -9,14 +9,8 @@ This module provides the fundamental building blocks for syntonic neural network
 - SyntonicNorm: Golden-ratio aware normalization
 """
 
-from syntonic.nn.layers.differentiation import (
-    DifferentiationLayer,
-    DifferentiationModule,
-)
-from syntonic.nn.layers.harmonization import (
-    HarmonizationLayer,
-    HarmonizationModule,
-)
+from syntonic.nn.layers.differentiation import DifferentiationLayer
+from syntonic.nn.layers.harmonization import HarmonizationLayer
 from syntonic.nn.layers.syntonic_gate import (
     SyntonicGate,
     AdaptiveGate,
@@ -30,11 +24,12 @@ from syntonic.nn.layers.normalization import (
     GoldenNorm,
 )
 
+# NOTE: DifferentiationModule and HarmonizationModule remain BLOCKED
+# (multi-head architectures require additional API development)
+
 __all__ = [
     'DifferentiationLayer',
-    'DifferentiationModule',
     'HarmonizationLayer',
-    'HarmonizationModule',
     'SyntonicGate',
     'AdaptiveGate',
     'RecursionBlock',

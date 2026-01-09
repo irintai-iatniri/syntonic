@@ -85,11 +85,12 @@ pub fn crystallize_with_dwell(
 
     // φ-DWELL ENFORCEMENT
     // If we finished early, deepen the lattice precision productively
-    let max_precision = 1000; // Upper bound to prevent runaway
+    let max_precision = ((base_precision as f64) * PHI * 5.0).ceil() as i64;
 
     while start.elapsed() < target_duration && precision < max_precision {
-        // Increase precision by 10 (or could scale by φ)
-        precision += 10;
+        // Increase precision using φ scaling; ensure forward progress
+        let candidate_precision = ((precision as f64) * PHI).ceil() as i64;
+        precision = candidate_precision.max(precision + 1);
 
         // Re-snap with higher precision (Ĥ already applied, just re-snap)
         let float_values: Vec<f64> = lattice.iter()
@@ -280,5 +281,23 @@ mod tests {
         assert!((gradient[0] - 0.5).abs() < 1e-10);  // 2.0 - 1.5
         assert!((gradient[1] - (-0.5)).abs() < 1e-10); // 2.0 - 2.5
         assert!((gradient[2] - 0.5).abs() < 1e-10);  // 4.0 - 3.5
+    }
+
+    #[test]
+    fn test_crystallize_with_dwell_precision_ramp() {
+        let flux = vec![0.5, 1.0, 1.5];
+        let mode_norms = vec![0.0, 1.0, 4.0];
+        let syntony = 0.4;
+        let base_precision = 50;
+        let target = Duration::from_millis(5);
+
+        let (_lat, final_precision, actual_duration) =
+            crystallize_with_dwell(&flux, &mode_norms, syntony, base_precision, target);
+
+        if actual_duration < target {
+            assert!(final_precision > base_precision);
+        } else {
+            assert!(final_precision >= base_precision);
+        }
     }
 }

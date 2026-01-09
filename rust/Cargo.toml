@@ -27,6 +27,7 @@ half = "2.3"
 
 [dev-dependencies]
 criterion = "0.5"
+approx = "0.5"
 
 [profile.release]
 lto = true

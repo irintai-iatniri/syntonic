@@ -32,6 +32,10 @@ from syntonic.nn.winding.dhsr_block import WindingDHSRBlock
 from syntonic.nn.winding.resonant_dhsr_block import ResonantWindingDHSRBlock
 from syntonic.nn.winding.winding_net import WindingNet
 
+# Pure (PyTorch-free) versions
+from syntonic.nn.winding.prime_selection_pure import PurePrimeSelectionLayer
+from syntonic.nn.winding.syntony_pure import PureWindingSyntonyComputer
+
 __all__ = [
     "WindingStateEmbedding",
     "FibonacciHierarchy",
@@ -40,4 +44,7 @@ __all__ = [
     "WindingDHSRBlock",
     "ResonantWindingDHSRBlock",
     "WindingNet",
+    # Pure versions
+    "PurePrimeSelectionLayer",
+    "PureWindingSyntonyComputer",
 ]

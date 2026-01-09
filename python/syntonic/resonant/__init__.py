@@ -36,6 +36,9 @@ from syntonic._core import (
     GoldenExact,
 )
 
+# Retrocausal module
+from . import retrocausal
+
 # Constants
 PHI = 1.6180339887498948482
 PHI_INV = 0.6180339887498948482
@@ -50,6 +53,8 @@ __all__ = [
     'ResonantEvolver',
     'RESConfig',
     'RESResult',
+    # Retrocausal module
+    'retrocausal',
     # Constants
     'PHI',
     'PHI_INV',

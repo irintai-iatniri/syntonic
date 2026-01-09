@@ -1,61 +1,47 @@
 """
 Winding DHSR Block - DHSR cycle with winding structure + blockchain recording.
 
-This module implements a complete DHSR cycle that:
+This module implements a complete DHSR cycle using the Rust backend:
 1. D-phase: Fibonacci expansion (differentiation)
-2. Prime filter: Möbius filtering (matter channel)
-3. H-phase: Harmonization (using existing RecursionBlock)
-4. Blockchain: Temporal state recording
-5. Consensus: ΔS > threshold validation
+2. H-phase: Harmonization (lattice crystallization)
+3. S-phase: Syntony computation
+4. R-phase: Recursion (golden scaling)
+5. Blockchain: Temporal state recording
+
+NO PYTORCH OR NUMPY DEPENDENCIES.
 """
 
 from __future__ import annotations
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from typing import Tuple, Optional
 import math
+import random
+from typing import Tuple, List, Optional
 
-try:
-    from syntonic.nn.layers import RecursionBlock
-except ImportError:
-    # Fallback for testing
-    from syntonic.nn.layers.recursion import RecursionBlock
+from syntonic._core import ResonantTensor
+from syntonic.nn.layers.resonant_linear import ResonantLinear
 
-from syntonic.nn.winding.prime_selection import PrimeSelectionLayer
-from syntonic.nn.winding.syntony import WindingSyntonyComputer
-
-PHI = (1 + math.sqrt(5)) / 2  # Golden ratio ~ 1.618
-PHI_INV = 1 / PHI  # ~ 0.618
-PHI_INV_SQ = PHI_INV - PHI_INV * PHI_INV  # ~ 0.382
+PHI = (1 + math.sqrt(5)) / 2
+PHI_INV = 1 / PHI
+PHI_INV_SQ = PHI_INV - PHI_INV * PHI_INV
 
 
-class WindingDHSRBlock(nn.Module):
+class WindingDHSRBlock:
     """
     DHSR block with winding structure and blockchain recording.
 
     Architecture:
-    1. D-phase: Fibonacci expansion via linear layers
-    2. Prime filter: Möbius selection (optional)
-    3. H-phase: RecursionBlock for DHSR processing
-    4. Syntony: WindingSyntonyComputer
+    1. D-phase: Fibonacci expansion via ResonantLinear
+    2. H-phase: Crystallization via cpu_cycle
+    3. S-phase: Syntony extracted from ResonantTensor
+    4. R-phase: Golden recursion scaling
     5. Blockchain: Temporal ledger of accepted states
-
-    Example:
-        >>> block = WindingDHSRBlock(dim=64, fib_expand_factor=3)
-        >>> x = torch.randn(32, 64)
-        >>> mode_norms = torch.arange(64).pow(2).float()
-        >>> prev_syntony = 0.5
-        >>> x_new, syntony_new, accepted = block(x, mode_norms, prev_syntony)
     """
 
     def __init__(
         self,
         dim: int,
         fib_expand_factor: int = 3,
-        use_prime_filter: bool = True,
         consensus_threshold: float = 0.024,
-        dropout: float = 0.1,
+        precision: int = 100,
     ):
         """
         Initialize winding DHSR block.
@@ -63,40 +49,22 @@ class WindingDHSRBlock(nn.Module):
         Args:
             dim: Feature dimension
             fib_expand_factor: Fibonacci expansion factor for D-phase
-            use_prime_filter: Whether to use prime selection filtering
             consensus_threshold: ΔS threshold for block validation
-            dropout: Dropout rate
+            precision: Lattice precision for exact arithmetic
         """
-        super().__init__()
-
         self.dim = dim
         self.fib_expand_factor = fib_expand_factor
         self.consensus_threshold = consensus_threshold
+        self.precision = precision
 
         # Fibonacci expansion (D-phase)
         expanded_dim = dim * fib_expand_factor
-        self.d_expand = nn.Linear(dim, expanded_dim)
-        self.d_project = nn.Linear(expanded_dim, dim)
-
-        # Prime filter (matter channel)
-        if use_prime_filter:
-            self.prime_filter = PrimeSelectionLayer(dim)
-        else:
-            self.prime_filter = nn.Identity()
-
-        # H-phase: Use existing RecursionBlock for DHSR processing
-        self.recursion = RecursionBlock(
-            in_features=dim,
-            use_gate=True,
-            dropout=dropout,
-        )
-
-        # Syntony computer
-        self.syntony_computer = WindingSyntonyComputer(dim)
+        self.d_expand = ResonantLinear(dim, expanded_dim, precision=precision)
+        self.d_project = ResonantLinear(expanded_dim, dim, precision=precision)
 
         # Temporal blockchain (immutable ledger)
-        self.register_buffer("temporal_record", torch.zeros(0, dim))
-        self.register_buffer("syntony_record", torch.zeros(0))
+        self.temporal_record: List[List[float]] = []
+        self.syntony_record: List[float] = []
 
         # Statistics
         self.total_blocks_validated = 0
@@ -104,16 +72,14 @@ class WindingDHSRBlock(nn.Module):
 
     def forward(
         self,
-        x: torch.Tensor,
-        mode_norms: torch.Tensor,
+        x: ResonantTensor,
         prev_syntony: float,
-    ) -> Tuple[torch.Tensor, float, bool]:
+    ) -> Tuple[ResonantTensor, float, bool]:
         """
         Execute one DHSR cycle with blockchain recording.
 
         Args:
             x: Input activations (batch, dim)
-            mode_norms: Mode norm squared |n|² for each feature (dim,)
             prev_syntony: Syntony from previous block
 
         Returns:
@@ -126,26 +92,25 @@ class WindingDHSRBlock(nn.Module):
         alpha = PHI_INV_SQ * (1.0 - prev_syntony)
 
         # Expand via Fibonacci factor
-        h = F.relu(self.d_expand(x))
-        delta = self.d_project(h)
+        h = self.d_expand.forward(x)
+        h.relu()  # Activation
+        
+        delta = self.d_project.forward(h)
 
         # Apply differentiation: x' = x + α·Δ
-        x = x + alpha * delta
+        # Combine x and delta (simplified for now - add floats and reconstruct)
+        x_floats = x.to_floats()
+        delta_floats = delta.to_floats()
+        combined = [x_floats[i] + alpha * delta_floats[i] for i in range(len(x_floats))]
+        
+        x = ResonantTensor(combined, list(x.shape), precision=self.precision)
 
-        # === PRIME FILTER: Matter selection ===
-        x = self.prime_filter(x)
+        # === H-PHASE: Harmonization via DHSR cycle ===
+        syntony_new = x.cpu_cycle(noise_scale=0.01, precision=self.precision)
 
-        # === H-PHASE: Harmonization via RecursionBlock ===
-        # The RecursionBlock handles D̂ ∘ Ĥ internally
-        x, block_syntony = self.recursion(x, return_syntony=True)
-
-        # === SYNTONY COMPUTATION: Winding-aware ===
-        # Use winding syntony computer with mode norms
-        syntony_new = self.syntony_computer(x, mode_norms)
-
-        # Combine block syntony and winding syntony
-        # Use weighted average: 70% winding, 30% block
-        syntony_new = 0.7 * syntony_new + 0.3 * block_syntony
+        # === R-PHASE: Golden recursion ===
+        x.apply_recursion()
+        x.apply_inverse_recursion()  # Undo to keep scale, but phases are mixed
 
         # === CONSENSUS CHECK: ΔS > threshold ===
         delta_s = abs(syntony_new - prev_syntony)
@@ -153,85 +118,73 @@ class WindingDHSRBlock(nn.Module):
 
         # === TEMPORAL RECORDING: Blockchain ===
         if accepted:
-            self._record_block(x.detach(), syntony_new)
+            self._record_block(x.to_floats(), syntony_new)
             self.total_blocks_validated += 1
         else:
             self.total_blocks_rejected += 1
 
         return x, syntony_new, accepted
 
-    def _record_block(self, state: torch.Tensor, syntony: float):
+    def _record_block(self, state: List[float], syntony: float):
         """
         Append block to temporal blockchain.
 
-        Immutable, append-only ledger recording state evolution.
-
         Args:
-            state: State tensor (batch, dim)
+            state: State as flattened float list
             syntony: Syntony value
         """
         # Average over batch for single state record
-        state_avg = state.mean(dim=0, keepdim=True)  # (1, dim)
+        dim = self.dim
+        batch_size = len(state) // dim
+        state_avg = [0.0] * dim
+        for b in range(batch_size):
+            for d in range(dim):
+                state_avg[d] += state[b * dim + d]
+        state_avg = [s / batch_size for s in state_avg]
 
-        # Concatenate to blockchain
-        self.temporal_record = torch.cat([self.temporal_record, state_avg], dim=0)
-
-        # Record syntony
-        self.syntony_record = torch.cat([
-            self.syntony_record,
-            torch.tensor([syntony], device=self.syntony_record.device)
-        ], dim=0)
+        self.temporal_record.append(state_avg)
+        self.syntony_record.append(syntony)
 
     def get_blockchain_length(self) -> int:
-        """
-        Get length of temporal blockchain.
-
-        Returns:
-            Number of recorded blocks
-        """
+        """Get length of temporal blockchain."""
         return len(self.syntony_record)
 
-    def get_blockchain(self) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Get complete blockchain history.
-
-        Returns:
-            states: Temporal state record (blockchain_length, dim)
-            syntonies: Syntony record (blockchain_length,)
-        """
+    def get_blockchain(self) -> Tuple[List[List[float]], List[float]]:
+        """Get complete blockchain history."""
         return self.temporal_record, self.syntony_record
 
     def get_validation_rate(self) -> float:
-        """
-        Get consensus validation rate.
-
-        Returns:
-            Fraction of blocks validated (accepted / total)
-        """
+        """Get consensus validation rate."""
         total = self.total_blocks_validated + self.total_blocks_rejected
         if total == 0:
             return 0.0
         return self.total_blocks_validated / total
 
-    def extra_repr(self) -> str:
+    def parameters(self) -> List[ResonantTensor]:
+        """Return all learnable parameters."""
+        return self.d_expand.parameters() + self.d_project.parameters()
+
+    def __repr__(self) -> str:
         return (
-            f"dim={self.dim}, expand_factor={self.fib_expand_factor}, "
-            f"threshold={self.consensus_threshold:.4f}"
+            f"WindingDHSRBlock(dim={self.dim}, expand_factor={self.fib_expand_factor}, "
+            f"threshold={self.consensus_threshold:.4f})"
         )
 
 
 if __name__ == "__main__":
-    # Example usage
-    block = WindingDHSRBlock(dim=64, fib_expand_factor=3)
-    print(f"DHSR Block: {block}")
+    # Test the pure WindingDHSRBlock
+    print("Testing WindingDHSRBlock...")
+    
+    block = WindingDHSRBlock(dim=16, fib_expand_factor=2)
+    print(f"Block: {block}")
 
     # Create sample data
-    x = torch.randn(32, 64)
-    mode_norms = torch.arange(64).pow(2).float()
+    x_data = [random.gauss(0, 1) for _ in range(32 * 16)]  # batch of 32
+    x = ResonantTensor(x_data, [32, 16])
     prev_syntony = 0.5
 
     # Forward pass
-    x_new, syntony_new, accepted = block(x, mode_norms, prev_syntony)
+    x_new, syntony_new, accepted = block.forward(x, prev_syntony)
 
     print(f"\nInput shape: {x.shape}")
     print(f"Output shape: {x_new.shape}")
@@ -240,12 +193,12 @@ if __name__ == "__main__":
     print(f"ΔS: {abs(syntony_new - prev_syntony):.4f}")
     print(f"Block accepted: {accepted}")
     print(f"Blockchain length: {block.get_blockchain_length()}")
-    print(f"Validation rate: {block.get_validation_rate():.2%}")
 
     # Run a few more cycles
     for i in range(5):
-        x_new, syntony_new, accepted = block(x_new, mode_norms, syntony_new)
+        x_new, syntony_new, accepted = block.forward(x_new, syntony_new)
         print(f"Cycle {i+2}: S={syntony_new:.4f}, accepted={accepted}")
 
     print(f"\nFinal blockchain length: {block.get_blockchain_length()}")
     print(f"Final validation rate: {block.get_validation_rate():.2%}")
+    print("SUCCESS")

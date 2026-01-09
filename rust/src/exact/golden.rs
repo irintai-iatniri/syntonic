@@ -217,6 +217,29 @@ impl GoldenExact {
         GoldenExact::from_ints(f_prev, f_curr)
     }
 
+    /// Multiply by φ: (a + b·φ) × φ = b + (a + b)·φ
+    ///
+    /// This is exact in Q(φ) using the identity φ² = φ + 1.
+    pub fn mul_phi(&self) -> Self {
+        // (a + b·φ) × φ = a·φ + b·φ² = a·φ + b·(φ + 1) = b + (a + b)·φ
+        GoldenExact {
+            a: self.b,
+            b: self.a + self.b,
+        }
+    }
+
+    /// Divide by φ: (a + b·φ) / φ = (a + b·φ) × (1/φ) = (a + b·φ) × (φ - 1)
+    ///
+    /// This is exact in Q(φ) using the identity 1/φ = φ - 1.
+    pub fn div_phi(&self) -> Self {
+        // (a + b·φ) / φ = (a + b·φ) × (φ - 1) = a·φ - a + b·φ² - b·φ
+        //              = a·φ - a + b·(φ + 1) - b·φ = (b - a) + a·φ
+        GoldenExact {
+            a: self.b - self.a,
+            b: self.a,
+        }
+    }
+
     /// Evaluate to f64 (for numerical verification ONLY)
     /// φ ≈ 1.6180339887498949
     pub fn to_f64(&self) -> f64 {
@@ -248,6 +271,7 @@ impl GoldenExact {
     /// good approximations a + b·φ ≈ x.
     pub fn find_nearest(x: f64, max_coeff: i64) -> Self {
         const PHI_F64: f64 = 1.6180339887498949;
+        const TARGET_ERR: f64 = 1e-12;
 
         // Handle special cases
         if x.is_nan() || x.is_infinite() {
@@ -256,24 +280,62 @@ impl GoldenExact {
 
         // Scaling factor for lattice precision
         // Larger K gives better precision but risks overflow
-        let k: f64 = 1e12;
+        let mut k: f64 = 1e12;
 
-        // Build the 2x3 lattice basis matrix
-        // Row 0: [1, 0, K]
-        // Row 1: [0, 1, K*phi]
-        // We augment with target: [0, 0, K*x]
-        //
-        // Finding short vectors that zero out the third column gives us (a, b) such that
-        // a*K + b*K*phi ≈ 0 => a + b*phi ≈ 0 (not useful)
-        //
-        // Instead, we use a 2D SLSA (Simultaneous Linear System Approximation):
-        // Find integers a, b such that |a + b*φ - x| is small
-
-        // Apply 2D LLL reduction
+        // Apply 2D LLL reduction (first pass)
         let (a_best, b_best) = lll_find_nearest_2d(x, PHI_F64, k, max_coeff);
+        let mut best = GoldenExact::from_ints(a_best, b_best);
+        let mut best_error = (best.to_f64() - x).abs();
 
-        // Convert to GoldenExact with integer coefficients
-        GoldenExact::from_ints(a_best, b_best)
+        // Local neighborhood search around the LLL candidate
+        for da in -2..=2 {
+            for db in -2..=2 {
+                let a = a_best + da;
+                let b = b_best + db;
+                if a.abs() > max_coeff || b.abs() > max_coeff {
+                    continue;
+                }
+                let cand = GoldenExact::from_ints(a, b);
+                let err = (cand.to_f64() - x).abs();
+                if err < best_error {
+                    best_error = err;
+                    best = cand;
+                }
+            }
+        }
+
+        // Adaptive refinement with increased lattice scale until tolerance or limits
+        if best_error > TARGET_ERR {
+            for _ in 0..2 {
+                k *= 10.0;
+                let (a_next, b_next) = lll_find_nearest_2d(x, PHI_F64, k, max_coeff);
+                let cand = GoldenExact::from_ints(a_next, b_next);
+                let err = (cand.to_f64() - x).abs();
+                if err < best_error {
+                    best_error = err;
+                    best = cand;
+                }
+                if best_error <= TARGET_ERR {
+                    break;
+                }
+            }
+        }
+
+        // Rational refinement on the residual if still above target and bounds allow
+        if best_error > TARGET_ERR && max_coeff <= 2000 {
+            let residual = x - best.to_f64();
+            if let Some(delta_a) = Rational::from_f64_approx(residual, max_coeff as i128) {
+                let a = best.rational_part() + delta_a;
+                let b = best.phi_part();
+                let cand = GoldenExact::new(a, b);
+                let err = (cand.to_f64() - x).abs();
+                if err < best_error {
+                    best = cand;
+                }
+            }
+        }
+
+        best
     }
 
     /// Find the nearest GoldenExact with rational coefficients.

@@ -610,6 +610,59 @@ impl TensorStorage {
         Ok(Self::wrap_cpu(result, &self.device))
     }
 
+    /// Element-wise exponential
+    pub fn exp(&self) -> PyResult<TensorStorage> {
+        #[cfg(feature = "cuda")]
+        if let TensorData::Cuda { data, device, .. } = &self.data {
+            let device_idx = match &self.device { DeviceType::Cuda(idx) => *idx, _ => 0 };
+            ensure_kernels_loaded(device, device_idx)?;
+            return self.unary_cuda_op(data, device, "exp");
+        }
+
+        let cpu = self.ensure_cpu()?;
+        let result = match cpu {
+            CpuData::Float64(arr) => CpuData::Float64(arr.mapv(|x| x.exp())),
+            CpuData::Float32(arr) => CpuData::Float32(arr.mapv(|x| x.exp())),
+            CpuData::Complex128(arr) => {
+                // exp(a + bi) = exp(a) * (cos(b) + i*sin(b))
+                CpuData::Complex128(arr.mapv(|c| {
+                    let exp_re = c.re.exp();
+                    Complex64::new(exp_re * c.im.cos(), exp_re * c.im.sin())
+                }))
+            },
+            CpuData::Int64(arr) => {
+                // Convert to float for exp
+                CpuData::Float64(arr.mapv(|x| (x as f64).exp()))
+            },
+        };
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
+    /// Element-wise golden exponential: exp(-x/φ)
+    /// Used for computing golden measure weights w(n) = exp(-|n|²/φ)
+    pub fn exp_golden(&self) -> PyResult<TensorStorage> {
+        #[cfg(feature = "cuda")]
+        if let TensorData::Cuda { data, device, .. } = &self.data {
+            let device_idx = match &self.device { DeviceType::Cuda(idx) => *idx, _ => 0 };
+            ensure_kernels_loaded(device, device_idx)?;
+            return self.unary_cuda_op(data, device, "exp_golden");
+        }
+
+        const PHI_INV: f64 = 0.6180339887498949;
+        let cpu = self.ensure_cpu()?;
+        let result = match cpu {
+            CpuData::Float64(arr) => CpuData::Float64(arr.mapv(|x| (-x * PHI_INV).exp())),
+            CpuData::Float32(arr) => CpuData::Float32(arr.mapv(|x| (-x * PHI_INV as f32).exp())),
+            CpuData::Int64(arr) => CpuData::Float64(arr.mapv(|x| (-(x as f64) * PHI_INV).exp())),
+            CpuData::Complex128(_) => {
+                return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    "exp_golden not supported for complex types"
+                ));
+            },
+        };
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
     pub fn norm(&self, _ord: Option<i32>) -> PyResult<f64> {
         let cpu = self.ensure_cpu()?;
         Ok(match cpu {
@@ -1451,6 +1504,242 @@ impl TensorStorage {
                 Ok(Self::wrap_cpu(CpuData::Complex128(result), &self.device))
             },
             CpuData::Int64(_) => Ok(self.clone_storage()),
+        }
+    }
+
+    // ===== Core Reduction Operations =====
+
+    /// Sum reduction over all elements or along an axis
+    /// Returns scalar for full reduction, tensor for axis reduction
+    #[pyo3(signature = (axis = None, keepdim = false))]
+    pub fn sum_reduce(&self, axis: Option<i32>, keepdim: bool) -> PyResult<TensorStorage> {
+        let cpu = self.ensure_cpu()?;
+        
+        if axis.is_none() {
+            // Full reduction to scalar
+            let sum = match &cpu {
+                CpuData::Float64(arr) => arr.iter().sum::<f64>(),
+                CpuData::Float32(arr) => arr.iter().map(|x| *x as f64).sum(),
+                CpuData::Complex128(arr) => arr.iter().map(|x| x.re + x.im).sum(),
+                CpuData::Int64(arr) => arr.iter().map(|x| *x as f64).sum(),
+            };
+            let shape = if keepdim { vec![1] } else { vec![1] };
+            return Ok(TensorStorage {
+                data: TensorData::Cpu(CpuData::Float64(ArrayD::from_elem(IxDyn(&shape), sum))),
+                shape,
+                device: self.device.clone(),
+            });
+        }
+        
+        // Axis reduction (simplified - full along outer dim)
+        let axis_val = axis.unwrap() as usize;
+        if axis_val >= self.shape.len() {
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                format!("Axis {} out of bounds for shape {:?}", axis_val, self.shape)
+            ));
+        }
+        
+        match &cpu {
+            CpuData::Float64(arr) => {
+                let result = arr.sum_axis(ndarray::Axis(axis_val));
+                let mut new_shape: Vec<usize> = result.shape().to_vec();
+                if keepdim {
+                    new_shape.insert(axis_val, 1);
+                    let reshaped = result.into_shape(IxDyn(&new_shape))
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    Ok(Self::wrap_cpu(CpuData::Float64(reshaped), &self.device))
+                } else {
+                    Ok(Self::wrap_cpu(CpuData::Float64(result.into_dyn()), &self.device))
+                }
+            },
+            _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                "sum_reduce axis not implemented for this dtype"
+            )),
+        }
+    }
+
+    /// Mean reduction over all elements or along an axis
+    #[pyo3(signature = (axis = None, keepdim = false))]
+    pub fn mean_reduce(&self, axis: Option<i32>, keepdim: bool) -> PyResult<TensorStorage> {
+        let cpu = self.ensure_cpu()?;
+        
+        if axis.is_none() {
+            let (sum, count) = match &cpu {
+                CpuData::Float64(arr) => (arr.iter().sum::<f64>(), arr.len()),
+                CpuData::Float32(arr) => (arr.iter().map(|x| *x as f64).sum(), arr.len()),
+                CpuData::Complex128(arr) => (arr.iter().map(|x| x.re).sum(), arr.len()),
+                CpuData::Int64(arr) => (arr.iter().map(|x| *x as f64).sum(), arr.len()),
+            };
+            let mean = sum / count as f64;
+            let shape = if keepdim { vec![1] } else { vec![1] };
+            return Ok(TensorStorage {
+                data: TensorData::Cpu(CpuData::Float64(ArrayD::from_elem(IxDyn(&shape), mean))),
+                shape,
+                device: self.device.clone(),
+            });
+        }
+        
+        // For axis mean, use sum then divide
+        let sum_result = self.sum_reduce(axis, keepdim)?;
+        let axis_size = self.shape[axis.unwrap() as usize] as f64;
+        sum_result.div_scalar(axis_size)
+    }
+
+    // ===== Layer Normalization (SRT-aligned) =====
+
+    /// Layer normalization with optional golden target variance
+    /// 
+    /// Standard: normalize to mean=0, variance=1
+    /// Golden target (golden_target=true): normalize to variance = 1/φ ≈ 0.618
+    /// 
+    /// This aligns with the syntonic equilibrium where S* = 1/φ
+    #[pyo3(signature = (weight = None, bias = None, eps = 1e-5, golden_target = true))]
+    pub fn layer_norm(
+        &self,
+        weight: Option<&TensorStorage>,
+        bias: Option<&TensorStorage>,
+        eps: f64,
+        golden_target: bool,
+    ) -> PyResult<TensorStorage> {
+        const PHI_INV: f64 = 0.6180339887498949;
+        
+        let cpu = self.ensure_cpu()?;
+        
+        match &cpu {
+            CpuData::Float64(arr) => {
+                let n = arr.len();
+                if n == 0 { return Ok(self.clone_storage()); }
+                
+                // Compute mean
+                let mean: f64 = arr.iter().sum::<f64>() / n as f64;
+                
+                // Compute variance
+                let var: f64 = arr.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / n as f64;
+                
+                // Compute reciprocal std
+                let mut rstd = 1.0 / (var + eps).sqrt();
+                
+                // Golden scaling: target variance = 1/φ
+                if golden_target {
+                    rstd *= PHI_INV.sqrt();
+                }
+                
+                // Normalize
+                let normalized: Vec<f64> = arr.iter()
+                    .map(|x| (x - mean) * rstd)
+                    .collect();
+                
+                // Apply weight and bias if provided
+                let result = match (weight, bias) {
+                    (Some(w), Some(b)) => {
+                        let w_cpu = w.ensure_cpu()?;
+                        let b_cpu = b.ensure_cpu()?;
+                        match (&w_cpu, &b_cpu) {
+                            (CpuData::Float64(w_arr), CpuData::Float64(b_arr)) => {
+                                normalized.iter()
+                                    .zip(w_arr.iter())
+                                    .zip(b_arr.iter())
+                                    .map(|((x, w), b)| x * w + b)
+                                    .collect()
+                            },
+                            _ => normalized,
+                        }
+                    },
+                    (Some(w), None) => {
+                        let w_cpu = w.ensure_cpu()?;
+                        match &w_cpu {
+                            CpuData::Float64(w_arr) => {
+                                normalized.iter()
+                                    .zip(w_arr.iter())
+                                    .map(|(x, w)| x * w)
+                                    .collect()
+                            },
+                            _ => normalized,
+                        }
+                    },
+                    (None, Some(b)) => {
+                        let b_cpu = b.ensure_cpu()?;
+                        match &b_cpu {
+                            CpuData::Float64(b_arr) => {
+                                normalized.iter()
+                                    .zip(b_arr.iter())
+                                    .map(|(x, b)| x + b)
+                                    .collect()
+                            },
+                            _ => normalized,
+                        }
+                    },
+                    (None, None) => normalized,
+                };
+                
+                let result_arr = ArrayD::from_shape_vec(IxDyn(&self.shape), result)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                Ok(Self::wrap_cpu(CpuData::Float64(result_arr), &self.device))
+            },
+            _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                "layer_norm currently only supports float64"
+            )),
+        }
+    }
+
+    // ===== Dropout =====
+
+    /// Dropout: randomly zero elements during training
+    /// At inference (training=false), returns identity
+    /// Uses inverted dropout: active units scaled by 1/(1-p)
+    #[pyo3(signature = (p = 0.5, training = true, seed = None))]
+    pub fn dropout(&self, p: f64, training: bool, seed: Option<u64>) -> PyResult<TensorStorage> {
+        if !training || p == 0.0 {
+            return Ok(self.clone_storage());
+        }
+        
+        if p < 0.0 || p >= 1.0 {
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                "Dropout probability must be in [0, 1)"
+            ));
+        }
+        
+        let scale = 1.0 / (1.0 - p);
+        let cpu = self.ensure_cpu()?;
+        
+        // Use seed or generate random
+        let mut rng = match seed {
+            Some(s) => {
+                use rand::SeedableRng;
+                rand::rngs::StdRng::seed_from_u64(s)
+            },
+            None => {
+                use rand::SeedableRng;
+                rand::rngs::StdRng::from_entropy()
+            },
+        };
+        
+        match &cpu {
+            CpuData::Float64(arr) => {
+                let result: Vec<f64> = arr.iter()
+                    .map(|x| {
+                        let u: f64 = rng.gen();
+                        if u < p { 0.0 } else { x * scale }
+                    })
+                    .collect();
+                let result_arr = ArrayD::from_shape_vec(IxDyn(&self.shape), result)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                Ok(Self::wrap_cpu(CpuData::Float64(result_arr), &self.device))
+            },
+            CpuData::Float32(arr) => {
+                let result: Vec<f32> = arr.iter()
+                    .map(|x| {
+                        let u: f64 = rng.gen();
+                        if u < p { 0.0 } else { x * scale as f32 }
+                    })
+                    .collect();
+                let result_arr = ArrayD::from_shape_vec(IxDyn(&self.shape), result)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                Ok(Self::wrap_cpu(CpuData::Float32(result_arr), &self.device))
+            },
+            _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                "dropout only supports float32/float64"
+            )),
         }
     }
 

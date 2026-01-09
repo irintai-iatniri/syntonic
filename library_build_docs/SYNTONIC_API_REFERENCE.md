@@ -31,6 +31,7 @@ evolved = psi.differentiate().harmonize()
 - [Linear Algebra (syn.linalg)](#linear-algebra)
 - [Hypercomplex Numbers (syn.hypercomplex)](#hypercomplex-numbers)
 - [Exact Arithmetic (syn.exact)](#exact-arithmetic)
+- [ResonantTensor (exact lattice)](#resonanttensor-exact-lattice)
 - [CRT Core (syn.crt)](#crt-core)
 - [SRT Module (syn.srt)](#srt-module)
 - [Applications (syn.applications)](#applications)
@@ -846,6 +847,18 @@ g = syn.golden_number(3, 2)  # 3 + 2φ
 ```
 
 ---
+
+## ResonantTensor (exact lattice)
+
+Golden lattice tensors are exposed via `ResonantTensor` (Rust-backed). Key ops:
+
+- `concat(tensors, dim=-1)`: strict shape match on non-concat dims; negative dims allowed; snaps and recomputes syntony.
+- `layer_norm(gamma=None, beta=None, eps=1e-8, golden_target=True)`: mean/variance in f64 per sample; optional affine; variance scaled to 1/φ when `golden_target=True` (default); output snapped to lattice.
+- `gelu(precision=100)`: erf-based GELU then snap to lattice.
+- `mean(dim=None, keepdim=False, precision=None)`: population mean with optional axis; snaps output; defaults to current precision.
+- `var(dim=None, keepdim=False, precision=None)`: population variance; same semantics as `mean`.
+
+Notes: D→H CUDA path unchanged; snapping uses tightened `find_nearest` for φ-dwell stability.
 
 ## CRT Core
 

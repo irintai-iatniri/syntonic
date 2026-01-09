@@ -237,6 +237,10 @@ class SyntonicTrainer:
             else:
                 self.optimizer.step()
 
+            # INTEGRATION: Crystallize ResonantParameters after weight update
+            from syntonic.nn.layers.resonant_parameter import crystallize_all_resonant_
+            crystallize_all_resonant_(self.model)
+
             # Track
             total_loss += loss.item()
             total_syntony += batch_syntony

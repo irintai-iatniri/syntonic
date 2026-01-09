@@ -20,8 +20,12 @@ from syntonic.core.device import (
     device,
 )
 from syntonic._core import (
-    TensorStorage, 
-    cuda_is_available, 
+    TensorStorage,
+    ResonantTensor,
+    RESConfig,
+    RESResult,
+    ResonantEvolver,
+    cuda_is_available,
     cuda_device_count,
     # Linear algebra functions
     linalg_mm, linalg_mm_add,
@@ -80,6 +84,11 @@ __all__ = [
     # State
     'State',
     'state',
+    # Resonant
+    'ResonantTensor',
+    'RESConfig',
+    'RESResult',
+    'ResonantEvolver',
     # DTypes
     'DType',
     'float32',

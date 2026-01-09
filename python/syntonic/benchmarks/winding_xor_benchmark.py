@@ -13,8 +13,13 @@ import numpy as np
 from typing import List, Tuple, Dict
 import time
 
-from syntonic.nn.winding import WindingNet
-from syntonic.srt.geometry.winding import WindingState, winding_state
+from syntonic.nn.winding.winding_net import WindingNet
+from syntonic.nn.winding.prime_selection import PrimeSelectionLayer
+from syntonic.nn.layers.resonant_parameter import (
+    crystallize_all_resonant_,
+    wake_all_resonant_,
+)
+from syntonic.srt.geometry.winding import winding_state
 
 
 def make_xor_dataset(n_samples: int = 500, noise: float = 0.1, seed: int = 42) -> Tuple[np.ndarray, np.ndarray]:
@@ -143,6 +148,9 @@ def train_windingnet(
 
         total_loss.backward()
         optimizer.step()
+        
+        # Unified Cycle Hook: Crystallize parameters to Q(φ)
+        crystallize_all_resonant_(model)
 
         # Evaluation
         model.eval()
@@ -174,44 +182,15 @@ def train_windingnet(
 
     elapsed = time.time() - start
 
-    # Crystallize weights to Q(φ) lattice
     if verbose:
-        print(f"\n{'='*70}")
-        print("Crystallizing weights to Q(φ) lattice...")
-        print(f"{'='*70}")
-
-    try:
-        model.crystallize_weights(precision=100)
-        crystallized = True
-
-        # Evaluate with exact DHSR
-        if verbose:
-            print("\nEvaluating with exact ResonantTensor...")
-
-        model.eval()
-        with torch.no_grad():
-            y_exact = model.forward_exact(test_windings)
-            test_pred_exact = y_exact.argmax(dim=1)
-            exact_test_acc = (test_pred_exact == y_test_t).float().mean().item()
-
-        if verbose:
-            print(f"Float accuracy:  {history['test_acc'][-1]:.2%}")
-            print(f"Exact accuracy:  {exact_test_acc:.2%}")
-
-    except Exception as e:
-        if verbose:
-            print(f"Warning: Could not use exact mode - {e}")
-        crystallized = False
-        exact_test_acc = None
+        print(f"\nWindingNet (Unified): {history['test_acc'][-1]:.2%} accuracy in {elapsed:.2f}s")
 
     return {
         "history": history,
         "final_train_acc": history["train_acc"][-1],
         "final_test_acc": history["test_acc"][-1],
-        "exact_test_acc": exact_test_acc,
         "final_syntony": history["syntony"][-1],
         "time": elapsed,
-        "crystallized": crystallized,
         "model": model,
     }
 
@@ -370,24 +349,14 @@ def run_xor_benchmark(
         print(f"{'Model':<20} {'Test Acc':<12} {'Syntony':<12} {'Time':<10}")
         print(f"{'-'*70}")
 
-        # WindingNet float accuracy
-        float_acc_str = f"{winding_results['final_test_acc']:>10.2%}"
+        # WindingNet unified accuracy
+        acc_str = f"{winding_results['final_test_acc']:>10.2%}"
         print(
-            f"{'WindingNet (float)':<20} "
-            f"{float_acc_str}  "
+            f"{'WindingNet (Unified)':<20} "
+            f"{acc_str}  "
             f"{winding_results['final_syntony']:>10.4f}  "
             f"{winding_results['time']:>8.2f}s"
         )
-
-        # WindingNet exact accuracy (if available)
-        if winding_results.get('crystallized', False) and winding_results.get('exact_test_acc') is not None:
-            exact_acc_str = f"{winding_results['exact_test_acc']:>10.2%}"
-            print(
-                f"{'WindingNet (exact)':<20} "
-                f"{exact_acc_str}  "
-                f"{'Q(φ) lattice':>10}  "
-                f"{'crystallized':>8}"
-            )
 
         # PyTorch MLP baseline
         print(

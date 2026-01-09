@@ -8,7 +8,7 @@
 //! - SRT correction factors (1 ± q/N)
 
 #[cfg(feature = "cuda")]
-use cudarc::driver::{CudaDevice, CudaSlice, LaunchConfig, LaunchAsync, DevicePtr};
+use cudarc::driver::{CudaDevice, CudaSlice, LaunchConfig, LaunchAsync, DevicePtr, DeviceSlice};
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
 #[cfg(feature = "cuda")]
@@ -71,6 +71,28 @@ const PTX_RESONANT_SM80: &str = include_str!("../../kernels/ptx/resonant_d_sm80.
 const PTX_RESONANT_SM86: &str = include_str!("../../kernels/ptx/resonant_d_sm86.ptx");
 #[cfg(feature = "cuda")]
 const PTX_RESONANT_SM90: &str = include_str!("../../kernels/ptx/resonant_d_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_PHI_RESIDUAL_SM75: &str = include_str!("../../kernels/ptx/phi_residual_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_PHI_RESIDUAL_SM80: &str = include_str!("../../kernels/ptx/phi_residual_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_PHI_RESIDUAL_SM86: &str = include_str!("../../kernels/ptx/phi_residual_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_PHI_RESIDUAL_SM90: &str = include_str!("../../kernels/ptx/phi_residual_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_GOLDEN_BATCH_NORM_SM90: &str = include_str!("../../kernels/ptx/golden_batch_norm_sm_90.ptx");
+
+// Syntonic Softmax PTX (4 compute capabilities)
+#[cfg(feature = "cuda")]
+const PTX_SYNTONIC_SOFTMAX_SM75: &str = include_str!("../../kernels/ptx/syntonic_softmax_sm_75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_SYNTONIC_SOFTMAX_SM80: &str = include_str!("../../kernels/ptx/syntonic_softmax_sm_80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_SYNTONIC_SOFTMAX_SM86: &str = include_str!("../../kernels/ptx/syntonic_softmax_sm_86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_SYNTONIC_SOFTMAX_SM90: &str = include_str!("../../kernels/ptx/syntonic_softmax_sm_90.ptx");
 
 // =============================================================================
 // Kernel Function Lists
@@ -163,6 +185,52 @@ const RESONANT_FUNCS: &[&str] = &[
     "resonant_compute_dwell_f64",
 ];
 
+/// Phi-residual connection functions
+#[cfg(feature = "cuda")]
+const PHI_RESIDUAL_FUNCS: &[&str] = &[
+    "phi_residual_mode_phi_f64",
+    "phi_residual_mode_phi_f32",
+    "phi_residual_mode_symmetric_f64",
+    "phi_residual_mode_symmetric_f32",
+    "phi_residual_mode_standard_f64",
+    "phi_residual_mode_standard_f32",
+    "phi_residual_relu_f64",
+    "phi_residual_relu_f32",
+    "phi_residual_gelu_f64",
+    "phi_residual_gelu_f32",
+    "phi_residual_layernorm_f64",
+    "phi_residual_layernorm_f32",
+    "phi_residual_mode_phi_vec4_f32",
+    "phi_residual_mode_phi_vec2_f64",
+    "phi_residual_component_norm_f64",
+];
+
+/// Golden batch normalization functions
+#[cfg(feature = "cuda")]
+const GOLDEN_BATCH_NORM_FUNCS: &[&str] = &[
+    "golden_bn_1d_compute_stats_f64",
+    "golden_bn_1d_compute_stats_f32",
+    "golden_bn_1d_normalize_f64",
+    "golden_bn_1d_normalize_f32",
+    "golden_bn_2d_compute_stats_f64",
+    "golden_bn_2d_compute_stats_f32",
+    "golden_bn_2d_normalize_f64",
+    "golden_bn_2d_normalize_f32",
+    "golden_bn_1d_fused_f64",
+    "golden_bn_1d_fused_f32",
+    "golden_layer_norm_f64",
+    "golden_layer_norm_f32",
+    "compute_output_stats_f64",
+];
+
+/// Syntonic softmax functions
+#[cfg(feature = "cuda")]
+const SYNTONIC_SOFTMAX_FUNCS: &[&str] = &[
+    "syntonic_softmax_learned_f64",
+    "syntonic_softmax_learned_f32",
+    "syntonic_softmax_provided_f64",
+];
+
 // =============================================================================
 // PTX Selection Based on Compute Capability
 // =============================================================================
@@ -219,6 +287,29 @@ fn select_resonant_ptx(major: i32, minor: i32) -> &'static str {
     else if cc >= 86 { PTX_RESONANT_SM86 }
     else if cc >= 80 { PTX_RESONANT_SM80 }
     else { PTX_RESONANT_SM75 }
+}
+
+#[cfg(feature = "cuda")]
+fn select_phi_residual_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 { PTX_PHI_RESIDUAL_SM90 }
+    else if cc >= 86 { PTX_PHI_RESIDUAL_SM86 }
+    else if cc >= 80 { PTX_PHI_RESIDUAL_SM80 }
+    else { PTX_PHI_RESIDUAL_SM75 }
+}
+
+#[cfg(feature = "cuda")]
+fn select_golden_batch_norm_ptx(_major: i32, _minor: i32) -> &'static str {
+    PTX_GOLDEN_BATCH_NORM_SM90
+}
+
+#[cfg(feature = "cuda")]
+fn select_syntonic_softmax_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 { PTX_SYNTONIC_SOFTMAX_SM90 }
+    else if cc >= 86 { PTX_SYNTONIC_SOFTMAX_SM86 }
+    else if cc >= 80 { PTX_SYNTONIC_SOFTMAX_SM80 }
+    else { PTX_SYNTONIC_SOFTMAX_SM75 }
 }
 
 // =============================================================================
@@ -307,6 +398,33 @@ pub fn ensure_srt_kernels_loaded(device: &Arc<CudaDevice>) -> PyResult<()> {
         RESONANT_FUNCS,
     ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
         format!("Failed to load resonant_d kernels: {}", e)
+    ))?;
+
+    // Load phi-residual operations
+    device.load_ptx(
+        cudarc::nvrtc::Ptx::from_src(select_phi_residual_ptx(major, minor)),
+        "srt_phi_residual",
+        PHI_RESIDUAL_FUNCS,
+    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+        format!("Failed to load phi_residual kernels: {}", e)
+    ))?;
+
+    // Load golden batch normalization operations
+    device.load_ptx(
+        cudarc::nvrtc::Ptx::from_src(select_golden_batch_norm_ptx(major, minor)),
+        "srt_golden_batch_norm",
+        GOLDEN_BATCH_NORM_FUNCS,
+    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+        format!("Failed to load golden_batch_norm kernels: {}", e)
+    ))?;
+
+    // Load syntonic softmax operations
+    device.load_ptx(
+        cudarc::nvrtc::Ptx::from_src(select_syntonic_softmax_ptx(major, minor)),
+        "srt_syntonic_softmax",
+        SYNTONIC_SOFTMAX_FUNCS,
+    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+        format!("Failed to load syntonic_softmax kernels: {}", e)
     ))?;
 
     Ok(())
@@ -738,6 +856,60 @@ pub fn cuda_resonant_compute_syntony_f64(
     }
 }
 
+// =============================================================================
+// Phi-Residual CUDA Kernels
+// =============================================================================
+
+/// Execute phi-residual connection on GPU
+#[cfg(feature = "cuda")]
+pub fn cuda_phi_residual_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    identity: &CudaSlice<f64>,
+    residual: &CudaSlice<f64>,
+    mode: crate::resonant::phi_ops::PhiResidualMode,
+) -> Result<(), String> {
+    use crate::resonant::phi_ops::PhiResidualMode;
+
+    let n = out.len();
+
+    // Select kernel based on mode
+    let kernel_name = match mode {
+        PhiResidualMode::Phi => "phi_residual_mode_phi_f64",
+        PhiResidualMode::PhiSymmetric => "phi_residual_mode_symmetric_f64",
+        PhiResidualMode::Standard => "phi_residual_mode_standard_f64",
+    };
+
+    let func = device.get_func("srt_phi_residual", kernel_name)
+        .ok_or_else(|| format!("Kernel {} not found", kernel_name))?;
+
+    let cfg = launch_cfg_256(n);
+
+    unsafe {
+        func.launch(cfg, (out, identity, residual, n as i32))
+    }.map_err(|e| e.to_string())
+}
+
+/// Execute fused phi-residual + ReLU on GPU
+#[cfg(feature = "cuda")]
+pub fn cuda_phi_residual_relu_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    identity: &CudaSlice<f64>,
+    residual: &CudaSlice<f64>,
+) -> Result<(), String> {
+    let n = out.len();
+
+    let func = device.get_func("srt_phi_residual", "phi_residual_relu_f64")
+        .ok_or_else(|| "Kernel phi_residual_relu_f64 not found".to_string())?;
+
+    let cfg = launch_cfg_256(n);
+
+    unsafe {
+        func.launch(cfg, (out, identity, residual, n as i32))
+    }.map_err(|e| e.to_string())
+}
+
 /// Compute snap gradient for directed exploration
 #[cfg(feature = "cuda")]
 pub fn cuda_resonant_snap_gradient_f64(
@@ -782,4 +954,87 @@ pub fn cuda_resonant_box_muller_f64(
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
+}
+
+// =============================================================================
+// Golden Batch Normalization CUDA Kernels
+// =============================================================================
+
+#[cfg(feature = "cuda")]
+pub fn cuda_golden_bn_2d_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    mean: &CudaSlice<f64>,
+    var: &CudaSlice<f64>,
+    gamma: Option<&CudaSlice<f64>>,
+    beta: Option<&CudaSlice<f64>>,
+    eps: f64,
+    b: i32,
+    c: i32,
+    h: i32,
+    w: i32,
+) -> Result<(), String> {
+    let n = (b * c * h * w) as usize;
+    let func = device.get_func("srt_golden_batch_norm", "golden_bn_2d_normalize_f64")
+        .ok_or_else(|| "Kernel golden_bn_2d_normalize_f64 not found".to_string())?;
+
+    let gamma_ptr = gamma.map(|g| *g.device_ptr()).unwrap_or(0);
+    let beta_ptr = beta.map(|b| *b.device_ptr()).unwrap_or(0);
+
+    unsafe {
+        func.launch(launch_cfg_256(n), (out, input, mean, var, gamma_ptr, beta_ptr, eps, b, c, h, w))
+    }.map_err(|e| e.to_string())
+}
+
+// =============================================================================
+// Syntonic Softmax CUDA Kernels
+// =============================================================================
+
+#[cfg(feature = "cuda")]
+pub fn cuda_syntonic_softmax_learned_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    logits: &CudaSlice<f64>,
+    mode_norms: &CudaSlice<f64>,
+    syntony_scale: f64,
+    batch_size: i32,
+    num_classes: i32,
+) -> Result<(), String> {
+    let func = device.get_func("srt_syntonic_softmax", "syntonic_softmax_learned_f64")
+        .ok_or_else(|| "Kernel syntonic_softmax_learned_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig {
+        grid_dim: (batch_size as u32, 1, 1),
+        block_dim: (256, 1, 1),
+        shared_mem_bytes: 256 * 2 * std::mem::size_of::<f64>() as u32,
+    };
+
+    unsafe {
+        func.launch(cfg, (out, logits, mode_norms, syntony_scale, batch_size, num_classes))
+    }.map_err(|e| e.to_string())
+}
+
+#[cfg(feature = "cuda")]
+pub fn cuda_syntonic_softmax_provided_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    logits: &CudaSlice<f64>,
+    syntony: &CudaSlice<f64>,
+    syntony_scale: f64,
+    batch_size: i32,
+    num_classes: i32,
+) -> Result<(), String> {
+    let func = device.get_func("srt_syntonic_softmax", "syntonic_softmax_provided_f64")
+        .ok_or_else(|| "Kernel syntonic_softmax_provided_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig {
+        grid_dim: (batch_size as u32, 1, 1),
+        block_dim: (256, 1, 1),
+        shared_mem_bytes: 256 * 2 * std::mem::size_of::<f64>() as u32,
+    };
+
+    unsafe {
+        func.launch(cfg, (out, logits, syntony, syntony_scale, batch_size, num_classes))
+    }.map_err(|e| e.to_string())
 }

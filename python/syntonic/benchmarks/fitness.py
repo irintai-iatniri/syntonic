@@ -11,7 +11,8 @@ Key insight: Higher fitness = better (RES maximizes).
 So we negate losses: fitness = -loss
 """
 
-import numpy as np
+import math
+import random
 from typing import List, Optional, Callable, Tuple
 
 # Import ResonantTensor from the core module
@@ -21,27 +22,66 @@ from syntonic._core import ResonantTensor
 Q_DEFICIT = 0.027395146920
 
 
-def softmax(x: np.ndarray) -> np.ndarray:
-    """Numerically stable softmax."""
-    x = x - np.max(x, axis=-1, keepdims=True)
-    exp_x = np.exp(x)
-    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
+def matrix_multiply(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
+    """
+    Pure Python matrix multiplication: C = A @ B.
+
+    Args:
+        A: Matrix of shape (m, n)
+        B: Matrix of shape (n, p)
+
+    Returns:
+        C: Matrix of shape (m, p)
+    """
+    m = len(A)
+    n = len(A[0])
+    p = len(B[0])
+
+    result = [[0.0] * p for _ in range(m)]
+    for i in range(m):
+        for j in range(p):
+            for k in range(n):
+                result[i][j] += A[i][k] * B[k][j]
+
+    return result
 
 
-def cross_entropy(logits: np.ndarray, labels: np.ndarray) -> float:
+def softmax(x: List[List[float]]) -> List[List[float]]:
+    """Numerically stable softmax for 2D list."""
+    result = []
+    for row in x:
+        # Find max for numerical stability
+        max_val = max(row)
+        # Compute exp(x - max)
+        exp_vals = [math.exp(val - max_val) for val in row]
+        # Normalize
+        sum_exp = sum(exp_vals)
+        result.append([e / sum_exp for e in exp_vals])
+    return result
+
+
+def cross_entropy(logits: List[List[float]], labels: List[int]) -> float:
     """Cross-entropy loss for classification."""
     probs = softmax(logits)
     n = len(labels)
-    # Clip for numerical stability
-    probs = np.clip(probs, 1e-10, 1.0)
-    log_probs = np.log(probs)
-    return -np.sum(log_probs[np.arange(n), labels]) / n
+
+    # Compute log probabilities with clipping for numerical stability
+    log_sum = 0.0
+    for i in range(n):
+        prob = max(probs[i][labels[i]], 1e-10)  # Clip
+        log_sum += math.log(prob)
+
+    return -log_sum / n
 
 
-def accuracy(logits: np.ndarray, labels: np.ndarray) -> float:
+def accuracy(logits: List[List[float]], labels: List[int]) -> float:
     """Classification accuracy."""
-    preds = np.argmax(logits, axis=1)
-    return np.mean(preds == labels)
+    correct = 0
+    for i in range(len(labels)):
+        pred_class = max(range(len(logits[i])), key=lambda j: logits[i][j])
+        if pred_class == labels[i]:
+            correct += 1
+    return correct / len(labels)
 
 
 class ClassificationFitness:
@@ -62,8 +102,8 @@ class ClassificationFitness:
 
     def __init__(
         self,
-        X: np.ndarray,
-        y: np.ndarray,
+        X: List[List[float]],
+        y: List[int],
         n_features: Optional[int] = None,
         n_classes: Optional[int] = None,
         lambda_syntony: float = Q_DEFICIT,
@@ -72,39 +112,48 @@ class ClassificationFitness:
         Initialize classification fitness.
 
         Args:
-            X: Training features of shape (n_samples, n_features)
-            y: Training labels of shape (n_samples,)
+            X: Training features as list of lists, shape (n_samples, n_features)
+            y: Training labels as list of ints, shape (n_samples,)
             n_features: Number of input features (inferred if None)
             n_classes: Number of output classes (inferred if None)
             lambda_syntony: Weight for syntony in combined score
         """
-        self.X = np.asarray(X, dtype=np.float64)
-        self.y = np.asarray(y, dtype=np.int64)
-        self.n_features = n_features or X.shape[1]
-        self.n_classes = n_classes or (int(y.max()) + 1)
+        self.X = X
+        self.y = y
+        self.n_features = n_features or len(X[0])
+        self.n_classes = n_classes or (max(y) + 1)
         self.lambda_syntony = lambda_syntony
 
         # Expected weight shape
         self.weight_size = self.n_features * self.n_classes
 
-    def _extract_weights(self, tensor: ResonantTensor) -> np.ndarray:
-        """Extract weight matrix from tensor."""
-        values = np.array(tensor.to_list())
+    def _extract_weights(self, tensor: ResonantTensor) -> List[List[float]]:
+        """Extract weight matrix from tensor as list of lists."""
+        values = tensor.to_list()
+
+        # Pad with zeros if needed
         if len(values) < self.weight_size:
-            # Pad with zeros if needed
-            values = np.pad(values, (0, self.weight_size - len(values)))
-        return values[:self.weight_size].reshape(self.n_features, self.n_classes)
+            values = values + [0.0] * (self.weight_size - len(values))
+
+        # Take first weight_size values and reshape to (n_features, n_classes)
+        values = values[:self.weight_size]
+        W = []
+        for i in range(self.n_features):
+            row = values[i * self.n_classes:(i + 1) * self.n_classes]
+            W.append(row)
+
+        return W
 
     def loss(self, tensor: ResonantTensor) -> float:
         """Compute cross-entropy loss."""
         W = self._extract_weights(tensor)
-        logits = self.X @ W
+        logits = matrix_multiply(self.X, W)
         return cross_entropy(logits, self.y)
 
     def accuracy(self, tensor: ResonantTensor) -> float:
         """Compute classification accuracy."""
         W = self._extract_weights(tensor)
-        logits = self.X @ W
+        logits = matrix_multiply(self.X, W)
         return accuracy(logits, self.y)
 
     def task_fitness(self, tensor: ResonantTensor) -> float:
@@ -152,8 +201,8 @@ class RegressionFitness:
 
     def __init__(
         self,
-        X: np.ndarray,
-        y: np.ndarray,
+        X: List[List[float]],
+        y: List[float],
         n_features: Optional[int] = None,
         n_outputs: int = 1,
         lambda_syntony: float = Q_DEFICIT,
@@ -162,34 +211,57 @@ class RegressionFitness:
         Initialize regression fitness.
 
         Args:
-            X: Training features of shape (n_samples, n_features)
-            y: Training targets of shape (n_samples,) or (n_samples, n_outputs)
+            X: Training features as list of lists, shape (n_samples, n_features)
+            y: Training targets as list, shape (n_samples,) or (n_samples, n_outputs)
             n_features: Number of input features (inferred if None)
             n_outputs: Number of output dimensions
             lambda_syntony: Weight for syntony in combined score
         """
-        self.X = np.asarray(X, dtype=np.float64)
-        self.y = np.asarray(y, dtype=np.float64)
-        if self.y.ndim == 1:
-            self.y = self.y.reshape(-1, 1)
-        self.n_features = n_features or X.shape[1]
+        self.X = X
+        # Ensure y is 2D
+        if isinstance(y[0], (int, float)):
+            self.y = [[val] for val in y]
+        else:
+            self.y = y
+        self.n_features = n_features or len(X[0])
         self.n_outputs = n_outputs
         self.lambda_syntony = lambda_syntony
 
         self.weight_size = self.n_features * self.n_outputs
 
-    def _extract_weights(self, tensor: ResonantTensor) -> np.ndarray:
+    def _extract_weights(self, tensor: ResonantTensor) -> List[List[float]]:
         """Extract weight matrix from tensor."""
-        values = np.array(tensor.to_list())
+        values = tensor.to_list()
+
+        # Pad with zeros if needed
         if len(values) < self.weight_size:
-            values = np.pad(values, (0, self.weight_size - len(values)))
-        return values[:self.weight_size].reshape(self.n_features, self.n_outputs)
+            values = values + [0.0] * (self.weight_size - len(values))
+
+        # Reshape to (n_features, n_outputs)
+        values = values[:self.weight_size]
+        W = []
+        for i in range(self.n_features):
+            row = values[i * self.n_outputs:(i + 1) * self.n_outputs]
+            W.append(row)
+
+        return W
 
     def loss(self, tensor: ResonantTensor) -> float:
         """Compute MSE loss."""
         W = self._extract_weights(tensor)
-        y_pred = self.X @ W
-        return np.mean((y_pred - self.y) ** 2)
+        y_pred = matrix_multiply(self.X, W)
+
+        # Compute MSE
+        total_error = 0.0
+        n_samples = len(y_pred)
+        n_outputs = len(y_pred[0])
+
+        for i in range(n_samples):
+            for j in range(n_outputs):
+                error = y_pred[i][j] - self.y[i][j]
+                total_error += error * error
+
+        return total_error / n_samples
 
     def task_fitness(self, tensor: ResonantTensor) -> float:
         """Task fitness (negative MSE, higher = better)."""
@@ -222,15 +294,20 @@ class WavefunctionFitness:
             target_windings: Target (n7, n8, n9, n10) winding numbers
             lambda_syntony: Weight for syntony in combined score
         """
-        self.target = np.array(target_windings, dtype=np.float64)
+        self.target = list(target_windings)
         self.lambda_syntony = lambda_syntony
 
     def winding_distance(self, tensor: ResonantTensor) -> float:
         """Compute L2 distance to target windings."""
-        values = np.array(tensor.to_list()[:4])
+        values = tensor.to_list()[:4]
+
+        # Pad with zeros if needed
         if len(values) < 4:
-            values = np.pad(values, (0, 4 - len(values)))
-        return np.sqrt(np.sum((values - self.target) ** 2))
+            values = values + [0.0] * (4 - len(values))
+
+        # Compute L2 distance
+        sum_sq = sum((values[i] - self.target[i]) ** 2 for i in range(4))
+        return math.sqrt(sum_sq)
 
     def task_fitness(self, tensor: ResonantTensor) -> float:
         """Task fitness (negative distance, higher = better)."""
@@ -363,7 +440,7 @@ class FitnessGuidedEvolver:
         self.noise_scale = noise_scale
         self.precision = precision
         self.lambda_syntony = lambda_syntony
-        self.rng = np.random.RandomState(seed)
+        self.rng = random.Random(seed)
 
         # State
         self.best_tensor = template
@@ -373,16 +450,16 @@ class FitnessGuidedEvolver:
 
     def _mutate(self, tensor: ResonantTensor) -> ResonantTensor:
         """Create a mutant by perturbing the tensor values in Q(φ)."""
-        values = np.array(tensor.to_list())
+        values = tensor.to_list()
         shape = tensor.shape
         mode_norms = tensor.get_mode_norm_sq()
 
         # Perturbation scaled by mutation_scale
-        perturbation = self.rng.randn(len(values)) * self.mutation_scale
-        new_values = values + perturbation
+        perturbation = [self.rng.gauss(0, self.mutation_scale) for _ in range(len(values))]
+        new_values = [values[i] + perturbation[i] for i in range(len(values))]
 
         # Snap to Q(φ) lattice
-        return ResonantTensor(new_values.tolist(), shape, mode_norms, self.precision)
+        return ResonantTensor(new_values, shape, mode_norms, self.precision)
 
     def _run_dhsr_cycle(self, tensor: ResonantTensor) -> float:
         """
