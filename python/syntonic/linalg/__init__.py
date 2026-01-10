@@ -1,9 +1,11 @@
 """
 Linear algebra operations for Syntonic.
 
-This module is designed to be NumPy-free for core operations.
-Some advanced operations (expm, logm, pinv) require scipy/numpy
-and will raise ImportError if not available.
+100% NumPy-free and scipy-free implementation.
+All operations use native Rust ndarray-linalg backend.
+
+Core operations: eig, svd, qr, solve, inv, expm, logm, etc.
+SRT-specific: mm_phi, phi_bracket, mm_corrected, mm_golden_weighted, etc.
 """
 
 from __future__ import annotations
@@ -230,43 +232,27 @@ def expm(a: State) -> State:
     """
     Matrix exponential exp(A).
 
-    Important for CRT: evolution operators.
+    Important for CRT: evolution operators U(t) = exp(-iHt).
 
-    Note: Requires scipy for matrix exponential.
+    Uses native Rust ndarray-linalg implementation (no scipy required).
+    Returns complex result even for real input.
     """
-    try:
-        from scipy.linalg import expm as scipy_expm
-        # Convert via to_list and back
-        flat = a.to_list()
-
-        # Need numpy for scipy
-        import numpy as np
-        arr = np.array(flat).reshape(a.shape)
-        if a.dtype.is_complex:
-            arr = arr.astype(np.complex128)
-        result = scipy_expm(arr)
-        return State(result.flatten().tolist(), dtype=a.dtype, device=a.device, shape=a.shape)
-    except ImportError:
-        raise ImportError("scipy required for matrix exponential")
+    result_storage = a._storage.expm()
+    # expm always returns complex
+    return _state_from_storage(result_storage, complex128, a.device, a.shape)
 
 
 def logm(a: State) -> State:
     """
     Matrix logarithm log(A).
 
-    Note: Requires scipy for matrix logarithm.
+    Computes the principal matrix logarithm.
+    Uses native Rust ndarray-linalg implementation (no scipy required).
+    Returns complex result even for real input.
     """
-    try:
-        from scipy.linalg import logm as scipy_logm
-        import numpy as np
-        flat = a.to_list()
-        arr = np.array(flat).reshape(a.shape)
-        if a.dtype.is_complex:
-            arr = arr.astype(np.complex128)
-        result = scipy_logm(arr)
-        return State(result.flatten().tolist(), dtype=complex128, device=a.device, shape=a.shape)
-    except ImportError:
-        raise ImportError("scipy required for matrix logarithm")
+    result_storage = a._storage.logm()
+    # logm always returns complex
+    return _state_from_storage(result_storage, complex128, a.device, a.shape)
 
 
 # =============================================================================

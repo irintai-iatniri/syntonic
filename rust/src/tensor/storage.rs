@@ -928,6 +928,124 @@ impl TensorStorage {
         }
     }
 
+    /// Matrix exponential exp(A)
+    ///
+    /// Computes the matrix exponential using eigenvalue decomposition:
+    /// If A = V * D * V^{-1}, then exp(A) = V * exp(D) * V^{-1}
+    /// where exp(D) is diagonal with exp(λᵢ) entries.
+    ///
+    /// For CRT: evolution operators U(t) = exp(-iHt).
+    pub fn expm(&self) -> PyResult<TensorStorage> {
+        use num_complex::Complex64;
+        use ndarray::Array2;
+
+        let cpu = self.ensure_cpu()?;
+
+        // Convert to complex for eigenvalue decomposition
+        let arr_complex = match cpu {
+            CpuData::Float64(a) => {
+                let a_2d = a.clone().into_dimensionality::<Ix2>()
+                    .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Matrix must be 2D"))?;
+                a_2d.mapv(|x| Complex64::new(x, 0.0))
+            },
+            CpuData::Complex128(a) => {
+                a.clone().into_dimensionality::<Ix2>()
+                    .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Matrix must be 2D"))?
+            },
+            _ => {
+                return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>("Expm only for f64/c128"));
+            }
+        };
+
+        let n = arr_complex.nrows();
+        if n != arr_complex.ncols() {
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Matrix must be square"));
+        }
+
+        // Compute eigenvalue decomposition
+        let (eigenvalues, eigenvectors) = arr_complex.eig()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Compute exp(D) where D is diagonal matrix of eigenvalues
+        let mut exp_eigenvalues = Array2::<Complex64>::zeros((n, n));
+        for i in 0..n {
+            exp_eigenvalues[[i, i]] = eigenvalues[i].exp();
+        }
+
+        // Compute inverse of eigenvectors
+        let eigenvectors_inv = eigenvectors.inv()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                format!("Failed to invert eigenvector matrix: {}", e)
+            ))?;
+
+        // exp(A) = V * exp(D) * V^{-1}
+        let result = eigenvectors.dot(&exp_eigenvalues).dot(&eigenvectors_inv);
+
+        Ok(Self::wrap_cpu(CpuData::Complex128(result.into_dyn()), &self.device))
+    }
+
+    /// Matrix logarithm log(A)
+    ///
+    /// Computes the principal matrix logarithm using eigenvalue decomposition:
+    /// If A = V * D * V^{-1}, then log(A) = V * log(D) * V^{-1}
+    /// where log(D) is diagonal with log(λᵢ) entries.
+    ///
+    /// Returns complex result even for real input.
+    pub fn logm(&self) -> PyResult<TensorStorage> {
+        use num_complex::Complex64;
+        use ndarray::Array2;
+
+        let cpu = self.ensure_cpu()?;
+
+        // Convert to complex for eigenvalue decomposition
+        let arr_complex = match cpu {
+            CpuData::Float64(a) => {
+                let a_2d = a.clone().into_dimensionality::<Ix2>()
+                    .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Matrix must be 2D"))?;
+                a_2d.mapv(|x| Complex64::new(x, 0.0))
+            },
+            CpuData::Complex128(a) => {
+                a.clone().into_dimensionality::<Ix2>()
+                    .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("Matrix must be 2D"))?
+            },
+            _ => {
+                return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>("Logm only for f64/c128"));
+            }
+        };
+
+        let n = arr_complex.nrows();
+        if n != arr_complex.ncols() {
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Matrix must be square"));
+        }
+
+        // Compute eigenvalue decomposition
+        let (eigenvalues, eigenvectors) = arr_complex.eig()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Compute log(D) where D is diagonal matrix of eigenvalues
+        let mut log_eigenvalues = Array2::<Complex64>::zeros((n, n));
+        for i in 0..n {
+            // Check for zero or near-zero eigenvalues
+            if eigenvalues[i].norm() < 1e-15 {
+                return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                    "Matrix has zero or near-zero eigenvalue - logarithm undefined"
+                ));
+            }
+            log_eigenvalues[[i, i]] = eigenvalues[i].ln();
+        }
+
+        // Compute inverse of eigenvectors
+        let eigenvectors_inv = eigenvectors.inv()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                format!("Failed to invert eigenvector matrix: {}", e)
+            ))?;
+
+        // log(A) = V * log(D) * V^{-1}
+        let result = eigenvectors.dot(&log_eigenvalues).dot(&eigenvectors_inv);
+
+        Ok(Self::wrap_cpu(CpuData::Complex128(result.into_dyn()), &self.device))
+    }
+
     pub fn cholesky(&self) -> PyResult<TensorStorage> {
         let cpu = self.ensure_cpu()?;
         match cpu {
