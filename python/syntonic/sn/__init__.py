@@ -23,8 +23,23 @@ PHI = (1 + math.sqrt(5)) / 2
 class Parameter:
     """
     Learnable parameter for syntonic networks.
-    
+
     Wraps a ResonantTensor as a trainable parameter.
+
+    Mode Norm Theory:
+    -----------------
+    Parameters use 1D flattened sequential mode norms: mode_norm[i] = i².
+    This reflects the recursion hierarchy where earlier parameters (low i)
+    are more fundamental than later parameters (high i).
+
+    For a weight matrix [out_features, in_features]:
+      - W[0,0] → index 0 → mode_norm = 0 (most fundamental)
+      - W[0,1] → index 1 → mode_norm = 1
+      - W[1,0] → index 2 → mode_norm = 4
+      - etc.
+
+    This is the canonical SRT prescription for parameter tensors.
+    See: theory/resonant_engine.md:138-140, winding_net_pure.py:111-115
     """
     
     def __init__(
@@ -87,8 +102,11 @@ class Parameter:
             return [random.gauss(0, std) for _ in range(size)]
         
         if method == 'golden':
+            # Use mode norm |n|² = i² (not index i) for variance scaling
+            # Formula from SRT sub-Gaussian measure (resonant_embedding_pure.py:67)
+            # Variance decays quadratically with mode norm: exp(-i²/(2φ))
             return [
-                random.gauss(0, scale * math.exp(-i / PHI))
+                random.gauss(0, scale * math.exp(-(i * i) / (2 * PHI)))
                 for i in range(size)
             ]
         
@@ -300,6 +318,39 @@ class Tanh(Module):
         return x.tanh(self.precision)
 
 
+def compute_spatial_mode_norms(shape: List[int]) -> List[float]:
+    """
+    Compute spatial mode norms for data tensors (NOT for parameters).
+
+    Use this ONLY for tensors representing spatial data on a torus where
+    multi-dimensional frequency structure matters (T⁴ states, field configs).
+
+    For neural network parameters, use default 1D mode norms (automatic).
+
+    Args:
+        shape: Tensor shape [d0, d1, d2, ...]
+
+    Returns:
+        Mode norms where element at [i0, i1, ...] has:
+        |n|² = (i0 - d0//2)² + (i1 - d1//2)² + ...
+
+    Example:
+        >>> # For T⁴ winding state representation
+        >>> mode_norms = compute_spatial_mode_norms([8, 8, 8, 8])
+    """
+    import itertools
+
+    mode_norms = []
+    ranges = [range(d) for d in shape]
+
+    for indices in itertools.product(*ranges):
+        norm_sq = sum((idx - dim // 2) ** 2
+                     for idx, dim in zip(indices, shape))
+        mode_norms.append(float(norm_sq))
+
+    return mode_norms
+
+
 __all__ = [
     'Parameter',
     'Module',
@@ -311,4 +362,5 @@ __all__ = [
     'Sigmoid',
     'Tanh',
     'PHI',
+    'compute_spatial_mode_norms',
 ]

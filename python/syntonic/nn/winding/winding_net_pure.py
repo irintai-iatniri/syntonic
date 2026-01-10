@@ -101,12 +101,12 @@ class PureWindingNet(sn.Module):
         self.transitions = sn.ModuleList()
         for i in range(num_blocks - 1):
             self.transitions.append(
-                PureSyntonicLinear(layer_dims[i], layer_dims[i + 1], precision=precision)
+                PureSyntonicLinear(layer_dims[i], layer_dims[i + 1])
             )
 
         # 5. Output projection
         final_dim = layer_dims[num_blocks - 1]
-        self.output_proj = PureSyntonicLinear(final_dim, output_dim, precision=precision)
+        self.output_proj = PureSyntonicLinear(final_dim, output_dim)
 
         # 6. Mode norms per layer (precomputed lists)
         self.mode_norms = [
@@ -186,6 +186,57 @@ class PureWindingNet(sn.Module):
             "blockchain_length": blockchain_length,
             "layer_syntonies": self.layer_syntonies,
         }
+
+    def get_weights(self) -> List[ResonantTensor]:
+        """Get all learnable weights (PureModel protocol)."""
+        weights = []
+        # Gather weights from all submodules
+        # Note: In a full implementation, we'd recursively gather self.parameters()
+        # For now, we manually collect from known layers for this specific architecture
+        
+        # 1. Transitions
+        for i in range(len(self.transitions)):
+            layer = self.transitions[str(i)]
+            # Check for linear layer parameters
+            if hasattr(layer.linear, 'weight'):
+                weights.append(layer.linear.weight.tensor)
+            if hasattr(layer.linear, 'bias') and layer.linear.bias is not None:
+                weights.append(layer.linear.bias.tensor)
+                
+        # 2. Output projection
+        if hasattr(self.output_proj.linear, 'weight'):
+            weights.append(self.output_proj.linear.weight.tensor)
+        if hasattr(self.output_proj.linear, 'bias') and self.output_proj.linear.bias is not None:
+            weights.append(self.output_proj.linear.bias.tensor)
+            
+        return weights
+
+    def set_weights(self, weights: List[ResonantTensor]) -> None:
+        """Set weights (PureModel protocol)."""
+        idx = 0
+        
+        # 1. Transitions
+        for i in range(len(self.transitions)):
+            layer = self.transitions[str(i)]
+            if hasattr(layer.linear, 'weight'):
+                layer.linear.weight.tensor = weights[idx]
+                idx += 1
+            if hasattr(layer.linear, 'bias') and layer.linear.bias is not None:
+                layer.linear.bias.tensor = weights[idx]
+                idx += 1
+                
+        # 2. Output projection
+        if hasattr(self.output_proj.linear, 'weight'):
+            self.output_proj.linear.weight.tensor = weights[idx]
+            idx += 1
+        if hasattr(self.output_proj.linear, 'bias') and self.output_proj.linear.bias is not None:
+            self.output_proj.linear.bias.tensor = weights[idx]
+            idx += 1
+
+    @property
+    def syntony(self) -> float:
+        """Get model syntony (PureModel protocol)."""
+        return self.network_syntony
 
 if __name__ == "__main__":
     from syntonic.srt.geometry.winding import WindingState

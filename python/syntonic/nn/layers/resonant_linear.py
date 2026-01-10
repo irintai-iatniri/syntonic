@@ -14,11 +14,12 @@ import random
 from typing import Optional, List
 
 from syntonic._core import ResonantTensor
+import syntonic.sn as sn
 
 PHI = (1 + math.sqrt(5)) / 2
 
 
-class ResonantLinear:
+class ResonantLinear(sn.Module):
     """
     Linear transformation layer using Resonant Engine.
     
@@ -44,51 +45,31 @@ class ResonantLinear:
             bias: If set to False, the layer will not learn an additive bias
             precision: Bit precision for exact lattice arithmetic
         """
+        super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.precision = precision
-        self._has_bias = bias
+        self.bias_enabled = bias
 
-        # 1. Initialize weight matrix
-        # Mode norm: |n|² = (i + h) where i is input index and h is hidden/output index
-        weight_norms = []
-        weight_data = []
-        stdv = 1.0 / math.sqrt(in_features)
-        
-        for o in range(out_features):
-            for i in range(in_features):
-                mode_norm = float(i + o)
-                weight_norms.append(mode_norm)
-                
-                # Standard initialization with golden attenuation
-                val = random.uniform(-stdv, stdv)
-                scale = math.exp(-mode_norm / (2 * PHI))
-                weight_data.append(val * scale)
-
-        self.weight = ResonantTensor(
-            weight_data,
-            [out_features, in_features],
-            weight_norms,
-            precision
+        # 1. Initialize weight parameter
+        # We use 'golden' initialization which respects the lattice structure
+        self.weight = sn.Parameter(
+            shape=[out_features, in_features],
+            init='golden',
+            requires_grad=True,
+            precision=precision
         )
 
-        # 2. Initialize bias
+        # 2. Initialize bias parameter
         if bias:
-            bias_norms = [float(o + in_features) for o in range(out_features)]
-            bias_data = []
-            for o in range(out_features):
-                val = random.uniform(-stdv, stdv)
-                scale = math.exp(-bias_norms[o] / (2 * PHI))
-                bias_data.append(val * scale)
-            
-            self.bias = ResonantTensor(
-                bias_data,
-                [out_features],
-                bias_norms,
-                precision
+            self.bias = sn.Parameter(
+                shape=[out_features],
+                init='golden',
+                requires_grad=True,
+                precision=precision
             )
         else:
-            self.bias = None
+            self.register_buffer('bias', None)
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
@@ -101,25 +82,17 @@ class ResonantLinear:
             Output tensor of shape [batch, out_features]
         """
         # Y = X @ W^T
-        out = x.matmul(self.weight)
+        # Access the underlying tensor from the Parameter wrapper
+        out = x.matmul(self.weight.tensor)
         
         # Add bias if present
         if self.bias is not None:
-            out.add_bias(self.bias)
+            out.add_bias(self.bias.tensor)
         
         return out
 
-    def parameters(self) -> List[ResonantTensor]:
-        """Return list of learnable parameters."""
-        if self.bias is not None:
-            return [self.weight, self.bias]
-        return [self.weight]
-
-    def __repr__(self) -> str:
-        return (
-            f"ResonantLinear(in_features={self.in_features}, "
-            f"out_features={self.out_features}, bias={self._has_bias})"
-        )
+    def extra_repr(self) -> str:
+        return f"in_features={self.in_features}, out_features={self.out_features}, bias={self.bias_enabled}"
 
 
 if __name__ == "__main__":
@@ -128,8 +101,8 @@ if __name__ == "__main__":
     
     layer = ResonantLinear(4, 8, bias=True)
     print(f"Layer: {layer}")
-    print(f"Weight shape: {layer.weight.shape}")
-    print(f"Bias shape: {layer.bias.shape if layer.bias else None}")
+    print(f"Weight parameter: {layer.weight}")
+    print(f"Weight tensor shape: {layer.weight.tensor.shape}")
     
     # Create input
     x_data = [0.5, 0.3, -0.2, 0.8] * 2  # batch of 2

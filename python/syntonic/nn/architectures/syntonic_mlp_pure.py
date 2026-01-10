@@ -28,7 +28,10 @@ PHI = (1 + math.sqrt(5)) / 2
 Q_DEFICIT = 0.027395146920
 
 
-class PureSyntonicLinear:
+
+import syntonic.sn as sn
+
+class PureSyntonicLinear(sn.Module):
     """
     Linear layer with DHSR structure.
 
@@ -61,6 +64,7 @@ class PureSyntonicLinear:
             dropout: Dropout probability (not implemented in pure version)
             bias: Include bias terms
         """
+        super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.use_recursion = use_recursion
@@ -140,11 +144,11 @@ class PureSyntonicLinear:
         """Get layer syntony."""
         return self._syntony
 
-    def __repr__(self) -> str:
-        return f'PureSyntonicLinear(in={self.in_features}, out={self.out_features}, recursion={self.use_recursion})'
+    def extra_repr(self) -> str:
+        return f'in_features={self.in_features}, out_features={self.out_features}, recursion={self.use_recursion}'
 
 
-class PureSyntonicMLP:
+class PureSyntonicMLP(sn.Module):
     """
     Multi-layer perceptron with syntonic structure.
 
@@ -179,13 +183,14 @@ class PureSyntonicMLP:
             use_recursion: Use RecursionBlocks in hidden layers
             output_activation: Final activation ('sigmoid', None)
         """
+        super().__init__()
         self.input_dim = input_dim
         self.hidden_dims = hidden_dims
         self.output_dim = output_dim
         self.output_activation = output_activation
 
         # Build layers
-        self.hidden_layers = []
+        self.hidden_layers = sn.ModuleList()
         prev_dim = input_dim
 
         for i, hidden_dim in enumerate(hidden_dims):
@@ -270,8 +275,8 @@ class PureSyntonicMLP:
 
         return outputs
 
-    def __repr__(self) -> str:
-        return f'PureSyntonicMLP(input={self.input_dim}, hidden={self.hidden_dims}, output={self.output_dim})'
+    def extra_repr(self) -> str:
+        return f'input={self.input_dim}, hidden={self.hidden_dims}, output={self.output_dim}'
 
 
 class PureDeepSyntonicMLP:

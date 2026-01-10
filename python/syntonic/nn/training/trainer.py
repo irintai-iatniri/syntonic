@@ -41,6 +41,7 @@ class PureModel(Protocol):
     def forward(self, x: ResonantTensor) -> ResonantTensor: ...
     def get_weights(self) -> List[ResonantTensor]: ...
     def set_weights(self, weights: List[ResonantTensor]) -> None: ...
+    @property
     def syntony(self) -> float: ...
 
 
@@ -236,7 +237,7 @@ class RetrocausalTrainer:
             n_samples += 1
         
         avg_loss = total_loss / max(1, n_samples)
-        model_syntony = self.model.syntony()
+        model_syntony = self.model.syntony
         
         self._loss_history.append(avg_loss)
         return avg_loss, model_syntony

@@ -70,6 +70,58 @@ Syntonic is a hybrid Python/Rust library implementing Syntony Recursion Theory (
 - `rust/src/exact/golden.rs`: Exact golden ratio arithmetic
 - `rust/src/hypercomplex/`: Quaternion and Octonion implementations
 
+## Mode Norm Theory for Neural Networks
+
+### TL;DR
+- **Parameters (weights/biases)**: Always use 1D flattened mode norms `[i² for i in range(size)]` ✅
+- **Data tensors**: May use spatial mode norms if representing T⁴ states (rare)
+
+### For Parameter Tensors (Weights/Biases)
+
+SRT prescribes **1D flattened sequential mode norms** for all neural network parameters:
+
+```python
+# For ANY parameter tensor of ANY shape:
+size = product(shape)  # Total number of elements
+mode_norms = [float(i * i) for i in range(size)]
+```
+
+**Why?** Mode norms measure position in the recursion hierarchy, not spatial coordinates.
+Parameters are discrete recursion states, not spatial field configurations.
+
+**Example:** For weight matrix [64, 128]:
+- W[0,0] → flattened index 0 → mode norm = 0 (most fundamental)
+- W[0,1] → flattened index 1 → mode norm = 1
+- W[1,0] → flattened index 2 → mode norm = 4
+
+**Evidence:**
+- Theory: `theory/resonant_engine.md:138-140`
+- Working code: `winding_net_pure.py:111-115` (100% XOR accuracy)
+- Benchmark: `convergence_benchmark.py:160-174` (explicit "Per SRT spec")
+
+### Golden Initialization
+
+The `init='golden'` method uses the SRT sub-Gaussian measure:
+
+```python
+variance[i] = scale * exp(-|n|²/(2φ)) = scale * exp(-(i*i)/(2*PHI))
+```
+
+This concentrates weight in low-mode parameters (fundamentals) and rapidly
+decreases for high-mode parameters (complex interactions).
+
+### For Data Tensors (Advanced)
+
+If you need spatial mode norms for T⁴ winding state representations:
+
+```python
+from syntonic.sn import compute_spatial_mode_norms
+mode_norms = compute_spatial_mode_norms([8, 8, 8, 8])  # 4D torus
+tensor = ResonantTensor(data, shape, mode_norms, precision)
+```
+
+**Note:** This is rare. Most users should stick with default parameter mode norms.
+
 ## System Requirements
 
 - Python 3.10+
