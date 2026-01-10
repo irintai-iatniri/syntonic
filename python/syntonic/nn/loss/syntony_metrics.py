@@ -1,27 +1,30 @@
 """
-Syntony computation for neural networks.
+Pure Syntony Metrics for neural networks.
 
 S_model = 1 - ||D(x) - x|| / (||D(x) - H(D(x))|| + ε)
 
-Source: CRT.md §12.2, Syntonic Phase 3 Specification
+PURE IMPLEMENTATION: Uses ResonantTensor, no PyTorch dependencies.
+
+Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-import torch
-import torch.nn as nn
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Dict
 import math
+
+from syntonic._core import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 Q_DEFICIT = 0.027395146920
+S_TARGET = PHI - Q_DEFICIT
 
 
 def compute_activation_syntony(
-    x_input: torch.Tensor,
-    x_diff: torch.Tensor,
-    x_harm: torch.Tensor,
+    x_input: ResonantTensor,
+    x_diff: ResonantTensor,
+    x_harm: ResonantTensor,
     epsilon: float = 1e-8,
-) -> torch.Tensor:
+) -> float:
     """
     Compute syntony from D/H activations.
 
@@ -34,64 +37,62 @@ def compute_activation_syntony(
         epsilon: Regularization constant
 
     Returns:
-        Syntony value(s)
+        Syntony value
     """
     # Numerator: how much D changed x
-    diff_change = torch.norm(x_diff - x_input, dim=-1)
-
+    diff_change = x_diff.elementwise_add(x_input.negate())
+    diff_norm = math.sqrt(diff_change.var() * _tensor_size(diff_change))
+    
     # Denominator: how much H corrected D
-    harm_correction = torch.norm(x_diff - x_harm, dim=-1)
-
+    harm_correction = x_diff.elementwise_add(x_harm.negate())
+    harm_norm = math.sqrt(harm_correction.var() * _tensor_size(harm_correction))
+    
     # Syntony
-    S = 1.0 - diff_change / (harm_correction + epsilon)
+    S = 1.0 - diff_norm / (harm_norm + epsilon)
+    return max(0.0, min(1.0, S))
 
-    return torch.clamp(S, 0.0, 1.0)
+
+def _tensor_size(t: ResonantTensor) -> int:
+    """Get total element count."""
+    size = 1
+    for dim in t.shape():
+        size *= dim
+    return size
 
 
-def compute_network_syntony(
-    model: nn.Module,
-    x: torch.Tensor,
-    aggregation: str = 'mean',
-) -> Tuple[float, List[float]]:
+def aggregate_syntonies(
+    layer_syntonies: List[float],
+    method: str = 'mean',
+) -> float:
     """
-    Compute syntony across entire network.
-
+    Aggregate layer syntonies into global syntony.
+    
     Args:
-        model: Neural network with RecursionBlocks
-        x: Input tensor
-        aggregation: How to aggregate ('mean', 'min', 'product')
-
+        layer_syntonies: Per-layer syntony values
+        method: Aggregation method ('mean', 'min', 'geometric')
+    
     Returns:
-        (global_syntony, layer_syntonies)
+        Global syntony
     """
-    layer_syntonies = []
-
-    # Forward pass collecting syntonies
-    with torch.no_grad():
-        for name, module in model.named_modules():
-            if hasattr(module, 'syntony') and module.syntony is not None:
-                layer_syntonies.append(module.syntony)
-
     if not layer_syntonies:
-        return 0.5, []  # Default mid-syntony
-
-    # Aggregate
-    if aggregation == 'mean':
-        global_S = sum(layer_syntonies) / len(layer_syntonies)
-    elif aggregation == 'min':
-        global_S = min(layer_syntonies)
-    elif aggregation == 'product':
-        import numpy as np
-        global_S = float(np.prod(layer_syntonies) ** (1 / len(layer_syntonies)))
+        return 0.5  # Default mid-syntony
+    
+    if method == 'mean':
+        return sum(layer_syntonies) / len(layer_syntonies)
+    elif method == 'min':
+        return min(layer_syntonies)
+    elif method == 'geometric':
+        product = 1.0
+        for s in layer_syntonies:
+            product *= max(s, 1e-10)
+        return product ** (1 / len(layer_syntonies))
     else:
-        global_S = sum(layer_syntonies) / len(layer_syntonies)
-
-    return global_S, layer_syntonies
+        return sum(layer_syntonies) / len(layer_syntonies)
 
 
 class SyntonyTracker:
     """
-    Track syntony evolution during training.
+    Pure tracker for syntony evolution during training.
 
     Monitors syntony trends and detects archonic patterns.
 
@@ -104,17 +105,15 @@ class SyntonyTracker:
     """
 
     def __init__(self, window_size: int = 100):
-        """
-        Initialize tracker.
-
-        Args:
-            window_size: Size of moving window for statistics
-        """
         self.window_size = window_size
         self.history: List[float] = []
-        self.layer_histories: dict = {}
+        self.layer_histories: Dict[int, List[float]] = {}
 
-    def update(self, global_syntony: float, layer_syntonies: Optional[List[float]] = None):
+    def update(
+        self,
+        global_syntony: float,
+        layer_syntonies: Optional[List[float]] = None,
+    ):
         """
         Record syntony values.
 
@@ -171,11 +170,13 @@ class SyntonyTracker:
         mean = sum(window) / len(window)
         return sum((s - mean) ** 2 for s in window) / len(window)
 
-    def is_archonic(self, threshold: float = 0.01, min_samples: int = 50) -> bool:
+    def is_archonic(
+        self,
+        threshold: float = 0.01,
+        min_samples: int = 50,
+    ) -> bool:
         """
         Detect if network is in Archonic (stuck) pattern.
-
-        Archonic = cycling without syntony improvement
 
         Args:
             threshold: Variance threshold
@@ -187,20 +188,18 @@ class SyntonyTracker:
         if len(self.history) < min_samples:
             return False
 
-        # Check if syntony is oscillating without improvement
         mean_S = self.mean_syntony
         variance_S = self.variance
         trend = self.syntony_trend
 
-        # Archonic: high variance, no trend, below target
-        target = PHI - Q_DEFICIT - 0.1
+        target = S_TARGET - 0.1
         return (
             variance_S > threshold and
             abs(trend) < threshold / 10 and
             mean_S < target
         )
 
-    def get_layer_stats(self, layer_idx: int) -> dict:
+    def get_layer_stats(self, layer_idx: int) -> Dict[str, float]:
         """Get statistics for a specific layer."""
         if layer_idx not in self.layer_histories:
             return {'mean': 0.0, 'variance': 0.0, 'trend': 0.0}
@@ -213,7 +212,6 @@ class SyntonyTracker:
         mean = sum(window) / len(window)
         variance = sum((s - mean) ** 2 for s in window) / len(window)
 
-        # Trend
         if len(window) > 1:
             mid = len(window) // 2
             recent = window[mid:]
@@ -228,3 +226,33 @@ class SyntonyTracker:
         """Reset tracker."""
         self.history = []
         self.layer_histories = {}
+
+
+# Aliases
+PureSyntonyTracker = SyntonyTracker
+
+
+if __name__ == "__main__":
+    """Test pure syntony metrics."""
+    print("Testing Pure Syntony Metrics...")
+    
+    # Test aggregation
+    layer_syntonies = [0.7, 0.8, 0.9]
+    global_S = aggregate_syntonies(layer_syntonies, 'mean')
+    print(f"Aggregated syntony (mean): {global_S:.4f}")
+    
+    global_S_geo = aggregate_syntonies(layer_syntonies, 'geometric')
+    print(f"Aggregated syntony (geometric): {global_S_geo:.4f}")
+    
+    # Test tracker
+    tracker = SyntonyTracker(window_size=20)
+    for i in range(50):
+        syntony = 0.5 + 0.01 * i  # Improving
+        tracker.update(syntony)
+    
+    print(f"Mean syntony: {tracker.mean_syntony:.4f}")
+    print(f"Syntony trend: {tracker.syntony_trend:.4f}")
+    print(f"Variance: {tracker.variance:.6f}")
+    print(f"Is archonic: {tracker.is_archonic()}")
+    
+    print("✅ Pure Syntony Metrics test passed!")

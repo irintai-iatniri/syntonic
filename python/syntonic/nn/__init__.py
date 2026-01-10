@@ -1,17 +1,15 @@
 """
-Syntonic Neural Networks - CRT-Native Deep Learning.
+Syntonic Neural Networks - Pure CRT-Native Deep Learning.
 
-This module provides neural network architectures that embed the
-DHSR (Differentiation-Harmonization-Syntony-Recursion) cycle
-directly into deep learning.
+BREAKING CHANGE: This module has been purified to use ResonantTensor
+and Retrocausal RES instead of PyTorch dependencies.
 
 Key Features:
 - DHSR-structured layers (DifferentiationLayer, HarmonizationLayer, RecursionBlock)
-- Syntonic loss functions (SyntonicLoss with syntony penalty)
-- Syntony-aware optimizers (SyntonicAdam with lr modulation)
-- Complete architectures (SyntonicMLP, SyntonicCNN, CRTTransformer)
+- Pure syntonic loss functions (SyntonicLoss with syntony penalty)
+- Retrocausal RES training (replaces gradient-based optimizers)
+- Complete architectures (PureSyntonicMLP, PureResonantTransformer)
 - Archonic pattern detection and escape mechanisms
-- Benchmarking and analysis tools
 
 Core Insight:
     L_total = L_task + λ(1 - S_model) + μC_{iπ}
@@ -19,30 +17,13 @@ Core Insight:
 Where S_model is the model syntony, optimizing for both
 task performance AND representational coherence.
 
-Example:
-    >>> from syntonic import nn as snn
-    >>> model = snn.SyntonicMLP(784, [512, 256], 10)
-    >>> optimizer = snn.SyntonicAdam(model.parameters(), lr=0.001)
-    >>> criterion = snn.SyntonicLoss(nn.CrossEntropyLoss())
-    >>>
-    >>> for inputs, targets in dataloader:
-    ...     outputs = model(inputs)
-    ...     loss, metrics = criterion(outputs, targets, model)
-    ...     optimizer.zero_grad()
-    ...     loss.backward()
-    ...     optimizer.step(syntony=model.syntony)
-    >>>
-    >>> print(f"Final syntony: {model.syntony:.4f}")
-
 Source: CRT.md §12.2
 """
 
-# Layers
+# Layers (still torch-based for backwards compatibility)
 from syntonic.nn.layers import (
     DifferentiationLayer,
-    DifferentiationModule,
     HarmonizationLayer,
-    HarmonizationModule,
     SyntonicGate,
     AdaptiveGate,
     RecursionBlock,
@@ -51,98 +32,48 @@ from syntonic.nn.layers import (
     GoldenNorm,
 )
 
-# Loss Functions
-from syntonic.nn.loss import (
+# Pure Loss Functions (ResonantTensor-based)
+from syntonic.nn.loss.syntonic_loss import (
     SyntonicLoss,
     LayerwiseSyntonicLoss,
-    compute_activation_syntony,
-    compute_network_syntony,
+    mse_loss,
+    cross_entropy_loss,
+)
+from syntonic.nn.loss.syntony_metrics import (
     SyntonyTracker,
+    aggregate_syntonies,
+    compute_activation_syntony,
+)
+from syntonic.nn.loss.phase_alignment import (
     PhaseAlignmentLoss,
     compute_phase_alignment,
     IPiConstraint,
     GoldenPhaseScheduler,
+)
+from syntonic.nn.loss.regularization import (
     SyntonicRegularizer,
-    GoldenDecay,
     SyntonyConstraint,
     ArchonicPenalty,
+    compute_weight_decay,
+    compute_sparsity_penalty,
 )
 
-# Optimizers
+# Retrocausal RES Optimization (replaces gradient-based optimizers)
 from syntonic.nn.optim import (
-    SyntonicAdam,
-    AdaptiveSyntonicAdam,
-    SyntonicSGD,
-    SyntonicMomentum,
-    GoldenScheduler,
-    SyntonyCyclicScheduler,
-    WarmupGoldenScheduler,
-    SyntonyGradientModifier,
-    GoldenClipping,
-    ArchonicGradientEscape,
-)
-
-# Training
-from syntonic.nn.training import (
-    SyntonicTrainer,
-    TrainingConfig,
-    SyntonyCallback,
-    ArchonicEarlyStop,
-    SyntonyCheckpoint,
-    MetricsLogger,
-    TrainingMetrics,
-    SyntonyMetrics,
-    compute_epoch_metrics,
-)
-
-# Architectures
-from syntonic.nn.architectures import (
-    SyntonicMLP,
-    SyntonicLinear,
-    SyntonicConv2d,
-    RecursionConvBlock,
-    SyntonicCNN,
-    SyntonicEmbedding,
-    WindingEmbedding,
-    PositionalEncoding,
-    SyntonicAttention,
-    GnosisAttention,
-    MultiHeadSyntonicAttention,
-    CRTTransformer,
-    DHTransformerLayer,
-    SyntonicTransformerEncoder,
-    SyntonicTransformerDecoder,
-)
-
-# Analysis
-from syntonic.nn.analysis import (
-    ArchonicDetector,
-    ArchonicReport,
-    detect_archonic_pattern,
-    EscapeMechanism,
-    NoiseInjection,
-    LearningRateShock,
-    NetworkHealth,
-    SyntonyMonitor,
-    HealthReport,
-    SyntonyViz,
-    plot_syntony_history,
-    plot_layer_syntonies,
-    plot_archonic_regions,
-)
-
-# Benchmarks
-from syntonic.nn.benchmarks import (
-    BenchmarkSuite,
-    BenchmarkResult,
-    run_mnist_benchmark,
-    run_cifar_benchmark,
-    ConvergenceAnalyzer,
-    ConvergenceMetrics,
+    RetrocausalConfig,
+    create_retrocausal_evolver,
+    create_standard_evolver,
     compare_convergence,
-    AblationStudy,
-    AblationResult,
-    run_component_ablation,
+    ResonantEvolver,
+    RESConfig,
+    RESResult,
+)
+
+# Pure Training
+from syntonic.nn.training.trainer import (
+    RetrocausalTrainer,
+    RESTrainingConfig,
+    train_with_retrocausal_res,
 )
 
 # Constants
@@ -154,9 +85,7 @@ S_TARGET = PHI - Q_DEFICIT
 __all__ = [
     # Layers
     'DifferentiationLayer',
-    'DifferentiationModule',
     'HarmonizationLayer',
-    'HarmonizationModule',
     'SyntonicGate',
     'AdaptiveGate',
     'RecursionBlock',
@@ -164,87 +93,37 @@ __all__ = [
     'SyntonicNorm',
     'GoldenNorm',
 
-    # Loss
+    # Pure Loss
     'SyntonicLoss',
     'LayerwiseSyntonicLoss',
-    'compute_activation_syntony',
-    'compute_network_syntony',
+    'mse_loss',
+    'cross_entropy_loss',
     'SyntonyTracker',
+    'aggregate_syntonies',
+    'compute_activation_syntony',
     'PhaseAlignmentLoss',
     'compute_phase_alignment',
     'IPiConstraint',
     'GoldenPhaseScheduler',
     'SyntonicRegularizer',
-    'GoldenDecay',
     'SyntonyConstraint',
     'ArchonicPenalty',
+    'compute_weight_decay',
+    'compute_sparsity_penalty',
 
-    # Optimizers
-    'SyntonicAdam',
-    'AdaptiveSyntonicAdam',
-    'SyntonicSGD',
-    'SyntonicMomentum',
-    'GoldenScheduler',
-    'SyntonyCyclicScheduler',
-    'WarmupGoldenScheduler',
-    'SyntonyGradientModifier',
-    'GoldenClipping',
-    'ArchonicGradientEscape',
-
-    # Training
-    'SyntonicTrainer',
-    'TrainingConfig',
-    'SyntonyCallback',
-    'ArchonicEarlyStop',
-    'SyntonyCheckpoint',
-    'MetricsLogger',
-    'TrainingMetrics',
-    'SyntonyMetrics',
-    'compute_epoch_metrics',
-
-    # Architectures
-    'SyntonicMLP',
-    'SyntonicLinear',
-    'SyntonicConv2d',
-    'RecursionConvBlock',
-    'SyntonicCNN',
-    'SyntonicEmbedding',
-    'WindingEmbedding',
-    'PositionalEncoding',
-    'SyntonicAttention',
-    'GnosisAttention',
-    'MultiHeadSyntonicAttention',
-    'CRTTransformer',
-    'DHTransformerLayer',
-    'SyntonicTransformerEncoder',
-    'SyntonicTransformerDecoder',
-
-    # Analysis
-    'ArchonicDetector',
-    'ArchonicReport',
-    'detect_archonic_pattern',
-    'EscapeMechanism',
-    'NoiseInjection',
-    'LearningRateShock',
-    'NetworkHealth',
-    'SyntonyMonitor',
-    'HealthReport',
-    'SyntonyViz',
-    'plot_syntony_history',
-    'plot_layer_syntonies',
-    'plot_archonic_regions',
-
-    # Benchmarks
-    'BenchmarkSuite',
-    'BenchmarkResult',
-    'run_mnist_benchmark',
-    'run_cifar_benchmark',
-    'ConvergenceAnalyzer',
-    'ConvergenceMetrics',
+    # Retrocausal RES (replaces gradient optimizers)
+    'RetrocausalConfig',
+    'create_retrocausal_evolver',
+    'create_standard_evolver',
     'compare_convergence',
-    'AblationStudy',
-    'AblationResult',
-    'run_component_ablation',
+    'ResonantEvolver',
+    'RESConfig',
+    'RESResult',
+
+    # Pure Training
+    'RetrocausalTrainer',
+    'RESTrainingConfig',
+    'train_with_retrocausal_res',
 
     # Constants
     'PHI',

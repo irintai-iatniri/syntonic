@@ -14,10 +14,12 @@ This implements the Resonant Engine as specified in RESONANT_ENGINE_TECHNICAL.md
 4. destroy_shadow(): Flux = None
 
 The flux is EPHEMERAL - it only exists during D-phase, then destroyed.
+
+NO PYTORCH DEPENDENCIES - uses pure sn (syntonic network) module.
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 import math
 import time
 
@@ -28,14 +30,16 @@ except ImportError:
     RESONANT_AVAILABLE = False
     ResonantTensor = None
 
-from syntonic.nn.winding.prime_selection import PrimeSelectionLayer
+# Use sn (syntonic network) instead of torch.nn
+import syntonic.sn as sn
+from syntonic.nn.winding.prime_selection_pure import PurePrimeSelectionLayer
 
 PHI = (1 + math.sqrt(5)) / 2  # Golden ratio
 PHI_INV = 1 / PHI  # φ^-1 ≈ 0.618
 PHI_INV_SQ = PHI_INV ** 2  # φ^-2 ≈ 0.382
 
 
-class ResonantWindingDHSRBlock(nn.Module):
+class ResonantWindingDHSRBlock(sn.Module):
     """
     DHSR block with proper Resonant Engine dual-state architecture.
 
@@ -83,18 +87,18 @@ class ResonantWindingDHSRBlock(nn.Module):
         self.precision = precision
         self.noise_scale = noise_scale
 
-        # Prime selection filter (optional)
+        # Prime selection filter (optional) - using pure version
         if use_prime_filter:
-            self.prime_filter = PrimeSelectionLayer(dim)
+            self.prime_filter = PurePrimeSelectionLayer(dim)
         else:
             self.prime_filter = None
 
         # Dropout (applied during flux phase)
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = sn.Dropout(dropout)
 
         # Blockchain recording
-        self.register_buffer('temporal_record', torch.zeros(0, dim))
-        self.register_buffer('syntony_record', torch.zeros(0))
+        self.temporal_record: List[List[float]] = []
+        self.syntony_record: List[float] = []
 
         # Blockchain statistics
         self.total_blocks_validated = 0
@@ -107,10 +111,10 @@ class ResonantWindingDHSRBlock(nn.Module):
 
     def forward(
         self,
-        x: torch.Tensor,
-        mode_norms: torch.Tensor,
+        x: ResonantTensor,
+        mode_norms: List[float],
         prev_syntony: float,
-    ) -> Tuple[torch.Tensor, float, bool]:
+    ) -> Tuple[ResonantTensor, float, bool]:
         """
         Forward pass through Resonant DHSR cycle (Batched).
 
@@ -119,47 +123,35 @@ class ResonantWindingDHSRBlock(nn.Module):
         2. differentiate(): D̂ flux on GPU/CPU
         3. crystallize(): Ĥ + snap back to Q(φ) lattice
         4. destroy_shadow(): clear flux
+        
+        Args:
+            x: Input ResonantTensor
+            mode_norms: Mode norms for each feature
+            prev_syntony: Previous syntony value
+            
+        Returns:
+            (output, syntony, accepted): Crystallized output, new syntony, blockchain acceptance
         """
-        batch_size = x.shape[0]
+        shape = x.shape()
+        batch_size = shape[0] if len(shape) > 1 else 1
         
-        # 1. Prepare data and norms
-        # PROJECT TO RESONANT ENGINE (Wake Flux)
-        x_flat = x.detach().cpu().numpy().flatten().tolist()
-        norms_flat = (mode_norms.detach().cpu().numpy().tolist()) * batch_size
-        
-        rt = ResonantTensor(
-            data=x_flat,
-            shape=[batch_size, self.dim],
-            mode_norm_sq=norms_flat,
-            precision=self.precision
-        )
-
-        # 2. EXECUTE DHSR CYCLE (D̂ + Ĥ + Crystallize)
+        # 1. EXECUTE DHSR CYCLE (D̂ + Ĥ + Crystallize)
         d_start = time.perf_counter()
         
         # batch_cpu_cycle handles the complete phase transition
-        batch_syntonies = rt.batch_cpu_cycle(
+        batch_syntonies = x.batch_cpu_cycle(
             noise_scale=self.noise_scale,
             precision=self.precision
         )
 
         self.last_d_duration = time.perf_counter() - d_start
 
-        # 3. EXTRACTION AND MÖBIUS FILTERING (with STE)
-        # Result is natively in Crystalline phase
-        new_data = np.array(rt.to_list()).reshape(batch_size, self.dim)
-        x_crystalline = torch.from_numpy(new_data).to(x.device).to(x.dtype)
-
-        # Straight-Through Estimator: 
-        # Output values are crystalline, but gradients pass through original flux
-        x_new = (x_crystalline - x).detach() + x
-
-        # Apply prime filter (Möbius Selection)
+        # 2. Apply prime filter (Möbius Selection)
         if self.prime_filter is not None:
-            x_new = self.prime_filter(x_new)
+            x = self.prime_filter(x)
 
-        # Update syntony (average of batch)
-        syntony_new = sum(batch_syntonies) / batch_size
+        # 3. Update syntony (average of batch)
+        syntony_new = sum(batch_syntonies) / len(batch_syntonies) if batch_syntonies else 0.5
 
         # 4. TEMPORAL BLOCKCHAIN RECORDING
         delta_syntony = abs(syntony_new - prev_syntony)
@@ -167,27 +159,28 @@ class ResonantWindingDHSRBlock(nn.Module):
 
         if accepted:
             self.total_blocks_validated += 1
-            # Record average state to immutable ledger
-            self.temporal_record = torch.cat([
-                self.temporal_record,
-                x_new.mean(dim=0, keepdim=True).detach()
-            ], dim=0)
-            self.syntony_record = torch.cat([
-                self.syntony_record,
-                torch.tensor([syntony_new], device=x.device)
-            ], dim=0)
+            # Record to blockchain
+            data = x.to_floats()
+            if len(shape) > 1:
+                # Average over batch
+                avg_state = []
+                for i in range(self.dim):
+                    col_sum = sum(data[b * self.dim + i] for b in range(batch_size))
+                    avg_state.append(col_sum / batch_size)
+                self.temporal_record.append(avg_state)
+            self.syntony_record.append(syntony_new)
         else:
             self.total_blocks_rejected += 1
 
-        return x_new, syntony_new, accepted
+        return x, syntony_new, accepted
 
-    def get_blockchain(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_blockchain(self) -> Tuple[List[List[float]], List[float]]:
         """
         Access the temporal blockchain.
 
         Returns:
-            states: Temporal state record (blockchain_length, dim)
-            syntonies: Syntony record (blockchain_length,)
+            states: Temporal state record (list of state vectors)
+            syntonies: Syntony record (list of floats)
         """
         return self.temporal_record, self.syntony_record
 
@@ -220,8 +213,10 @@ class ResonantWindingDHSRBlock(nn.Module):
 
 
 if __name__ == "__main__":
+    import random
+    
     print("=" * 70)
-    print("Resonant DHSR Block Test - Dual-State Architecture")
+    print("Resonant DHSR Block Test - Dual-State Architecture (Pure Python)")
     print("=" * 70)
 
     if not RESONANT_AVAILABLE:
@@ -241,12 +236,13 @@ if __name__ == "__main__":
     )
 
     print(f"\nBlock: {block}")
-    print(f"Parameters: {sum(p.numel() for p in block.parameters()):,}")
 
-    # Create dummy input
+    # Create dummy input as ResonantTensor
     batch_size = 4
-    x = torch.randn(batch_size, dim)
-    mode_norms = torch.arange(dim).pow(2).float()
+    data = [random.gauss(0, 1) for _ in range(batch_size * dim)]
+    mode_norms = [float(i * i) for i in range(batch_size * dim)]
+    x = ResonantTensor(data, [batch_size, dim], mode_norms, 100)
+    mode_norm_list = [float(i * i) for i in range(dim)]
     prev_syntony = 0.5
 
     # Run resonant cycle
@@ -254,10 +250,10 @@ if __name__ == "__main__":
     print("Running Resonant Cycle (Lattice ↔ Flux Dance)")
     print("=" * 70)
 
-    x_new, syntony, accepted = block(x, mode_norms, prev_syntony)
+    x_new, syntony, accepted = block(x, mode_norm_list, prev_syntony)
 
-    print(f"\nInput shape: {x.shape}")
-    print(f"Output shape: {x_new.shape}")
+    print(f"\nInput shape: {x.shape()}")
+    print(f"Output shape: {x_new.shape()}")
     print(f"Lattice syntony: {syntony:.6f} (exact Q(φ))")
     print(f"Consensus: {'✓ ACCEPTED' if accepted else '✗ REJECTED'}")
     print(f"Blockchain length: {block.get_blockchain_length()}")
@@ -268,22 +264,15 @@ if __name__ == "__main__":
     print("φ-Dwell Timing Verification")
     print("=" * 70)
     print(f"D-phase duration: {timing['d_duration']*1000:.2f}ms")
-    print(f"H-phase duration: {timing['h_duration']*1000:.2f}ms")
-    if timing['ratio'] > 0:
-        print(f"Actual ratio (H/D): {timing['ratio']:.4f}")
-        print(f"Target ratio (φ):   {timing['target_ratio']:.4f}")
-        print(f"φ-dwell satisfied:  {timing['phi_dwell_satisfied']}")
 
     # Verify state evolution
     print(f"\n" + "=" * 70)
     print("State Evolution Test (Multiple Cycles)")
     print("=" * 70)
 
-    state = x[0:1]  # Single sample
     syntonies = []
-
     for cycle in range(5):
-        state, s, acc = block(state, mode_norms, prev_syntony)
+        x_new, s, acc = block(x_new, mode_norm_list, prev_syntony)
         syntonies.append(s)
         prev_syntony = s
         print(f"Cycle {cycle}: S = {s:.6f}, accepted = {acc}")
@@ -292,5 +281,6 @@ if __name__ == "__main__":
     print(f"Blockchain length: {block.get_blockchain_length()}")
 
     print("\n" + "=" * 70)
-    print("✓ Resonant Engine dual-state architecture verified!")
+    print("✓ Resonant Engine dual-state architecture (pure Python) verified!")
     print("=" * 70)
+

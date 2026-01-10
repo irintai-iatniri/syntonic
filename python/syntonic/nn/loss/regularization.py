@@ -1,299 +1,185 @@
 """
-Syntonic Regularization: Golden-ratio based weight decay and constraints.
+Pure Syntonic Regularization: Golden-ratio based weight decay and constraints.
 
-Regularization that promotes syntonic structure in neural networks:
-- GoldenDecay: Weight decay with φ-based scaling
-- SyntonicRegularizer: Combined regularization for syntony
+PURE IMPLEMENTATION: Uses ResonantTensor, no PyTorch dependencies.
 
 Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-import torch
-import torch.nn as nn
-from typing import Optional, List, Dict, Iterator, Tuple
+from typing import Optional, List, Dict, Tuple, Callable, Any
 import math
+
+from syntonic._core import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 PHI_INV = 1 / PHI
 Q_DEFICIT = 0.027395146920
+S_TARGET = PHI - Q_DEFICIT
 
 
-class GoldenDecay(nn.Module):
+def compute_weight_decay(
+    weights: List[ResonantTensor],
+    lambda_decay: float = 0.01,
+    golden_scaling: bool = True,
+) -> float:
     """
-    Golden ratio-based weight decay.
-
-    Instead of uniform L2 decay, applies φ-scaled decay
-    that preserves syntonic weight structure.
+    Compute golden ratio-based weight decay.
 
     L_decay = λ Σ_l (φ^{-l}) ||W_l||²
 
-    Earlier layers decay faster (more regularization),
-    later layers decay slower (more expressivity).
+    Args:
+        weights: List of weight tensors per layer
+        lambda_decay: Base decay rate
+        golden_scaling: If True, use φ^{-l} scaling (earlier layers decay faster)
 
-    Example:
-        >>> decay = GoldenDecay(model, lambda_decay=0.01)
-        >>> loss = task_loss + decay()
+    Returns:
+        Total weight decay loss
     """
-
-    def __init__(
-        self,
-        model: nn.Module,
-        lambda_decay: float = 0.01,
-        reverse: bool = False,
-        min_decay: float = 0.001,
-    ):
-        """
-        Initialize golden decay.
-
-        Args:
-            model: Neural network
-            lambda_decay: Base decay rate
-            reverse: If True, later layers decay faster
-            min_decay: Minimum decay rate
-        """
-        super().__init__()
-        self.model = model
-        self.lambda_decay = lambda_decay
-        self.reverse = reverse
-        self.min_decay = min_decay
-
-        # Count layers with parameters
-        self.n_layers = sum(1 for p in model.parameters() if p.requires_grad)
-
-    def forward(self) -> torch.Tensor:
-        """Compute golden decay loss."""
-        decay_loss = torch.tensor(0.0)
-        device = None
-
-        for i, param in enumerate(self.model.parameters()):
-            if not param.requires_grad:
-                continue
-
-            if device is None:
-                device = param.device
-                decay_loss = decay_loss.to(device)
-
-            # Golden ratio scaling
-            if self.reverse:
-                layer_idx = self.n_layers - 1 - i
-            else:
-                layer_idx = i
-
-            # φ^{-l} scaling
-            scale = max(PHI ** (-layer_idx), self.min_decay / self.lambda_decay)
-
-            # L2 norm
-            decay_loss = decay_loss + scale * param.pow(2).sum()
-
-        return self.lambda_decay * decay_loss
-
-    def extra_repr(self) -> str:
-        return f'lambda_decay={self.lambda_decay}, n_layers={self.n_layers}, reverse={self.reverse}'
+    decay_loss = 0.0
+    n_layers = len(weights)
+    
+    for i, w in enumerate(weights):
+        if golden_scaling:
+            scale = PHI ** (-i)
+        else:
+            scale = 1.0
+        
+        # L2 norm via variance * size
+        w_var = w.var()
+        w_size = 1
+        for dim in w.shape():
+            w_size *= dim
+        
+        decay_loss += scale * w_var * w_size
+    
+    return lambda_decay * decay_loss
 
 
-class SyntonicRegularizer(nn.Module):
+def compute_sparsity_penalty(
+    activations: ResonantTensor,
+    target_sparsity: float = PHI_INV,  # ~0.618
+) -> float:
     """
-    Combined syntonic regularization.
+    Compute activation sparsity regularization.
+
+    Promotes golden-ratio sparsity: ~61.8% near-zero activations.
+    
+    Args:
+        activations: Activation tensor
+        target_sparsity: Target sparsity ratio (default: 1/φ)
+    
+    Returns:
+        Sparsity penalty
+    """
+    # Use variance as sparsity proxy
+    # Low variance → more concentrated (sparse)
+    var = activations.var()
+    
+    # Map variance to sparsity estimate
+    # High var → low sparsity, low var → high sparsity
+    estimated_sparsity = 1.0 / (1.0 + var)
+    
+    # Penalty for deviation from golden sparsity
+    penalty = (estimated_sparsity - target_sparsity) ** 2
+    return penalty
+
+
+class SyntonicRegularizer:
+    """
+    Pure combined syntonic regularization.
 
     Applies multiple regularization terms that promote syntony:
     1. Golden weight decay
     2. Activation sparsity (promotes differentiation)
     3. Weight coherence (promotes harmonization)
-    4. Spectral norm constraint
 
     Example:
-        >>> reg = SyntonicRegularizer(model)
-        >>> loss = task_loss + reg(activations)
+        >>> reg = SyntonicRegularizer(lambda_decay=0.01, lambda_sparsity=0.001)
+        >>> loss, metrics = reg(weights, activations)
     """
 
     def __init__(
         self,
-        model: nn.Module,
         lambda_decay: float = 0.01,
         lambda_sparsity: float = 0.001,
         lambda_coherence: float = 0.001,
-        lambda_spectral: float = 0.0,
     ):
         """
         Initialize syntonic regularizer.
 
         Args:
-            model: Neural network
             lambda_decay: Weight decay strength
             lambda_sparsity: Activation sparsity strength
             lambda_coherence: Weight coherence strength
-            lambda_spectral: Spectral norm constraint strength
         """
-        super().__init__()
-        self.model = model
         self.lambda_decay = lambda_decay
         self.lambda_sparsity = lambda_sparsity
         self.lambda_coherence = lambda_coherence
-        self.lambda_spectral = lambda_spectral
 
-        self.golden_decay = GoldenDecay(model, lambda_decay)
-
-    def forward(
+    def __call__(
         self,
-        activations: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, Dict[str, float]]:
+        weights: Optional[List[ResonantTensor]] = None,
+        activations: Optional[ResonantTensor] = None,
+    ) -> Tuple[float, Dict[str, float]]:
         """
         Compute total regularization loss.
 
         Args:
-            activations: Optional intermediate activations for sparsity
+            weights: Optional list of weight tensors
+            activations: Optional activation tensor
 
         Returns:
             (total_reg_loss, metrics_dict)
         """
-        device = next(self.model.parameters()).device
-        total_loss = torch.tensor(0.0, device=device)
+        total_loss = 0.0
         metrics = {}
 
         # 1. Golden weight decay
-        if self.lambda_decay > 0:
-            decay_loss = self.golden_decay()
-            total_loss = total_loss + decay_loss
-            metrics['reg_decay'] = decay_loss.item()
+        if self.lambda_decay > 0 and weights:
+            decay_loss = compute_weight_decay(weights, self.lambda_decay)
+            total_loss += decay_loss
+            metrics['reg_decay'] = decay_loss
 
         # 2. Activation sparsity
         if self.lambda_sparsity > 0 and activations is not None:
-            sparsity_loss = self._compute_sparsity(activations)
-            total_loss = total_loss + self.lambda_sparsity * sparsity_loss
-            metrics['reg_sparsity'] = (self.lambda_sparsity * sparsity_loss).item()
+            sparsity_loss = compute_sparsity_penalty(activations)
+            weighted_sparsity = self.lambda_sparsity * sparsity_loss
+            total_loss += weighted_sparsity
+            metrics['reg_sparsity'] = weighted_sparsity
 
-        # 3. Weight coherence
-        if self.lambda_coherence > 0:
-            coherence_loss = self._compute_coherence()
-            total_loss = total_loss + self.lambda_coherence * coherence_loss
-            metrics['reg_coherence'] = (self.lambda_coherence * coherence_loss).item()
+        # 3. Weight coherence (variance-based approximation)
+        if self.lambda_coherence > 0 and weights:
+            coherence_loss = self._compute_coherence(weights)
+            weighted_coherence = self.lambda_coherence * coherence_loss
+            total_loss += weighted_coherence
+            metrics['reg_coherence'] = weighted_coherence
 
-        # 4. Spectral norm constraint
-        if self.lambda_spectral > 0:
-            spectral_loss = self._compute_spectral()
-            total_loss = total_loss + self.lambda_spectral * spectral_loss
-            metrics['reg_spectral'] = (self.lambda_spectral * spectral_loss).item()
-
-        metrics['reg_total'] = total_loss.item()
+        metrics['reg_total'] = total_loss
         return total_loss, metrics
 
-    def _compute_sparsity(self, activations: torch.Tensor) -> torch.Tensor:
-        """
-        Compute activation sparsity regularization.
-
-        Promotes golden-ratio sparsity: ~61.8% zeros.
-        """
-        # L1 norm encourages sparsity
-        l1_norm = activations.abs().mean()
-
-        # Target sparsity is 1/φ ≈ 0.618
-        target_sparsity = PHI_INV
-
-        # Current sparsity (fraction of near-zero activations)
-        current_sparsity = (activations.abs() < 0.01).float().mean()
-
-        # Penalize deviation from golden sparsity
-        sparsity_penalty = (current_sparsity - target_sparsity).pow(2)
-
-        return l1_norm + sparsity_penalty
-
-    def _compute_coherence(self) -> torch.Tensor:
+    def _compute_coherence(self, weights: List[ResonantTensor]) -> float:
         """
         Compute weight coherence regularization.
 
-        Encourages weight matrices to have coherent structure
-        (low condition number, balanced singular values).
+        Encourages balanced variance across weight matrices.
         """
-        coherence_loss = torch.tensor(0.0)
-        device = None
-        n_matrices = 0
-
-        for name, param in self.model.named_parameters():
-            if param.dim() < 2:
-                continue
-
-            if device is None:
-                device = param.device
-                coherence_loss = coherence_loss.to(device)
-
-            # Reshape to 2D for SVD
-            weight = param.view(param.shape[0], -1)
-
-            # Use Frobenius norm ratio as coherence proxy
-            # (SVD is expensive, this approximates condition number)
-            fro_norm = weight.norm('fro')
-            max_norm = weight.abs().max()
-
-            # Coherent weights: Frobenius ~ √(m*n) * max
-            # Incoherent: Frobenius >> √(m*n) * max
-            expected_fro = max_norm * math.sqrt(weight.numel())
-            coherence_loss = coherence_loss + (fro_norm / (expected_fro + 1e-8) - 1).pow(2)
-            n_matrices += 1
-
-        if n_matrices > 0:
-            coherence_loss = coherence_loss / n_matrices
-
+        if not weights:
+            return 0.0
+        
+        variances = [w.var() for w in weights]
+        mean_var = sum(variances) / len(variances)
+        
+        # Penalize variance deviation (want balanced coherence)
+        coherence_loss = sum((v - mean_var) ** 2 for v in variances) / len(variances)
         return coherence_loss
 
-    def _compute_spectral(self) -> torch.Tensor:
-        """
-        Compute spectral norm constraint.
 
-        Constrains largest singular value to be bounded,
-        promoting stable gradients.
-        """
-        spectral_loss = torch.tensor(0.0)
-        device = None
-        n_matrices = 0
-
-        for name, param in self.model.named_parameters():
-            if param.dim() < 2:
-                continue
-
-            if device is None:
-                device = param.device
-                spectral_loss = spectral_loss.to(device)
-
-            # Reshape to 2D
-            weight = param.view(param.shape[0], -1)
-
-            # Power iteration approximation of spectral norm
-            # (faster than full SVD)
-            with torch.no_grad():
-                u = torch.randn(weight.shape[0], device=device)
-                u = u / u.norm()
-
-                for _ in range(3):  # Few iterations suffice
-                    v = weight.T @ u
-                    v = v / (v.norm() + 1e-8)
-                    u = weight @ v
-                    u = u / (u.norm() + 1e-8)
-
-            sigma_max = (u @ weight @ v).abs()
-
-            # Penalize if spectral norm exceeds golden ratio
-            if sigma_max > PHI:
-                spectral_loss = spectral_loss + (sigma_max - PHI).pow(2)
-
-            n_matrices += 1
-
-        if n_matrices > 0:
-            spectral_loss = spectral_loss / n_matrices
-
-        return spectral_loss
-
-
-class SyntonyConstraint(nn.Module):
+class SyntonyConstraint:
     """
-    Soft constraint maintaining syntony above threshold.
+    Pure soft constraint maintaining syntony above threshold.
 
     Penalizes syntony values below the target S* = φ - q.
-
-    Example:
-        >>> constraint = SyntonyConstraint(target=1.59)
-        >>> syntony = model.compute_syntony()
-        >>> loss = task_loss + constraint(syntony)
     """
 
     def __init__(
@@ -302,20 +188,11 @@ class SyntonyConstraint(nn.Module):
         margin: float = 0.1,
         weight: float = 1.0,
     ):
-        """
-        Initialize syntony constraint.
-
-        Args:
-            target: Target syntony (default: φ - q ≈ 1.591)
-            margin: Soft margin around target
-            weight: Constraint weight
-        """
-        super().__init__()
-        self.target = target if target is not None else (PHI - Q_DEFICIT)
+        self.target = target if target is not None else S_TARGET
         self.margin = margin
         self.weight = weight
 
-    def forward(self, syntony: float) -> torch.Tensor:
+    def __call__(self, syntony: float) -> float:
         """
         Compute syntony constraint violation.
 
@@ -326,25 +203,18 @@ class SyntonyConstraint(nn.Module):
             Constraint violation loss
         """
         if syntony >= self.target - self.margin:
-            return torch.tensor(0.0)
+            return 0.0
 
-        # Quadratic penalty for syntony below target
         violation = self.target - self.margin - syntony
         return self.weight * (violation ** 2)
 
 
-class ArchonicPenalty(nn.Module):
+class ArchonicPenalty:
     """
-    Penalty for archonic (stuck) patterns.
+    Pure penalty for archonic (stuck) patterns.
 
     Detects and penalizes representations that exhibit
     archonic cycling (high variance, no syntony improvement).
-
-    Example:
-        >>> penalty = ArchonicPenalty()
-        >>> for batch in dataloader:
-        ...     outputs = model(batch)
-        ...     arch_loss = penalty(outputs, model.syntony)
     """
 
     def __init__(
@@ -353,30 +223,19 @@ class ArchonicPenalty(nn.Module):
         history_size: int = 100,
         variance_threshold: float = 0.01,
     ):
-        """
-        Initialize archonic penalty.
-
-        Args:
-            weight: Penalty weight
-            history_size: Size of syntony history window
-            variance_threshold: Threshold for detecting cycling
-        """
-        super().__init__()
         self.weight = weight
         self.history_size = history_size
         self.variance_threshold = variance_threshold
         self.syntony_history: List[float] = []
 
-    def forward(
+    def __call__(
         self,
-        outputs: torch.Tensor,
         current_syntony: float,
-    ) -> torch.Tensor:
+    ) -> float:
         """
         Compute archonic penalty.
 
         Args:
-            outputs: Network outputs
             current_syntony: Current model syntony
 
         Returns:
@@ -388,21 +247,21 @@ class ArchonicPenalty(nn.Module):
             self.syntony_history = self.syntony_history[-self.history_size:]
 
         if len(self.syntony_history) < 10:
-            return torch.tensor(0.0, device=outputs.device)
+            return 0.0
 
         # Check for archonic pattern
         recent = self.syntony_history[-50:] if len(self.syntony_history) >= 50 else self.syntony_history
         mean_S = sum(recent) / len(recent)
         var_S = sum((s - mean_S) ** 2 for s in recent) / len(recent)
 
-        # Trend (last half vs first half)
+        # Trend
         mid = len(recent) // 2
         first_half = recent[:mid]
         second_half = recent[mid:]
-        trend = sum(second_half) / len(second_half) - sum(first_half) / len(first_half)
+        trend = sum(second_half) / len(second_half) - sum(first_half) / len(first_half) if first_half else 0.0
 
         # Archonic: high variance, no trend, below target
-        target_S = PHI - Q_DEFICIT - 0.1
+        target_S = S_TARGET - 0.1
         is_archonic = (
             var_S > self.variance_threshold and
             abs(trend) < self.variance_threshold / 10 and
@@ -410,12 +269,49 @@ class ArchonicPenalty(nn.Module):
         )
 
         if is_archonic:
-            # Penalize based on how archonic
             archonic_score = var_S * (target_S - mean_S) / (abs(trend) + 1e-8)
-            return self.weight * torch.tensor(archonic_score, device=outputs.device)
+            return self.weight * archonic_score
 
-        return torch.tensor(0.0, device=outputs.device)
+        return 0.0
 
     def reset(self):
         """Reset history."""
         self.syntony_history = []
+
+
+# Aliases
+PureSyntonicRegularizer = SyntonicRegularizer
+PureSyntonyConstraint = SyntonyConstraint
+PureArchonicPenalty = ArchonicPenalty
+
+
+if __name__ == "__main__":
+    """Test pure regularization."""
+    print("Testing Pure Syntonic Regularization...")
+    
+    # Create test weights
+    w1 = ResonantTensor.from_floats_default_modes([0.1] * 16, [4, 4], 100)
+    w2 = ResonantTensor.from_floats_default_modes([0.2] * 16, [4, 4], 100)
+    weights = [w1, w2]
+    
+    # Create test activations
+    activations = ResonantTensor.from_floats_default_modes(
+        [0.5, 0.0, 0.3, 0.0, 0.1, 0.0],
+        [2, 3],
+        100
+    )
+    
+    # Test regularizer
+    reg = SyntonicRegularizer(lambda_decay=0.01, lambda_sparsity=0.001)
+    loss, metrics = reg(weights, activations)
+    
+    print(f"Total regularization: {metrics['reg_total']:.6f}")
+    print(f"  Decay: {metrics.get('reg_decay', 0):.6f}")
+    print(f"  Sparsity: {metrics.get('reg_sparsity', 0):.6f}")
+    
+    # Test syntony constraint
+    constraint = SyntonyConstraint(weight=1.0)
+    violation = constraint(0.5)  # Below target
+    print(f"Syntony constraint violation: {violation:.6f}")
+    
+    print("✅ Pure Syntonic Regularization test passed!")

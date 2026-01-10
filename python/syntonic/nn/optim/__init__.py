@@ -1,40 +1,40 @@
 """
-Syntonic Optimizers - Syntony-aware training algorithms.
+Syntonic Optimization - Retrocausal RES Training.
 
-These optimizers modulate learning rates based on model syntony,
-enabling adaptive training that respects syntonic structure.
+BREAKING CHANGE: Gradient-based optimizers have been removed.
+Use Retrocausal RES (Resonant Evolutionary Search) instead.
 
-Key insight: lr_eff = lr × (1 + α(S - S_target))
+Key insight: Syntony as fitness, not loss gradients.
+
+Example:
+    >>> from syntonic.resonant.retrocausal import create_retrocausal_evolver
+    >>> evolver = create_retrocausal_evolver(tensor, population_size=32)
+    >>> result = evolver.run()
 """
 
-from syntonic.nn.optim.syntonic_adam import (
-    SyntonicAdam,
-    AdaptiveSyntonicAdam,
+# Re-export Retrocausal RES as the primary optimizer
+from syntonic.resonant.retrocausal import (
+    RetrocausalConfig,
+    create_retrocausal_evolver,
+    create_standard_evolver,
+    compare_convergence,
 )
-from syntonic.nn.optim.syntonic_sgd import (
-    SyntonicSGD,
-    SyntonicMomentum,
-)
-from syntonic.nn.optim.schedulers import (
-    GoldenScheduler,
-    SyntonyCyclicScheduler,
-    WarmupGoldenScheduler,
-)
-from syntonic.nn.optim.gradient_mod import (
-    SyntonyGradientModifier,
-    GoldenClipping,
-    ArchonicGradientEscape,
+
+# Re-export core RES types
+from syntonic._core import (
+    ResonantEvolver,
+    RESConfig,
+    RESResult,
 )
 
 __all__ = [
-    'SyntonicAdam',
-    'AdaptiveSyntonicAdam',
-    'SyntonicSGD',
-    'SyntonicMomentum',
-    'GoldenScheduler',
-    'SyntonyCyclicScheduler',
-    'WarmupGoldenScheduler',
-    'SyntonyGradientModifier',
-    'GoldenClipping',
-    'ArchonicGradientEscape',
+    # Retrocausal RES (recommended)
+    'RetrocausalConfig',
+    'create_retrocausal_evolver',
+    'create_standard_evolver',
+    'compare_convergence',
+    # Core RES types
+    'ResonantEvolver',
+    'RESConfig',
+    'RESResult',
 ]

@@ -3,32 +3,58 @@ Syntonic Training - Training utilities for syntonic networks.
 
 Provides training loop, callbacks, and metrics for
 syntony-aware neural network training.
+
+Uses pure Python + ResonantTensor (no PyTorch dependencies).
 """
 
+# Pure Python implementations (no PyTorch)
 from syntonic.nn.training.trainer import (
-    SyntonicTrainer,
-    TrainingConfig,
+    RetrocausalTrainer,
+    RESTrainingConfig,
+    SyntonyTracker,
 )
-from syntonic.nn.training.callbacks import (
+from syntonic.nn.training.callbacks_pure import (
+    Callback,
     SyntonyCallback,
     ArchonicEarlyStop,
     SyntonyCheckpoint,
     MetricsLogger,
+    FitnessPlateauCallback,
+    default_callbacks,
 )
-from syntonic.nn.training.metrics import (
+from syntonic.nn.training.metrics_pure import (
     TrainingMetrics,
     SyntonyMetrics,
-    compute_epoch_metrics,
+    MetricsAggregator,
+    SyntonyTracker as SyntonyMetricTracker,
+    compute_syntony_from_weights,
+    compute_accuracy,
+    compute_mse,
+    check_archonic_pattern,
+    compute_syntony_gap,
 )
 
 __all__ = [
-    'SyntonicTrainer',
-    'TrainingConfig',
+    # Trainer
+    'RetrocausalTrainer',
+    'RESTrainingConfig',
+    'SyntonyTracker',
+    # Callbacks
+    'Callback',
     'SyntonyCallback',
     'ArchonicEarlyStop',
     'SyntonyCheckpoint',
     'MetricsLogger',
+    'FitnessPlateauCallback',
+    'default_callbacks',
+    # Metrics
     'TrainingMetrics',
     'SyntonyMetrics',
-    'compute_epoch_metrics',
+    'MetricsAggregator',
+    'SyntonyMetricTracker',
+    'compute_syntony_from_weights',
+    'compute_accuracy',
+    'compute_mse',
+    'check_archonic_pattern',
+    'compute_syntony_gap',
 ]

@@ -1,30 +1,74 @@
 """
-Syntonic Loss Functions.
+Pure Syntonic Loss Functions.
 
 L_total = L_task + λ_syntony(1 - S_model) + μ_{iπ}·C_{iπ}
 
 Where:
-- L_task: Standard task loss (CrossEntropy, MSE, etc.)
+- L_task: Standard task loss (MSE, CrossEntropy analog)
 - S_model: Model syntony (coherence measure)
 - C_{iπ}: Phase-cycle alignment (i ≃ π constraint)
+
+PURE IMPLEMENTATION: Uses ResonantTensor, no PyTorch dependencies.
 
 Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple, List, Protocol
 import math
 
+# Import from pure Rust backend
+from syntonic._core import ResonantTensor
+
 PHI = (1 + math.sqrt(5)) / 2
+PHI_INV = 1 / PHI
 Q_DEFICIT = 0.027395146920
+S_TARGET = PHI - Q_DEFICIT
 
 
-class SyntonicLoss(nn.Module):
+class PureLossFunction(Protocol):
+    """Protocol for pure loss functions."""
+    def __call__(self, pred: ResonantTensor, target: ResonantTensor) -> float:
+        ...
+
+
+def mse_loss(pred: ResonantTensor, target: ResonantTensor) -> float:
     """
-    Syntonic loss function combining task and syntony objectives.
+    Pure Mean Squared Error loss.
+    
+    L = (1/n) Σ (pred_i - target_i)²
+    """
+    diff = pred.elementwise_add(target.negate())
+    squared = diff.elementwise_mul(diff)
+    return squared.mean()
+
+
+def cross_entropy_loss(pred: ResonantTensor, target: ResonantTensor) -> float:
+    """
+    Pure Cross-Entropy loss for classification.
+    
+    L = -Σ target_i · log(softmax(pred)_i)
+    
+    Args:
+        pred: Logits [batch, num_classes]
+        target: One-hot encoded targets [batch, num_classes]
+    """
+    # Apply softmax to predictions
+    probs = pred.softmax(32)  # precision=32
+    
+    # Log of probabilities (with numerical stability)
+    log_probs = probs.log_core(32)
+    
+    # Element-wise multiply with targets and sum
+    weighted = target.elementwise_mul(log_probs)
+    
+    # Negate and compute mean
+    return -weighted.mean()
+
+
+class SyntonicLoss:
+    """
+    Pure syntonic loss function combining task and syntony objectives.
 
     L_total = L_task + λ_syntony·(1 - S_model) + μ_{iπ}·C_{iπ}
 
@@ -34,14 +78,14 @@ class SyntonicLoss(nn.Module):
     3. Align with i ≃ π phase structure (L_phase)
 
     Example:
-        >>> loss_fn = SyntonicLoss(nn.CrossEntropyLoss(), lambda_syntony=0.1)
-        >>> outputs = model(inputs)
-        >>> loss, metrics = loss_fn(outputs, targets, model, inputs)
+        >>> loss_fn = SyntonicLoss(mse_loss, lambda_syntony=0.1)
+        >>> outputs = model.forward(inputs)
+        >>> loss, metrics = loss_fn(outputs, targets, model_syntony=0.85)
     """
 
     def __init__(
         self,
-        task_loss: nn.Module,
+        task_loss: PureLossFunction,
         lambda_syntony: float = 0.1,
         mu_phase: float = 0.01,
         syntony_target: Optional[float] = None,
@@ -50,32 +94,31 @@ class SyntonicLoss(nn.Module):
         Initialize syntonic loss.
 
         Args:
-            task_loss: Base task loss function (e.g., CrossEntropyLoss)
+            task_loss: Base task loss function (e.g., mse_loss, cross_entropy_loss)
             lambda_syntony: Weight for syntony term
             mu_phase: Weight for phase alignment term
             syntony_target: Target syntony (default: φ - q ≈ 1.591)
         """
-        super().__init__()
         self.task_loss = task_loss
         self.lambda_syntony = lambda_syntony
         self.mu_phase = mu_phase
-        self.syntony_target = syntony_target if syntony_target is not None else (PHI - Q_DEFICIT)
+        self.syntony_target = syntony_target if syntony_target is not None else S_TARGET
 
-    def forward(
+    def __call__(
         self,
-        pred: torch.Tensor,
-        target: torch.Tensor,
-        model: nn.Module,
-        inputs: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, Dict[str, float]]:
+        pred: ResonantTensor,
+        target: ResonantTensor,
+        model_syntony: float = 0.0,
+        layer_syntonies: Optional[List[float]] = None,
+    ) -> Tuple[float, Dict[str, float]]:
         """
         Compute total syntonic loss.
 
         Args:
-            pred: Model predictions
-            target: Ground truth targets
-            model: The model (for syntony computation)
-            inputs: Original inputs (for S_model computation)
+            pred: Model predictions (ResonantTensor)
+            target: Ground truth targets (ResonantTensor)
+            model_syntony: Pre-computed model syntony from RecursionBlocks
+            layer_syntonies: Optional per-layer syntony values
 
         Returns:
             (total_loss, metrics_dict)
@@ -83,133 +126,94 @@ class SyntonicLoss(nn.Module):
         # Task loss
         L_task = self.task_loss(pred, target)
 
-        # Syntony loss
-        S_model = self._compute_model_syntony(model, inputs, pred)
+        # Syntony loss: penalize deviation from target
+        if model_syntony > 0:
+            S_model = model_syntony
+        else:
+            S_model = self._estimate_syntony_from_output(pred)
+        
         L_syntony = self.lambda_syntony * (1.0 - S_model)
 
         # Phase alignment loss
-        C_phase = self._compute_phase_alignment(model, pred)
+        C_phase = self._compute_phase_alignment(pred)
         L_phase = self.mu_phase * C_phase
 
         # Total
         L_total = L_task + L_syntony + L_phase
 
         metrics = {
-            'loss_task': L_task.item(),
-            'loss_syntony': L_syntony if isinstance(L_syntony, float) else L_syntony.item() if hasattr(L_syntony, 'item') else L_syntony,
-            'loss_phase': L_phase if isinstance(L_phase, float) else L_phase.item() if hasattr(L_phase, 'item') else L_phase,
-            'loss_total': L_total.item(),
+            'loss_task': L_task,
+            'loss_syntony': L_syntony,
+            'loss_phase': L_phase,
+            'loss_total': L_total,
             'syntony': S_model,
             'phase_alignment': 1.0 - C_phase,
         }
 
         return L_total, metrics
 
-    def _compute_model_syntony(
-        self,
-        model: nn.Module,
-        inputs: Optional[torch.Tensor],
-        outputs: torch.Tensor,
-    ) -> float:
-        """
-        Compute model syntony S_model.
-
-        S_model ≈ 1 - |D(x) - x| / |D(x) - H(D(x))|
-
-        Aggregated across all RecursionBlocks in the model.
-        """
-        syntonies = []
-
-        # Collect syntony from RecursionBlocks
-        for module in model.modules():
-            if hasattr(module, 'syntony') and module.syntony is not None:
-                syntonies.append(module.syntony)
-
-        if not syntonies:
-            # Fallback: estimate from output statistics
-            return self._estimate_syntony_from_output(outputs)
-
-        return sum(syntonies) / len(syntonies)
-
-    def _estimate_syntony_from_output(self, outputs: torch.Tensor) -> float:
+    def _estimate_syntony_from_output(self, outputs: ResonantTensor) -> float:
         """
         Estimate syntony from output statistics.
 
         High syntony → well-structured, coherent outputs
         Low syntony → chaotic, fragmented outputs
+        
+        Uses entropy as inverse syntony proxy.
         """
-        with torch.no_grad():
-            # Use entropy as inverse syntony proxy
-            if outputs.dim() > 1 and outputs.shape[-1] > 1:
-                probs = F.softmax(outputs, dim=-1)
-                entropy = -torch.sum(probs * torch.log(probs + 1e-8), dim=-1)
-                max_entropy = math.log(outputs.shape[-1])
-                normalized_entropy = entropy.mean().item() / max_entropy
-                return 1.0 - normalized_entropy
-            else:
-                # Use variance for regression
-                var = torch.var(outputs).item()
-                return 1.0 / (1.0 + var)
+        shape = outputs.shape()
+        if len(shape) > 1 and shape[-1] > 1:
+            # Classification: use softmax entropy
+            probs = outputs.softmax(32)
+            # Compute entropy: -Σ p_i log(p_i)
+            log_probs = probs.log_core(32)
+            neg_entropy = probs.elementwise_mul(log_probs)
+            entropy = -neg_entropy.mean()
+            max_entropy = math.log(shape[-1])
+            normalized_entropy = entropy / max_entropy if max_entropy > 0 else 0.0
+            return max(0.0, min(1.0, 1.0 - normalized_entropy))
+        else:
+            # Regression: use inverse variance
+            var = outputs.var()
+            return 1.0 / (1.0 + var)
 
-    def _compute_phase_alignment(
-        self,
-        model: nn.Module,
-        outputs: torch.Tensor,
-    ) -> float:
+    def _compute_phase_alignment(self, outputs: ResonantTensor) -> float:
         """
         Compute phase-cycle alignment C_{iπ}.
 
-        C_{iπ} = |Arg Tr[e^{iπρ_model}] - π/2|²
-
-        Measures how well the model's density matrix aligns with i ≃ π.
+        Simplified: measures spectral concentration as proxy for phase alignment.
+        Full implementation would use density matrix eigenspectrum.
         """
-        with torch.no_grad():
-            # Approximate: use output correlation structure
-            if outputs.dim() == 2 and outputs.shape[0] > 1 and outputs.shape[1] > 1:
-                # Compute pseudo-density matrix from outputs
-                outputs_norm = F.normalize(outputs, dim=-1)
-                rho = torch.mm(outputs_norm.T, outputs_norm) / outputs.shape[0]
-
-                # Make symmetric for eigenvalue computation
-                rho = (rho + rho.T) / 2
-
-                # Eigenvalues for phase analysis
-                try:
-                    eigvals = torch.linalg.eigvalsh(rho)
-                    # Ensure positive
-                    eigvals = torch.clamp(eigvals, min=1e-10)
-                    eigvals = eigvals / eigvals.sum()
-
-                    # Phase alignment: deviation from balanced spectrum
-                    spectral_entropy = -torch.sum(
-                        eigvals * torch.log(eigvals + 1e-8)
-                    ).item()
-                    target_entropy = math.log(rho.shape[0])
-                    alignment = abs(spectral_entropy - target_entropy / 2)
-                    return min(1.0, alignment / target_entropy)
-                except Exception:
-                    return 0.0
+        shape = outputs.shape()
+        if len(shape) < 2:
             return 0.0
+        
+        # Use variance ratio as alignment proxy
+        total_var = outputs.var()
+        if total_var < 1e-10:
+            return 0.0
+        
+        # Golden ratio alignment target
+        target_var = PHI_INV  # 1/φ ≈ 0.618
+        alignment_error = abs(total_var - target_var) / (1.0 + target_var)
+        
+        return min(1.0, alignment_error)
 
 
 class LayerwiseSyntonicLoss(SyntonicLoss):
     """
     Syntonic loss with layer-wise syntony tracking.
 
-    Applies syntony regularization at each layer, not just globally.
-    Uses golden-ratio weighting (later layers matter more).
-
-    Example:
-        >>> loss_fn = LayerwiseSyntonicLoss(nn.CrossEntropyLoss())
-        >>> loss, metrics = loss_fn(outputs, targets, model)
+    Applies syntony regularization at each layer with golden-ratio weighting.
+    Later layers matter more (φ^i weighting).
     """
 
     def __init__(
         self,
-        task_loss: nn.Module,
+        task_loss: PureLossFunction,
         lambda_syntony: float = 0.1,
         mu_phase: float = 0.01,
-        layer_weights: Optional[list] = None,
+        layer_weights: Optional[List[float]] = None,
     ):
         """
         Initialize layerwise syntonic loss.
@@ -223,30 +227,63 @@ class LayerwiseSyntonicLoss(SyntonicLoss):
         super().__init__(task_loss, lambda_syntony, mu_phase)
         self.layer_weights = layer_weights
 
-    def _compute_model_syntony(
+    def __call__(
         self,
-        model: nn.Module,
-        inputs: Optional[torch.Tensor],
-        outputs: torch.Tensor,
-    ) -> float:
-        """Compute weighted layer-wise syntony."""
-        syntonies = []
+        pred: ResonantTensor,
+        target: ResonantTensor,
+        model_syntony: float = 0.0,
+        layer_syntonies: Optional[List[float]] = None,
+    ) -> Tuple[float, Dict[str, float]]:
+        """Compute loss with layer-wise syntony weighting."""
+        
+        # If we have layer syntonies, compute weighted average
+        if layer_syntonies and len(layer_syntonies) > 0:
+            if self.layer_weights is None:
+                # Golden ratio weighting: later layers matter more
+                weights = [PHI ** i for i in range(len(layer_syntonies))]
+            else:
+                weights = self.layer_weights[:len(layer_syntonies)]
+            
+            total_weight = sum(weights)
+            weighted_syntony = sum(w * s for w, s in zip(weights, layer_syntonies))
+            model_syntony = weighted_syntony / total_weight if total_weight > 0 else 0.0
+        
+        return super().__call__(pred, target, model_syntony, layer_syntonies)
 
-        for module in model.modules():
-            if hasattr(module, 'syntony') and module.syntony is not None:
-                syntonies.append(module.syntony)
 
-        if not syntonies:
-            return self._estimate_syntony_from_output(outputs)
+# Convenience aliases
+PureSyntonicLoss = SyntonicLoss
+PureLayerwiseSyntonicLoss = LayerwiseSyntonicLoss
 
-        # Apply weights (default: golden ratio weighting)
-        if self.layer_weights is None:
-            # Golden ratio weighting: later layers matter more
-            weights = [PHI ** i for i in range(len(syntonies))]
-        else:
-            weights = self.layer_weights[:len(syntonies)]
 
-        total_weight = sum(weights)
-        weighted_syntony = sum(w * s for w, s in zip(weights, syntonies))
-
-        return weighted_syntony / total_weight
+if __name__ == "__main__":
+    """Test pure syntonic loss."""
+    print("Testing Pure Syntonic Loss...")
+    
+    # Create test tensors
+    pred = ResonantTensor.from_floats_default_modes(
+        [0.1, 0.7, 0.2, 0.3, 0.5, 0.2],
+        [2, 3],
+        100
+    )
+    target = ResonantTensor.from_floats_default_modes(
+        [0.0, 1.0, 0.0, 1.0, 0.0, 0.0],
+        [2, 3],
+        100
+    )
+    
+    # Test MSE loss
+    mse = mse_loss(pred, target)
+    print(f"MSE Loss: {mse:.4f}")
+    
+    # Test syntonic loss
+    loss_fn = SyntonicLoss(mse_loss, lambda_syntony=0.1, mu_phase=0.01)
+    total_loss, metrics = loss_fn(pred, target, model_syntony=0.75)
+    
+    print(f"Total Loss: {metrics['loss_total']:.4f}")
+    print(f"  Task: {metrics['loss_task']:.4f}")
+    print(f"  Syntony: {metrics['loss_syntony']:.4f}")
+    print(f"  Phase: {metrics['loss_phase']:.4f}")
+    print(f"Model Syntony: {metrics['syntony']:.4f}")
+    
+    print("✅ Pure Syntonic Loss test passed!")

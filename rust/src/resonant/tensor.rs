@@ -10,7 +10,6 @@
 //! - `destroy_shadow()`: Free GPU memory without crystallizing
 
 use pyo3::prelude::*;
-use std::f64::consts::SQRT_2;
 use std::fmt;
 use std::time::Duration;
 
@@ -19,7 +18,7 @@ use super::crystallize::{compute_lattice_syntony, crystallize_with_dwell, harmon
 use super::{PHI, PHI_INV, PHI_INV_SQ};
 
 #[cfg(feature = "cuda")]
-use cudarc::driver::{CudaDevice, CudaSlice, LaunchAsync, LaunchConfig};
+use cudarc::driver::{CudaDevice, CudaSlice};
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
 #[cfg(feature = "cuda")]

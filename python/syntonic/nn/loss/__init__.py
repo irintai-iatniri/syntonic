@@ -1,20 +1,21 @@
 """
-Syntonic Loss Functions - Task + Syntony optimization.
+Pure Syntonic Loss Functions - Task + Syntony optimization.
 
-This module provides loss functions that optimize for both task performance
-AND syntony, creating naturally regularized, coherent representations.
+PURE IMPLEMENTATION: Uses ResonantTensor, no PyTorch dependencies.
 
 L_total = L_task + λ(1 - S_model) + μC_{iπ}
 """
 
 from syntonic.nn.loss.syntony_metrics import (
     compute_activation_syntony,
-    compute_network_syntony,
+    aggregate_syntonies,
     SyntonyTracker,
 )
 from syntonic.nn.loss.syntonic_loss import (
     SyntonicLoss,
     LayerwiseSyntonicLoss,
+    mse_loss,
+    cross_entropy_loss,
 )
 from syntonic.nn.loss.phase_alignment import (
     PhaseAlignmentLoss,
@@ -24,23 +25,34 @@ from syntonic.nn.loss.phase_alignment import (
 )
 from syntonic.nn.loss.regularization import (
     SyntonicRegularizer,
-    GoldenDecay,
     SyntonyConstraint,
     ArchonicPenalty,
+    compute_weight_decay,
+    compute_sparsity_penalty,
 )
 
 __all__ = [
+    # Syntony metrics
     'compute_activation_syntony',
-    'compute_network_syntony',
+    'aggregate_syntonies',
     'SyntonyTracker',
+    
+    # Loss functions
     'SyntonicLoss',
     'LayerwiseSyntonicLoss',
+    'mse_loss',
+    'cross_entropy_loss',
+    
+    # Phase alignment
     'PhaseAlignmentLoss',
     'compute_phase_alignment',
     'IPiConstraint',
     'GoldenPhaseScheduler',
+    
+    # Regularization
     'SyntonicRegularizer',
-    'GoldenDecay',
     'SyntonyConstraint',
     'ArchonicPenalty',
+    'compute_weight_decay',
+    'compute_sparsity_penalty',
 ]

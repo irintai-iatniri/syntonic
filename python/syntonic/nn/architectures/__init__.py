@@ -21,6 +21,10 @@ from syntonic.nn.architectures.syntonic_cnn import (
     RecursionConvBlock,
     SyntonicCNN,
 )
+from syntonic.nn.architectures.syntonic_cnn_pure import (
+    PureSyntonicConv1d,
+    PureSyntonicCNN1d,
+)
 from syntonic.nn.architectures.embeddings import (
     SyntonicEmbedding,
     WindingEmbedding,
@@ -36,35 +40,55 @@ from syntonic.nn.architectures.syntonic_attention import (
     GnosisAttention,
     MultiHeadSyntonicAttention,
 )
+from syntonic.nn.architectures.syntonic_attention_pure import (
+    PureSyntonicAttention,
+    PureMultiHeadSyntonicAttention,
+)
 from syntonic.nn.architectures.syntonic_transformer import (
     CRTTransformer,
     DHTransformerLayer,
     SyntonicTransformerEncoder,
     SyntonicTransformerDecoder,
 )
+from syntonic.nn.architectures.syntonic_transformer_pure import (
+    PureDHTransformerLayer,
+    PureSyntonicTransformerEncoder,
+    PureSyntonicTransformer,
+)
 
 __all__ = [
+    # MLP
     'SyntonicMLP',
     'SyntonicLinear',
-    # Pure versions
     'PureSyntonicMLP',
     'PureSyntonicLinear',
     'PureDeepSyntonicMLP',
+    # CNN
     'SyntonicConv2d',
     'RecursionConvBlock',
     'SyntonicCNN',
+    'PureSyntonicConv1d',
+    'PureSyntonicCNN1d',
+    # Embeddings
     'SyntonicEmbedding',
     'WindingEmbedding',
     'PositionalEncoding',
-    # Pure embedding versions
     'PureSyntonicEmbedding',
     'PureWindingEmbedding',
     'PurePositionalEncoding',
+    # Attention
     'SyntonicAttention',
     'GnosisAttention',
     'MultiHeadSyntonicAttention',
+    'PureSyntonicAttention',
+    'PureMultiHeadSyntonicAttention',
+    # Transformer
     'CRTTransformer',
     'DHTransformerLayer',
     'SyntonicTransformerEncoder',
     'SyntonicTransformerDecoder',
+    'PureDHTransformerLayer',
+    'PureSyntonicTransformerEncoder',
+    'PureSyntonicTransformer',
 ]
+

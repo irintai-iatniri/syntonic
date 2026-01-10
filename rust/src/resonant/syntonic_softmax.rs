@@ -7,11 +7,8 @@
 
 use pyo3::prelude::*;
 use crate::resonant::{ResonantTensor, ResonantPhase};
-use crate::exact::GoldenExact;
-use super::{PHI, PHI_INV};
+use super::PHI;
 
-#[cfg(feature = "cuda")]
-use cudarc::driver::{CudaDevice, CudaSlice, LaunchAsync, LaunchConfig};
 
 /// Syntonic softmax modes
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

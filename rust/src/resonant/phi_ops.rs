@@ -7,12 +7,8 @@
 
 use pyo3::prelude::*;
 use crate::resonant::{ResonantTensor, ResonantPhase, ResonantError};
-use super::{PHI, PHI_INV};
+use super::PHI_INV;
 
-#[cfg(feature = "cuda")]
-use cudarc::driver::{CudaDevice, CudaSlice, LaunchAsync, LaunchConfig};
-#[cfg(feature = "cuda")]
-use std::sync::Arc;
 
 /// Phi-residual modes
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

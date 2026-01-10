@@ -46,6 +46,23 @@ use exact::{
 // Resonant Engine types
 use resonant::{ResonantTensor, ResonantEvolver, RESConfig, RESResult};
 
+// Number theory and syntony wrappers
+use resonant::py_wrappers::{
+    py_mobius, py_is_square_free, py_mertens, py_golden_weight, py_e_star,
+    py_compute_winding_syntony, py_batch_winding_syntony, py_aggregate_syntony, py_standard_mode_norms,
+    py_mse_loss, py_softmax, py_cross_entropy_loss, py_batch_cross_entropy_loss,
+    py_syntony_loss, py_phase_alignment_loss, py_syntonic_loss,
+    py_estimate_syntony_from_probs, py_golden_decay_loss,
+    // Broadcasting
+    py_broadcast_shape, py_are_broadcastable, py_broadcast_add, py_broadcast_mul,
+    py_broadcast_sub, py_broadcast_div,
+    // In-place
+    py_inplace_add_scalar, py_inplace_mul_scalar, py_inplace_negate,
+    py_inplace_abs, py_inplace_clamp, py_inplace_golden_weight,
+    // Convolution
+    py_conv2d, py_max_pool2d, py_avg_pool2d, py_global_avg_pool2d,
+};
+
 // Linear algebra operations
 use linalg::{
     py_mm, py_mm_add, py_mm_tn, py_mm_nt, py_mm_tt,
@@ -188,6 +205,50 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(knot_heat_kernel_trace, m)?)?;
     m.add_function(wrap_pyfunction!(knot_spectral_zeta, m)?)?;
     m.add_function(wrap_pyfunction!(knot_spectral_zeta_complex, m)?)?;
+
+    // === Number Theory and Syntony (Rust Performance Backend) ===
+    m.add_function(wrap_pyfunction!(py_mobius, m)?)?;
+    m.add_function(wrap_pyfunction!(py_is_square_free, m)?)?;
+    m.add_function(wrap_pyfunction!(py_mertens, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_weight, m)?)?;
+    m.add_function(wrap_pyfunction!(py_e_star, m)?)?;
+    m.add_function(wrap_pyfunction!(py_compute_winding_syntony, m)?)?;
+    m.add_function(wrap_pyfunction!(py_batch_winding_syntony, m)?)?;
+    m.add_function(wrap_pyfunction!(py_aggregate_syntony, m)?)?;
+    m.add_function(wrap_pyfunction!(py_standard_mode_norms, m)?)?;
+
+    // === Loss Functions (Rust Performance Backend) ===
+    m.add_function(wrap_pyfunction!(py_mse_loss, m)?)?;
+    m.add_function(wrap_pyfunction!(py_softmax, m)?)?;
+    m.add_function(wrap_pyfunction!(py_cross_entropy_loss, m)?)?;
+    m.add_function(wrap_pyfunction!(py_batch_cross_entropy_loss, m)?)?;
+    m.add_function(wrap_pyfunction!(py_syntony_loss, m)?)?;
+    m.add_function(wrap_pyfunction!(py_phase_alignment_loss, m)?)?;
+    m.add_function(wrap_pyfunction!(py_syntonic_loss, m)?)?;
+    m.add_function(wrap_pyfunction!(py_estimate_syntony_from_probs, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_decay_loss, m)?)?;
+
+    // === Broadcasting Operations ===
+    m.add_function(wrap_pyfunction!(py_broadcast_shape, m)?)?;
+    m.add_function(wrap_pyfunction!(py_are_broadcastable, m)?)?;
+    m.add_function(wrap_pyfunction!(py_broadcast_add, m)?)?;
+    m.add_function(wrap_pyfunction!(py_broadcast_mul, m)?)?;
+    m.add_function(wrap_pyfunction!(py_broadcast_sub, m)?)?;
+    m.add_function(wrap_pyfunction!(py_broadcast_div, m)?)?;
+
+    // === In-place Operations ===
+    m.add_function(wrap_pyfunction!(py_inplace_add_scalar, m)?)?;
+    m.add_function(wrap_pyfunction!(py_inplace_mul_scalar, m)?)?;
+    m.add_function(wrap_pyfunction!(py_inplace_negate, m)?)?;
+    m.add_function(wrap_pyfunction!(py_inplace_abs, m)?)?;
+    m.add_function(wrap_pyfunction!(py_inplace_clamp, m)?)?;
+    m.add_function(wrap_pyfunction!(py_inplace_golden_weight, m)?)?;
+
+    // === Convolution Operations ===
+    m.add_function(wrap_pyfunction!(py_conv2d, m)?)?;
+    m.add_function(wrap_pyfunction!(py_max_pool2d, m)?)?;
+    m.add_function(wrap_pyfunction!(py_avg_pool2d, m)?)?;
+    m.add_function(wrap_pyfunction!(py_global_avg_pool2d, m)?)?;
 
     // === Structure enum for correction factors ===
     m.add_class::<Structure>()?;

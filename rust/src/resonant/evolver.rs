@@ -37,10 +37,9 @@ use std::cmp::Ordering;
 
 use crate::exact::GoldenExact;
 use super::tensor::{ResonantTensor, ResonantError};
-use super::crystallize::compute_lattice_syntony;
 use super::attractor::AttractorMemory;
 use super::retrocausal::harmonize_with_attractor_pull;
-use super::{PHI, PHI_INV_SQ};
+use super::PHI;
 
 /// Universal syntony deficit q - NOT a hyperparameter!
 /// This is a fundamental constant from SRT.

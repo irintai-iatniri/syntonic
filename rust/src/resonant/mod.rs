@@ -55,14 +55,15 @@ mod retrocausal;
 pub mod phi_ops;
 pub mod golden_norm;
 pub mod syntonic_softmax;
+pub mod number_theory;
+pub mod syntony;
+pub mod py_wrappers;
+pub mod loss;
 
 pub use tensor::{ResonantTensor, ResonantPhase, ResonantError};
-pub use crystallize::crystallize_with_dwell;
-pub use evolver::{ResonantEvolver, RESConfig, RESResult, Q_DEFICIT};
-pub use attractor::AttractorMemory;
-pub use retrocausal::harmonize_with_attractor_pull;
+pub use evolver::{ResonantEvolver, RESConfig, RESResult};
 pub use phi_ops::{PhiResidualMode, phi_residual, phi_residual_relu};
-pub use golden_norm::{GoldenNormMode, golden_batch_norm_1d, golden_batch_norm_2d};
+pub use golden_norm::GoldenNormMode;
 pub use syntonic_softmax::{SyntonicSoftmaxMode, SyntonicSoftmaxState, syntonic_softmax_py};
 
 // Re-export key constants

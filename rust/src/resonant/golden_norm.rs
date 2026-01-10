@@ -26,10 +26,7 @@
 use crate::exact::golden::GoldenExact;
 use crate::resonant::tensor::{ResonantTensor, ResonantPhase};
 use crate::resonant::ResonantError;
-use std::f64::consts::PI;
 
-#[cfg(feature = "cuda")]
-use crate::tensor::srt_kernels::{cuda_golden_bn_2d_f64};
 
 use pyo3::prelude::*;
 
@@ -396,7 +393,7 @@ fn cuda_golden_batch_norm_2d_dispatch(
     affine_gamma: Option<&ResonantTensor>,
     affine_beta: Option<&ResonantTensor>,
 ) -> Result<ResonantTensor, ResonantError> {
-    use crate::resonant::ResonantPhase;
+    
 
     // For this refactor, we fall back to CPU if stats are not on GPU
     // Actually, we'll just return an error or the CPU implementation for now.
@@ -407,7 +404,6 @@ fn cuda_golden_batch_norm_2d_dispatch(
 // Python API
 // ============================================================================
 
-use pyo3::prelude::*;
 
 #[pyfunction]
 #[pyo3(signature = (input, mode, eps=1e-5, gamma=None, beta=None))]
