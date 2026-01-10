@@ -22,6 +22,36 @@ from syntonic._core import ResonantTensor, WindingState
 from syntonic.nn.winding.winding_net_pure import PureWindingNet
 from syntonic.nn.training.trainer import RetrocausalTrainer, RESTrainingConfig
 
+
+def argmax_batch(tensor: ResonantTensor, dim: int = 1) -> List[int]:
+    """
+    Compute argmax along a dimension for a batch tensor.
+
+    Args:
+        tensor: ResonantTensor of shape (batch, features)
+        dim: Dimension to reduce (1 = along features)
+
+    Returns:
+        List of argmax indices for each batch element
+    """
+    floats = tensor.to_floats()
+    shape = tensor.shape
+
+    if len(shape) != 2:
+        raise ValueError(f"Expected 2D tensor, got shape {shape}")
+
+    batch_size, num_features = shape
+    result = []
+
+    for b in range(batch_size):
+        start_idx = b * num_features
+        row = floats[start_idx:start_idx + num_features]
+        max_idx = max(range(len(row)), key=lambda i: row[i])
+        result.append(max_idx)
+
+    return result
+
+
 def make_xor_dataset(n_samples: int = 200, noise: float = 0.1) -> Tuple[List[WindingState], List[int]]:
     """
     Generate XOR dataset mapped to windings.
@@ -212,7 +242,7 @@ def run_benchmark():
     
     model.eval()
     logits = model(X_test)
-    preds = logits.argmax(dim=1)
+    preds = argmax_batch(logits, dim=1)
     test_acc = sum(1 for p, t in zip(preds, y_test) if p == t) / len(y_test)
     stats = model.get_blockchain_stats()
     

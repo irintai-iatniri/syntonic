@@ -20,7 +20,7 @@ from typing import List, Dict, Tuple, Optional
 import math
 
 import syntonic.sn as sn
-from syntonic._core import ResonantTensor
+from syntonic._core import ResonantTensor, WindingState
 from syntonic.nn.winding.resonant_embedding_pure import PureResonantWindingEmbedding
 from syntonic.nn.winding.fibonacci_hierarchy import FibonacciHierarchy
 from syntonic.nn.winding.resonant_dhsr_block import ResonantWindingDHSRBlock
@@ -137,8 +137,8 @@ class PureWindingNet(sn.Module):
 
         # 2. Pass through DHSR blocks
         for i in range(len(self.blocks)):
-            block = self.blocks[str(i)]
-            
+            block = self.blocks[i]
+
             # DHSR cycle
             x, syntony_new, accepted = block(
                 x,
@@ -151,10 +151,10 @@ class PureWindingNet(sn.Module):
 
             # Transition to next level
             if i < len(self.transitions):
-                transition = self.transitions[str(i)]
+                transition = self.transitions[i]
                 x = transition(x)
-                # Apply ReLU
-                x = x.relu()
+                # Apply ReLU (in-place operation)
+                x.relu()
 
         # 3. Final metrics
         self.network_syntony = sum(syntonies) / len(syntonies) if syntonies else 0.5
@@ -170,7 +170,7 @@ class PureWindingNet(sn.Module):
         blockchain_length = 0
         
         for i in range(len(self.blocks)):
-            block = self.blocks[str(i)]
+            block = self.blocks[i]
             total_validated += block.total_blocks_validated
             total_rejected += block.total_blocks_rejected
             blockchain_length += block.get_blockchain_length()
@@ -196,7 +196,7 @@ class PureWindingNet(sn.Module):
         
         # 1. Transitions
         for i in range(len(self.transitions)):
-            layer = self.transitions[str(i)]
+            layer = self.transitions[i]
             # Check for linear layer parameters
             if hasattr(layer.linear, 'weight'):
                 weights.append(layer.linear.weight.tensor)
@@ -217,7 +217,7 @@ class PureWindingNet(sn.Module):
         
         # 1. Transitions
         for i in range(len(self.transitions)):
-            layer = self.transitions[str(i)]
+            layer = self.transitions[i]
             if hasattr(layer.linear, 'weight'):
                 layer.linear.weight.tensor = weights[idx]
                 idx += 1

@@ -132,7 +132,7 @@ class ResonantWindingDHSRBlock(sn.Module):
         Returns:
             (output, syntony, accepted): Crystallized output, new syntony, blockchain acceptance
         """
-        shape = x.shape()
+        shape = x.shape
         batch_size = shape[0] if len(shape) > 1 else 1
         
         # 1. EXECUTE DHSR CYCLE (D̂ + Ĥ + Crystallize)
@@ -252,8 +252,8 @@ if __name__ == "__main__":
 
     x_new, syntony, accepted = block(x, mode_norm_list, prev_syntony)
 
-    print(f"\nInput shape: {x.shape()}")
-    print(f"Output shape: {x_new.shape()}")
+    print(f"\nInput shape: {x.shape}")
+    print(f"Output shape: {x_new.shape}")
     print(f"Lattice syntony: {syntony:.6f} (exact Q(φ))")
     print(f"Consensus: {'✓ ACCEPTED' if accepted else '✗ REJECTED'}")
     print(f"Blockchain length: {block.get_blockchain_length()}")

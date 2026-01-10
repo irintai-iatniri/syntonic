@@ -33,6 +33,35 @@ from syntonic.physics.fermions.windings import (
     BOTTOM_WINDING,
 )
 
+def argmax_batch(tensor: ResonantTensor, dim: int = 1) -> List[int]:
+    """
+    Compute argmax along a dimension for a batch tensor.
+
+    Args:
+        tensor: ResonantTensor of shape (batch, features)
+        dim: Dimension to reduce (1 = along features)
+
+    Returns:
+        List of argmax indices for each batch element
+    """
+    floats = tensor.to_floats()
+    shape = tensor.shape
+
+    if len(shape) != 2:
+        raise ValueError(f"Expected 2D tensor, got shape {shape}")
+
+    batch_size, num_features = shape
+    result = []
+
+    for b in range(batch_size):
+        start_idx = b * num_features
+        row = floats[start_idx:start_idx + num_features]
+        max_idx = max(range(len(row)), key=lambda i: row[i])
+        result.append(max_idx)
+
+    return result
+
+
 class WindingDataset:
     """
     Simple dataset for particle type classification.
@@ -121,9 +150,9 @@ def run_benchmark():
         
         # Forward pass
         logits = model(windings)
-        
+
         # Compute accuracy
-        preds = logits.argmax(dim=1)
+        preds = argmax_batch(logits, dim=1)
         acc = sum(1 for p, t in zip(preds, labels) if p == t) / len(labels)
         
         # Stats
@@ -141,7 +170,7 @@ def run_benchmark():
     
     model.eval()
     logits = model(windings)
-    preds = logits.argmax(dim=1)
+    preds = argmax_batch(logits, dim=1)
     acc = sum(1 for p, t in zip(preds, labels) if p == t) / len(labels)
     stats = model.get_blockchain_stats()
     

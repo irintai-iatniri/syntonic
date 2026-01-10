@@ -146,7 +146,7 @@ class RetrocausalTrainer:
         res_config = RetrocausalConfig(
             population_size=self.config.population_size,
             max_generations=self.config.max_generations,
-            syntony_threshold=self.config.syntony_threshold,
+            # Note: syntony_threshold is used for evaluation, not RES evolution
             attractor_capacity=self.config.attractor_capacity,
             attractor_pull_strength=self.config.pull_strength,
             attractor_min_syntony=self.config.attractor_min_syntony,
@@ -217,7 +217,7 @@ class RetrocausalTrainer:
             'final_syntony': result.final_syntony,
             'generations': result.generations,
             'converged': result.converged,
-            'best_tensor': result.best_tensor,
+            'best_tensor': result.winner,
         }
 
     def _evaluate(self) -> Tuple[float, float]:
@@ -233,7 +233,12 @@ class RetrocausalTrainer:
         for inputs, targets in self.train_data:
             outputs = self.model.forward(inputs)
             loss = self.loss_fn(outputs, targets)
-            total_loss += loss
+            # Convert loss to float if it's a ResonantTensor
+            if hasattr(loss, 'to_floats'):
+                loss_val = loss.to_floats()[0]
+            else:
+                loss_val = float(loss)
+            total_loss += loss_val
             n_samples += 1
         
         avg_loss = total_loss / max(1, n_samples)

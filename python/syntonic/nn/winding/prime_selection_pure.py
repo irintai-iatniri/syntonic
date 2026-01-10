@@ -14,9 +14,10 @@ from __future__ import annotations
 from typing import List
 
 from syntonic._core import ResonantTensor
+import syntonic.sn as sn
 
 
-class PurePrimeSelectionLayer:
+class PurePrimeSelectionLayer(sn.Module):
     """
     Filters activations based on prime selection (Möbius function).
 
@@ -42,6 +43,7 @@ class PurePrimeSelectionLayer:
         Args:
             dim: Feature dimension (will compute μ(k) for k=1..dim)
         """
+        super().__init__()
         self.dim = dim
 
         # Compute Möbius function values
