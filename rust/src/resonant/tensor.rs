@@ -1907,6 +1907,37 @@ impl ResonantTensor {
         let prec = precision.unwrap_or(self.precision);
         self.var_core(axis, keepdim, prec).map_err(|e| e.into())
     }
+
+    // =========================================================================
+    // CUDA-specific Methods (compiled only with cuda feature)
+    // =========================================================================
+
+    /// Run a full D→H cycle using CUDA for the D-phase and CPU crystallization for H-phase.
+    ///
+    /// Args:
+    ///     device_idx: CUDA device index (usize)
+    ///     noise_scale: stochastic noise scale for D-phase
+    ///     precision: precision for crystallization
+    #[cfg(feature = "cuda")]
+    #[pyo3(signature = (device_idx, noise_scale=0.1, precision=100))]
+    fn cuda_cycle_gpu(&mut self, device_idx: usize, noise_scale: f64, precision: i64) -> PyResult<f64> {
+        let device = crate::tensor::cuda::device_manager::get_device(device_idx)
+            .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("cuda device error: {}", e)))?;
+
+        self.cuda_cycle(device, noise_scale, precision)
+            .map_err(|e| e.into())
+    }
+
+    /// Wake flux with D-phase on the specified CUDA device (GPU-only helper).
+    #[cfg(feature = "cuda")]
+    #[pyo3(signature = (device_idx, noise_scale=0.1))]
+    fn wake_flux_with_d_phase_py(&mut self, device_idx: usize, noise_scale: f64) -> PyResult<()> {
+        let device = crate::tensor::cuda::device_manager::get_device(device_idx)
+            .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("cuda device error: {}", e)))?;
+
+        self.wake_flux_with_d_phase(device, noise_scale)
+            .map_err(|e| e.into())
+    }
 }
 
 impl Clone for ResonantTensor {

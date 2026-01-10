@@ -9,7 +9,8 @@ name = "syntonic_core"
 crate-type = ["cdylib"]
 
 [features]
-default = ["cpu"]
+# Enable CUDA by default so builds include GPU support unless explicitly disabled.
+default = ["cuda", "cpu"]
 cpu = []
 cuda = ["cudarc"]
 

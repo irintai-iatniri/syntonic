@@ -120,7 +120,7 @@ fn srt_correction_factor(structure_index: i32, sign: i32) -> f64 {
 /// - Tensor storage (legacy, uses floats - to be replaced)
 /// - Hypercomplex numbers (Quaternion, Octonion)
 #[pymodule]
-fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn syntonic_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // === Exact Arithmetic (NEW - preferred) ===
     m.add_class::<Rational>()?;
     m.add_class::<GoldenExact>()?;

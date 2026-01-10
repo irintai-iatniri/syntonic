@@ -2,7 +2,6 @@
 // 
 // Provides efficient convolution for image/spatial data processing.
 
-use std::cmp::{min, max};
 
 /// Perform 2D convolution on flattened input data
 /// 
