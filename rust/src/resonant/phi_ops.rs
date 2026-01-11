@@ -168,7 +168,7 @@ impl ResonantTensor {
 
         // Allocate output
         let n = identity.len();
-        let mut out_flux = device.alloc_zeros::<f64>(n)
+        let mut out_flux = device.default_stream().alloc_zeros::<f64>(n)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Launch kernel

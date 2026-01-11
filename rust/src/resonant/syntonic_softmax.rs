@@ -191,7 +191,7 @@ impl SyntonicSoftmaxState {
         let num_classes = if shape.len() > 1 { shape[1..].iter().product() } else { 1 };
 
         // Allocate output
-        let mut out_flux = device.alloc_zeros::<f64>(x.len())
+        let mut out_flux = device.default_stream().alloc_zeros::<f64>(x.len())
             .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
 
         let x_flux = x.flux_ref().ok_or_else(|| {

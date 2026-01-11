@@ -27,10 +27,10 @@ pub fn peer_copy(
         // Same device: copy within device
         let device = get_device(src_device)?;
 
-        let mut dst = device.alloc_zeros::<f64>(src_data.len())
+        let mut dst = device.default_stream().alloc_zeros::<f64>(src_data.len())
             .map_err(|e| CudaError::AllocationFailed(e.to_string()))?;
 
-        device.dtod_copy(src_data, &mut dst)
+        device.default_stream().memcpy_dtod(src_data, &mut dst)
             .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
         return Ok(dst);
@@ -53,11 +53,11 @@ fn staged_copy(
     let mut host_buf = vec![0.0f64; src_data.len()];
 
     // D2H from source
-    src_dev.dtoh_sync_copy_into(src_data, &mut host_buf)
+    src_dev.default_stream().memcpy_dtoh(src_data, &mut host_buf)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
     // H2D to destination
-    let dst = dst_dev.htod_sync_copy(&host_buf)
+    let dst = dst_dev.default_stream().clone_htod(&host_buf)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
     Ok(dst)
@@ -93,7 +93,7 @@ pub fn scatter(
                 let chunk = &data[start..end];
                 let device = get_device(dev_idx)?;
 
-                let gpu_data = device.htod_sync_copy(chunk)
+                let gpu_data = device.default_stream().clone_htod(chunk)
                     .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
                 let chunk_shape = vec![end - start];
@@ -134,7 +134,7 @@ pub fn gather(
     }
 
     // Transfer to target device
-    let gpu_data = target_dev.htod_sync_copy(&all_data)
+    let gpu_data = target_dev.default_stream().clone_htod(&all_data)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
     let shape = vec![all_data.len()];
@@ -193,7 +193,7 @@ pub fn all_reduce(
         };
 
         let device = get_device(device_idx)?;
-        let gpu_data = device.htod_sync_copy(&reduced)
+        let gpu_data = device.default_stream().clone_htod(&reduced)
             .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
         *tensor = create_cuda_tensor_f64(gpu_data, vec![len], device_idx)?;

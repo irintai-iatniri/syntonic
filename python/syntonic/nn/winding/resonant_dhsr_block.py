@@ -135,14 +135,33 @@ class ResonantWindingDHSRBlock(sn.Module):
         shape = x.shape
         batch_size = shape[0] if len(shape) > 1 else 1
         
-        # 1. EXECUTE DHSR CYCLE (D̂ + Ĥ + Crystallize)
+        # 1. EXECUTE DHSR CYCLE (D̂ + Ĥ + Crystallize) - GPU EXCLUSIVE
         d_start = time.perf_counter()
         
-        # batch_cpu_cycle handles the complete phase transition
-        batch_syntonies = x.batch_cpu_cycle(
-            noise_scale=self.noise_scale,
-            precision=self.precision
-        )
+        # GPU-only D-phase: process each sample individually on GPU
+        batch_syntonies = []
+        single_tensors = []
+        
+        data = x.to_floats()
+        mode_norms_full = mode_norms * batch_size if mode_norms else [float(i % self.dim) ** 2 for i in range(batch_size * self.dim)]
+        
+        for b in range(batch_size):
+            # Extract single sample
+            start = b * self.dim
+            end = (b + 1) * self.dim
+            single_data = data[start:end]
+            single_mode_norms = mode_norms_full[start:end]
+            
+            # Create single tensor
+            single_tensor = ResonantTensor(single_data, [self.dim], single_mode_norms, self.precision)
+            
+            # GPU D-phase cycle (no CPU fallback)
+            syntony = single_tensor.cuda_cycle_gpu(0, self.noise_scale, self.precision)  # device 0
+            batch_syntonies.append(syntony)
+            single_tensors.append(single_tensor)
+        
+        # Concatenate back to batch
+        x = ResonantTensor.concat(single_tensors, 0)
 
         self.last_d_duration = time.perf_counter() - d_start
 

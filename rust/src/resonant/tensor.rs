@@ -18,7 +18,9 @@ use super::crystallize::{compute_lattice_syntony, crystallize_with_dwell, harmon
 use super::{PHI, PHI_INV, PHI_INV_SQ};
 
 #[cfg(feature = "cuda")]
-use cudarc::driver::{CudaDevice, CudaSlice};
+use cudarc::driver::safe::CudaContext as CudaDevice;
+#[cfg(feature = "cuda")]
+use cudarc::driver::CudaSlice;
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
 #[cfg(feature = "cuda")]
@@ -231,7 +233,7 @@ impl ResonantTensor {
             .collect();
 
         // Upload to GPU
-        let gpu_slice = device.htod_sync_copy(&floats)
+        let gpu_slice = device.default_stream().clone_htod(&floats)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         self.flux = Some(gpu_slice);
@@ -280,7 +282,8 @@ impl ResonantTensor {
         self.phase = ResonantPhase::Transitioning;
 
         // Download from GPU
-        let host_data = device.dtoh_sync_copy(flux)
+        let mut host_data = vec![0.0f64; flux.len()];
+        device.default_stream().memcpy_dtoh(flux, &mut host_data)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Golden snap: find nearest exact lattice point for each element
@@ -329,7 +332,8 @@ impl ResonantTensor {
         self.phase = ResonantPhase::Transitioning;
 
         // Download from GPU
-        let host_data = device.dtoh_sync_copy(flux)
+        let mut host_data = vec![0.0f64; flux.len()];
+        device.default_stream().memcpy_dtoh(flux, &mut host_data)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Crystallize with Ĥ attenuation and φ-dwell timing
@@ -420,19 +424,19 @@ impl ResonantTensor {
         let n = floats.len();
 
         // Upload lattice and mode norms to GPU
-        let gpu_lattice = device.htod_sync_copy(&floats)
+        let gpu_lattice = device.default_stream().clone_htod(&floats)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
-        let gpu_mode_norms = device.htod_sync_copy(&self.mode_norm_sq)
+        let gpu_mode_norms = device.default_stream().clone_htod(&self.mode_norm_sq)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Generate Gaussian noise on CPU and upload
         let mut rng = rand::thread_rng();
         let noise: Vec<f64> = (0..n).map(|_| rng.gen::<f64>() * 2.0 - 1.0).collect();
-        let gpu_noise = device.htod_sync_copy(&noise)
+        let gpu_noise = device.default_stream().clone_htod(&noise)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Allocate output buffer
-        let mut gpu_flux: CudaSlice<f64> = device.alloc_zeros(n)
+        let mut gpu_flux: CudaSlice<f64> = device.default_stream().alloc_zeros(n)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Run D-phase kernel
@@ -512,7 +516,7 @@ impl ResonantTensor {
             .ok_or(ResonantError::NoDevicePresent)?;
 
         // Upload mode norms if needed (they may already be there, but simpler to re-upload)
-        let gpu_mode_norms = device.htod_sync_copy(&self.mode_norm_sq)
+        let gpu_mode_norms = device.default_stream().clone_htod(&self.mode_norm_sq)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         cuda_resonant_compute_syntony_f64(device, flux, &gpu_mode_norms, self.len())

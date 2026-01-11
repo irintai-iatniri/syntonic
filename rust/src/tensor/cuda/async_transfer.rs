@@ -2,7 +2,8 @@
 //!
 //! Provides stream-based transfers for overlapping transfers with compute.
 
-use cudarc::driver::{CudaDevice, CudaSlice};
+use cudarc::driver::safe::CudaContext as CudaDevice;
+use cudarc::driver::CudaSlice;
 use std::sync::Arc;
 
 use super::device_manager::{CudaError, get_device};
@@ -33,7 +34,7 @@ pub fn htod_async<T: cudarc::driver::DeviceRepr>(
 where
     T: Clone + Default,
 {
-    device.htod_sync_copy(host_data)
+    device.default_stream().clone_htod(host_data)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))
 }
 
@@ -46,7 +47,7 @@ pub fn dtoh_async<T: cudarc::driver::DeviceRepr>(
 where
     T: Clone,
 {
-    device.dtoh_sync_copy_into(dev_data, host_buf)
+    device.default_stream().memcpy_dtoh(dev_data, host_buf)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))
 }
 

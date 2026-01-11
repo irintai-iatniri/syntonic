@@ -8,7 +8,11 @@
 //! - SRT correction factors (1 ± q/N)
 
 #[cfg(feature = "cuda")]
-use cudarc::driver::{CudaDevice, CudaSlice, LaunchConfig, LaunchAsync, DevicePtr, DeviceSlice};
+use cudarc::driver::safe::CudaContext as CudaDevice;
+#[cfg(feature = "cuda")]
+use cudarc::driver::{CudaSlice, LaunchConfig, DevicePtr, DeviceSlice};
+#[cfg(feature = "cuda")]
+use cudarc::driver::PushKernelArg;
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
 #[cfg(feature = "cuda")]
@@ -19,67 +23,67 @@ use pyo3::prelude::*;
 // =============================================================================
 
 #[cfg(feature = "cuda")]
-const PTX_GOLDEN_SM75: &str = include_str!("../../kernels/ptx/golden_ops_sm75.ptx");
+const PTX_GOLDEN_SM75: &str = include_str!("../../kernels/ptx/golden_ops_sm_75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_GOLDEN_SM80: &str = include_str!("../../kernels/ptx/golden_ops_sm80.ptx");
+const PTX_GOLDEN_SM80: &str = include_str!("../../kernels/ptx/golden_ops_sm_80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_GOLDEN_SM86: &str = include_str!("../../kernels/ptx/golden_ops_sm86.ptx");
+const PTX_GOLDEN_SM86: &str = include_str!("../../kernels/ptx/golden_ops_sm_86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_GOLDEN_SM90: &str = include_str!("../../kernels/ptx/golden_ops_sm90.ptx");
+const PTX_GOLDEN_SM90: &str = include_str!("../../kernels/ptx/golden_ops_sm_90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_E8_SM75: &str = include_str!("../../kernels/ptx/e8_projection_sm75.ptx");
+const PTX_E8_SM75: &str = include_str!("../../kernels/ptx/e8_projection_sm_75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_E8_SM80: &str = include_str!("../../kernels/ptx/e8_projection_sm80.ptx");
+const PTX_E8_SM80: &str = include_str!("../../kernels/ptx/e8_projection_sm_80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_E8_SM86: &str = include_str!("../../kernels/ptx/e8_projection_sm86.ptx");
+const PTX_E8_SM86: &str = include_str!("../../kernels/ptx/e8_projection_sm_86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_E8_SM90: &str = include_str!("../../kernels/ptx/e8_projection_sm90.ptx");
+const PTX_E8_SM90: &str = include_str!("../../kernels/ptx/e8_projection_sm_90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_HEAT_SM75: &str = include_str!("../../kernels/ptx/heat_kernel_sm75.ptx");
+const PTX_HEAT_SM75: &str = include_str!("../../kernels/ptx/heat_kernel_sm_75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_HEAT_SM80: &str = include_str!("../../kernels/ptx/heat_kernel_sm80.ptx");
+const PTX_HEAT_SM80: &str = include_str!("../../kernels/ptx/heat_kernel_sm_80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_HEAT_SM86: &str = include_str!("../../kernels/ptx/heat_kernel_sm86.ptx");
+const PTX_HEAT_SM86: &str = include_str!("../../kernels/ptx/heat_kernel_sm_86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_HEAT_SM90: &str = include_str!("../../kernels/ptx/heat_kernel_sm90.ptx");
+const PTX_HEAT_SM90: &str = include_str!("../../kernels/ptx/heat_kernel_sm_90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_DHSR_SM75: &str = include_str!("../../kernels/ptx/dhsr_sm75.ptx");
+const PTX_DHSR_SM75: &str = include_str!("../../kernels/ptx/dhsr_sm_75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_DHSR_SM80: &str = include_str!("../../kernels/ptx/dhsr_sm80.ptx");
+const PTX_DHSR_SM80: &str = include_str!("../../kernels/ptx/dhsr_sm_80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_DHSR_SM86: &str = include_str!("../../kernels/ptx/dhsr_sm86.ptx");
+const PTX_DHSR_SM86: &str = include_str!("../../kernels/ptx/dhsr_sm_86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_DHSR_SM90: &str = include_str!("../../kernels/ptx/dhsr_sm90.ptx");
+const PTX_DHSR_SM90: &str = include_str!("../../kernels/ptx/dhsr_sm_90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_CORR_SM75: &str = include_str!("../../kernels/ptx/corrections_sm75.ptx");
+const PTX_CORR_SM75: &str = include_str!("../../kernels/ptx/corrections_sm_75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_CORR_SM80: &str = include_str!("../../kernels/ptx/corrections_sm80.ptx");
+const PTX_CORR_SM80: &str = include_str!("../../kernels/ptx/corrections_sm_80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_CORR_SM86: &str = include_str!("../../kernels/ptx/corrections_sm86.ptx");
+const PTX_CORR_SM86: &str = include_str!("../../kernels/ptx/corrections_sm_86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_CORR_SM90: &str = include_str!("../../kernels/ptx/corrections_sm90.ptx");
+const PTX_CORR_SM90: &str = include_str!("../../kernels/ptx/corrections_sm_90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_RESONANT_SM75: &str = include_str!("../../kernels/ptx/resonant_d_sm75.ptx");
+const PTX_RESONANT_SM75: &str = include_str!("../../kernels/ptx/resonant_d_sm_75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_RESONANT_SM80: &str = include_str!("../../kernels/ptx/resonant_d_sm80.ptx");
+const PTX_RESONANT_SM80: &str = include_str!("../../kernels/ptx/resonant_d_sm_80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_RESONANT_SM86: &str = include_str!("../../kernels/ptx/resonant_d_sm86.ptx");
+const PTX_RESONANT_SM86: &str = include_str!("../../kernels/ptx/resonant_d_sm_86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_RESONANT_SM90: &str = include_str!("../../kernels/ptx/resonant_d_sm90.ptx");
+const PTX_RESONANT_SM90: &str = include_str!("../../kernels/ptx/resonant_d_sm_90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_PHI_RESIDUAL_SM75: &str = include_str!("../../kernels/ptx/phi_residual_sm75.ptx");
+const PTX_PHI_RESIDUAL_SM75: &str = include_str!("../../kernels/ptx/phi_residual_sm_75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_PHI_RESIDUAL_SM80: &str = include_str!("../../kernels/ptx/phi_residual_sm80.ptx");
+const PTX_PHI_RESIDUAL_SM80: &str = include_str!("../../kernels/ptx/phi_residual_sm_80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_PHI_RESIDUAL_SM86: &str = include_str!("../../kernels/ptx/phi_residual_sm86.ptx");
+const PTX_PHI_RESIDUAL_SM86: &str = include_str!("../../kernels/ptx/phi_residual_sm_86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_PHI_RESIDUAL_SM90: &str = include_str!("../../kernels/ptx/phi_residual_sm90.ptx");
+const PTX_PHI_RESIDUAL_SM90: &str = include_str!("../../kernels/ptx/phi_residual_sm_90.ptx");
 
 #[cfg(feature = "cuda")]
 const PTX_GOLDEN_BATCH_NORM_SM90: &str = include_str!("../../kernels/ptx/golden_batch_norm_sm_90.ptx");
@@ -339,94 +343,8 @@ fn get_compute_capability(device: &Arc<CudaDevice>) -> (i32, i32) {
 /// Ensure all SRT kernels are loaded for the given device
 #[cfg(feature = "cuda")]
 pub fn ensure_srt_kernels_loaded(device: &Arc<CudaDevice>) -> PyResult<()> {
-    // Check if already loaded by testing for a characteristic function
-    if device.get_func("srt_golden", "scale_phi_f64").is_some() {
-        return Ok(());
-    }
-
-    let (major, minor) = get_compute_capability(device);
-
-    // Load golden operations
-    device.load_ptx(
-        cudarc::nvrtc::Ptx::from_src(select_golden_ptx(major, minor)),
-        "srt_golden",
-        GOLDEN_FUNCS,
-    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-        format!("Failed to load golden_ops kernels: {}", e)
-    ))?;
-
-    // Load E₈ projection operations
-    device.load_ptx(
-        cudarc::nvrtc::Ptx::from_src(select_e8_ptx(major, minor)),
-        "srt_e8",
-        E8_FUNCS,
-    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-        format!("Failed to load e8_projection kernels: {}", e)
-    ))?;
-
-    // Load heat kernel operations
-    device.load_ptx(
-        cudarc::nvrtc::Ptx::from_src(select_heat_ptx(major, minor)),
-        "srt_heat",
-        HEAT_FUNCS,
-    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-        format!("Failed to load heat_kernel kernels: {}", e)
-    ))?;
-
-    // Load DHSR cycle operations
-    device.load_ptx(
-        cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)),
-        "srt_dhsr",
-        DHSR_FUNCS,
-    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-        format!("Failed to load dhsr kernels: {}", e)
-    ))?;
-
-    // Load correction factor operations
-    device.load_ptx(
-        cudarc::nvrtc::Ptx::from_src(select_corr_ptx(major, minor)),
-        "srt_corr",
-        CORR_FUNCS,
-    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-        format!("Failed to load corrections kernels: {}", e)
-    ))?;
-
-    // Load resonant D-phase operations
-    device.load_ptx(
-        cudarc::nvrtc::Ptx::from_src(select_resonant_ptx(major, minor)),
-        "srt_resonant",
-        RESONANT_FUNCS,
-    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-        format!("Failed to load resonant_d kernels: {}", e)
-    ))?;
-
-    // Load phi-residual operations
-    device.load_ptx(
-        cudarc::nvrtc::Ptx::from_src(select_phi_residual_ptx(major, minor)),
-        "srt_phi_residual",
-        PHI_RESIDUAL_FUNCS,
-    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-        format!("Failed to load phi_residual kernels: {}", e)
-    ))?;
-
-    // Load golden batch normalization operations
-    device.load_ptx(
-        cudarc::nvrtc::Ptx::from_src(select_golden_batch_norm_ptx(major, minor)),
-        "srt_golden_batch_norm",
-        GOLDEN_BATCH_NORM_FUNCS,
-    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-        format!("Failed to load golden_batch_norm kernels: {}", e)
-    ))?;
-
-    // Load syntonic softmax operations
-    device.load_ptx(
-        cudarc::nvrtc::Ptx::from_src(select_syntonic_softmax_ptx(major, minor)),
-        "srt_syntonic_softmax",
-        SYNTONIC_SOFTMAX_FUNCS,
-    ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-        format!("Failed to load syntonic_softmax kernels: {}", e)
-    ))?;
-
+    // In cudarc 0.18.2, modules are loaded on-demand from PTX source
+    // No global caching by name exists, so this function is a no-op
     Ok(())
 }
 
@@ -505,12 +423,16 @@ pub fn cuda_scale_phi_f64(
     output: &mut CudaSlice<f64>,
     n: usize,
 ) -> PyResult<()> {
-    ensure_srt_kernels_loaded(device)?;
-    let func = device.get_func("srt_golden", "scale_phi_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_golden_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load golden_ops kernels: {}", e)
+        ))?;
+    let func = module.load_function("scale_phi_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     unsafe {
-        func.launch(launch_cfg_256(n), (output, input, n as i32))
+        device.default_stream().launch_builder(&func).arg(output).arg(input).arg(&(n as i32)).launch(launch_cfg_256(n))
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
@@ -524,12 +446,16 @@ pub fn cuda_golden_gaussian_8d_f64(
     weights: &mut CudaSlice<f64>,
     count: usize,
 ) -> PyResult<()> {
-    ensure_srt_kernels_loaded(device)?;
-    let func = device.get_func("srt_golden", "golden_gaussian_weight_8d_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_golden_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load golden_ops kernels: {}", e)
+        ))?;
+    let func = module.load_function("golden_gaussian_weight_8d_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     unsafe {
-        func.launch(launch_cfg_256(count), (weights, vectors, count as i32))
+        device.default_stream().launch_builder(&func).arg(weights).arg(vectors).arg(&(count as i32)).launch(launch_cfg_256(count))
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
@@ -546,15 +472,18 @@ pub fn cuda_e8_batch_projection_f64(
     in_cone: &mut CudaSlice<i32>,        // count
     count: usize,
 ) -> PyResult<()> {
-    ensure_srt_kernels_loaded(device)?;
-    let func = device.get_func("srt_e8", "e8_batch_projection_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_e8_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load e8_projection kernels: {}", e)
+        ))?;
+    let func = module.load_function("e8_batch_projection_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     unsafe {
-        func.launch(
-            launch_cfg_e8(count),
-            (proj_parallel, proj_perp, q_values, in_cone, roots, count as i32)
-        )
+        device.default_stream().launch_builder(&func)
+            .arg(proj_parallel).arg(proj_perp).arg(q_values).arg(in_cone).arg(roots).arg(&(count as i32))
+            .launch(launch_cfg_e8(count))
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
@@ -570,30 +499,36 @@ pub fn cuda_theta_series_f64(
     t: f64,
     count: usize,
 ) -> PyResult<f64> {
-    ensure_srt_kernels_loaded(device)?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_heat_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load heat_kernel kernels: {}", e)
+        ))?;
 
     // Allocate result on device
-    let mut result: CudaSlice<f64> = device.alloc_zeros(1)
+    let mut result: CudaSlice<f64> = device.default_stream().alloc_zeros(1)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
-    let func = device.get_func("srt_heat", "theta_series_sum_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+    let func = module.load_function("theta_series_sum_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     let cfg = launch_cfg_reduce(count, std::mem::size_of::<f64>());
 
     // Handle optional weights pointer
     let weights_ptr: u64 = match weights {
-        Some(w) => *w.device_ptr() as u64,
+        Some(w) => w.device_ptr(&device.default_stream()).0,
         None => 0u64,  // null pointer
     };
 
     unsafe {
-        func.launch(cfg, (&mut result, q_values, in_cone, weights_ptr, t, count as i32))
+        device.default_stream().launch_builder(&func)
+            .arg(&mut result).arg(q_values).arg(in_cone).arg(&weights_ptr).arg(&t).arg(&(count as i32))
+            .launch(cfg)
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     // Copy result back
     let mut host_result = [0.0f64];
-    device.dtoh_sync_copy_into(&result, &mut host_result)
+    device.default_stream().memcpy_dtoh(&result, &mut host_result)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(host_result[0])
@@ -607,27 +542,33 @@ pub fn cuda_compute_syntony_c128(
     mode_norm_sq: &CudaSlice<f64>,  // |n|² for each mode
     n: usize,
 ) -> PyResult<f64> {
-    ensure_srt_kernels_loaded(device)?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load dhsr kernels: {}", e)
+        ))?;
 
-    let mut numerator: CudaSlice<f64> = device.alloc_zeros(1)
+    let mut numerator: CudaSlice<f64> = device.default_stream().alloc_zeros(1)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-    let mut denominator: CudaSlice<f64> = device.alloc_zeros(1)
+    let mut denominator: CudaSlice<f64> = device.default_stream().alloc_zeros(1)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
-    let func = device.get_func("srt_dhsr", "compute_syntony_c128")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+    let func = module.load_function("compute_syntony_c128")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     let cfg = launch_cfg_reduce(n, 2 * std::mem::size_of::<f64>());
 
     unsafe {
-        func.launch(cfg, (&mut numerator, &mut denominator, psi, mode_norm_sq, n as i32))
+        device.default_stream().launch_builder(&func)
+            .arg(&mut numerator).arg(&mut denominator).arg(psi).arg(mode_norm_sq).arg(&(n as i32))
+            .launch(cfg)
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     let mut host_num = [0.0f64];
     let mut host_den = [0.0f64];
-    device.dtoh_sync_copy_into(&numerator, &mut host_num)
+    device.default_stream().memcpy_dtoh(&numerator, &mut host_num)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-    device.dtoh_sync_copy_into(&denominator, &mut host_den)
+    device.default_stream().memcpy_dtoh(&denominator, &mut host_den)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     if host_den[0] < 1e-15 {
@@ -646,27 +587,33 @@ pub fn cuda_dhsr_cycle_inplace_c128(
     syntony: f64,
     n: usize,
 ) -> PyResult<f64> {
-    ensure_srt_kernels_loaded(device)?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load dhsr kernels: {}", e)
+        ))?;
 
-    let mut new_num: CudaSlice<f64> = device.alloc_zeros(1)
+    let mut new_num: CudaSlice<f64> = device.default_stream().alloc_zeros(1)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-    let mut new_den: CudaSlice<f64> = device.alloc_zeros(1)
+    let mut new_den: CudaSlice<f64> = device.default_stream().alloc_zeros(1)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
-    let func = device.get_func("srt_dhsr", "dhsr_cycle_inplace_c128")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+    let func = module.load_function("dhsr_cycle_inplace_c128")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     let cfg = launch_cfg_reduce(n, 2 * std::mem::size_of::<f64>());
 
     unsafe {
-        func.launch(cfg, (psi, mode_norm_sq, syntony, &mut new_num, &mut new_den, n as i32))
+        device.default_stream().launch_builder(&func)
+            .arg(psi).arg(mode_norm_sq).arg(&syntony).arg(&mut new_num).arg(&mut new_den).arg(&(n as i32))
+            .launch(cfg)
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     let mut host_num = [0.0f64];
     let mut host_den = [0.0f64];
-    device.dtoh_sync_copy_into(&new_num, &mut host_num)
+    device.default_stream().memcpy_dtoh(&new_num, &mut host_num)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-    device.dtoh_sync_copy_into(&new_den, &mut host_den)
+    device.default_stream().memcpy_dtoh(&new_den, &mut host_den)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     if host_den[0] < 1e-15 {
@@ -701,13 +648,19 @@ pub fn cuda_apply_correction_f64(
         ));
     }
 
-    ensure_srt_kernels_loaded(device)?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_corr_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load corrections kernels: {}", e)
+        ))?;
 
-    let func = device.get_func("srt_corr", "apply_correction_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+    let func = module.load_function("apply_correction_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     unsafe {
-        func.launch(launch_cfg_256(n), (output, input, structure_idx, sign, n as i32))
+        device.default_stream().launch_builder(&func)
+            .arg(output).arg(input).arg(&structure_idx).arg(&sign).arg(&(n as i32))
+            .launch(launch_cfg_256(n))
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
@@ -767,18 +720,19 @@ pub fn cuda_resonant_d_phase_f64(
     noise_scale: f64,                  // Base noise amplitude
     n: usize,
 ) -> PyResult<()> {
-    ensure_srt_kernels_loaded(device)?;
-
-    let func = device.get_func("srt_resonant", "resonant_d_phase_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-            "Kernel resonant_d_phase_f64 not found"
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_resonant_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load resonant_d kernels: {}", e)
         ))?;
 
+    let func = module.load_function("resonant_d_phase_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
     unsafe {
-        func.launch(
-            launch_cfg_256(n),
-            (flux, lattice, mode_norm_sq, noise, syntony, noise_scale, n as i32)
-        )
+        device.default_stream().launch_builder(&func)
+            .arg(flux).arg(lattice).arg(mode_norm_sq).arg(noise).arg(&syntony).arg(&noise_scale).arg(&(n as i32))
+            .launch(launch_cfg_256(n))
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
@@ -797,20 +751,21 @@ pub fn cuda_resonant_d_phase_batch_f64(
     n: usize,
     pop_size: usize,
 ) -> PyResult<()> {
-    ensure_srt_kernels_loaded(device)?;
-
-    let func = device.get_func("srt_resonant", "resonant_d_phase_batch_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-            "Kernel resonant_d_phase_batch_f64 not found"
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_resonant_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load resonant_d kernels: {}", e)
         ))?;
+
+    let func = module.load_function("resonant_d_phase_batch_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     let total = n * pop_size;
     unsafe {
-        func.launch(
-            launch_cfg_256(total),
-            (flux_batch, lattice_batch, mode_norm_sq, noise_batch, syntonies,
-             noise_scale, n as i32, pop_size as i32)
-        )
+        device.default_stream().launch_builder(&func)
+            .arg(flux_batch).arg(lattice_batch).arg(mode_norm_sq).arg(noise_batch).arg(syntonies)
+            .arg(&noise_scale).arg(&(n as i32)).arg(&(pop_size as i32))
+            .launch(launch_cfg_256(total))
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
@@ -824,29 +779,33 @@ pub fn cuda_resonant_compute_syntony_f64(
     mode_norm_sq: &CudaSlice<f64>,
     n: usize,
 ) -> PyResult<f64> {
-    ensure_srt_kernels_loaded(device)?;
-
-    let mut numerator: CudaSlice<f64> = device.alloc_zeros(1)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-    let mut denominator: CudaSlice<f64> = device.alloc_zeros(1)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-
-    let func = device.get_func("srt_resonant", "resonant_compute_syntony_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-            "Kernel resonant_compute_syntony_f64 not found"
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_resonant_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load resonant_d kernels: {}", e)
         ))?;
+
+    let mut numerator: CudaSlice<f64> = device.default_stream().alloc_zeros(1)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+    let mut denominator: CudaSlice<f64> = device.default_stream().alloc_zeros(1)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    let func = module.load_function("resonant_compute_syntony_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     let cfg = launch_cfg_reduce(n, 2 * std::mem::size_of::<f64>());
 
     unsafe {
-        func.launch(cfg, (&mut numerator, &mut denominator, flux, mode_norm_sq, n as i32))
+        device.default_stream().launch_builder(&func)
+            .arg(&mut numerator).arg(&mut denominator).arg(flux).arg(mode_norm_sq).arg(&(n as i32))
+            .launch(cfg)
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     let mut host_num = [0.0f64];
     let mut host_den = [0.0f64];
-    device.dtoh_sync_copy_into(&numerator, &mut host_num)
+    device.default_stream().memcpy_dtoh(&numerator, &mut host_num)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-    device.dtoh_sync_copy_into(&denominator, &mut host_den)
+    device.default_stream().memcpy_dtoh(&denominator, &mut host_den)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     if host_den[0] < 1e-15 {
@@ -873,6 +832,10 @@ pub fn cuda_phi_residual_f64(
 
     let n = out.len();
 
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_phi_residual_ptx(major, minor)))
+        .map_err(|e| format!("Failed to load phi_residual kernels: {}", e))?;
+
     // Select kernel based on mode
     let kernel_name = match mode {
         PhiResidualMode::Phi => "phi_residual_mode_phi_f64",
@@ -880,14 +843,16 @@ pub fn cuda_phi_residual_f64(
         PhiResidualMode::Standard => "phi_residual_mode_standard_f64",
     };
 
-    let func = device.get_func("srt_phi_residual", kernel_name)
-        .ok_or_else(|| format!("Kernel {} not found", kernel_name))?;
+    let func = module.load_function(kernel_name)
+        .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = launch_cfg_256(n);
 
     unsafe {
-        func.launch(cfg, (out, identity, residual, n as i32))
-    }.map_err(|e| e.to_string())
+        device.default_stream().launch_builder(&func)
+            .arg(out).arg(identity).arg(residual).arg(&(n as i32))
+            .launch(cfg)
+    }.map(|_| ()).map_err(|e| e.to_string())
 }
 
 /// Execute fused phi-residual + ReLU on GPU
@@ -900,14 +865,20 @@ pub fn cuda_phi_residual_relu_f64(
 ) -> Result<(), String> {
     let n = out.len();
 
-    let func = device.get_func("srt_phi_residual", "phi_residual_relu_f64")
-        .ok_or_else(|| "Kernel phi_residual_relu_f64 not found".to_string())?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_phi_residual_ptx(major, minor)))
+        .map_err(|e| format!("Failed to load phi_residual kernels: {}", e))?;
+
+    let func = module.load_function("phi_residual_relu_f64")
+        .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = launch_cfg_256(n);
 
     unsafe {
-        func.launch(cfg, (out, identity, residual, n as i32))
-    }.map_err(|e| e.to_string())
+        device.default_stream().launch_builder(&func)
+            .arg(out).arg(identity).arg(residual).arg(&(n as i32))
+            .launch(cfg)
+    }.map(|_| ()).map_err(|e| e.to_string())
 }
 
 /// Compute snap gradient for directed exploration
@@ -920,15 +891,19 @@ pub fn cuda_resonant_snap_gradient_f64(
     mode_norm_sq: &CudaSlice<f64>,
     n: usize,
 ) -> PyResult<()> {
-    ensure_srt_kernels_loaded(device)?;
-
-    let func = device.get_func("srt_resonant", "resonant_snap_gradient_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-            "Kernel resonant_snap_gradient_f64 not found"
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_resonant_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load resonant_d kernels: {}", e)
         ))?;
 
+    let func = module.load_function("resonant_snap_gradient_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
     unsafe {
-        func.launch(launch_cfg_256(n), (gradient, flux, lattice, mode_norm_sq, n as i32))
+        device.default_stream().launch_builder(&func)
+            .arg(gradient).arg(flux).arg(lattice).arg(mode_norm_sq).arg(&(n as i32))
+            .launch(launch_cfg_256(n))
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
@@ -942,15 +917,19 @@ pub fn cuda_resonant_box_muller_f64(
     uniform: &CudaSlice<f64>,
     n: usize,
 ) -> PyResult<()> {
-    ensure_srt_kernels_loaded(device)?;
-
-    let func = device.get_func("srt_resonant", "resonant_box_muller_f64")
-        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-            "Kernel resonant_box_muller_f64 not found"
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_resonant_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load resonant_d kernels: {}", e)
         ))?;
 
+    let func = module.load_function("resonant_box_muller_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
     unsafe {
-        func.launch(launch_cfg_256(n), (gaussian, uniform, n as i32))
+        device.default_stream().launch_builder(&func)
+            .arg(gaussian).arg(uniform).arg(&(n as i32))
+            .launch(launch_cfg_256(n))
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
@@ -976,15 +955,21 @@ pub fn cuda_golden_bn_2d_f64(
     w: i32,
 ) -> Result<(), String> {
     let n = (b * c * h * w) as usize;
-    let func = device.get_func("srt_golden_batch_norm", "golden_bn_2d_normalize_f64")
-        .ok_or_else(|| "Kernel golden_bn_2d_normalize_f64 not found".to_string())?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_golden_batch_norm_ptx(major, minor)))
+        .map_err(|e| format!("Failed to load golden_batch_norm kernels: {}", e))?;
 
-    let gamma_ptr = gamma.map(|g| *g.device_ptr()).unwrap_or(0);
-    let beta_ptr = beta.map(|b| *b.device_ptr()).unwrap_or(0);
+    let func = module.load_function("golden_bn_2d_normalize_f64")
+        .map_err(|_| "Kernel not found".to_string())?;
+
+    let gamma_ptr = gamma.map(|g| g.device_ptr(&device.default_stream()).0).unwrap_or(0);
+    let beta_ptr = beta.map(|b| b.device_ptr(&device.default_stream()).0).unwrap_or(0);
 
     unsafe {
-        func.launch(launch_cfg_256(n), (out, input, mean, var, gamma_ptr, beta_ptr, eps, b, c, h, w))
-    }.map_err(|e| e.to_string())
+        device.default_stream().launch_builder(&func)
+            .arg(out).arg(input).arg(mean).arg(var).arg(&gamma_ptr).arg(&beta_ptr).arg(&eps).arg(&b).arg(&c).arg(&h).arg(&w)
+            .launch(launch_cfg_256(n))
+    }.map(|_| ()).map_err(|e| e.to_string())
 }
 
 // =============================================================================
@@ -1001,8 +986,12 @@ pub fn cuda_syntonic_softmax_learned_f64(
     batch_size: i32,
     num_classes: i32,
 ) -> Result<(), String> {
-    let func = device.get_func("srt_syntonic_softmax", "syntonic_softmax_learned_f64")
-        .ok_or_else(|| "Kernel syntonic_softmax_learned_f64 not found".to_string())?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_syntonic_softmax_ptx(major, minor)))
+        .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
+
+    let func = module.load_function("syntonic_softmax_learned_f64")
+        .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = LaunchConfig {
         grid_dim: (batch_size as u32, 1, 1),
@@ -1011,8 +1000,10 @@ pub fn cuda_syntonic_softmax_learned_f64(
     };
 
     unsafe {
-        func.launch(cfg, (out, logits, mode_norms, syntony_scale, batch_size, num_classes))
-    }.map_err(|e| e.to_string())
+        device.default_stream().launch_builder(&func)
+            .arg(out).arg(logits).arg(mode_norms).arg(&syntony_scale).arg(&batch_size).arg(&num_classes)
+            .launch(cfg)
+    }.map(|_| ()).map_err(|e| e.to_string())
 }
 
 #[cfg(feature = "cuda")]
@@ -1025,8 +1016,12 @@ pub fn cuda_syntonic_softmax_provided_f64(
     batch_size: i32,
     num_classes: i32,
 ) -> Result<(), String> {
-    let func = device.get_func("srt_syntonic_softmax", "syntonic_softmax_provided_f64")
-        .ok_or_else(|| "Kernel syntonic_softmax_provided_f64 not found".to_string())?;
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_syntonic_softmax_ptx(major, minor)))
+        .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
+
+    let func = module.load_function("syntonic_softmax_provided_f64")
+        .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = LaunchConfig {
         grid_dim: (batch_size as u32, 1, 1),
@@ -1035,6 +1030,8 @@ pub fn cuda_syntonic_softmax_provided_f64(
     };
 
     unsafe {
-        func.launch(cfg, (out, logits, syntony, syntony_scale, batch_size, num_classes))
-    }.map_err(|e| e.to_string())
+        device.default_stream().launch_builder(&func)
+            .arg(out).arg(logits).arg(syntony).arg(&syntony_scale).arg(&batch_size).arg(&num_classes)
+            .launch(cfg)
+    }.map(|_| ()).map_err(|e| e.to_string())
 }

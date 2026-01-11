@@ -3,7 +3,8 @@
 //! Uses a power-of-2 bucket allocator to cache freed allocations
 //! and reduce the cost of repeated alloc/free cycles.
 
-use cudarc::driver::{CudaDevice, CudaSlice, DeviceSlice};
+use cudarc::driver::safe::CudaContext as CudaDevice;
+use cudarc::driver::{CudaSlice, DeviceSlice};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -134,19 +135,19 @@ impl MemoryPool {
         // Cache miss: allocate new
         self.cache_misses.fetch_add(1, Ordering::Relaxed);
 
-        self.device.alloc_zeros::<u8>(bucket_size)
+        self.device.default_stream().alloc_zeros::<u8>(bucket_size)
             .map_err(|e| CudaError::AllocationFailed(e.to_string()))
     }
 
     /// Allocate typed memory from pool (f64)
     pub fn alloc_f64(&self, count: usize) -> Result<CudaSlice<f64>, CudaError> {
-        self.device.alloc_zeros::<f64>(count)
+        self.device.default_stream().alloc_zeros::<f64>(count)
             .map_err(|e| CudaError::AllocationFailed(e.to_string()))
     }
 
     /// Allocate typed memory from pool (f32)
     pub fn alloc_f32(&self, count: usize) -> Result<CudaSlice<f32>, CudaError> {
-        self.device.alloc_zeros::<f32>(count)
+        self.device.default_stream().alloc_zeros::<f32>(count)
             .map_err(|e| CudaError::AllocationFailed(e.to_string()))
     }
 
