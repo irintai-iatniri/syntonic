@@ -12,6 +12,15 @@ use std::time::{Duration, Instant};
 use crate::exact::GoldenExact;
 use super::{PHI, PHI_INV};
 
+#[cfg(feature = "cuda")]
+use cudarc::driver::safe::CudaContext as CudaDevice;
+#[cfg(feature = "cuda")]
+use cudarc::driver::CudaSlice;
+#[cfg(feature = "cuda")]
+use std::sync::Arc;
+#[cfg(feature = "cuda")]
+use crate::tensor::srt_kernels::cuda_resonant_snap_gradient_f64;
+
 /// Apply Ĥ (harmonization) operator and crystallize to Q(φ) lattice.
 ///
 /// The Ĥ operator attenuates modes with low golden weight:
@@ -228,6 +237,105 @@ pub fn compute_snap_gradient(
             post_f64 - pre
         })
         .collect()
+}
+
+/// Compute snap gradient using CUDA acceleration.
+///
+/// This is the GPU-accelerated version of compute_snap_gradient.
+/// Falls back to CPU implementation if CUDA is not available.
+///
+/// # Arguments
+/// * `pre_snap` - Values before crystallization
+/// * `post_snap` - Lattice values after crystallization
+/// * `mode_norm_sq` - Mode norm squared |n|² for golden weighting
+/// * `device` - CUDA device for computation (optional)
+///
+/// # Returns
+/// Vector of gradients (post - pre) weighted by golden ratio decay
+#[cfg(feature = "cuda")]
+pub fn compute_snap_gradient_cuda(
+    pre_snap: &[f64],
+    post_snap: &[GoldenExact],
+    mode_norm_sq: &[f64],
+    device: Option<&Arc<CudaDevice>>,
+) -> Result<Vec<f64>, String> {
+    if pre_snap.len() != post_snap.len() || pre_snap.len() != mode_norm_sq.len() {
+        return Err("All input arrays must have the same length".to_string());
+    }
+
+    let n = pre_snap.len();
+    if n == 0 {
+        return Ok(Vec::new());
+    }
+
+    // Convert post_snap to f64 values
+    let post_snap_f64: Vec<f64> = post_snap.iter().map(|g| g.to_f64()).collect();
+
+    // Use CUDA if device is provided
+    if let Some(device) = device {
+        // Upload data to GPU
+        let gpu_pre_snap = device.default_stream().clone_htod(pre_snap)
+            .map_err(|e| format!("Failed to upload pre_snap to GPU: {}", e))?;
+        let gpu_post_snap = device.default_stream().clone_htod(&post_snap_f64)
+            .map_err(|e| format!("Failed to upload post_snap to GPU: {}", e))?;
+        let gpu_mode_norm_sq = device.default_stream().clone_htod(mode_norm_sq)
+            .map_err(|e| format!("Failed to upload mode_norm_sq to GPU: {}", e))?;
+
+        // Allocate output buffer
+        let mut gpu_gradient: CudaSlice<f64> = device.default_stream().alloc_zeros(n)
+            .map_err(|e| format!("Failed to allocate gradient buffer: {}", e))?;
+
+        // Run CUDA kernel
+        cuda_resonant_snap_gradient_f64(
+            device,
+            &mut gpu_gradient,
+            &gpu_pre_snap,
+            &gpu_post_snap,
+            &gpu_mode_norm_sq,
+            n,
+        ).map_err(|e| format!("CUDA snap gradient failed: {}", e))?;
+
+        // Download result
+        let mut gradient = vec![0.0f64; n];
+        device.default_stream().memcpy_dtoh(&gpu_gradient, &mut gradient)
+            .map_err(|e| format!("Failed to download gradient from GPU: {}", e))?;
+
+        Ok(gradient)
+    } else {
+        // Fall back to CPU implementation (unweighted)
+        Ok(compute_snap_gradient(pre_snap, post_snap))
+    }
+}
+
+/// Compute snap gradient with automatic CUDA dispatch.
+///
+/// Uses CUDA acceleration if available, otherwise falls back to CPU.
+/// This is the recommended function for general use.
+///
+/// # Arguments
+/// * `pre_snap` - Values before crystallization
+/// * `post_snap` - Lattice values after crystallization
+///
+/// # Returns
+/// Vector of gradients (post - pre) for each element
+pub fn compute_snap_gradient_dispatch(
+    pre_snap: &[f64],
+    post_snap: &[GoldenExact],
+    mode_norm_sq: &[f64],
+) -> Vec<f64> {
+    #[cfg(feature = "cuda")]
+    {
+        // Try to get default CUDA device
+        if let Ok(device) = crate::tensor::cuda::device_manager::get_device(0) {
+            match compute_snap_gradient_cuda(pre_snap, post_snap, mode_norm_sq, Some(&device)) {
+                Ok(result) => return result,
+                Err(_) => {} // Fall back to CPU
+            }
+        }
+    }
+
+    // Fall back to CPU implementation (unweighted)
+    compute_snap_gradient(pre_snap, post_snap)
 }
 
 #[cfg(test)]

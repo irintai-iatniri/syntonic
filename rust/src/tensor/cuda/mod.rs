@@ -16,7 +16,7 @@ pub mod async_transfer;
 pub mod memory_pool;
 
 #[cfg(feature = "cuda")]
-pub mod multi_gpu;
+pub mod srt_memory_protocol;
 
 // Re-exports for convenience
 #[cfg(feature = "cuda")]
@@ -30,3 +30,6 @@ pub use memory_pool::{MemoryPool, PooledSlice, PoolConfig, PoolStats};
 
 #[cfg(feature = "cuda")]
 pub use multi_gpu::{peer_copy, scatter, gather, ReduceOp};
+
+#[cfg(feature = "cuda")]
+pub use srt_memory_protocol::{SRTMemoryTransferProtocol, SRTMemoryConfig};

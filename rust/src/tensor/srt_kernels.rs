@@ -192,7 +192,7 @@ const RESONANT_FUNCS: &[&str] = &[
     "resonant_d_phase_f64", "resonant_d_phase_f32",
     "resonant_d_phase_batch_f64",
     "resonant_compute_syntony_f64", "resonant_compute_syntony_f32",
-    "resonant_snap_gradient_f64",
+    "resonant_weighted_snap_gradient_f64",
     "resonant_argmax_syntony_f64",
     "resonant_box_muller_f64", "resonant_box_muller_f32",
     "resonant_residual_modulated_noise_f64",
@@ -1222,7 +1222,7 @@ pub fn cuda_resonant_snap_gradient_f64(
             format!("Failed to load resonant_d kernels: {}", e)
         ))?;
 
-    let func = module.load_function("resonant_snap_gradient_f64")
+    let func = module.load_function("resonant_weighted_snap_gradient_f64")
         .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     unsafe {

@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use super::memory_pool::MemoryPool;
+use super::srt_memory_protocol::{SRTMemoryTransferProtocol, SRTMemoryConfig};
 
 /// CUDA operation errors
 #[derive(Debug, Clone)]
@@ -68,8 +69,8 @@ pub struct DeviceManager {
     /// Cached device handles
     devices: RwLock<HashMap<usize, Arc<CudaDevice>>>,
     /// Memory pools per device (also not thread-safe, created on-demand)
-    pools: RwLock<HashMap<usize, Arc<MemoryPool>>>,
-}
+    pools: RwLock<HashMap<usize, Arc<MemoryPool>>>,    /// SRT Memory Transfer Protocol per device
+    srt_protocols: RwLock<HashMap<usize, Arc<SRTMemoryTransferProtocol>>>,}
 
 impl DeviceManager {
     /// Create a new device manager
@@ -77,6 +78,7 @@ impl DeviceManager {
         DeviceManager {
             devices: RwLock::new(HashMap::new()),
             pools: RwLock::new(HashMap::new()),
+            srt_protocols: RwLock::new(HashMap::new()),
         }
     }
 
@@ -134,6 +136,28 @@ impl DeviceManager {
         Ok(pool)
     }
 
+    /// Get or create SRT Memory Transfer Protocol for the given device
+    pub fn get_srt_protocol(&self, device_idx: usize) -> Result<Arc<SRTMemoryTransferProtocol>, CudaError> {
+        // Fast path: check if already cached
+        {
+            let protocols = self.srt_protocols.read().unwrap();
+            if let Some(protocol) = protocols.get(&device_idx) {
+                return Ok(protocol.clone());
+            }
+        }
+
+        // Slow path: create and cache
+        let config = SRTMemoryConfig::default();
+        let protocol = Arc::new(SRTMemoryTransferProtocol::new(config));
+
+        {
+            let mut protocols = self.srt_protocols.write().unwrap();
+            protocols.insert(device_idx, protocol.clone());
+        }
+
+        Ok(protocol)
+    }
+
     /// Get the number of available CUDA devices
     pub fn device_count() -> usize {
         // In cudarc 0.18.2, use the driver API
@@ -160,6 +184,12 @@ impl DeviceManager {
             for pool in pools.values() {
                 pool.trim();
             }
+        }
+
+        // Clear SRT protocols (they maintain their own state)
+        {
+            let mut protocols = self.srt_protocols.write().unwrap();
+            protocols.clear();
         }
     }
 }
@@ -193,6 +223,11 @@ pub fn create_stream(device_idx: usize) -> Result<cudarc::driver::CudaStream, Cu
 /// Convenience function to get a memory pool
 pub fn get_pool(device_idx: usize) -> Result<Arc<MemoryPool>, CudaError> {
     LOCAL_MANAGER.with(|mgr| mgr.get_pool(device_idx))
+}
+
+/// Convenience function to get SRT Memory Transfer Protocol
+pub fn get_srt_protocol(device_idx: usize) -> Result<Arc<SRTMemoryTransferProtocol>, CudaError> {
+    LOCAL_MANAGER.with(|mgr| mgr.get_srt_protocol(device_idx))
 }
 
 /// Convenience function to sync a device

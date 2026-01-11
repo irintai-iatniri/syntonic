@@ -62,7 +62,6 @@ pub mod loss;
 
 pub use tensor::{ResonantTensor, ResonantPhase, ResonantError};
 pub use evolver::{ResonantEvolver, RESConfig, RESResult};
-pub use attractor::AttractorMemory;
 pub use phi_ops::{PhiResidualMode, phi_residual, phi_residual_relu};
 pub use golden_norm::GoldenNormMode;
 pub use syntonic_softmax::{SyntonicSoftmaxMode, SyntonicSoftmaxState, syntonic_softmax_py};

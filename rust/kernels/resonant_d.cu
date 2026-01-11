@@ -383,8 +383,31 @@ extern "C" __global__ void resonant_residual_modulated_noise_f64(
 }
 
 // =============================================================================
-// φ-Dwell Time Computation
+// Snap Gradient Computation
 // =============================================================================
+
+// Compute gradient from pre-snap to post-snap values
+// gradient[i] = (lattice[i] - flux[i]) * exp(-mode_norm_sq[i] / PHI)
+// Weighted by golden ratio decay to emphasize low-frequency corrections
+extern "C" __global__ void resonant_weighted_snap_gradient_f64(
+    double *gradient,            // Output: snap gradient
+    const double *flux,          // Input: pre-snap values
+    const double *lattice,       // Input: post-snap lattice values
+    const double *mode_norm_sq,  // Input: |n|² for golden weighting
+    int n
+) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n) return;
+
+    // Compute basic gradient: post - pre
+    double basic_gradient = lattice[i] - flux[i];
+
+    // Apply golden weighting: emphasize corrections for low-frequency modes
+    // Weight = exp(-|n|² / φ) - higher weight for fundamental modes
+    double weight = exp(-mode_norm_sq[i] / PHI_F64);
+
+    gradient[i] = basic_gradient * weight;
+}
 
 // Compute ideal dwell times based on syntony
 // H-phase should take φ× longer than D-phase when syntony is high

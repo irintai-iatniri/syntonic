@@ -108,7 +108,7 @@ Complex ops: Full functionality restored
 Overall: 10-50x total performance improvement
 This roadmap will transform Syntonic from a 20-70x slower GPU library into one that competes directly with PyTorch's performance while maintaining its unique SRT mathematical foundations. 🚀
 
-Would you like me to start implementing the cuBLAS matmul integration first?
+-0-0-0-0-
 
 🎯 Current Status: Phase 1 Complete ✅
 ✅ COMPLETED:
@@ -185,3 +185,37 @@ Memory ops: Within 10x of PyTorch GPU performance
 Overall: 10-50x total performance improvement
 SRT correctness: Maintain theory-correct golden algebra
 The foundation is solid with CUDA matrix operations working perfectly. The next phase focuses on the remaining bottlenecks: element-wise operations and memory transfers, which should bring Syntonic to within 3-10x of PyTorch's GPU performance. 🚀
+
+-0-0-0-0-
+
+Plan: Implement Unused CUDA Features for Performance Optimization
+Integrate the 7 unused CUDA kernel functions into the active codebase to eliminate compilation warnings and provide significant performance improvements for SRT operations.
+
+Steps
+Implement cuda_matmul_tn_f64 in matrix operations
+Modify mm_tn() in matmul.rs to use the fused transpose matmul kernel instead of CPU transpose + GPU matmul, providing major speedup for transposed operations common in ML workloads.
+
+Add batch D-phase processing to RES evolver
+Integrate cuda_resonant_d_phase_batch_f64 into evolver.rs evaluate_survivors_cpu() method to enable GPU-accelerated batch evaluation of resonant tensor populations instead of processing one-by-one on CPU.
+
+Implement cuda_matmul_phi_scaled_f64 in SRT operations
+Modify mm_phi() in matmul.rs to use the fused phi-scaled matmul kernel, eliminating separate matmul and scalar multiplication operations for SRT-aligned networks.
+
+Add CUDA phi-residual + ReLU fusion
+Add CUDA implementation using cuda_phi_residual_relu_f64 to phi_ops.rs alongside existing CPU version, enabling fused phi-residual + activation operations on GPU.
+
+Accelerate golden batch normalization
+Add CUDA dispatch using cuda_golden_bn_2d_f64 to batch normalization functions in resonant tensor operations, targeting variance = 1/φ for SRT-aligned normalization.
+
+Integrate snap gradient computation
+Add cuda_resonant_snap_gradient_f64 to gradient computation in tensor.rs crystallization pipeline for GPU-accelerated directed exploration toward lattice points.
+
+Enhance noise generation quality
+Integrate cuda_resonant_box_muller_f64 into noise generation utilities for high-quality Gaussian noise in D-phase operations, replacing simpler random number generation.
+
+Further Considerations
+Testing requirements: Each integration needs validation that CUDA and CPU versions produce identical results within numerical precision.
+Memory management: Ensure proper GPU memory allocation/deallocation patterns match existing codebase conventions.
+Error handling: Propagate CUDA errors consistently with existing error handling patterns.
+Performance benchmarking: Measure speedup gains for each integration, especially for batched operations.
+Backward compatibility: Maintain CPU fallbacks when CUDA is unavailable or fails.

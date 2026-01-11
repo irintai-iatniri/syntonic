@@ -41,6 +41,15 @@ use super::attractor::AttractorMemory;
 use super::retrocausal::harmonize_with_attractor_pull;
 use super::PHI;
 
+#[cfg(feature = "cuda")]
+use cudarc::driver::safe::CudaContext as CudaDevice;
+#[cfg(feature = "cuda")]
+use cudarc::driver::CudaSlice;
+#[cfg(feature = "cuda")]
+use std::sync::Arc;
+#[cfg(feature = "cuda")]
+use crate::tensor::srt_kernels::{cuda_resonant_d_phase_batch_f64, cuda_resonant_box_muller_f64};
+
 /// Universal syntony deficit q - NOT a hyperparameter!
 /// This is a fundamental constant from SRT.
 pub const Q_DEFICIT: f64 = 0.027395146920;
@@ -102,6 +111,10 @@ pub struct RESConfig {
     /// Temporal decay rate for attractors (per generation)
     #[pyo3(get, set)]
     pub attractor_decay_rate: f64,
+
+    /// CUDA device index for GPU acceleration (-1 to disable)
+    #[pyo3(get, set)]
+    pub cuda_device_idx: i32,
 }
 
 impl Default for RESConfig {
@@ -121,6 +134,7 @@ impl Default for RESConfig {
             attractor_pull_strength: 0.3,
             attractor_min_syntony: 0.7,
             attractor_decay_rate: 0.98,
+            cuda_device_idx: -1, // -1 = disabled
         }
     }
 }
@@ -142,7 +156,8 @@ impl RESConfig {
         attractor_capacity=32,
         attractor_pull_strength=0.3,
         attractor_min_syntony=0.7,
-        attractor_decay_rate=0.98
+        attractor_decay_rate=0.98,
+        cuda_device_idx=-1
     ))]
     fn py_new(
         population_size: usize,
@@ -158,6 +173,7 @@ impl RESConfig {
         attractor_pull_strength: f64,
         attractor_min_syntony: f64,
         attractor_decay_rate: f64,
+        cuda_device_idx: i32,
     ) -> Self {
         RESConfig {
             population_size,
@@ -173,14 +189,15 @@ impl RESConfig {
             attractor_pull_strength,
             attractor_min_syntony,
             attractor_decay_rate,
+            cuda_device_idx,
         }
     }
 
     fn __repr__(&self) -> String {
         format!(
-            "RESConfig(pop={}, survivors={}, λ={:.6}, mut_scale={}, prec={})",
+            "RESConfig(pop={}, survivors={}, λ={:.6}, mut_scale={}, prec={}, cuda_device={})",
             self.population_size, self.survivor_count, self.lambda_val,
-            self.mutation_scale, self.precision
+            self.mutation_scale, self.precision, self.cuda_device_idx
         )
     }
 }
@@ -385,6 +402,209 @@ impl ResonantEvolver {
             .collect()
     }
 
+    /// Evaluate survivors using CUDA batch D-phase cycle.
+    ///
+    /// Processes all survivors in a single batch using cuda_resonant_d_phase_batch_f64:
+    /// 1. Batch wake flux with noise (GPU D-phase)
+    /// 2. Batch crystallize back to lattice (CPU)
+    /// 3. Compute final syntony for each survivor
+    ///
+    /// Returns survivors with their scores (syntony after D→H cycle).
+    #[cfg(feature = "cuda")]
+    pub fn evaluate_survivors_cuda(&self, survivors: &[ResonantTensor], device: Arc<CudaDevice>) -> Result<Vec<(ResonantTensor, f64)>, ResonantError> {
+        if survivors.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let pop_size = survivors.len();
+        let n = survivors[0].len();
+
+        // Verify all survivors have the same shape
+        for (i, survivor) in survivors.iter().enumerate() {
+            if survivor.len() != n {
+                return Err(ResonantError::ShapeMismatch(
+                    format!("Survivor {} has length {}, expected {}", i, survivor.len(), n)
+                ));
+            }
+        }
+
+        // Prepare batch data
+        let mut lattice_batch = Vec::with_capacity(n * pop_size);
+        let mut mode_norm_sq_batch = Vec::with_capacity(n * pop_size);
+
+        // Collect lattice and mode norms from all survivors
+        for survivor in survivors {
+            let lattice_floats: Vec<f64> = survivor.lattice().iter().map(|g| g.to_f64()).collect();
+            lattice_batch.extend(lattice_floats);
+            mode_norm_sq_batch.extend(survivor.mode_norm_sq());
+        }
+
+        // Generate Gaussian noise for all survivors using Box-Muller transform
+        let noise_batch: Vec<f64> = self.generate_gaussian_noise(n * pop_size)
+            .into_iter()
+            .map(|x| x * self.config.noise_scale)
+            .collect();
+
+        // Upload to GPU
+        let gpu_lattice_batch = device.default_stream().clone_htod(&lattice_batch)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+        let gpu_mode_norm_sq = device.default_stream().clone_htod(&mode_norm_sq_batch)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+        let gpu_noise_batch = device.default_stream().clone_htod(&noise_batch)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+        // Allocate output buffers
+        let mut gpu_flux_batch: CudaSlice<f64> = device.default_stream().alloc_zeros(n * pop_size)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+        let gpu_syntonies: CudaSlice<f64> = device.default_stream().alloc_zeros(pop_size)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+        // Run batch D-phase kernel
+        cuda_resonant_d_phase_batch_f64(
+            &device,
+            &mut gpu_flux_batch,
+            &gpu_lattice_batch,
+            &gpu_mode_norm_sq,
+            &gpu_noise_batch,
+            &gpu_syntonies,
+            self.config.noise_scale,
+            n,
+            pop_size,
+        ).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+        // Download results
+        let mut host_flux_batch = vec![0.0f64; n * pop_size];
+        let mut host_syntonies = vec![0.0f64; pop_size];
+
+        device.default_stream().memcpy_dtoh(&gpu_flux_batch, &mut host_flux_batch)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+        device.default_stream().memcpy_dtoh(&gpu_syntonies, &mut host_syntonies)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+        // Process each survivor: crystallize and update syntony
+        let mut results = Vec::with_capacity(pop_size);
+        for i in 0..pop_size {
+            let start = i * n;
+            let end = start + n;
+            let flux_slice = &host_flux_batch[start..end];
+
+            // Create a copy of the survivor and crystallize it
+            let mut survivor = survivors[i].clone();
+            survivor.crystallize_cpu(flux_slice, self.config.precision)
+                .map_err(|e| ResonantError::CudaError(format!("Crystallization failed: {}", e)))?;
+
+            let final_syntony = survivor.syntony();
+            results.push((survivor, final_syntony));
+        }
+
+        Ok(results)
+    }
+
+    /// Generate Gaussian noise using Box-Muller transform.
+    ///
+    /// Uses CUDA acceleration if available, otherwise falls back to CPU.
+    /// The Box-Muller transform converts uniform random numbers to Gaussian.
+    ///
+    /// # Arguments
+    /// * `count` - Number of Gaussian samples to generate
+    /// * `device` - Optional CUDA device for acceleration
+    ///
+    /// # Returns
+    /// Vector of Gaussian random numbers with mean 0, variance 1
+    #[cfg(feature = "cuda")]
+    pub fn generate_gaussian_noise_cuda(&self, count: usize, device: Option<&Arc<CudaDevice>>) -> Result<Vec<f64>, ResonantError> {
+        if count == 0 {
+            return Ok(Vec::new());
+        }
+
+        // Generate uniform random numbers (2 per Gaussian sample for Box-Muller)
+        let mut uniform_noise = Vec::with_capacity(2 * count);
+        let mut rng = rand::thread_rng();
+        for _ in 0..(2 * count) {
+            uniform_noise.push(rng.gen::<f64>()); // Uniform [0, 1)
+        }
+
+        if let Some(device) = device {
+            // Upload uniform noise to GPU
+            let gpu_uniform = device.default_stream().clone_htod(&uniform_noise)
+                .map_err(|e| ResonantError::CudaError(format!("Failed to upload uniform noise: {}", e)))?;
+
+            // Allocate output buffer for Gaussian noise
+            let mut gpu_gaussian: CudaSlice<f64> = device.default_stream().alloc_zeros(count)
+                .map_err(|e| ResonantError::CudaError(format!("Failed to allocate Gaussian buffer: {}", e)))?;
+
+            // Run Box-Muller transform on GPU
+            cuda_resonant_box_muller_f64(
+                device,
+                &mut gpu_gaussian,
+                &gpu_uniform,
+                count,
+            ).map_err(|e| ResonantError::CudaError(format!("CUDA Box-Muller failed: {}", e)))?;
+
+            // Download Gaussian noise
+            let mut gaussian_noise = vec![0.0f64; count];
+            device.default_stream().memcpy_dtoh(&gpu_gaussian, &mut gaussian_noise)
+                .map_err(|e| ResonantError::CudaError(format!("Failed to download Gaussian noise: {}", e)))?;
+
+            Ok(gaussian_noise)
+        } else {
+            // CPU fallback: simple Box-Muller implementation
+            let mut gaussian_noise = Vec::with_capacity(count);
+            let mut rng = rand::thread_rng();
+
+            for i in (0..(2 * count)).step_by(2) {
+                // Box-Muller transform: convert two uniform [0,1) to one Gaussian
+                let u1 = uniform_noise[i];
+                let u2 = uniform_noise[i + 1];
+                let r = (-2.0 * u1.ln()).sqrt();
+                let theta = 2.0 * std::f64::consts::PI * u2;
+                let z0 = r * theta.cos();
+                gaussian_noise.push(z0);
+            }
+
+            Ok(gaussian_noise)
+        }
+    }
+
+    /// Generate Gaussian noise with automatic CUDA dispatch.
+    ///
+    /// Uses CUDA acceleration if available, otherwise falls back to CPU.
+    ///
+    /// # Arguments
+    /// * `count` - Number of Gaussian samples to generate
+    ///
+    /// # Returns
+    /// Vector of Gaussian random numbers with mean 0, variance 1
+    pub fn generate_gaussian_noise(&self, count: usize) -> Vec<f64> {
+        #[cfg(feature = "cuda")]
+        {
+            if self.config.cuda_device_idx >= 0 {
+                if let Ok(device) = crate::tensor::cuda::device_manager::get_device(self.config.cuda_device_idx as usize) {
+                    match self.generate_gaussian_noise_cuda(count, Some(&device)) {
+                        Ok(noise) => return noise,
+                        Err(_) => {} // Fall back to CPU
+                    }
+                }
+            }
+        }
+
+        // CPU fallback
+        let mut gaussian_noise = Vec::with_capacity(count);
+        let mut rng = rand::thread_rng();
+
+        for _ in 0..count {
+            // Box-Muller transform
+            let u1 = rng.gen::<f64>();
+            let u2 = rng.gen::<f64>();
+            let r = (-2.0 * u1.ln()).sqrt();
+            let theta = 2.0 * std::f64::consts::PI * u2;
+            let z0 = r * theta.cos();
+            gaussian_noise.push(z0);
+        }
+
+        gaussian_noise
+    }
+
     /// Apply retrocausal harmonization to survivors.
     ///
     /// Uses attractor memory to bias harmonization toward proven high-syntony states.
@@ -448,8 +668,35 @@ impl ResonantEvolver {
             survivors = self.apply_retrocausal_harmonization(survivors)?;
         }
 
-        // Step 4: Evaluate survivors (CPU D→H cycle)
-        let evaluated = self.evaluate_survivors_cpu(survivors);
+        // Step 4: Evaluate survivors (CUDA if available, else CPU)
+        let evaluated = if self.config.cuda_device_idx >= 0 {
+            #[cfg(feature = "cuda")]
+            {
+                match crate::tensor::cuda::device_manager::get_device(self.config.cuda_device_idx as usize) {
+                    Ok(device) => {
+                        match self.evaluate_survivors_cuda(&survivors, device) {
+                            Ok(results) => results,
+                            Err(_) => {
+                                // Fall back to CPU on CUDA error
+                                self.evaluate_survivors_cpu(survivors)
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        // Fall back to CPU if device not available
+                        self.evaluate_survivors_cpu(survivors)
+                    }
+                }
+            }
+            #[cfg(not(feature = "cuda"))]
+            {
+                // CUDA not compiled in, use CPU
+                self.evaluate_survivors_cpu(survivors)
+            }
+        } else {
+            // CUDA disabled, use CPU
+            self.evaluate_survivors_cpu(survivors)
+        };
 
         // Step 5: Select winner and update attractors
         if let Some((winner, _score)) = self.select_winner_with_score(&evaluated) {

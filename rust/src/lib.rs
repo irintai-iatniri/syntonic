@@ -223,6 +223,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_crystallize_with_dwell_legacy, m)?)?;
     m.add_function(wrap_pyfunction!(py_snap_distance, m)?)?;
     m.add_function(wrap_pyfunction!(py_compute_snap_gradient, m)?)?;
+    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_compute_snap_gradient_cuda, m)?)?;
 
     // === Loss Functions (Rust Performance Backend) ===
     m.add_function(wrap_pyfunction!(py_mse_loss, m)?)?;

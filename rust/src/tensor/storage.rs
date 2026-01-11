@@ -9,7 +9,6 @@ use ndarray::{ArrayD, IxDyn, Ix1, Ix2};
 use ndarray_linalg::{Eig, Eigh, SVD, QR, Inverse, Solve, Determinant, Trace, Cholesky, UPLO};
 use num_complex::Complex64;
 use rand::Rng;
-use lazy_static::lazy_static;
 
 // Import exact types - all numerical constants derive from these
 // Use re-export paths from exact/mod.rs for SymExpr
@@ -46,6 +45,8 @@ use super::cuda::{peer_copy, scatter, gather, ReduceOp};
 use super::cuda::multi_gpu::MultiGpuInfo;
 #[cfg(feature = "cuda")]
 use super::srt_kernels;
+#[cfg(feature = "cuda")]
+use super::cuda::srt_memory_protocol::{SRTMemoryTransferProtocol, SRTMemoryConfig};
 
 /// Pre-compiled PTX kernels for different compute capabilities
 /// These are compiled offline to ensure driver compatibility
@@ -2987,15 +2988,21 @@ impl TensorStorage {
     fn cpu_to_cuda(cpu_data: CpuData, shape: Vec<usize>, device_idx: usize) -> PyResult<TensorStorage> {
         // Use DeviceManager for cached device handles
         let device = get_device(device_idx)?;
+        let manager = get_local_manager();
+
+        // Get SRT memory transfer protocol for this device
+        let srt_protocol = manager.with(|mgr| mgr.get_srt_protocol(device_idx))?;
 
         let (cuda_data, dtype) = match cpu_data {
             CpuData::Float32(arr) => {
-                let slice = device.default_stream().clone_htod(arr.as_slice().unwrap())
+                // Use SRT protocol for H2D transfer
+                let slice = srt_protocol.srt_h2d_transfer_f32(&device, &arr.as_slice().unwrap())
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
                 (CudaData::Float32(slice), "float32".to_string())
             },
             CpuData::Float64(arr) => {
-                let slice = device.default_stream().clone_htod(arr.as_slice().unwrap())
+                // Use SRT protocol for H2D transfer
+                let slice = srt_protocol.srt_h2d_transfer_f64(&device, &arr.as_slice().unwrap())
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
                 (CudaData::Float64(slice), "float64".to_string())
             },
@@ -3009,7 +3016,8 @@ impl TensorStorage {
                         complex_slice.len() * 2
                     )
                 };
-                let slice = device.default_stream().clone_htod(interleaved)
+                // Use SRT protocol for H2D transfer
+                let slice = srt_protocol.srt_h2d_transfer_f64(&device, interleaved)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
                 (CudaData::Complex128(slice), "complex128".to_string())
             },
@@ -3033,36 +3041,36 @@ impl TensorStorage {
     #[cfg(feature = "cuda")]
     fn cuda_to_cpu(data: &Arc<CudaData>, device: &Arc<CudaDevice>, shape: &[usize]) -> PyResult<CpuData> {
         let dim = IxDyn(shape);
+        let manager = get_local_manager();
+        let device_idx = device.ordinal() as usize;
+
+        // Get SRT memory transfer protocol for this device
+        let srt_protocol = manager.with(|mgr| mgr.get_srt_protocol(device_idx))?;
 
         match data.as_ref() {
             CudaData::Float32(slice) => {
-                let mut host_data = vec![0f32; slice.len()];
-                device.default_stream().memcpy_dtoh(slice, &mut host_data)
+                // Use SRT protocol for D2H transfer
+                let host_data = srt_protocol.srt_d2h_transfer_f32(&device, slice)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
                 Ok(CpuData::Float32(ArrayD::from_shape_vec(dim, host_data)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?))
             },
             CudaData::Float64(slice) => {
-                let mut host_data = vec![0f64; slice.len()];
-                device.default_stream().memcpy_dtoh(slice, &mut host_data)
+                // Use SRT protocol for D2H transfer
+                let host_data = srt_protocol.srt_d2h_transfer_f64(&device, slice)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
                 Ok(CpuData::Float64(ArrayD::from_shape_vec(dim, host_data)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?))
             },
             CudaData::Complex128(slice) => {
                 // slice contains interleaved [re0, im0, re1, im1, ...]
-                // Complex64 is #[repr(C)] so we can zero-copy into it
-                let num_complex = slice.len() / 2;
-
-                // Allocate uninitialized buffer for f64 values
-                let mut host_data: Vec<f64> = Vec::with_capacity(slice.len());
-                unsafe { host_data.set_len(slice.len()); }
-
-                device.default_stream().memcpy_dtoh(slice, &mut host_data)
+                // Use SRT protocol for D2H transfer
+                let host_data = srt_protocol.srt_d2h_transfer_f64(&device, slice)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
                 // Convert the Vec<f64> to Vec<Complex64> via reinterpret
                 // This is safe because Complex64 is #[repr(C)] with layout [re, im]
+                let num_complex = host_data.len() / 2;
                 let complex_data: Vec<Complex64> = unsafe {
                     let ptr = host_data.as_mut_ptr() as *mut Complex64;
                     let cap = host_data.capacity() / 2;

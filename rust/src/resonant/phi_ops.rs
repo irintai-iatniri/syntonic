@@ -100,8 +100,36 @@ impl ResonantTensor {
         residual: &ResonantTensor,
         mode: PhiResidualMode,
     ) -> Result<ResonantTensor, ResonantError> {
-        let combined = Self::phi_residual(identity, residual, mode)?;
+        // For now, only support phi mode with CUDA acceleration
+        // TODO: Add support for other modes with CUDA
+        if mode != PhiResidualMode::Phi {
+            // Fallback to CPU for non-phi modes
+            let combined = Self::phi_residual(identity, residual, mode)?;
+            let combined_floats = combined.to_floats_core();
+            let relu_floats: Vec<f64> = combined_floats.iter()
+                .map(|&x| if x > 0.0 { x } else { 0.0 })
+                .collect();
 
+            return ResonantTensor::from_floats(
+                &relu_floats,
+                combined.shape().to_vec(),
+                combined.mode_norm_sq().to_vec(),
+                combined.precision(),
+            );
+        }
+
+        // Try CUDA acceleration for phi mode
+        #[cfg(feature = "cuda")]
+        {
+            if let Some(device_idx) = identity.device_idx().or(residual.device_idx()) {
+                if let Ok(device) = crate::tensor::cuda::device_manager::get_device(device_idx) {
+                    return Self::phi_residual_relu_cuda(identity, residual);
+                }
+            }
+        }
+
+        // Fallback to CPU
+        let combined = Self::phi_residual(identity, residual, mode)?;
         let combined_floats = combined.to_floats_core();
         let relu_floats: Vec<f64> = combined_floats.iter()
             .map(|&x| if x > 0.0 { x } else { 0.0 })
@@ -181,6 +209,52 @@ impl ResonantTensor {
             identity_flux,
             residual_flux,
             mode,
+        ).map_err(|e| ResonantError::CudaError(e))?;
+
+        // Create output tensor (flux phase)
+        let mut output = identity.clone();
+        output.set_flux(out_flux);
+        output.set_device_idx(device_idx);
+
+        Ok(output)
+    }
+
+    /// GPU-accelerated fused phi-residual + ReLU operation
+    pub fn phi_residual_relu_cuda(
+        identity: &ResonantTensor,
+        residual: &ResonantTensor,
+    ) -> Result<ResonantTensor, ResonantError> {
+        use crate::tensor::srt_kernels::cuda_phi_residual_relu_f64;
+
+        let device_idx = identity.device_idx().or(residual.device_idx()).unwrap_or(0);
+        let device = crate::tensor::cuda::device_manager::get_device(device_idx)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+        // Ensure both tensors are in flux phase
+        let mut identity = identity.clone();
+        if identity.phase() != ResonantPhase::Flux {
+            identity.wake_flux(device.clone())?;
+        }
+
+        let mut residual = residual.clone();
+        if residual.phase() != ResonantPhase::Flux {
+            residual.wake_flux(device.clone())?;
+        }
+
+        // Allocate output
+        let n = identity.len();
+        let mut out_flux = device.default_stream().alloc_zeros::<f64>(n)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+        // Launch kernel (note: cuda_phi_residual_relu_f64 doesn't take mode, assumes phi mode)
+        let identity_flux = identity.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
+        let residual_flux = residual.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
+
+        cuda_phi_residual_relu_f64(
+            &device,
+            &mut out_flux,
+            identity_flux,
+            residual_flux,
         ).map_err(|e| ResonantError::CudaError(e))?;
 
         // Create output tensor (flux phase)

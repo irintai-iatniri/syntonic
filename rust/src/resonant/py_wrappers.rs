@@ -126,6 +126,23 @@ pub fn py_compute_snap_gradient(
     super::crystallize::compute_snap_gradient(&pre_snap, &post_snap)
 }
 
+/// Compute snap gradient with CUDA acceleration.
+/// 
+/// Uses GPU acceleration when available for computing gradients towards lattice points.
+#[pyfunction]
+pub fn py_compute_snap_gradient_cuda(
+    pre_snap: Vec<f64>,
+    post_snap_lattice: Vec<f64>,
+    mode_norm_sq: Vec<f64>,
+) -> Vec<f64> {
+    // Convert f64 post_snap to GoldenExact for the function
+    let post_snap: Vec<crate::GoldenExact> = post_snap_lattice.iter()
+        .map(|&x| crate::GoldenExact::find_nearest(x, 1000))
+        .collect();
+    
+    super::crystallize::compute_snap_gradient_dispatch(&pre_snap, &post_snap, &mode_norm_sq)
+}
+
 // === Loss Functions ===
 
 /// Compute Mean Squared Error loss.

@@ -393,11 +393,113 @@ fn cuda_golden_batch_norm_2d_dispatch(
     affine_gamma: Option<&ResonantTensor>,
     affine_beta: Option<&ResonantTensor>,
 ) -> Result<ResonantTensor, ResonantError> {
-    
+    use crate::tensor::cuda::device_manager::get_device;
+    use crate::tensor::srt_kernels::cuda_golden_bn_2d_f64;
+    use cudarc::driver::CudaSlice;
+    use std::sync::Arc;
 
-    // For this refactor, we fall back to CPU if stats are not on GPU
-    // Actually, we'll just return an error or the CPU implementation for now.
-    cpu_golden_batch_norm_2d(input, mode, eps, affine_gamma, affine_beta)
+    // Only use CUDA for Golden mode (the kernel is hardcoded for golden ratio)
+    if !matches!(mode, GoldenNormMode::Golden {}) {
+        return cpu_golden_batch_norm_2d(input, mode, eps, affine_gamma, affine_beta);
+    }
+
+    // Get the device from the tensor
+    let device_idx = input.device_idx().unwrap_or(0);
+    let device = get_device(device_idx)
+        .map_err(|e| ResonantError::CudaError(format!("Failed to get CUDA device: {}", e)))?;
+
+    let batch_size = input.shape()[0] as i32;
+    let channels = input.shape()[1] as i32;
+    let height = input.shape()[2] as i32;
+    let width = input.shape()[3] as i32;
+
+    // Get flux data from GPU
+    let flux = input.flux_ref()
+        .ok_or(ResonantError::NoFluxPresent)?;
+
+    // Compute batch statistics (mean and variance per channel)
+    // This is a simplified version - in practice you'd want to use CUDA kernels for this too
+    let input_host = input.to_floats_core();
+    let mut mean_data = vec![0.0f64; channels as usize];
+    let mut var_data = vec![0.0f64; channels as usize];
+
+    let spatial_size = (height * width) as usize;
+    let batch_spatial = (batch_size as usize) * spatial_size;
+
+    for c in 0..channels as usize {
+        let mut sum = 0.0;
+        let mut sum_sq = 0.0;
+
+        for b in 0..batch_size as usize {
+            for s in 0..spatial_size {
+                let idx = (b * channels as usize + c) * spatial_size + s;
+                let val = input_host[idx];
+                sum += val;
+                sum_sq += val * val;
+            }
+        }
+
+        let count = batch_spatial as f64;
+        mean_data[c] = sum / count;
+        var_data[c] = (sum_sq / count) - (mean_data[c] * mean_data[c]);
+    }
+
+    // Upload statistics to GPU
+    let gpu_mean = device.default_stream().clone_htod(&mean_data)
+        .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+    let gpu_var = device.default_stream().clone_htod(&var_data)
+        .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+    // Prepare affine parameters
+    let gpu_gamma = if let Some(gamma) = affine_gamma {
+        let gamma_data = gamma.to_floats_core();
+        Some(device.default_stream().clone_htod(&gamma_data)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?)
+    } else {
+        None
+    };
+
+    let gpu_beta = if let Some(beta) = affine_beta {
+        let beta_data = beta.to_floats_core();
+        Some(device.default_stream().clone_htod(&beta_data)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?)
+    } else {
+        None
+    };
+
+    // Allocate output buffer
+    let total_elements = (batch_size * channels * height * width) as usize;
+    let mut gpu_output: CudaSlice<f64> = device.default_stream().alloc_zeros(total_elements)
+        .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+    // Run CUDA kernel
+    cuda_golden_bn_2d_f64(
+        &device,
+        &mut gpu_output,
+        flux,
+        &gpu_mean,
+        &gpu_var,
+        gpu_gamma.as_ref(),
+        gpu_beta.as_ref(),
+        eps,
+        batch_size,
+        channels,
+        height,
+        width,
+    ).map_err(|e| ResonantError::CudaError(e))?;
+
+    // Download result
+    let mut output_data = vec![0.0f64; total_elements];
+    device.default_stream().memcpy_dtoh(&gpu_output, &mut output_data)
+        .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+    // Create output tensor
+    ResonantTensor::from_floats(
+        &output_data,
+        input.shape().to_vec(),
+        input.mode_norm_sq().to_vec(),
+        input.precision(),
+    )
 }
 
 // ============================================================================
