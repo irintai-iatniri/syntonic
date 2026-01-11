@@ -1,0 +1,7491 @@
+{
+  "metadata": {
+    "timestamp": 1768159886.2488754,
+    "sizes": [
+      100,
+      500,
+      1000
+    ],
+    "iterations": 100,
+    "gpu_enabled": true,
+    "libraries": [
+      "numpy",
+      "torch",
+      "syntonic"
+    ],
+    "cuda_available": true,
+    "cuda_devices": 1
+  },
+  "results": [
+    {
+      "operation": "add_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0025342099979752675,
+      "iterations": 100,
+      "throughput": 394600.28995188244,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.002504230005797581,
+      "iterations": 100,
+      "throughput": 399324.3422868047,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.002449100002195337,
+      "iterations": 100,
+      "throughput": 408313.2575654791,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0024346900045202347,
+      "iterations": 100,
+      "throughput": 410729.90735716023,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006474440006059012,
+      "iterations": 100,
+      "throughput": 154453.51243724002,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006416670003090985,
+      "iterations": 100,
+      "throughput": 155844.07481112293,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.00638313000308699,
+      "iterations": 100,
+      "throughput": 156662.95367889781,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006125449999672128,
+      "iterations": 100,
+      "throughput": 163253.31201030556,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.019358339995960705,
+      "iterations": 100,
+      "throughput": 51657.321867921484,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.018948110000565066,
+      "iterations": 100,
+      "throughput": 52775.71219346828,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.019114349997835234,
+      "iterations": 100,
+      "throughput": 52316.714934761236,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.019157409997205832,
+      "iterations": 100,
+      "throughput": 52199.12295794959,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.004590299995470559,
+      "iterations": 100,
+      "throughput": 217850.68535536714,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.00435300999924948,
+      "iterations": 100,
+      "throughput": 229726.0976134707,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.004406580001159455,
+      "iterations": 100,
+      "throughput": 226933.35869015905,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.004959409998264164,
+      "iterations": 100,
+      "throughput": 201636.8883294603,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006296809997365926,
+      "iterations": 100,
+      "throughput": 158810.5724038551,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006396239996320219,
+      "iterations": 100,
+      "throughput": 156341.85092731102,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006340889995044563,
+      "iterations": 100,
+      "throughput": 157706.5681286862,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006066070000088075,
+      "iterations": 100,
+      "throughput": 164851.37823755425,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.01940889000252355,
+      "iterations": 100,
+      "throughput": 51522.78156401421,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.018997429997398285,
+      "iterations": 100,
+      "throughput": 52638.6990312348,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.019149830004607793,
+      "iterations": 100,
+      "throughput": 52219.7847061505,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.01886107000245829,
+      "iterations": 100,
+      "throughput": 53019.26136055183,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0048140500075533055,
+      "iterations": 100,
+      "throughput": 207725.3037319902,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0047991599967645016,
+      "iterations": 100,
+      "throughput": 208369.7981884705,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.004112400001758942,
+      "iterations": 100,
+      "throughput": 243167.00699647,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.021212940000623348,
+      "iterations": 100,
+      "throughput": 47141.03749742443,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.006093199999668286,
+      "iterations": 100,
+      "throughput": 164117.37675678462,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.006285340004978934,
+      "iterations": 100,
+      "throughput": 159100.38266948957,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.006050849997336627,
+      "iterations": 100,
+      "throughput": 165266.03707581002,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0062191899996832944,
+      "iterations": 100,
+      "throughput": 160792.64342316668,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.019102899996141787,
+      "iterations": 100,
+      "throughput": 52348.0728162724,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.01902377999613236,
+      "iterations": 100,
+      "throughput": 52565.7887235505,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.019217790004404378,
+      "iterations": 100,
+      "throughput": 52035.11953095635,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "Function div_c128 not found in cached module"
+    },
+    {
+      "operation": "add_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.010501179995117127,
+      "iterations": 100,
+      "throughput": 95227.3935372009,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.010491880002518883,
+      "iterations": 100,
+      "throughput": 95311.80300955793,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.009477789999436936,
+      "iterations": 100,
+      "throughput": 105509.8287743671,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.02246255999125424,
+      "iterations": 100,
+      "throughput": 44518.523284494215,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006211099998836289,
+      "iterations": 100,
+      "throughput": 161002.0769569577,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006247379997148528,
+      "iterations": 100,
+      "throughput": 160067.10020143274,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0062052300017967355,
+      "iterations": 100,
+      "throughput": 161154.38101576382,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006237130000954494,
+      "iterations": 100,
+      "throughput": 160330.15182415082,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "add_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.018989709997185855,
+      "iterations": 100,
+      "throughput": 52660.098555912286,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "subtract_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.019041269997615018,
+      "iterations": 100,
+      "throughput": 52517.50540406461,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "multiply_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.019242580001446186,
+      "iterations": 100,
+      "throughput": 51968.08327806586,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "divide_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "Function div_c128 not found in cached module"
+    },
+    {
+      "operation": "add_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.06181856999319279,
+      "iterations": 100,
+      "throughput": 16176.369011934696,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.059312840003258316,
+      "iterations": 100,
+      "throughput": 16859.755829345984,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.06001625999488169,
+      "iterations": 100,
+      "throughput": 16662.15122510603,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.058441220007807715,
+      "iterations": 100,
+      "throughput": 17111.2102017446,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006419470000764704,
+      "iterations": 100,
+      "throughput": 155776.09987754087,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006403360002877889,
+      "iterations": 100,
+      "throughput": 156168.011723621,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.00639143999251246,
+      "iterations": 100,
+      "throughput": 156459.26444924696,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006192609998834087,
+      "iterations": 100,
+      "throughput": 161482.79968999742,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.019035539999094908,
+      "iterations": 100,
+      "throughput": 52533.314003571606,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0190916700012167,
+      "iterations": 100,
+      "throughput": 52378.86470572091,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.019005149997610715,
+      "iterations": 100,
+      "throughput": 52617.31689177501,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.018849699999918812,
+      "iterations": 100,
+      "throughput": 53051.24219506449,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.1102610599991749,
+      "iterations": 100,
+      "throughput": 9069.384966981845,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.10999078000168083,
+      "iterations": 100,
+      "throughput": 9091.671138114652,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.1098865600033605,
+      "iterations": 100,
+      "throughput": 9100.293975618297,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.10832187999767484,
+      "iterations": 100,
+      "throughput": 9231.74523947946,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006341359994621598,
+      "iterations": 100,
+      "throughput": 157694.8794656267,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006354700008159853,
+      "iterations": 100,
+      "throughput": 157363.84073456406,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006233599997358397,
+      "iterations": 100,
+      "throughput": 160420.9446265029,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006171100003484753,
+      "iterations": 100,
+      "throughput": 162045.66437674174,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.019030080002266914,
+      "iterations": 100,
+      "throughput": 52548.386548079536,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.01916857000651362,
+      "iterations": 100,
+      "throughput": 52168.732443796944,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.018985260003319127,
+      "iterations": 100,
+      "throughput": 52672.441663963175,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.018999679996341,
+      "iterations": 100,
+      "throughput": 52632.465399026834,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.12161310999545094,
+      "iterations": 100,
+      "throughput": 8222.797690457928,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.11946872000407893,
+      "iterations": 100,
+      "throughput": 8370.39184789004,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.10423676999380405,
+      "iterations": 100,
+      "throughput": 9593.543622461068,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.5097283200029779,
+      "iterations": 100,
+      "throughput": 1961.8293917712047,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.006292140005825786,
+      "iterations": 100,
+      "throughput": 158928.44073306012,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0063167900043481495,
+      "iterations": 100,
+      "throughput": 158308.25455835197,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.00623832999735896,
+      "iterations": 100,
+      "throughput": 160299.31094112637,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.006224970002222108,
+      "iterations": 100,
+      "throughput": 160643.34440857277,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.01889567000034731,
+      "iterations": 100,
+      "throughput": 52922.177407925716,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.01876938000350492,
+      "iterations": 100,
+      "throughput": 53278.26490876437,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.018884900000557536,
+      "iterations": 100,
+      "throughput": 52952.35876125778,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "Function div_c128 not found in cached module"
+    },
+    {
+      "operation": "add_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.2776589099994453,
+      "iterations": 100,
+      "throughput": 3601.5411859176343,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.2639235699916753,
+      "iterations": 100,
+      "throughput": 3788.975725175065,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.2864190799937205,
+      "iterations": 100,
+      "throughput": 3491.3875151820334,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.5881945199962502,
+      "iterations": 100,
+      "throughput": 1700.117845379408,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006374579998009722,
+      "iterations": 100,
+      "throughput": 156873.08031465934,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006247439996514004,
+      "iterations": 100,
+      "throughput": 160065.56294385987,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006233409994820249,
+      "iterations": 100,
+      "throughput": 160425.8344679663,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006343040004139766,
+      "iterations": 100,
+      "throughput": 157653.1126001654,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "add_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.021728809997512144,
+      "iterations": 100,
+      "throughput": 46021.848417584566,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "subtract_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.020342389998404542,
+      "iterations": 100,
+      "throughput": 49158.432223471784,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "multiply_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.01997465999920678,
+      "iterations": 100,
+      "throughput": 50063.430368262154,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "divide_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "Function div_c128 not found in cached module"
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.27538768000340497,
+      "iterations": 100,
+      "throughput": 3631.244505882165,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.2655037299973628,
+      "iterations": 100,
+      "throughput": 3766.425428410865,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.2680014999987179,
+      "iterations": 100,
+      "throughput": 3731.3223993327792,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.2646237699991616,
+      "iterations": 100,
+      "throughput": 3778.9500164825263,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006473809999079094,
+      "iterations": 100,
+      "throughput": 154468.54327548243,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0063338700056192465,
+      "iterations": 100,
+      "throughput": 157881.35833429257,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.00625366999884136,
+      "iterations": 100,
+      "throughput": 159906.10316586477,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006014869995851768,
+      "iterations": 100,
+      "throughput": 166254.63238435125,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.019053980004173354,
+      "iterations": 100,
+      "throughput": 52482.473466486896,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.01932431000568613,
+      "iterations": 100,
+      "throughput": 51748.29009189733,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.019242669995946926,
+      "iterations": 100,
+      "throughput": 51967.84023270313,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.018984909993378096,
+      "iterations": 100,
+      "throughput": 52673.41274458495,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.7478676599930623,
+      "iterations": 100,
+      "throughput": 1337.1349685173934,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.7513865399960196,
+      "iterations": 100,
+      "throughput": 1330.8729219521254,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.7423469600053068,
+      "iterations": 100,
+      "throughput": 1347.078999276634,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.7349955500012584,
+      "iterations": 100,
+      "throughput": 1360.5524550431467,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006512859999929788,
+      "iterations": 100,
+      "throughput": 153542.37616205178,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006352230002448778,
+      "iterations": 100,
+      "throughput": 157425.0302042749,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006176779997986159,
+      "iterations": 100,
+      "throughput": 161896.65170623432,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006154200000310084,
+      "iterations": 100,
+      "throughput": 162490.65677904754,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.018894019995059352,
+      "iterations": 100,
+      "throughput": 52926.799075130264,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.019403619999138755,
+      "iterations": 100,
+      "throughput": 51536.77509889319,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.019176349996996578,
+      "iterations": 100,
+      "throughput": 52147.567193789284,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.01903303999824857,
+      "iterations": 100,
+      "throughput": 52540.214284844704,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.7577357700029097,
+      "iterations": 100,
+      "throughput": 1319.721253222822,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.7380010500037315,
+      "iterations": 100,
+      "throughput": 1355.0116222665858,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.7370892400012963,
+      "iterations": 100,
+      "throughput": 1356.6878279192372,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 2.187159370005247,
+      "iterations": 100,
+      "throughput": 457.21405294649423,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.006265199999688775,
+      "iterations": 100,
+      "throughput": 159611.8240518539,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0063695900007587625,
+      "iterations": 100,
+      "throughput": 156995.9761744284,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0061252799969224725,
+      "iterations": 100,
+      "throughput": 163257.84298879895,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.00624186999630183,
+      "iterations": 100,
+      "throughput": 160208.3991804504,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.01906206000057864,
+      "iterations": 100,
+      "throughput": 52460.2272770962,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.01938502000484732,
+      "iterations": 100,
+      "throughput": 51586.22481431255,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.01949995999893872,
+      "iterations": 100,
+      "throughput": 51282.15647900943,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "Function div_c128 not found in cached module"
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 1.744507289995454,
+      "iterations": 100,
+      "throughput": 573.2277564759307,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 1.7227237800034345,
+      "iterations": 100,
+      "throughput": 580.476110916636,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 1.8027653099943564,
+      "iterations": 100,
+      "throughput": 554.7033740088611,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 2.6530797200030065,
+      "iterations": 100,
+      "throughput": 376.92044926522857,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0069944900042173686,
+      "iterations": 100,
+      "throughput": 142969.68033366895,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006019520005793311,
+      "iterations": 100,
+      "throughput": 166126.20259382465,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006125629997768556,
+      "iterations": 100,
+      "throughput": 163248.51490610433,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006282519998421776,
+      "iterations": 100,
+      "throughput": 159171.7973442518,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "add_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.01904351000121096,
+      "iterations": 100,
+      "throughput": 52511.32800289499,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "subtract_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.018807149999702233,
+      "iterations": 100,
+      "throughput": 53171.26731141256,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "multiply_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.019108559999949648,
+      "iterations": 100,
+      "throughput": 52332.56718468765,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "divide_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "Function div_c128 not found in cached module"
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.014669459997094236,
+      "iterations": 100,
+      "throughput": 68168.8351308148,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.00015237999832606874,
+      "iterations": 100,
+      "throughput": 6562541.087972455,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.00018591999833006412,
+      "iterations": 100,
+      "throughput": 5378657.535402395,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.010641979997672024,
+      "iterations": 100,
+      "throughput": 93967.47599777053,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0010903700058406685,
+      "iterations": 100,
+      "throughput": 917119.8718264506,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.001285070002268185,
+      "iterations": 100,
+      "throughput": 778167.7248982326,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.08106354999654286,
+      "iterations": 100,
+      "throughput": 12336.000582785324,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.03065677000449796,
+      "iterations": 100,
+      "throughput": 32619.22243776106,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.3960846700010734,
+      "iterations": 100,
+      "throughput": 2524.712708515808,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.08168721999936679,
+      "iterations": 100,
+      "throughput": 12241.81701871788,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.000296990001515951,
+      "iterations": 100,
+      "throughput": 3367116.7207502476,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.00040934000026027206,
+      "iterations": 100,
+      "throughput": 2442956.9535451373,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.01381798999318562,
+      "iterations": 100,
+      "throughput": 72369.42569021636,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0018941899998026202,
+      "iterations": 100,
+      "throughput": 527930.1443383202,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0021755399939138442,
+      "iterations": 100,
+      "throughput": 459655.9947404038,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.09425606000149855,
+      "iterations": 100,
+      "throughput": 10609.397422129688,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.030344300002980162,
+      "iterations": 100,
+      "throughput": 32955.11842098148,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.3955282099923352,
+      "iterations": 100,
+      "throughput": 2528.2646717395423,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.02358228000048257,
+      "iterations": 100,
+      "throughput": 42404.72083189313,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.00028589000066858716,
+      "iterations": 100,
+      "throughput": 3497848.814793743,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0003762500000448199,
+      "iterations": 100,
+      "throughput": 2657807.308653495,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.01234409000062442,
+      "iterations": 100,
+      "throughput": 81010.42684794226,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.001761189996614121,
+      "iterations": 100,
+      "throughput": 567797.9104596864,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0019505599993863143,
+      "iterations": 100,
+      "throughput": 512673.28373114404,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.15970228000696807,
+      "iterations": 100,
+      "throughput": 6261.651367509396,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.044171199997435906,
+      "iterations": 100,
+      "throughput": 22639.18571508243,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.5146138300005987,
+      "iterations": 100,
+      "throughput": 1943.2046744620848,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.036337289993753075,
+      "iterations": 100,
+      "throughput": 27519.93888845082,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0002858400057448307,
+      "iterations": 100,
+      "throughput": 3498460.606989701,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.00038460000723716803,
+      "iterations": 100,
+      "throughput": 2600103.9552329974,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.013990449997436372,
+      "iterations": 100,
+      "throughput": 71477.32919121553,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0017617899993638275,
+      "iterations": 100,
+      "throughput": 567604.5387708492,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0019530800000211457,
+      "iterations": 100,
+      "throughput": 512011.7967462537,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "matmul_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.6771351799943659,
+      "iterations": 100,
+      "throughput": 1476.8099923686145,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "transpose_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.04208478999316867,
+      "iterations": 100,
+      "throughput": 23761.553762352694,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "reshape_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.5061380200004351,
+      "iterations": 100,
+      "throughput": 1975.7456671584175,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.4080544800035568,
+      "iterations": 100,
+      "throughput": 2450.65315786089,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0002934100029960973,
+      "iterations": 100,
+      "throughput": 3408200.0947094536,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.00037759000406367704,
+      "iterations": 100,
+      "throughput": 2648375.1932992362,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.015915490002953447,
+      "iterations": 100,
+      "throughput": 62831.870072139114,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0018174300021200906,
+      "iterations": 100,
+      "throughput": 550227.5184372811,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0019554700065782527,
+      "iterations": 100,
+      "throughput": 511386.007781236,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 2.0156719999977213,
+      "iterations": 100,
+      "throughput": 496.1124627425149,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.4488172499986831,
+      "iterations": 100,
+      "throughput": 2228.078354838042,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 6.430345099997794,
+      "iterations": 100,
+      "throughput": 155.5126489246033,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.8572602599997481,
+      "iterations": 100,
+      "throughput": 1166.5068902182563,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.00029494000045815483,
+      "iterations": 100,
+      "throughput": 3390520.1005174504,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.0003839000055450015,
+      "iterations": 100,
+      "throughput": 2604844.974097762,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.013417090003713383,
+      "iterations": 100,
+      "throughput": 74531.80978313739,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.001786800003173994,
+      "iterations": 100,
+      "throughput": 559659.725891898,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.002053829994110856,
+      "iterations": 100,
+      "throughput": 486895.2166768408,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 1.877765739991446,
+      "iterations": 100,
+      "throughput": 532.5477926786306,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.44623619000049075,
+      "iterations": 100,
+      "throughput": 2240.965709210856,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 6.402446449992567,
+      "iterations": 100,
+      "throughput": 156.1902950396658,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 1.3151008000022557,
+      "iterations": 100,
+      "throughput": 760.3979862215009,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.000290019997919444,
+      "iterations": 100,
+      "throughput": 3448038.091075913,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0004360799994174158,
+      "iterations": 100,
+      "throughput": 2293157.2219224847,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.015732089996163268,
+      "iterations": 100,
+      "throughput": 63564.34524871644,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0017564399968250655,
+      "iterations": 100,
+      "throughput": 569333.4254558063,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.001967029993465985,
+      "iterations": 100,
+      "throughput": 508380.65678803413,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 4.045438909997756,
+      "iterations": 100,
+      "throughput": 247.19196661915595,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.6363200399937341,
+      "iterations": 100,
+      "throughput": 1571.5362351464635,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 9.71553020999636,
+      "iterations": 100,
+      "throughput": 102.92799038091559,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 2.895253060005416,
+      "iterations": 100,
+      "throughput": 345.3929515916406,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.00029644999813172035,
+      "iterations": 100,
+      "throughput": 3373250.147755691,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.00037754000004497357,
+      "iterations": 100,
+      "throughput": 2648725.962496364,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.016059980007412378,
+      "iterations": 100,
+      "throughput": 62266.57813636484,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.001760220002324786,
+      "iterations": 100,
+      "throughput": 568110.8035809523,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.002022220005528652,
+      "iterations": 100,
+      "throughput": 494506.0365667673,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 5.2591965299961885,
+      "iterations": 100,
+      "throughput": 190.1431129824549,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "transpose_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.6474418500056345,
+      "iterations": 100,
+      "throughput": 1544.540254837245,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "reshape_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 9.427566679996744,
+      "iterations": 100,
+      "throughput": 106.0719095333246,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.43769377999524295,
+      "iterations": 100,
+      "throughput": 2284.7023323266517,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0002927900004578987,
+      "iterations": 100,
+      "throughput": 3415417.187868728,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.00037849999898753595,
+      "iterations": 100,
+      "throughput": 2642007.9330909858,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.01561781000418705,
+      "iterations": 100,
+      "throughput": 64029.46378089537,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0017650500012678094,
+      "iterations": 100,
+      "throughput": 566556.1878030167,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0020430400036275387,
+      "iterations": 100,
+      "throughput": 489466.67623954534,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 1.8937056400045549,
+      "iterations": 100,
+      "throughput": 528.0651749009919,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 1.7673445399941556,
+      "iterations": 100,
+      "throughput": 565.8206294078385,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 36.799411990004955,
+      "iterations": 100,
+      "throughput": 27.17434724966825,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.8378473599987046,
+      "iterations": 100,
+      "throughput": 1193.5348223828576,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.0002915500044764485,
+      "iterations": 100,
+      "throughput": 3429943.3532705717,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.00038828000469948165,
+      "iterations": 100,
+      "throughput": 2575460.9763486874,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.012758980001308373,
+      "iterations": 100,
+      "throughput": 78376.17112790009,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0017622699942876352,
+      "iterations": 100,
+      "throughput": 567449.9385687102,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0019716399947355967,
+      "iterations": 100,
+      "throughput": 507191.9836633783,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 2.2908268499941187,
+      "iterations": 100,
+      "throughput": 436.5236071868842,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 1.7723317200034217,
+      "iterations": 100,
+      "throughput": 564.2284617001999,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 36.184444950004035,
+      "iterations": 100,
+      "throughput": 27.63618459207258,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 1.2554020000061428,
+      "iterations": 100,
+      "throughput": 796.5575966862463,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.00029024000468780287,
+      "iterations": 100,
+      "throughput": 3445424.420646808,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0003788699996221112,
+      "iterations": 100,
+      "throughput": 2639427.7746916097,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.015685959997426835,
+      "iterations": 100,
+      "throughput": 63751.278223586094,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0017626599947107024,
+      "iterations": 100,
+      "throughput": 567324.386439102,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0020305800080677727,
+      "iterations": 100,
+      "throughput": 492470.12972986186,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 3.990376800002196,
+      "iterations": 100,
+      "throughput": 250.6029004577838,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 2.4162195999997493,
+      "iterations": 100,
+      "throughput": 413.8696664823445,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 55.62047709000581,
+      "iterations": 100,
+      "throughput": 17.978989974893356,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 2.939809299996341,
+      "iterations": 100,
+      "throughput": 340.15811841987323,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0002971300000353949,
+      "iterations": 100,
+      "throughput": 3365530.2388882893,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0003759700030059321,
+      "iterations": 100,
+      "throughput": 2659786.6638424927,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.015737929998067557,
+      "iterations": 100,
+      "throughput": 63540.7579092542,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0017874399964057375,
+      "iterations": 100,
+      "throughput": 559459.3396202634,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0019482700008666143,
+      "iterations": 100,
+      "throughput": 513275.88042478083,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "matmul_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 3.8165172500066546,
+      "iterations": 100,
+      "throughput": 262.0189912670397,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "transpose_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 2.498724269999002,
+      "iterations": 100,
+      "throughput": 400.2042210125087,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "reshape_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 55.02411992999441,
+      "iterations": 100,
+      "throughput": 18.173848146454155,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "exp_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.008906210005079629,
+      "iterations": 100,
+      "throughput": 112281.20597085104,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "log_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.014090499998928863,
+      "iterations": 100,
+      "throughput": 70969.80235449546,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "sin_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.01101142000152322,
+      "iterations": 100,
+      "throughput": 90814.80861339129,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "cos_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.011843779993796488,
+      "iterations": 100,
+      "throughput": 84432.50385635144,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.003654989995993674,
+      "iterations": 100,
+      "throughput": 273598.5600770796,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "tanh_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005883529993297998,
+      "iterations": 100,
+      "throughput": 169965.9899990503,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "log_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005646970002999296,
+      "iterations": 100,
+      "throughput": 177086.1186563531,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "sin_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005688279998139478,
+      "iterations": 100,
+      "throughput": 175800.0661583255,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "cos_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005565410001509008,
+      "iterations": 100,
+      "throughput": 179681.28129443465,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0062120999973558355,
+      "iterations": 100,
+      "throughput": 160976.1594993074,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "tanh_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005827610002597794,
+      "iterations": 100,
+      "throughput": 171596.93245674067,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "relu_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006267410008149454,
+      "iterations": 100,
+      "throughput": 159555.54187450788,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "exp_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.03908857999704196,
+      "iterations": 100,
+      "throughput": 25582.919616820956,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "log_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.04858485000113433,
+      "iterations": 100,
+      "throughput": 20582.54785137039,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "sin_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.07913733999885153,
+      "iterations": 100,
+      "throughput": 12636.259950290374,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "cos_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.08005751999917265,
+      "iterations": 100,
+      "throughput": 12491.018957498738,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.009791640004550572,
+      "iterations": 100,
+      "throughput": 102127.93766266524,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "tanh_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005954050002401345,
+      "iterations": 100,
+      "throughput": 167952.90593741857,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "log_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005478169996422366,
+      "iterations": 100,
+      "throughput": 182542.71054988637,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "sin_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005653429998346837,
+      "iterations": 100,
+      "throughput": 176883.7679589944,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "cos_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005477139993672608,
+      "iterations": 100,
+      "throughput": 182577.03859226467,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.00547353000001749,
+      "iterations": 100,
+      "throughput": 182697.45484117282,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "tanh_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0057872199977282435,
+      "iterations": 100,
+      "throughput": 172794.53699575047,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "relu_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006207679998624371,
+      "iterations": 100,
+      "throughput": 161090.77791084608,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "exp_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.24098629000036453,
+      "iterations": 100,
+      "throughput": 4149.61365643866,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "log_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.020423490004759515,
+      "iterations": 100,
+      "throughput": 48963.22811463461,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "sin_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.3139367600033438,
+      "iterations": 100,
+      "throughput": 3185.3549102989687,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "cos_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.34755046000100265,
+      "iterations": 100,
+      "throughput": 2877.2800358172885,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.00922133000130998,
+      "iterations": 100,
+      "throughput": 108444.22657663703,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "tanh_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005548469998757355,
+      "iterations": 100,
+      "throughput": 180229.86521040247,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "log_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0051451400031510275,
+      "iterations": 100,
+      "throughput": 194358.17089283714,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "sin_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0053606599976774305,
+      "iterations": 100,
+      "throughput": 186544.19426586686,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "cos_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005272939997666981,
+      "iterations": 100,
+      "throughput": 189647.52120116126,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005075870003565797,
+      "iterations": 100,
+      "throughput": 197010.56159781484,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "tanh_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005508170006578439,
+      "iterations": 100,
+      "throughput": 181548.4995571477,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "relu_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "clamp is not supported for complex types"
+    },
+    {
+      "operation": "exp_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.07390531000055489,
+      "iterations": 100,
+      "throughput": 13530.827487124969,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "log_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.055846480008767685,
+      "iterations": 100,
+      "throughput": 17906.231509004752,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "sin_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.22460246999798983,
+      "iterations": 100,
+      "throughput": 4452.310787183017,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "cos_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.20686634000412596,
+      "iterations": 100,
+      "throughput": 4834.039215756681,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0218971199956286,
+      "iterations": 100,
+      "throughput": 45668.106134488626,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "tanh_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005415230007201899,
+      "iterations": 100,
+      "throughput": 184664.36304091717,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "log_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0052785800016863504,
+      "iterations": 100,
+      "throughput": 189444.88852693897,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "sin_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005392220000430825,
+      "iterations": 100,
+      "throughput": 185452.37396102207,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "cos_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0050919499972224,
+      "iterations": 100,
+      "throughput": 196388.4171182923,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.00526239999999234,
+      "iterations": 100,
+      "throughput": 190027.36394068404,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "tanh_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005345739991753362,
+      "iterations": 100,
+      "throughput": 187064.84070356135,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "relu_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "clamp is not supported for complex types"
+    },
+    {
+      "operation": "exp_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.19667190000291157,
+      "iterations": 100,
+      "throughput": 5084.6104602904425,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "log_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.32223165999312187,
+      "iterations": 100,
+      "throughput": 3103.357379660786,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "sin_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.24764427000263825,
+      "iterations": 100,
+      "throughput": 4038.050224175777,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "cos_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.25073986999814224,
+      "iterations": 100,
+      "throughput": 3988.197010740291,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0760278500001732,
+      "iterations": 100,
+      "throughput": 13153.074827155073,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "tanh_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006046879998393706,
+      "iterations": 100,
+      "throughput": 165374.5403027082,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "log_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005740919996242155,
+      "iterations": 100,
+      "throughput": 174188.10933693065,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "sin_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005843589997311938,
+      "iterations": 100,
+      "throughput": 171127.6801520986,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "cos_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005737299998145318,
+      "iterations": 100,
+      "throughput": 174298.01480195692,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005687870007022866,
+      "iterations": 100,
+      "throughput": 175812.7381190658,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "tanh_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005973480001557618,
+      "iterations": 100,
+      "throughput": 167406.60381205668,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "relu_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006372830002874252,
+      "iterations": 100,
+      "throughput": 156916.15805677907,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "exp_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.9575533799943514,
+      "iterations": 100,
+      "throughput": 1044.3282023670565,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "log_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 1.0869231699962256,
+      "iterations": 100,
+      "throughput": 920.028229781386,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "sin_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 2.0772494899938465,
+      "iterations": 100,
+      "throughput": 481.40582285229607,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "cos_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 2.0994600099948,
+      "iterations": 100,
+      "throughput": 476.3129543974866,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.22766703000343114,
+      "iterations": 100,
+      "throughput": 4392.379520148039,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "tanh_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005731080000259681,
+      "iterations": 100,
+      "throughput": 174487.1821636915,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "log_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0055204999989655335,
+      "iterations": 100,
+      "throughput": 181143.01244224008,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "sin_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005528030005734763,
+      "iterations": 100,
+      "throughput": 180896.2684650052,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "cos_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005631109997921158,
+      "iterations": 100,
+      "throughput": 177584.881199119,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005451360002552974,
+      "iterations": 100,
+      "throughput": 183440.46247756178,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "tanh_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005742209996242309,
+      "iterations": 100,
+      "throughput": 174148.97759824144,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "relu_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006217740001375205,
+      "iterations": 100,
+      "throughput": 160830.14081946586,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "exp_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 5.981452509995506,
+      "iterations": 100,
+      "throughput": 167.18347229689053,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "log_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.47025283000039053,
+      "iterations": 100,
+      "throughput": 2126.515644784465,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "sin_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 7.852744800002255,
+      "iterations": 100,
+      "throughput": 127.34400842871052,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "cos_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 8.639590270004192,
+      "iterations": 100,
+      "throughput": 115.74622971090443,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.2066985500005103,
+      "iterations": 100,
+      "throughput": 4837.963304520187,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "tanh_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005370920007408131,
+      "iterations": 100,
+      "throughput": 186187.84093240937,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "log_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005146229996171314,
+      "iterations": 100,
+      "throughput": 194317.00501998138,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "sin_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005176619997655507,
+      "iterations": 100,
+      "throughput": 193176.24250049266,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "cos_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005201029998715967,
+      "iterations": 100,
+      "throughput": 192269.60818277928,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005029660005675396,
+      "iterations": 100,
+      "throughput": 198820.59599885767,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "tanh_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0052645600044343155,
+      "iterations": 100,
+      "throughput": 189949.39732051766,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "relu_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "clamp is not supported for complex types"
+    },
+    {
+      "operation": "exp_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 1.9004109399975277,
+      "iterations": 100,
+      "throughput": 526.2019802944835,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "log_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 1.4569656000003306,
+      "iterations": 100,
+      "throughput": 686.3580032361596,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "sin_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 5.714729110004555,
+      "iterations": 100,
+      "throughput": 174.98642205968062,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "cos_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 5.4534035899996525,
+      "iterations": 100,
+      "throughput": 183.371720705539,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.5882417900011205,
+      "iterations": 100,
+      "throughput": 1699.9812271040707,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "tanh_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0056282900004589465,
+      "iterations": 100,
+      "throughput": 177673.85829771694,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "log_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005342200001905439,
+      "iterations": 100,
+      "throughput": 187188.79855552452,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "sin_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005405880001490004,
+      "iterations": 100,
+      "throughput": 184983.75837502375,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "cos_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005418419996203738,
+      "iterations": 100,
+      "throughput": 184555.64550193996,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005224730002737488,
+      "iterations": 100,
+      "throughput": 191397.45010288604,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "tanh_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005531640008484828,
+      "iterations": 100,
+      "throughput": 180778.21377857705,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "relu_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "clamp is not supported for complex types"
+    },
+    {
+      "operation": "exp_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.7864211700052692,
+      "iterations": 100,
+      "throughput": 1271.583266245617,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "log_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 1.8680847299947345,
+      "iterations": 100,
+      "throughput": 535.307624939913,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "sin_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 1.049788800000897,
+      "iterations": 100,
+      "throughput": 952.5725555455969,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "cos_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 1.015078740001627,
+      "iterations": 100,
+      "throughput": 985.1452508978733,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.35267872999611427,
+      "iterations": 100,
+      "throughput": 2835.4417631338806,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "tanh_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005902200000491575,
+      "iterations": 100,
+      "throughput": 169428.34873720192,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "log_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005588229996646987,
+      "iterations": 100,
+      "throughput": 178947.53805767003,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "sin_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005803479998576222,
+      "iterations": 100,
+      "throughput": 172310.4069016059,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "cos_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005775390000053449,
+      "iterations": 100,
+      "throughput": 173148.48001446578,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.005544219993680599,
+      "iterations": 100,
+      "throughput": 180368.02311954033,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "tanh_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0059019600030296715,
+      "iterations": 100,
+      "throughput": 169435.2383761779,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "relu_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.006416460000764346,
+      "iterations": 100,
+      "throughput": 155849.1753834478,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "exp_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 4.135056710001663,
+      "iterations": 100,
+      "throughput": 241.8346518879055,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "log_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 4.905356730005224,
+      "iterations": 100,
+      "throughput": 203.85877216292383,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "sin_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 8.501196500001242,
+      "iterations": 100,
+      "throughput": 117.63050060069237,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "cos_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 8.604866550003862,
+      "iterations": 100,
+      "throughput": 116.21330722433471,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 1.1657458300032886,
+      "iterations": 100,
+      "throughput": 857.8199246032722,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "tanh_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005928640002821339,
+      "iterations": 100,
+      "throughput": 168672.7478012018,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "log_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005702329999621725,
+      "iterations": 100,
+      "throughput": 175366.91143205267,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "sin_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005713769996873452,
+      "iterations": 100,
+      "throughput": 175015.7952712824,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "cos_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005503620004674303,
+      "iterations": 100,
+      "throughput": 181698.59095480532,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.005635440002151881,
+      "iterations": 100,
+      "throughput": 177448.43341747086,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "tanh_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0059523299933061935,
+      "iterations": 100,
+      "throughput": 168001.4382812393,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "relu_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.006237890002012136,
+      "iterations": 100,
+      "throughput": 160310.61780144137,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "exp_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 24.040232260003904,
+      "iterations": 100,
+      "throughput": 41.59693588583647,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "log_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 2.07247610000195,
+      "iterations": 100,
+      "throughput": 482.5146113863794,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "sin_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 31.60397143999944,
+      "iterations": 100,
+      "throughput": 31.641592952914582,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "cos_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 34.94891358000132,
+      "iterations": 100,
+      "throughput": 28.613192730895822,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.9553818499989575,
+      "iterations": 100,
+      "throughput": 1046.7019024917536,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "tanh_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005560910003623576,
+      "iterations": 100,
+      "throughput": 179826.6829257054,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "log_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005391990007410641,
+      "iterations": 100,
+      "throughput": 185460.28435245994,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "sin_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0058561700006976025,
+      "iterations": 100,
+      "throughput": 170760.07012789542,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "cos_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.005306539997036452,
+      "iterations": 100,
+      "throughput": 188446.70926036002,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "sqrt_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.006175220005388837,
+      "iterations": 100,
+      "throughput": 161937.55026174692,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "tanh_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.006030150007063639,
+      "iterations": 100,
+      "throughput": 165833.35386824756,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "relu_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "clamp is not supported for complex types"
+    },
+    {
+      "operation": "exp_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 7.689016029999038,
+      "iterations": 100,
+      "throughput": 130.0556529077915,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "log_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 5.8413911999923585,
+      "iterations": 100,
+      "throughput": 171.19209547227518,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "sin_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 23.143333099997108,
+      "iterations": 100,
+      "throughput": 43.208987905036246,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "cos_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 21.05549234999671,
+      "iterations": 100,
+      "throughput": 47.493546262296555,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 2.318394490002902,
+      "iterations": 100,
+      "throughput": 431.3329781933481,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "tanh_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "tanh(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "relu_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "relu(): argument 'input' (position 1) must be Tensor, not numpy.ndarray"
+    },
+    {
+      "operation": "exp_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.007666760002393858,
+      "iterations": 100,
+      "throughput": 130433.1946855988,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "log_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005502379999597906,
+      "iterations": 100,
+      "throughput": 181739.53817676648,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "sin_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.006035830001565046,
+      "iterations": 100,
+      "throughput": 165677.29703134572,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "cos_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005820819997097715,
+      "iterations": 100,
+      "throughput": 171797.10083778645,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "sqrt_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005459829999381327,
+      "iterations": 100,
+      "throughput": 183155.88582672237,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "tanh_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.005591389999608509,
+      "iterations": 100,
+      "throughput": 178846.40493151377,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "relu_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "clamp is not supported for complex types"
+    },
+    {
+      "operation": "eig_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 8.26706804999958,
+      "iterations": 100,
+      "throughput": 120.9618687002402,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "svd_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 2.5040696399992157,
+      "iterations": 100,
+      "throughput": 399.3499158435199,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "solve_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.09862019999673066,
+      "iterations": 100,
+      "throughput": 10139.910485206387,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "eig_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first."
+    },
+    {
+      "operation": "svd_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first."
+    },
+    {
+      "operation": "solve_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first."
+    },
+    {
+      "operation": "eig_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'eig'"
+    },
+    {
+      "operation": "svd_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'svd'"
+    },
+    {
+      "operation": "solve_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.34197305999441596,
+      "iterations": 100,
+      "throughput": 2924.206953659826,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "eig_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 186.4927651800008,
+      "iterations": 100,
+      "throughput": 5.362138306195476,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "svd_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 52.44497372000296,
+      "iterations": 100,
+      "throughput": 19.067604177644796,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "solve_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 2.4213951299952896,
+      "iterations": 100,
+      "throughput": 412.9850546126874,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "eig_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first."
+    },
+    {
+      "operation": "svd_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first."
+    },
+    {
+      "operation": "solve_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first."
+    },
+    {
+      "operation": "eig_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'eig'"
+    },
+    {
+      "operation": "svd_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'svd'"
+    },
+    {
+      "operation": "solve_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 2.1026731400070275,
+      "iterations": 100,
+      "throughput": 475.5850926010582,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "create_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 0.24574289999691246,
+      "iterations": 100,
+      "throughput": 4069.2935584815027,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "create_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.01398698999764747,
+      "iterations": 100,
+      "throughput": 71495.0107327019,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "copy_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.01111334000597708,
+      "iterations": 100,
+      "throughput": 89981.94957251112,
+      "memory_mb": 0.0762939453125,
+      "error": null
+    },
+    {
+      "operation": "create_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 0.2443662299992866,
+      "iterations": 100,
+      "throughput": 4092.2184706246826,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "create_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.01381625000249187,
+      "iterations": 100,
+      "throughput": 72378.53974990624,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "copy_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.01126268999541935,
+      "iterations": 100,
+      "throughput": 88788.73523169954,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "create_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 0.17575054000189994,
+      "iterations": 100,
+      "throughput": 5689.882944252629,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "create_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.014237819996196777,
+      "iterations": 100,
+      "throughput": 70235.47146031634,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "copy_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.007857709997551865,
+      "iterations": 100,
+      "throughput": 127263.54119858818,
+      "memory_mb": 0.152587890625,
+      "error": null
+    },
+    {
+      "operation": "create_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_100x100",
+      "library": "numpy",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 0.16374243999962346,
+      "iterations": 100,
+      "throughput": 6107.152183650736,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "create_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.010953270002573845,
+      "iterations": 100,
+      "throughput": 91296.93687501685,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "copy_100x100",
+      "library": "torch",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.008159169992723037,
+      "iterations": 100,
+      "throughput": 122561.48614281544,
+      "memory_mb": 0.30517578125,
+      "error": null
+    },
+    {
+      "operation": "create_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_100x100",
+      "library": "syntonic",
+      "size": [
+        100,
+        100
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 3.935888330006492,
+      "iterations": 100,
+      "throughput": 254.07224904634188,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "create_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.010001959999499377,
+      "iterations": 100,
+      "throughput": 99980.40384585147,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "copy_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.008316240000567632,
+      "iterations": 100,
+      "throughput": 120246.64992012546,
+      "memory_mb": 1.9073486328125,
+      "error": null
+    },
+    {
+      "operation": "create_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 3.923699030001444,
+      "iterations": 100,
+      "throughput": 254.86154578977275,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "create_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.00999898000372923,
+      "iterations": 100,
+      "throughput": 100010.20100320622,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "copy_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.009135379996223492,
+      "iterations": 100,
+      "throughput": 109464.5214992035,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "create_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 3.9353869799924723,
+      "iterations": 100,
+      "throughput": 254.1046166702297,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "create_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.01095129999157507,
+      "iterations": 100,
+      "throughput": 91313.3601279582,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "copy_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.009012229993459187,
+      "iterations": 100,
+      "throughput": 110960.32843433543,
+      "memory_mb": 3.814697265625,
+      "error": null
+    },
+    {
+      "operation": "create_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_500x500",
+      "library": "numpy",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 4.065789810001661,
+      "iterations": 100,
+      "throughput": 245.95467221154541,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "create_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.010795919997690362,
+      "iterations": 100,
+      "throughput": 92627.58525572033,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "copy_500x500",
+      "library": "torch",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.009230989999196026,
+      "iterations": 100,
+      "throughput": 108330.74243251212,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "create_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_500x500",
+      "library": "syntonic",
+      "size": [
+        500,
+        500
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cpu",
+      "time_ms": 16.008918260004066,
+      "iterations": 100,
+      "throughput": 62.465182453854695,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.009713600002214662,
+      "iterations": 100,
+      "throughput": 102948.44339606367,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "copy_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.009220170004482497,
+      "iterations": 100,
+      "throughput": 108457.87002992764,
+      "memory_mb": 7.62939453125,
+      "error": null
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float32",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cpu",
+      "time_ms": 16.03120160000799,
+      "iterations": 100,
+      "throughput": 62.37835596799567,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.010243299993817345,
+      "iterations": 100,
+      "throughput": 97624.78894531843,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "copy_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.00940689999879396,
+      "iterations": 100,
+      "throughput": 106304.9463827837,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "float64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cpu",
+      "time_ms": 16.022579020000194,
+      "iterations": 100,
+      "throughput": 62.41192499358246,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.010982960002365871,
+      "iterations": 100,
+      "throughput": 91050.13582718931,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "copy_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.009365330006403383,
+      "iterations": 100,
+      "throughput": 106776.80330711968,
+      "memory_mb": 15.2587890625,
+      "error": null
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex64",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "numpy",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cpu",
+      "time_ms": 16.858926810000412,
+      "iterations": 100,
+      "throughput": 59.31575664750012,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.011048839996874449,
+      "iterations": 100,
+      "throughput": 90507.23879455987,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "copy_1000x1000",
+      "library": "torch",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.009854499994617072,
+      "iterations": 100,
+      "throughput": 101476.48288053586,
+      "memory_mb": 30.517578125,
+      "error": null
+    },
+    {
+      "operation": "create_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "type object 'State' has no attribute 'random'"
+    },
+    {
+      "operation": "copy_1000x1000",
+      "library": "syntonic",
+      "size": [
+        1000,
+        1000
+      ],
+      "dtype": "complex128",
+      "device": "cuda",
+      "time_ms": 0.0,
+      "iterations": 100,
+      "throughput": 0.0,
+      "memory_mb": 0.0,
+      "error": "'State' object has no attribute 'copy'"
+    }
+  ]
+}

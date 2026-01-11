@@ -48,8 +48,9 @@ use resonant::{ResonantTensor, ResonantEvolver, RESConfig, RESResult};
 
 // Number theory and syntony wrappers
 use resonant::py_wrappers::{
-    py_mobius, py_is_square_free, py_mertens, py_golden_weight, py_e_star,
+    py_mobius, py_is_square_free, py_mertens, py_golden_weight, py_golden_weights, py_e_star,
     py_compute_winding_syntony, py_batch_winding_syntony, py_aggregate_syntony, py_standard_mode_norms,
+    py_crystallize_with_dwell_legacy, py_snap_distance, py_compute_snap_gradient,
     py_mse_loss, py_softmax, py_cross_entropy_loss, py_batch_cross_entropy_loss,
     py_syntony_loss, py_phase_alignment_loss, py_syntonic_loss,
     py_estimate_syntony_from_probs, py_golden_decay_loss,
@@ -211,11 +212,17 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_is_square_free, m)?)?;
     m.add_function(wrap_pyfunction!(py_mertens, m)?)?;
     m.add_function(wrap_pyfunction!(py_golden_weight, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_weights, m)?)?;
     m.add_function(wrap_pyfunction!(py_e_star, m)?)?;
     m.add_function(wrap_pyfunction!(py_compute_winding_syntony, m)?)?;
     m.add_function(wrap_pyfunction!(py_batch_winding_syntony, m)?)?;
     m.add_function(wrap_pyfunction!(py_aggregate_syntony, m)?)?;
     m.add_function(wrap_pyfunction!(py_standard_mode_norms, m)?)?;
+
+    // === Crystallization Functions ===
+    m.add_function(wrap_pyfunction!(py_crystallize_with_dwell_legacy, m)?)?;
+    m.add_function(wrap_pyfunction!(py_snap_distance, m)?)?;
+    m.add_function(wrap_pyfunction!(py_compute_snap_gradient, m)?)?;
 
     // === Loss Functions (Rust Performance Backend) ===
     m.add_function(wrap_pyfunction!(py_mse_loss, m)?)?;

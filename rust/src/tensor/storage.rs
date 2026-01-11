@@ -9,6 +9,7 @@ use ndarray::{ArrayD, IxDyn, Ix1, Ix2};
 use ndarray_linalg::{Eig, Eigh, SVD, QR, Inverse, Solve, Determinant, Trace, Cholesky, UPLO};
 use num_complex::Complex64;
 use rand::Rng;
+use lazy_static::lazy_static;
 
 // Import exact types - all numerical constants derive from these
 // Use re-export paths from exact/mod.rs for SymExpr
@@ -56,6 +57,86 @@ const PTX_SM80: &str = include_str!("../../kernels/ptx/elementwise_sm_80.ptx");
 const PTX_SM86: &str = include_str!("../../kernels/ptx/elementwise_sm_86.ptx");
 #[cfg(feature = "cuda")]
 const PTX_SM90: &str = include_str!("../../kernels/ptx/elementwise_sm_90.ptx");
+
+/// Global cache for CUDA modules and functions to avoid loading PTX repeatedly
+#[cfg(feature = "cuda")]
+use std::collections::HashMap;
+#[cfg(feature = "cuda")]
+use std::sync::RwLock;
+#[cfg(feature = "cuda")]
+use cudarc::driver::CudaFunction;
+
+#[cfg(feature = "cuda")]
+lazy_static::lazy_static! {
+    /// Cache structure: device_ordinal -> (ptx_hash, module, functions)
+    static ref KERNEL_CACHE: RwLock<HashMap<usize, (u64, Arc<cudarc::driver::CudaModule>, HashMap<String, Arc<CudaFunction>>)>> = RwLock::new(HashMap::new());
+}
+
+/// Compute hash of PTX source for cache invalidation
+#[cfg(feature = "cuda")]
+fn ptx_hash(ptx: &str) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+    let mut hasher = DefaultHasher::new();
+    ptx.hash(&mut hasher);
+    hasher.finish()
+}
+
+/// Get or load cached CUDA module and functions for a device
+#[cfg(feature = "cuda")]
+fn get_cached_module_and_functions(device: &Arc<CudaDevice>, ptx_source: &str) -> Result<(Arc<cudarc::driver::CudaModule>, HashMap<String, Arc<CudaFunction>>), cudarc::driver::result::DriverError> {
+    let device_idx = device.ordinal() as usize;
+    let current_hash = ptx_hash(ptx_source);
+
+    // Check cache first
+    {
+        let cache = KERNEL_CACHE.read().unwrap();
+        if let Some((cached_hash, module, functions)) = cache.get(&device_idx) {
+            if *cached_hash == current_hash {
+                return Ok((module.clone(), functions.clone()));
+            }
+        }
+    }
+
+    // Cache miss - load new module
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(ptx_source))?;
+
+    // Load all elementwise functions
+    let mut functions = HashMap::new();
+    let function_names = [
+        "add_f32", "add_f64", "add_c128",
+        "sub_f32", "sub_f64", "sub_c128",
+        "mul_f32", "mul_f64", "mul_c128",
+        "div_f32", "div_f64", "div_c128",
+        "neg_f32", "neg_f64", "neg_c128",
+        "abs_f32", "abs_f64",
+        "exp_f32", "exp_f64",
+        "exp_golden_f32", "exp_golden_f64",
+        "log_f32", "log_f64",
+        "sin_f32", "sin_f64",
+        "cos_f32", "cos_f64",
+        "sqrt_f32", "sqrt_f64",
+        "tanh_f32", "tanh_f64",
+        "sigmoid_f32", "sigmoid_f64",
+        "relu_f32", "relu_f64",
+    ];
+
+    for name in &function_names {
+        if let Ok(func) = module.load_function(name) {
+            functions.insert(name.to_string(), Arc::new(func));
+        }
+    }
+
+    let functions_clone = functions.clone();
+
+    // Update cache
+    {
+        let mut cache = KERNEL_CACHE.write().unwrap();
+        cache.insert(device_idx, (current_hash, module.clone(), functions.clone()));
+    }
+
+    Ok((module, functions_clone))
+}
 
 
 /// Get the compute capability for the current device
@@ -642,6 +723,147 @@ impl TensorStorage {
                     "exp_golden not supported for complex types"
                 ));
             },
+        };
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
+    /// Element-wise natural logarithm
+    pub fn log(&self) -> PyResult<TensorStorage> {
+        #[cfg(feature = "cuda")]
+        if let TensorData::Cuda { data, device, .. } = &self.data {
+            let device_idx = match &self.device { DeviceType::Cuda(idx) => *idx, _ => 0 };
+            ensure_kernels_loaded(device, device_idx)?;
+            return self.unary_cuda_op(data, device, "log");
+        }
+
+        let cpu = self.ensure_cpu()?;
+        let result = match cpu {
+            CpuData::Float64(arr) => CpuData::Float64(arr.mapv(|x| x.ln())),
+            CpuData::Float32(arr) => CpuData::Float32(arr.mapv(|x| x.ln())),
+            CpuData::Complex128(arr) => CpuData::Complex128(arr.mapv(|c| c.ln())),
+            CpuData::Int64(arr) => CpuData::Float64(arr.mapv(|x| (x as f64).ln())),
+        };
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
+    /// Element-wise sine
+    pub fn sin(&self) -> PyResult<TensorStorage> {
+        #[cfg(feature = "cuda")]
+        if let TensorData::Cuda { data, device, .. } = &self.data {
+            let device_idx = match &self.device { DeviceType::Cuda(idx) => *idx, _ => 0 };
+            ensure_kernels_loaded(device, device_idx)?;
+            return self.unary_cuda_op(data, device, "sin");
+        }
+
+        let cpu = self.ensure_cpu()?;
+        let result = match cpu {
+            CpuData::Float64(arr) => CpuData::Float64(arr.mapv(|x| x.sin())),
+            CpuData::Float32(arr) => CpuData::Float32(arr.mapv(|x| x.sin())),
+            CpuData::Complex128(arr) => CpuData::Complex128(arr.mapv(|c| c.sin())),
+            CpuData::Int64(arr) => CpuData::Float64(arr.mapv(|x| (x as f64).sin())),
+        };
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
+    /// Element-wise cosine
+    pub fn cos(&self) -> PyResult<TensorStorage> {
+        #[cfg(feature = "cuda")]
+        if let TensorData::Cuda { data, device, .. } = &self.data {
+            let device_idx = match &self.device { DeviceType::Cuda(idx) => *idx, _ => 0 };
+            ensure_kernels_loaded(device, device_idx)?;
+            return self.unary_cuda_op(data, device, "cos");
+        }
+
+        let cpu = self.ensure_cpu()?;
+        let result = match cpu {
+            CpuData::Float64(arr) => CpuData::Float64(arr.mapv(|x| x.cos())),
+            CpuData::Float32(arr) => CpuData::Float32(arr.mapv(|x| x.cos())),
+            CpuData::Complex128(arr) => CpuData::Complex128(arr.mapv(|c| c.cos())),
+            CpuData::Int64(arr) => CpuData::Float64(arr.mapv(|x| (x as f64).cos())),
+        };
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
+    /// Element-wise square root
+    pub fn sqrt(&self) -> PyResult<TensorStorage> {
+        #[cfg(feature = "cuda")]
+        if let TensorData::Cuda { data, device, .. } = &self.data {
+            let device_idx = match &self.device { DeviceType::Cuda(idx) => *idx, _ => 0 };
+            ensure_kernels_loaded(device, device_idx)?;
+            return self.unary_cuda_op(data, device, "sqrt");
+        }
+
+        let cpu = self.ensure_cpu()?;
+        let result = match cpu {
+            CpuData::Float64(arr) => CpuData::Float64(arr.mapv(|x| x.sqrt())),
+            CpuData::Float32(arr) => CpuData::Float32(arr.mapv(|x| x.sqrt())),
+            CpuData::Complex128(arr) => CpuData::Complex128(arr.mapv(|c| c.sqrt())),
+            CpuData::Int64(arr) => CpuData::Float64(arr.mapv(|x| (x as f64).sqrt())),
+        };
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
+    /// Element-wise hyperbolic tangent
+    pub fn tanh(&self) -> PyResult<TensorStorage> {
+        #[cfg(feature = "cuda")]
+        if let TensorData::Cuda { data, device, .. } = &self.data {
+            let device_idx = match &self.device { DeviceType::Cuda(idx) => *idx, _ => 0 };
+            ensure_kernels_loaded(device, device_idx)?;
+            return self.unary_cuda_op(data, device, "tanh");
+        }
+
+        let cpu = self.ensure_cpu()?;
+        let result = match cpu {
+            CpuData::Float64(arr) => CpuData::Float64(arr.mapv(|x| x.tanh())),
+            CpuData::Float32(arr) => CpuData::Float32(arr.mapv(|x| x.tanh())),
+            CpuData::Complex128(arr) => CpuData::Complex128(arr.mapv(|c| c.tanh())),
+            CpuData::Int64(arr) => CpuData::Float64(arr.mapv(|x| (x as f64).tanh())),
+        };
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
+    /// Element-wise sigmoid: 1 / (1 + exp(-x))
+    pub fn sigmoid(&self) -> PyResult<TensorStorage> {
+        #[cfg(feature = "cuda")]
+        if let TensorData::Cuda { data, device, .. } = &self.data {
+            let device_idx = match &self.device { DeviceType::Cuda(idx) => *idx, _ => 0 };
+            ensure_kernels_loaded(device, device_idx)?;
+            return self.unary_cuda_op(data, device, "sigmoid");
+        }
+
+        let cpu = self.ensure_cpu()?;
+        let result = match cpu {
+            CpuData::Float64(arr) => CpuData::Float64(arr.mapv(|x| 1.0 / (1.0 + (-x).exp()))),
+            CpuData::Float32(arr) => CpuData::Float32(arr.mapv(|x| 1.0 / (1.0 + (-x).exp()))),
+            CpuData::Complex128(arr) => CpuData::Complex128(arr.mapv(|c| {
+                let exp_neg_c = (-c).exp();
+                Complex64::new(1.0, 0.0) / (Complex64::new(1.0, 0.0) + exp_neg_c)
+            })),
+            CpuData::Int64(arr) => CpuData::Float64(arr.mapv(|x| {
+                let x_f64 = x as f64;
+                1.0 / (1.0 + (-x_f64).exp())
+            })),
+        };
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
+    /// Element-wise ReLU: max(0, x)
+    pub fn relu(&self) -> PyResult<TensorStorage> {
+        #[cfg(feature = "cuda")]
+        if let TensorData::Cuda { data, device, .. } = &self.data {
+            let device_idx = match &self.device { DeviceType::Cuda(idx) => *idx, _ => 0 };
+            ensure_kernels_loaded(device, device_idx)?;
+            return self.unary_cuda_op(data, device, "relu");
+        }
+
+        let cpu = self.ensure_cpu()?;
+        let result = match cpu {
+            CpuData::Float64(arr) => CpuData::Float64(arr.mapv(|x| x.max(0.0))),
+            CpuData::Float32(arr) => CpuData::Float32(arr.mapv(|x| x.max(0.0))),
+            CpuData::Complex128(arr) => CpuData::Complex128(arr.mapv(|c| {
+                if c.re > 0.0 { c } else { Complex64::new(0.0, c.im) }
+            })),
+            CpuData::Int64(arr) => CpuData::Int64(arr.mapv(|x| x.max(0))),
         };
         Ok(Self::wrap_cpu(result, &self.device))
     }
@@ -2516,10 +2738,10 @@ impl TensorStorage {
         let n = self.shape.iter().product::<usize>();
         let cfg = launch_cfg(n);
 
-        // Load PTX module
+        // Get cached module and functions
         let (major, minor) = get_device_compute_capability(device);
         let ptx_source = select_ptx(major, minor);
-        let module = device.load_module(cudarc::nvrtc::Ptx::from_src(ptx_source))
+        let (_module, functions) = get_cached_module_and_functions(device, ptx_source)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
                 format!("Failed to load CUDA module: {}", e)
             ))?;
@@ -2528,9 +2750,10 @@ impl TensorStorage {
             (CudaData::Float64(a_slice), CudaData::Float64(b_slice)) => {
                 let mut out: CudaSlice<f64> = device.default_stream().alloc_zeros(n)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-                let func = module.load_function(&format!("{}_f64", op))
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                        format!("Failed to get function: {}", e)
+                let func_name = format!("{}_f64", op);
+                let func = functions.get(&func_name)
+                    .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                        format!("Function {} not found in cached module", func_name)
                     ))?;
                 unsafe { device.default_stream().launch_builder(&func).arg(&mut out).arg(a_slice).arg(b_slice).arg(&(n as i32)).launch(cfg) }
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
@@ -2539,9 +2762,10 @@ impl TensorStorage {
             (CudaData::Float32(a_slice), CudaData::Float32(b_slice)) => {
                 let mut out: CudaSlice<f32> = device.default_stream().alloc_zeros(n)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-                let func = module.load_function(&format!("{}_f32", op))
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                        format!("Failed to get function: {}", e)
+                let func_name = format!("{}_f32", op);
+                let func = functions.get(&func_name)
+                    .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                        format!("Function {} not found in cached module", func_name)
                     ))?;
                 unsafe { device.default_stream().launch_builder(&func).arg(&mut out).arg(a_slice).arg(b_slice).arg(&(n as i32)).launch(cfg) }
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
@@ -2550,9 +2774,10 @@ impl TensorStorage {
             (CudaData::Complex128(a_slice), CudaData::Complex128(b_slice)) => {
                 let mut out: CudaSlice<f64> = device.default_stream().alloc_zeros(n * 2)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-                let func = module.load_function(&format!("{}_c128", op))
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                        format!("Failed to get function: {}", e)
+                let func_name = format!("{}_c128", op);
+                let func = functions.get(&func_name)
+                    .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                        format!("Function {} not found in cached module", func_name)
                     ))?;
                 unsafe { device.default_stream().launch_builder(&func).arg(&mut out).arg(a_slice).arg(b_slice).arg(&(n as i32)).launch(cfg) }
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
@@ -2579,21 +2804,26 @@ impl TensorStorage {
         let n = self.shape.iter().product::<usize>();
         let cfg = launch_cfg(n);
 
-        // Load PTX module
+        // Get cached module and functions
         let (major, minor) = get_device_compute_capability(device);
         let ptx_source = select_ptx(major, minor);
-        let module = device.load_module(cudarc::nvrtc::Ptx::from_src(ptx_source))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                format!("Failed to load CUDA module: {}", e)
-            ))?;
+        let (_module, functions) = match get_cached_module_and_functions(device, ptx_source) {
+            Ok(result) => result,
+            Err(e) => {
+                // If PTX loading fails (e.g., due to version incompatibility), fall back to CPU
+                eprintln!("CUDA kernel loading failed ({}), falling back to CPU implementation", e);
+                return self.unary_cpu_fallback(op);
+            }
+        };
 
         let (out_data, out_dtype) = match a.as_ref() {
             CudaData::Float64(a_slice) => {
                 let mut out: CudaSlice<f64> = device.default_stream().alloc_zeros(n)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-                let func = module.load_function(&format!("{}_f64", op))
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                        format!("Failed to get function: {}", e)
+                let func_name = format!("{}_f64", op);
+                let func = functions.get(&func_name)
+                    .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                        format!("Function {} not found in cached module", func_name)
                     ))?;
                 unsafe { device.default_stream().launch_builder(&func).arg(&mut out).arg(a_slice).arg(&(n as i32)).launch(cfg) }
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
@@ -2602,9 +2832,10 @@ impl TensorStorage {
             CudaData::Float32(a_slice) => {
                 let mut out: CudaSlice<f32> = device.default_stream().alloc_zeros(n)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-                let func = module.load_function(&format!("{}_f32", op))
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                        format!("Failed to get function: {}", e)
+                let func_name = format!("{}_f32", op);
+                let func = functions.get(&func_name)
+                    .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                        format!("Function {} not found in cached module", func_name)
                     ))?;
                 unsafe { device.default_stream().launch_builder(&func).arg(&mut out).arg(a_slice).arg(&(n as i32)).launch(cfg) }
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
@@ -2615,9 +2846,10 @@ impl TensorStorage {
                 if op == "neg" {
                     let mut out: CudaSlice<f64> = device.default_stream().alloc_zeros(n * 2)
                         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-                    let func = module.load_function("neg_c128")
-                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
-                            format!("Failed to get function: {}", e)
+                    let func_name = "neg_c128".to_string();
+                    let func = functions.get(&func_name)
+                        .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+                            format!("Function {} not found in cached module", func_name)
                         ))?;
                     unsafe { device.default_stream().launch_builder(&func).arg(&mut out).arg(a_slice).arg(&(n as i32)).launch(cfg) }
                         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
@@ -2643,6 +2875,80 @@ impl TensorStorage {
         })
     }
 
+    fn unary_cpu_fallback(&self, op: &str) -> PyResult<TensorStorage> {
+        // Transfer to CPU and perform operation there
+        let cpu_data = self.ensure_cpu()?;
+        let result = match (op, &cpu_data) {
+            ("exp", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| x.exp())),
+            ("exp", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| x.exp())),
+            ("exp", CpuData::Complex128(arr)) => CpuData::Complex128(arr.mapv(|c| {
+                let exp_re = c.re.exp();
+                Complex64::new(exp_re * c.im.cos(), exp_re * c.im.sin())
+            })),
+            ("exp", CpuData::Int64(arr)) => CpuData::Float64(arr.mapv(|x| (x as f64).exp())),
+
+            ("log", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| x.ln())),
+            ("log", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| x.ln())),
+            ("log", CpuData::Complex128(arr)) => CpuData::Complex128(arr.mapv(|c| c.ln())),
+            ("log", CpuData::Int64(arr)) => CpuData::Float64(arr.mapv(|x| (x as f64).ln())),
+
+            ("sin", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| x.sin())),
+            ("sin", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| x.sin())),
+            ("sin", CpuData::Complex128(arr)) => CpuData::Complex128(arr.mapv(|c| c.sin())),
+            ("sin", CpuData::Int64(arr)) => CpuData::Float64(arr.mapv(|x| (x as f64).sin())),
+
+            ("cos", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| x.cos())),
+            ("cos", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| x.cos())),
+            ("cos", CpuData::Complex128(arr)) => CpuData::Complex128(arr.mapv(|c| c.cos())),
+            ("cos", CpuData::Int64(arr)) => CpuData::Float64(arr.mapv(|x| (x as f64).cos())),
+
+            ("sqrt", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| x.sqrt())),
+            ("sqrt", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| x.sqrt())),
+            ("sqrt", CpuData::Complex128(arr)) => CpuData::Complex128(arr.mapv(|c| c.sqrt())),
+            ("sqrt", CpuData::Int64(arr)) => CpuData::Float64(arr.mapv(|x| (x as f64).sqrt())),
+
+            ("tanh", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| x.tanh())),
+            ("tanh", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| x.tanh())),
+            ("tanh", CpuData::Complex128(arr)) => CpuData::Complex128(arr.mapv(|c| c.tanh())),
+            ("tanh", CpuData::Int64(arr)) => CpuData::Float64(arr.mapv(|x| (x as f64).tanh())),
+
+            ("sigmoid", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| 1.0 / (1.0 + (-x).exp()))),
+            ("sigmoid", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| 1.0 / (1.0 + (-x).exp()))),
+            ("sigmoid", CpuData::Complex128(arr)) => CpuData::Complex128(arr.mapv(|c| {
+                let exp_neg_c = (-c).exp();
+                Complex64::new(1.0, 0.0) / (Complex64::new(1.0, 0.0) + exp_neg_c)
+            })),
+            ("sigmoid", CpuData::Int64(arr)) => CpuData::Float64(arr.mapv(|x| {
+                let x_f64 = x as f64;
+                1.0 / (1.0 + (-x_f64).exp())
+            })),
+
+            ("relu", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| x.max(0.0))),
+            ("relu", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| x.max(0.0))),
+            ("relu", CpuData::Complex128(arr)) => CpuData::Complex128(arr.mapv(|c| {
+                if c.re > 0.0 { c } else { Complex64::new(0.0, c.im) }
+            })),
+            ("relu", CpuData::Int64(arr)) => CpuData::Int64(arr.mapv(|x| x.max(0))),
+
+            ("neg", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| -x)),
+            ("neg", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| -x)),
+            ("neg", CpuData::Complex128(arr)) => CpuData::Complex128(arr.mapv(|c| -c)),
+            ("neg", CpuData::Int64(arr)) => CpuData::Int64(arr.mapv(|x| -x)),
+
+            ("abs", CpuData::Float64(arr)) => CpuData::Float64(arr.mapv(|x| x.abs())),
+            ("abs", CpuData::Float32(arr)) => CpuData::Float32(arr.mapv(|x| x.abs())),
+            ("abs", CpuData::Complex128(arr)) => CpuData::Float64(arr.mapv(|x| x.norm())),
+            ("abs", CpuData::Int64(arr)) => CpuData::Int64(arr.mapv(|x| x.abs())),
+
+            _ => return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+                format!("CPU fallback not implemented for operation: {}", op)
+            )),
+        };
+
+        Ok(Self::wrap_cpu(result, &self.device))
+    }
+
+    /// Wrap CPU data with specified device
     fn wrap_cpu(data: CpuData, device: &DeviceType) -> Self {
         let shape = match &data {
             CpuData::Float32(a) => a.shape().to_vec(),
@@ -2650,7 +2956,7 @@ impl TensorStorage {
             CpuData::Complex128(a) => a.shape().to_vec(),
             CpuData::Int64(a) => a.shape().to_vec(),
         };
-        TensorStorage { data: TensorData::Cpu(data), shape, device: device.clone() }
+        Self::new_from_cpu(data, shape, device.clone())
     }
 
     /// Wrap CPU data with default CPU device

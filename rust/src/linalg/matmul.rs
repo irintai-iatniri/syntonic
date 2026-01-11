@@ -114,8 +114,116 @@ fn correction_factor(n: u32, sign: i8) -> f64 {
 /// Core matrix multiplication: C = A × B
 ///
 /// Supports f32, f64, and Complex128 dtypes.
-/// For CPU tensors, uses ndarray's optimized dot product.
+/// Uses CUDA acceleration when available, falls back to CPU ndarray operations.
 pub fn mm(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulError> {
+    // Check device compatibility
+    if a.device_ref() != b.device_ref() {
+        return Err(MatmulError::DeviceMismatch {
+            a: format!("{:?}", a.device_ref()),
+            b: format!("{:?}", b.device_ref()),
+        });
+    }
+
+    // Get tensor shapes for dimension checking
+    let a_shape = a.shape();
+    let b_shape = b.shape();
+
+    if a_shape.len() != 2 || b_shape.len() != 2 {
+        return Err(MatmulError::ShapeError("Both tensors must be 2D for matrix multiplication".to_string()));
+    }
+
+    let (m, k) = (a_shape[0], a_shape[1]);
+    let (k2, n) = (b_shape[0], b_shape[1]);
+
+    if k != k2 {
+        return Err(MatmulError::DimensionMismatch {
+            a_cols: k,
+            b_rows: k2,
+        });
+    }
+
+    // Dispatch based on device and dtype
+    match a.device_ref() {
+        #[cfg(feature = "cuda")]
+        DeviceType::Cuda(device_idx) => {
+            use crate::tensor::cuda::device_manager::get_device;
+            let device = get_device(*device_idx)
+                .map_err(|e| MatmulError::ShapeError(format!("Failed to get CUDA device: {}", e)))?;
+            mm_cuda_dispatch(a, b, m, k, n, &device)
+        }
+        DeviceType::Cpu => {
+            mm_cpu_dispatch(a, b, m, k, n)
+        }
+    }
+}
+
+/// CUDA dispatch for matrix multiplication
+#[cfg(feature = "cuda")]
+fn mm_cuda_dispatch(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    m: usize, k: usize, n: usize,
+    device: &std::sync::Arc<cudarc::driver::safe::CudaContext>
+) -> Result<TensorStorage, MatmulError> {
+    use crate::tensor::storage::{CudaData, TensorData};
+
+    // Extract CUDA data directly from tensor variants
+    let (a_cuda, a_device, a_device_idx) = match &a.data {
+        TensorData::Cuda { data, device: dev, .. } => (data.as_ref(), dev, dev.ordinal()),
+        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for A".to_string())),
+    };
+
+    let (b_cuda, _, _) = match &b.data {
+        TensorData::Cuda { data, .. } => (data.as_ref(), &(), 0),
+        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for B".to_string())),
+    };
+
+    match (a_cuda, b_cuda) {
+        (CudaData::Float64(a_slice), CudaData::Float64(b_slice)) => {
+            let mut c_slice = device.default_stream().alloc_zeros::<f64>(m * n)
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
+
+            crate::tensor::srt_kernels::cuda_matmul_tiled_f64(
+                device, &mut c_slice, &a_slice, &b_slice, m, n, k
+            ).map_err(|e| MatmulError::ShapeError(format!("CUDA matmul failed: {}", e)))?;
+
+            Ok(TensorStorage::new_from_cuda(CudaData::Float64(c_slice), a_device.clone(), vec![m, n], a_device_idx))
+        }
+        (CudaData::Float32(a_slice), CudaData::Float32(b_slice)) => {
+            let mut c_slice = device.default_stream().alloc_zeros::<f32>(m * n)
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
+
+            // Use tiled version for f32 as well
+            crate::tensor::srt_kernels::cuda_matmul_tiled_f64(
+                device,
+                unsafe { std::mem::transmute(&mut c_slice) },
+                unsafe { std::mem::transmute(&a_slice) },
+                unsafe { std::mem::transmute(&b_slice) },
+                m, n, k
+            ).map_err(|e| MatmulError::ShapeError(format!("CUDA matmul failed: {}", e)))?;
+
+            Ok(TensorStorage::new_from_cuda(CudaData::Float32(c_slice), a_device.clone(), vec![m, n], a_device_idx))
+        }
+        (CudaData::Complex128(a_slice), CudaData::Complex128(b_slice)) => {
+            let mut c_slice = device.default_stream().alloc_zeros::<f64>(m * n * 2)
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
+
+            crate::tensor::srt_kernels::cuda_matmul_c128(
+                device, &mut c_slice, &a_slice, &b_slice, m, n, k
+            ).map_err(|e| MatmulError::ShapeError(format!("CUDA matmul failed: {}", e)))?;
+
+            Ok(TensorStorage::new_from_cuda(CudaData::Complex128(c_slice), a_device.clone(), vec![m, n], a_device_idx))
+        }
+        _ => Err(MatmulError::UnsupportedDtype("CUDA matmul: dtype mismatch or unsupported".to_string())),
+    }
+}
+
+/// CPU dispatch for matrix multiplication (fallback)
+fn mm_cpu_dispatch(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    m: usize, k: usize, n: usize,
+) -> Result<TensorStorage, MatmulError> {
     let a_cpu = a.ensure_cpu_internal()
         .map_err(|e| MatmulError::ShapeError(e.to_string()))?;
     let b_cpu = b.ensure_cpu_internal()
@@ -128,13 +236,6 @@ pub fn mm(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulE
             let b_2d = b_arr.clone().into_dimensionality::<Ix2>()
                 .map_err(|e| MatmulError::ShapeError(format!("B must be 2D: {}", e)))?;
 
-            if a_2d.ncols() != b_2d.nrows() {
-                return Err(MatmulError::DimensionMismatch {
-                    a_cols: a_2d.ncols(),
-                    b_rows: b_2d.nrows(),
-                });
-            }
-
             let result = a_2d.dot(&b_2d);
             Ok(wrap_cpu(CpuData::Float64(result.into_dyn()), a.device_ref()))
         },
@@ -143,13 +244,6 @@ pub fn mm(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulE
                 .map_err(|e| MatmulError::ShapeError(format!("A must be 2D: {}", e)))?;
             let b_2d = b_arr.clone().into_dimensionality::<Ix2>()
                 .map_err(|e| MatmulError::ShapeError(format!("B must be 2D: {}", e)))?;
-
-            if a_2d.ncols() != b_2d.nrows() {
-                return Err(MatmulError::DimensionMismatch {
-                    a_cols: a_2d.ncols(),
-                    b_rows: b_2d.nrows(),
-                });
-            }
 
             let result = a_2d.dot(&b_2d);
             Ok(wrap_cpu(CpuData::Float32(result.into_dyn()), a.device_ref()))
@@ -160,17 +254,10 @@ pub fn mm(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulE
             let b_2d = b_arr.clone().into_dimensionality::<Ix2>()
                 .map_err(|e| MatmulError::ShapeError(format!("B must be 2D: {}", e)))?;
 
-            if a_2d.ncols() != b_2d.nrows() {
-                return Err(MatmulError::DimensionMismatch {
-                    a_cols: a_2d.ncols(),
-                    b_rows: b_2d.nrows(),
-                });
-            }
-
             let result = a_2d.dot(&b_2d);
             Ok(wrap_cpu(CpuData::Complex128(result.into_dyn()), a.device_ref()))
         },
-        _ => Err(MatmulError::UnsupportedDtype("Dtype mismatch or unsupported".to_string())),
+        _ => Err(MatmulError::UnsupportedDtype("CPU matmul: dtype mismatch or unsupported".to_string())),
     }
 }
 
@@ -308,6 +395,105 @@ pub fn mm_nh(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, Matm
 /// For 3D tensors of shape (batch, m, n) and (batch, n, k),
 /// computes batched matrix products.
 pub fn bmm(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulError> {
+    // Check device compatibility
+    if a.device_ref() != b.device_ref() {
+        return Err(MatmulError::DeviceMismatch {
+            a: format!("{:?}", a.device_ref()),
+            b: format!("{:?}", b.device_ref()),
+        });
+    }
+
+    // Get tensor shapes
+    let a_shape = a.shape();
+    let b_shape = b.shape();
+
+    if a_shape.len() != 3 || b_shape.len() != 3 {
+        return Err(MatmulError::ShapeError("bmm requires 3D tensors".to_string()));
+    }
+
+    let batch = a_shape[0];
+    if batch != b_shape[0] {
+        return Err(MatmulError::DimensionMismatch {
+            a_cols: batch,
+            b_rows: b_shape[0],
+        });
+    }
+
+    let (m, k) = (a_shape[1], a_shape[2]);
+    let (k2, n) = (b_shape[1], b_shape[2]);
+
+    if k != k2 {
+        return Err(MatmulError::DimensionMismatch {
+            a_cols: k,
+            b_rows: k2,
+        });
+    }
+
+    // Dispatch based on device and dtype
+    match a.device_ref() {
+        #[cfg(feature = "cuda")]
+        DeviceType::Cuda(device_idx) => {
+            use crate::tensor::cuda::device_manager::get_device;
+            let device = get_device(*device_idx)
+                .map_err(|e| MatmulError::ShapeError(format!("Failed to get CUDA device: {}", e)))?;
+            bmm_cuda_dispatch(a, b, batch, m, k, n, &device)
+        }
+        DeviceType::Cpu => {
+            bmm_cpu_dispatch(a, b, batch, m, k, n)
+        }
+    }
+}
+
+/// CUDA dispatch for batched matrix multiplication
+#[cfg(feature = "cuda")]
+fn bmm_cuda_dispatch(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    batch: usize, m: usize, k: usize, n: usize,
+    device: &std::sync::Arc<cudarc::driver::safe::CudaContext>
+) -> Result<TensorStorage, MatmulError> {
+    use crate::tensor::storage::{CudaData, TensorData};
+
+    // Extract CUDA data directly from tensor variants
+    let (a_cuda, a_device, a_device_idx) = match &a.data {
+        TensorData::Cuda { data, device: dev, .. } => (data.as_ref(), dev, dev.ordinal()),
+        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for A".to_string())),
+    };
+
+    let (b_cuda, _, _) = match &b.data {
+        TensorData::Cuda { data, .. } => (data.as_ref(), &(), 0),
+        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for B".to_string())),
+    };
+
+    match (a_cuda, b_cuda) {
+        (CudaData::Float64(a_slice), CudaData::Float64(b_slice)) => {
+            let mut c_slice = device.default_stream().alloc_zeros::<f64>(batch * m * n)
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
+
+            crate::tensor::srt_kernels::cuda_bmm_f64(
+                device, &mut c_slice, &a_slice, &b_slice, batch, m, n, k
+            ).map_err(|e| MatmulError::ShapeError(format!("CUDA bmm failed: {}", e)))?;
+
+            Ok(TensorStorage::new_from_cuda(CudaData::Float64(c_slice), a_device.clone(), vec![batch, m, n], a_device_idx))
+        }
+        (CudaData::Complex128(a_slice), CudaData::Complex128(b_slice)) => {
+            let mut c_slice = device.default_stream().alloc_zeros::<f64>(batch * m * n * 2)
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
+
+            // Note: Need to implement cuda_bmm_c128 in srt_kernels.rs
+            // For now, fall back to CPU
+            bmm_cpu_dispatch(a, b, batch, m, k, n)
+        }
+        _ => bmm_cpu_dispatch(a, b, batch, m, k, n), // Fallback to CPU
+    }
+}
+
+/// CPU dispatch for batched matrix multiplication
+fn bmm_cpu_dispatch(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    batch: usize, m: usize, k: usize, n: usize,
+) -> Result<TensorStorage, MatmulError> {
     let a_cpu = a.ensure_cpu_internal()
         .map_err(|e| MatmulError::ShapeError(e.to_string()))?;
     let b_cpu = b.ensure_cpu_internal()
@@ -315,30 +501,7 @@ pub fn bmm(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, Matmul
 
     match (a_cpu, b_cpu) {
         (CpuData::Float64(a_arr), CpuData::Float64(b_arr)) => {
-            if a_arr.ndim() != 3 || b_arr.ndim() != 3 {
-                return Err(MatmulError::ShapeError("bmm requires 3D tensors".to_string()));
-            }
-
-            let batch = a_arr.shape()[0];
-            if batch != b_arr.shape()[0] {
-                return Err(MatmulError::DimensionMismatch {
-                    a_cols: batch,
-                    b_rows: b_arr.shape()[0],
-                });
-            }
-
-            let m = a_arr.shape()[1];
-            let n = a_arr.shape()[2];
-            let k = b_arr.shape()[2];
-
-            if n != b_arr.shape()[1] {
-                return Err(MatmulError::DimensionMismatch {
-                    a_cols: n,
-                    b_rows: b_arr.shape()[1],
-                });
-            }
-
-            let mut results: Vec<f64> = Vec::with_capacity(batch * m * k);
+            let mut results: Vec<f64> = Vec::with_capacity(batch * m * n);
 
             for i in 0..batch {
                 let a_slice = a_arr.index_axis(Axis(0), i);
@@ -353,36 +516,13 @@ pub fn bmm(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, Matmul
                 results.extend(c.iter());
             }
 
-            let result = ArrayD::from_shape_vec(IxDyn(&[batch, m, k]), results)
+            let result = ArrayD::from_shape_vec(IxDyn(&[batch, m, n]), results)
                 .map_err(|e| MatmulError::ShapeError(e.to_string()))?;
 
             Ok(wrap_cpu(CpuData::Float64(result), a.device_ref()))
         },
         (CpuData::Complex128(a_arr), CpuData::Complex128(b_arr)) => {
-            if a_arr.ndim() != 3 || b_arr.ndim() != 3 {
-                return Err(MatmulError::ShapeError("bmm requires 3D tensors".to_string()));
-            }
-
-            let batch = a_arr.shape()[0];
-            if batch != b_arr.shape()[0] {
-                return Err(MatmulError::DimensionMismatch {
-                    a_cols: batch,
-                    b_rows: b_arr.shape()[0],
-                });
-            }
-
-            let m = a_arr.shape()[1];
-            let n = a_arr.shape()[2];
-            let k = b_arr.shape()[2];
-
-            if n != b_arr.shape()[1] {
-                return Err(MatmulError::DimensionMismatch {
-                    a_cols: n,
-                    b_rows: b_arr.shape()[1],
-                });
-            }
-
-            let mut results: Vec<Complex64> = Vec::with_capacity(batch * m * k);
+            let mut results: Vec<Complex64> = Vec::with_capacity(batch * m * n);
 
             for i in 0..batch {
                 let a_slice = a_arr.index_axis(Axis(0), i);
@@ -397,7 +537,7 @@ pub fn bmm(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, Matmul
                 results.extend(c.iter());
             }
 
-            let result = ArrayD::from_shape_vec(IxDyn(&[batch, m, k]), results)
+            let result = ArrayD::from_shape_vec(IxDyn(&[batch, m, n]), results)
                 .map_err(|e| MatmulError::ShapeError(e.to_string()))?;
 
             Ok(wrap_cpu(CpuData::Complex128(result), a.device_ref()))
@@ -425,6 +565,82 @@ pub fn mm_phi(a: &TensorStorage, b: &TensorStorage, n: i32) -> Result<TensorStor
 /// The fundamental bracket for SRT φ-Lie algebra representations.
 /// Uses GoldenExact::phi_hat() for exact φ⁻¹ = φ - 1.
 pub fn phi_bracket(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulError> {
+    // Check device compatibility
+    if a.device_ref() != b.device_ref() {
+        return Err(MatmulError::DeviceMismatch {
+            a: format!("{:?}", a.device_ref()),
+            b: format!("{:?}", b.device_ref()),
+        });
+    }
+
+    // Get tensor shapes
+    let a_shape = a.shape();
+    let b_shape = b.shape();
+
+    if a_shape.len() != 2 || b_shape.len() != 2 {
+        return Err(MatmulError::ShapeError("Both tensors must be 2D for phi_bracket".to_string()));
+    }
+
+    let (m, k) = (a_shape[0], a_shape[1]);
+    let (k2, n) = (b_shape[0], b_shape[1]);
+
+    if k != k2 || m != n {
+        return Err(MatmulError::ShapeError("Matrices must be square and compatible for commutator".to_string()));
+    }
+
+    // Dispatch based on device
+    match a.device_ref() {
+        #[cfg(feature = "cuda")]
+        DeviceType::Cuda(device_idx) => {
+            use crate::tensor::cuda::device_manager::get_device;
+            let device = get_device(*device_idx)
+                .map_err(|e| MatmulError::ShapeError(format!("Failed to get CUDA device: {}", e)))?;
+            phi_bracket_cuda(a, b, m, k, &device)
+        }
+        DeviceType::Cpu => {
+            phi_bracket_cpu(a, b)
+        }
+    }
+}
+
+/// CUDA implementation of golden commutator
+#[cfg(feature = "cuda")]
+fn phi_bracket_cuda(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    m: usize, k: usize,
+    device: &std::sync::Arc<cudarc::driver::safe::CudaContext>
+) -> Result<TensorStorage, MatmulError> {
+    use crate::tensor::storage::{CudaData, TensorData};
+
+    // Extract CUDA data directly from tensor variants
+    let (a_cuda, a_device, a_device_idx) = match &a.data {
+        TensorData::Cuda { data, device: dev, .. } => (data.as_ref(), dev, dev.ordinal()),
+        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for A".to_string())),
+    };
+
+    let (b_cuda, _, _) = match &b.data {
+        TensorData::Cuda { data, .. } => (data.as_ref(), &(), 0),
+        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for B".to_string())),
+    };
+
+    match (a_cuda, b_cuda) {
+        (CudaData::Float64(a_slice), CudaData::Float64(b_slice)) => {
+            let mut c_slice = device.default_stream().alloc_zeros::<f64>(m * m)
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
+
+            crate::tensor::srt_kernels::cuda_golden_commutator_f64(
+                device, &mut c_slice, &a_slice, &b_slice, m, m, k
+            ).map_err(|e| MatmulError::ShapeError(format!("CUDA commutator failed: {}", e)))?;
+
+            Ok(TensorStorage::new_from_cuda(CudaData::Float64(c_slice), a_device.clone(), vec![m, m], a_device_idx))
+        }
+        _ => phi_bracket_cpu(a, b), // Fallback to CPU for other dtypes
+    }
+}
+
+/// CPU implementation of golden commutator
+fn phi_bracket_cpu(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulError> {
     let ab = mm(a, b)?;
     let ba = mm(b, a)?;
     let phi_inv_ba = mul_scalar_internal(&ba, phi_inv())?;
@@ -435,6 +651,82 @@ pub fn phi_bracket(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage
 ///
 /// Symmetric counterpart to the φ-bracket.
 pub fn phi_antibracket(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulError> {
+    // Check device compatibility
+    if a.device_ref() != b.device_ref() {
+        return Err(MatmulError::DeviceMismatch {
+            a: format!("{:?}", a.device_ref()),
+            b: format!("{:?}", b.device_ref()),
+        });
+    }
+
+    // Get tensor shapes
+    let a_shape = a.shape();
+    let b_shape = b.shape();
+
+    if a_shape.len() != 2 || b_shape.len() != 2 {
+        return Err(MatmulError::ShapeError("Both tensors must be 2D for phi_antibracket".to_string()));
+    }
+
+    let (m, k) = (a_shape[0], a_shape[1]);
+    let (k2, n) = (b_shape[0], b_shape[1]);
+
+    if k != k2 || m != n {
+        return Err(MatmulError::ShapeError("Matrices must be square and compatible for anticommutator".to_string()));
+    }
+
+    // Dispatch based on device
+    match a.device_ref() {
+        #[cfg(feature = "cuda")]
+        DeviceType::Cuda(device_idx) => {
+            use crate::tensor::cuda::device_manager::get_device;
+            let device = get_device(*device_idx)
+                .map_err(|e| MatmulError::ShapeError(format!("Failed to get CUDA device: {}", e)))?;
+            phi_antibracket_cuda(a, b, m, k, &device)
+        }
+        DeviceType::Cpu => {
+            phi_antibracket_cpu(a, b)
+        }
+    }
+}
+
+/// CUDA implementation of golden anticommutator
+#[cfg(feature = "cuda")]
+fn phi_antibracket_cuda(
+    a: &TensorStorage,
+    b: &TensorStorage,
+    m: usize, k: usize,
+    device: &std::sync::Arc<cudarc::driver::safe::CudaContext>
+) -> Result<TensorStorage, MatmulError> {
+    use crate::tensor::storage::{CudaData, TensorData};
+
+    // Extract CUDA data directly from tensor variants
+    let (a_cuda, a_device, a_device_idx) = match &a.data {
+        TensorData::Cuda { data, device: dev, .. } => (data.as_ref(), dev, dev.ordinal()),
+        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for A".to_string())),
+    };
+
+    let (b_cuda, _, _) = match &b.data {
+        TensorData::Cuda { data, .. } => (data.as_ref(), &(), 0),
+        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for B".to_string())),
+    };
+
+    match (a_cuda, b_cuda) {
+        (CudaData::Float64(a_slice), CudaData::Float64(b_slice)) => {
+            let mut c_slice = device.default_stream().alloc_zeros::<f64>(m * m)
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
+
+            crate::tensor::srt_kernels::cuda_golden_anticommutator_f64(
+                device, &mut c_slice, &a_slice, &b_slice, m, m, k
+            ).map_err(|e| MatmulError::ShapeError(format!("CUDA anticommutator failed: {}", e)))?;
+
+            Ok(TensorStorage::new_from_cuda(CudaData::Float64(c_slice), a_device.clone(), vec![m, m], a_device_idx))
+        }
+        _ => phi_antibracket_cpu(a, b), // Fallback to CPU for other dtypes
+    }
+}
+
+/// CPU implementation of golden anticommutator
+fn phi_antibracket_cpu(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulError> {
     let ab = mm(a, b)?;
     let ba = mm(b, a)?;
     let phi_inv_ba = mul_scalar_internal(&ba, phi_inv())?;

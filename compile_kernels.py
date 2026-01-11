@@ -39,6 +39,7 @@ KERNELS = [
     "resonant_d",
     "core_ops",
     "elementwise",
+    "matmul",
 ]
 
 # ANSI color codes

@@ -3,6 +3,7 @@
 //! Exposes Rust implementations to Python via PyO3.
 
 use pyo3::prelude::*;
+use std::time::Duration;
 use super::number_theory;
 use super::syntony;
 
@@ -32,6 +33,12 @@ pub fn py_mertens(n: usize) -> i64 {
 #[pyfunction]
 pub fn py_golden_weight(mode_norm_sq: f64) -> f64 {
     number_theory::golden_weight(mode_norm_sq)
+}
+
+/// Compute golden weights w(n) = exp(-|n|²/φ) for a vector of mode norms.
+#[pyfunction]
+pub fn py_golden_weights(mode_norms: Vec<f64>) -> Vec<f64> {
+    number_theory::golden_weights(&mode_norms)
 }
 
 /// Compute E* = e^π - π ≈ 20.1408...
@@ -70,6 +77,53 @@ pub fn py_aggregate_syntony(syntonies: Vec<f64>, method: &str) -> f64 {
 #[pyfunction]
 pub fn py_standard_mode_norms(dim: usize) -> Vec<f64> {
     syntony::standard_mode_norms(dim)
+}
+
+// === Crystallization Functions ===
+
+/// Legacy crystallization with dwell time enforcement.
+/// 
+/// This function provides the original crystallization algorithm
+/// with explicit dwell timing for φ-resonance enforcement.
+#[pyfunction]
+pub fn py_crystallize_with_dwell_legacy(
+    values: Vec<f64>,
+    base_precision: i64,
+    target_duration_ms: u64,
+) -> (Vec<f64>, i64, u64) {
+    let target_duration = Duration::from_millis(target_duration_ms);
+    let (lattice, precision, actual_duration) = 
+        super::crystallize::crystallize_with_dwell_legacy(&values, base_precision, target_duration);
+    
+    // Convert GoldenExact to f64 for Python
+    let lattice_f64 = lattice.iter().map(|g| g.to_f64()).collect();
+    let actual_duration_ms = actual_duration.as_millis() as u64;
+    
+    (lattice_f64, precision, actual_duration_ms)
+}
+
+/// Compute snap distance for crystallization.
+/// 
+/// Measures how far values are from their nearest lattice points.
+#[pyfunction]
+pub fn py_snap_distance(values: Vec<f64>, max_coeff: i64) -> f64 {
+    super::crystallize::snap_distance(&values, max_coeff)
+}
+
+/// Compute snap gradient for crystallization.
+/// 
+/// Computes the gradient towards lattice points for optimization.
+#[pyfunction]
+pub fn py_compute_snap_gradient(
+    pre_snap: Vec<f64>,
+    post_snap_lattice: Vec<f64>,
+) -> Vec<f64> {
+    // Convert f64 post_snap to GoldenExact for the function
+    let post_snap: Vec<crate::GoldenExact> = post_snap_lattice.iter()
+        .map(|&x| crate::GoldenExact::find_nearest(x, 1000))
+        .collect();
+    
+    super::crystallize::compute_snap_gradient(&pre_snap, &post_snap)
 }
 
 // === Loss Functions ===

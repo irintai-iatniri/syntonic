@@ -21,8 +21,8 @@ def run_benchmarks():
     arr_a = np.random.randn(size, size)
     arr_b = np.random.randn(size, size)
     
-    state_a = syn.state(arr_a)
-    state_b = syn.state(arr_b)
+    state_a = syn.state.from_numpy(arr_a)
+    state_b = syn.state.from_numpy(arr_b)
     
     # --- Addition ---
     t_np_add = benchmark_op("NP Add", lambda: arr_a + arr_b)
@@ -34,8 +34,8 @@ def run_benchmarks():
     size_mm = 200
     arr_am = np.random.randn(size_mm, size_mm)
     arr_bm = np.random.randn(size_mm, size_mm)
-    state_am = syn.state(arr_am)
-    state_bm = syn.state(arr_bm)
+    state_am = syn.state.from_numpy(arr_am)
+    state_bm = syn.state.from_numpy(arr_bm)
     
     t_np_mm = benchmark_op("NP Matmul", lambda: arr_am @ arr_bm, n_iter=20)
     t_sy_mm = benchmark_op("SY Matmul", lambda: state_am @ state_bm, n_iter=20)
@@ -44,7 +44,7 @@ def run_benchmarks():
     # --- Eig ---
     size_eig = 100
     arr_e = np.random.randn(size_eig, size_eig)
-    state_e = syn.state(arr_e)
+    state_e = syn.state.from_numpy(arr_e)
     
     t_np_eig = benchmark_op("NP Eig", lambda: np.linalg.eig(arr_e), n_iter=10)
     t_sy_eig = benchmark_op("SY Eig", lambda: linalg.eig(state_e), n_iter=10)

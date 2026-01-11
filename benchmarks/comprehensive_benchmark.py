@@ -79,7 +79,8 @@ class ComprehensiveBenchmark:
     def __init__(self, sizes: List[int], iterations: int = 100, use_gpu: bool = False):
         self.sizes = sizes
         self.iterations = iterations
-        self.use_gpu = use_gpu and CUDA_AVAILABLE
+        # Enable GPU by default if CUDA is available
+        self.use_gpu = use_gpu or CUDA_AVAILABLE
         self.results: List[BenchmarkResult] = []
 
         # Data types to test
@@ -336,7 +337,21 @@ class ComprehensiveBenchmark:
                         device = 'cuda' if self.use_gpu and lib in ['torch', 'syntonic'] else 'cpu'
 
                         for op_name, op_func in operations:
-                            if op_name == 'solve':
+                            if lib == 'syntonic':
+                                # Use syntonic's linalg operations
+                                if op_name == 'eig':
+                                    syn_op = lambda a: a.eig()
+                                elif op_name == 'svd':
+                                    syn_op = lambda a: a.svd()
+                                elif op_name == 'solve':
+                                    b_vec = self.create_arrays((size,), dtype, lib)[0]
+                                    syn_op = lambda a: linalg.solve(a, b_vec)
+                                result = self.benchmark_operation(
+                                    f"{op_name}_{size}x{size}",
+                                    lambda: syn_op(a),
+                                    (size, size), dtype, lib, device
+                                )
+                            elif op_name == 'solve':
                                 # For solve, b should be a vector or matrix with compatible dimensions
                                 b_vec = self.create_arrays((size,), dtype, lib)[0]
                                 result = self.benchmark_operation(

@@ -36,6 +36,7 @@ KERNELS=(
     "resonant_d"
     "core_ops"
     "elementwise"
+    "matmul"
 )
 
 # Print colored message

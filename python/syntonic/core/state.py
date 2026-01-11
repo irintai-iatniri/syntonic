@@ -33,6 +33,22 @@ def _flatten(data: Any, depth: int = 0) -> Tuple[List, List[int]]:
     Returns:
         (flat_list, shape)
     """
+    # Handle numpy arrays
+    try:
+        import numpy as np
+        if isinstance(data, np.ndarray):
+            # Convert numpy array to nested list structure first
+            if data.ndim == 0:
+                return [data.item()], []
+            elif data.ndim == 1:
+                return data.tolist(), [data.shape[0]]
+            else:
+                # For multi-dimensional arrays, convert to nested list
+                nested = data.tolist()
+                return _flatten(nested, depth)
+    except ImportError:
+        pass  # numpy not available, continue with normal processing
+
     if not isinstance(data, (list, tuple)):
         return [data], []
 
@@ -511,6 +527,34 @@ class State:
     def exp(self) -> 'State':
         """Element-wise exponential."""
         return self._with_storage(self._storage.exp())
+
+    def log(self) -> 'State':
+        """Element-wise natural logarithm."""
+        return self._with_storage(self._storage.log())
+
+    def sin(self) -> 'State':
+        """Element-wise sine."""
+        return self._with_storage(self._storage.sin())
+
+    def cos(self) -> 'State':
+        """Element-wise cosine."""
+        return self._with_storage(self._storage.cos())
+
+    def sqrt(self) -> 'State':
+        """Element-wise square root."""
+        return self._with_storage(self._storage.sqrt())
+
+    def tanh(self) -> 'State':
+        """Element-wise hyperbolic tangent."""
+        return self._with_storage(self._storage.tanh())
+
+    def sigmoid(self) -> 'State':
+        """Element-wise sigmoid: 1/(1 + exp(-x))."""
+        return self._with_storage(self._storage.sigmoid())
+
+    def relu(self) -> 'State':
+        """Element-wise ReLU: max(0, x)."""
+        return self._with_storage(self._storage.relu())
 
     def exp_golden(self) -> 'State':
         """Golden exponential: exp(-x/φ).

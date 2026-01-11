@@ -85,6 +85,16 @@ const PTX_PHI_RESIDUAL_SM86: &str = include_str!("../../kernels/ptx/phi_residual
 #[cfg(feature = "cuda")]
 const PTX_PHI_RESIDUAL_SM90: &str = include_str!("../../kernels/ptx/phi_residual_sm_90.ptx");
 
+// Matmul PTX (4 compute capabilities)
+#[cfg(feature = "cuda")]
+const PTX_MATMUL_SM75: &str = include_str!("../../kernels/ptx/matmul_sm_75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_MATMUL_SM80: &str = include_str!("../../kernels/ptx/matmul_sm_80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_MATMUL_SM86: &str = include_str!("../../kernels/ptx/matmul_sm_86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_MATMUL_SM90: &str = include_str!("../../kernels/ptx/matmul_sm_90.ptx");
+
 #[cfg(feature = "cuda")]
 const PTX_GOLDEN_BATCH_NORM_SM90: &str = include_str!("../../kernels/ptx/golden_batch_norm_sm_90.ptx");
 
@@ -235,6 +245,28 @@ const SYNTONIC_SOFTMAX_FUNCS: &[&str] = &[
     "syntonic_softmax_provided_f64",
 ];
 
+/// Matmul kernel functions
+#[cfg(feature = "cuda")]
+const MATMUL_FUNCS: &[&str] = &[
+    // Standard matrix multiplication
+    "matmul_f64", "matmul_f32", "matmul_c128",
+    "matmul_tiled_f64", "matmul_tiled_f32",
+    // Transposed variants
+    "matmul_tn_f64", "matmul_nt_f64", "matmul_tt_f64",
+    // Hermitian variants (complex)
+    "matmul_hn_c128", "matmul_nh_c128",
+    // GEMM operations
+    "gemm_nn_f64", "gemm_tn_f64", "gemm_nt_f64", "gemm_tt_f64",
+    // Batched operations
+    "bmm_f64", "bmm_c128",
+    // SRT-specific operations
+    "matmul_phi_scaled_f64",
+    "golden_commutator_f64", "golden_anticommutator_f64",
+    "matmul_golden_weighted_f64", "matmul_golden_weighted_c128",
+    // Complex arithmetic
+    "complex_div_c128", "complex_reciprocal_c128",
+];
+
 // =============================================================================
 // PTX Selection Based on Compute Capability
 // =============================================================================
@@ -314,6 +346,15 @@ fn select_syntonic_softmax_ptx(major: i32, minor: i32) -> &'static str {
     else if cc >= 86 { PTX_SYNTONIC_SOFTMAX_SM86 }
     else if cc >= 80 { PTX_SYNTONIC_SOFTMAX_SM80 }
     else { PTX_SYNTONIC_SOFTMAX_SM75 }
+}
+
+#[cfg(feature = "cuda")]
+fn select_matmul_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 { PTX_MATMUL_SM90 }
+    else if cc >= 86 { PTX_MATMUL_SM86 }
+    else if cc >= 80 { PTX_MATMUL_SM80 }
+    else { PTX_MATMUL_SM75 }
 }
 
 // =============================================================================
@@ -660,6 +701,290 @@ pub fn cuda_apply_correction_f64(
     unsafe {
         device.default_stream().launch_builder(&func)
             .arg(output).arg(input).arg(&structure_idx).arg(&sign).arg(&(n as i32))
+            .launch(launch_cfg_256(n))
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+// =============================================================================
+// Matrix Multiplication CUDA Operations
+// =============================================================================
+
+/// Standard matrix multiplication: C = A × B (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_matmul_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    m: usize, n: usize, k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load matmul kernels: {}", e)
+        ))?;
+
+    let func = module.load_function("matmul_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device.default_stream().launch_builder(&func)
+            .arg(c).arg(a).arg(b)
+            .arg(&(m as i32)).arg(&(n as i32)).arg(&(k as i32))
+            .launch(LaunchConfig { block_dim, grid_dim, shared_mem_bytes: 0 })
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Tiled matrix multiplication for better performance: C = A × B (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_matmul_tiled_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    m: usize, n: usize, k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load matmul kernels: {}", e)
+        ))?;
+
+    let func = module.load_function("matmul_tiled_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device.default_stream().launch_builder(&func)
+            .arg(c).arg(a).arg(b)
+            .arg(&(m as i32)).arg(&(n as i32)).arg(&(k as i32))
+            .launch(LaunchConfig { block_dim, grid_dim, shared_mem_bytes: 0 })
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Complex matrix multiplication: C = A × B (complex128)
+#[cfg(feature = "cuda")]
+pub fn cuda_matmul_c128(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    m: usize, n: usize, k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load matmul kernels: {}", e)
+        ))?;
+
+    let func = module.load_function("matmul_c128")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device.default_stream().launch_builder(&func)
+            .arg(c).arg(a).arg(b)
+            .arg(&(m as i32)).arg(&(n as i32)).arg(&(k as i32))
+            .launch(LaunchConfig { block_dim, grid_dim, shared_mem_bytes: 0 })
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Transposed matrix multiplication: C = Aᵀ × B
+#[cfg(feature = "cuda")]
+pub fn cuda_matmul_tn_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    m: usize, n: usize, k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load matmul kernels: {}", e)
+        ))?;
+
+    let func = module.load_function("matmul_tn_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device.default_stream().launch_builder(&func)
+            .arg(c).arg(a).arg(b)
+            .arg(&(m as i32)).arg(&(n as i32)).arg(&(k as i32))
+            .launch(LaunchConfig { block_dim, grid_dim, shared_mem_bytes: 0 })
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Golden commutator: [A, B]_φ = AB - φ⁻¹BA
+#[cfg(feature = "cuda")]
+pub fn cuda_golden_commutator_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    m: usize, n: usize, k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load matmul kernels: {}", e)
+        ))?;
+
+    let func = module.load_function("golden_commutator_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device.default_stream().launch_builder(&func)
+            .arg(c).arg(a).arg(b)
+            .arg(&(m as i32)).arg(&(n as i32)).arg(&(k as i32))
+            .launch(LaunchConfig { block_dim, grid_dim, shared_mem_bytes: 0 })
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Golden anticommutator: {A, B}_φ = AB + φ⁻¹BA
+#[cfg(feature = "cuda")]
+pub fn cuda_golden_anticommutator_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    m: usize, n: usize, k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load matmul kernels: {}", e)
+        ))?;
+
+    let func = module.load_function("golden_anticommutator_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device.default_stream().launch_builder(&func)
+            .arg(c).arg(a).arg(b)
+            .arg(&(m as i32)).arg(&(n as i32)).arg(&(k as i32))
+            .launch(LaunchConfig { block_dim, grid_dim, shared_mem_bytes: 0 })
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// φ-scaled matrix multiplication: C = φⁿ × (A × B)
+#[cfg(feature = "cuda")]
+pub fn cuda_matmul_phi_scaled_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    n: i32,  // Power of phi
+    m: usize, k: usize, p: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load matmul kernels: {}", e)
+        ))?;
+
+    let func = module.load_function("matmul_phi_scaled_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((p + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device.default_stream().launch_builder(&func)
+            .arg(c).arg(a).arg(b)
+            .arg(&n).arg(&(m as i32)).arg(&(p as i32)).arg(&(k as i32))
+            .launch(LaunchConfig { block_dim, grid_dim, shared_mem_bytes: 0 })
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Batched matrix multiplication: C[i] = A[i] × B[i]
+#[cfg(feature = "cuda")]
+pub fn cuda_bmm_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    batch_size: usize, m: usize, n: usize, k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load matmul kernels: {}", e)
+        ))?;
+
+    let func = module.load_function("bmm_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (8, 8, 8);
+    let grid_dim = (
+        ((n + 7) / 8) as u32,
+        ((m + 7) / 8) as u32,
+        ((batch_size + 7) / 8) as u32
+    );
+
+    unsafe {
+        device.default_stream().launch_builder(&func)
+            .arg(c).arg(a).arg(b)
+            .arg(&(batch_size as i32)).arg(&(m as i32)).arg(&(n as i32)).arg(&(k as i32))
+            .launch(LaunchConfig { block_dim, grid_dim, shared_mem_bytes: 0 })
+    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Complex division: C = A / B (element-wise)
+#[cfg(feature = "cuda")]
+pub fn cuda_complex_div_c128(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    n: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
+            format!("Failed to load matmul kernels: {}", e)
+        ))?;
+
+    let func = module.load_function("complex_div_c128")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    unsafe {
+        device.default_stream().launch_builder(&func)
+            .arg(c).arg(a).arg(b).arg(&(n as i32))
             .launch(launch_cfg_256(n))
     }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
