@@ -142,16 +142,21 @@ pub fn mm(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulE
         });
     }
 
+    // Debug: Print device info
+    println!("DEBUG: mm called with device: {:?}", a.device_ref());
+
     // Dispatch based on device and dtype
     match a.device_ref() {
         #[cfg(feature = "cuda")]
         DeviceType::Cuda(device_idx) => {
+            println!("DEBUG: Dispatching to CUDA matmul for device {}", device_idx);
             use crate::tensor::cuda::device_manager::get_device;
             let device = get_device(*device_idx)
                 .map_err(|e| MatmulError::ShapeError(format!("Failed to get CUDA device: {}", e)))?;
             mm_cuda_dispatch(a, b, m, k, n, &device)
         }
         DeviceType::Cpu => {
+            println!("DEBUG: Dispatching to CPU matmul");
             mm_cpu_dispatch(a, b, m, k, n)
         }
     }
@@ -165,35 +170,57 @@ fn mm_cuda_dispatch(
     m: usize, k: usize, n: usize,
     device: &std::sync::Arc<cudarc::driver::safe::CudaContext>
 ) -> Result<TensorStorage, MatmulError> {
+    println!("DEBUG: mm_cuda_dispatch called with m={}, k={}, n={}", m, k, n);
+
     use crate::tensor::storage::{CudaData, TensorData};
 
     // Extract CUDA data directly from tensor variants
     let (a_cuda, a_device, a_device_idx) = match &a.data {
-        TensorData::Cuda { data, device: dev, .. } => (data.as_ref(), dev, dev.ordinal()),
-        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for A".to_string())),
+        TensorData::Cuda { data, device: dev, .. } => {
+            println!("DEBUG: A tensor is CUDA with device idx {}", dev.ordinal());
+            (data.as_ref(), dev, dev.ordinal())
+        }
+        _ => {
+            println!("DEBUG: A tensor is NOT CUDA, falling back to CPU");
+            return Err(MatmulError::ShapeError("Expected CUDA tensor for A".to_string()));
+        }
     };
 
     let (b_cuda, _, _) = match &b.data {
-        TensorData::Cuda { data, .. } => (data.as_ref(), &(), 0),
-        _ => return Err(MatmulError::ShapeError("Expected CUDA tensor for B".to_string())),
+        TensorData::Cuda { data, .. } => {
+            println!("DEBUG: B tensor is CUDA");
+            (data.as_ref(), &(), 0)
+        }
+        _ => {
+            println!("DEBUG: B tensor is NOT CUDA, falling back to CPU");
+            return Err(MatmulError::ShapeError("Expected CUDA tensor for B".to_string()));
+        }
     };
+
+    println!("DEBUG: Processing CUDA matmul with data types: A={:?}, B={:?}", 
+             std::mem::discriminant(a_cuda), std::mem::discriminant(b_cuda));
 
     match (a_cuda, b_cuda) {
         (CudaData::Float64(a_slice), CudaData::Float64(b_slice)) => {
+            println!("DEBUG: f64 CUDA matmul - allocating output buffer");
             let mut c_slice = device.default_stream().alloc_zeros::<f64>(m * n)
                 .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
 
+            println!("DEBUG: f64 CUDA matmul - calling cuda_matmul_tiled_f64");
             crate::tensor::srt_kernels::cuda_matmul_tiled_f64(
                 device, &mut c_slice, &a_slice, &b_slice, m, n, k
             ).map_err(|e| MatmulError::ShapeError(format!("CUDA matmul failed: {}", e)))?;
 
+            println!("DEBUG: f64 CUDA matmul - completed successfully");
             Ok(TensorStorage::new_from_cuda(CudaData::Float64(c_slice), a_device.clone(), vec![m, n], a_device_idx))
         }
         (CudaData::Float32(a_slice), CudaData::Float32(b_slice)) => {
+            println!("DEBUG: f32 CUDA matmul - allocating output buffer");
             let mut c_slice = device.default_stream().alloc_zeros::<f32>(m * n)
                 .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
 
             // Use tiled version for f32 as well
+            println!("DEBUG: f32 CUDA matmul - calling cuda_matmul_tiled_f64 (transmuted)");
             crate::tensor::srt_kernels::cuda_matmul_tiled_f64(
                 device,
                 unsafe { std::mem::transmute(&mut c_slice) },
@@ -202,19 +229,26 @@ fn mm_cuda_dispatch(
                 m, n, k
             ).map_err(|e| MatmulError::ShapeError(format!("CUDA matmul failed: {}", e)))?;
 
+            println!("DEBUG: f32 CUDA matmul - completed successfully");
             Ok(TensorStorage::new_from_cuda(CudaData::Float32(c_slice), a_device.clone(), vec![m, n], a_device_idx))
         }
         (CudaData::Complex128(a_slice), CudaData::Complex128(b_slice)) => {
+            println!("DEBUG: Complex128 CUDA matmul - allocating output buffer");
             let mut c_slice = device.default_stream().alloc_zeros::<f64>(m * n * 2)
                 .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
 
+            println!("DEBUG: Complex128 CUDA matmul - calling cuda_matmul_c128");
             crate::tensor::srt_kernels::cuda_matmul_c128(
                 device, &mut c_slice, &a_slice, &b_slice, m, n, k
             ).map_err(|e| MatmulError::ShapeError(format!("CUDA matmul failed: {}", e)))?;
 
+            println!("DEBUG: Complex128 CUDA matmul - completed successfully");
             Ok(TensorStorage::new_from_cuda(CudaData::Complex128(c_slice), a_device.clone(), vec![m, n], a_device_idx))
         }
-        _ => Err(MatmulError::UnsupportedDtype("CUDA matmul: dtype mismatch or unsupported".to_string())),
+        _ => {
+            println!("DEBUG: Unsupported CUDA dtype combination");
+            Err(MatmulError::UnsupportedDtype("CUDA matmul: dtype mismatch or unsupported".to_string()))
+        }
     }
 }
 

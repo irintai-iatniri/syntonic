@@ -368,6 +368,33 @@ class State:
         new_state._gnosis_cache = None
         return new_state
 
+    def cpu_async(self, wait: bool = True) -> 'State':
+        """Move to CPU using SRT-optimized async transfer.
+
+        When `wait` is True (default), waits for transfer completion.
+        """
+        if self._device.is_cpu:
+            return self
+
+        # Use SRT-optimized async D2H transfer path
+        # Assume device_id is 0 if not specified on device
+        device_id = self._device.index if self._device.index is not None else 0
+        new_storage = self._storage.to_cpu_async_srt(device_id)
+
+        # Optionally ensure device sync (already synced in Rust path)
+        if wait:
+            from syntonic.core import TensorStorage
+            TensorStorage.sync_cuda_device(device_id)
+
+        new_state = object.__new__(State)
+        new_state._storage = new_storage
+        new_state._dtype = self._dtype
+        new_state._shape = self._shape
+        new_state._device = cpu
+        new_state._syntony_cache = None
+        new_state._gnosis_cache = None
+        return new_state
+
     def cpu(self) -> 'State':
         """Move to CPU."""
         if self._device.is_cpu:
@@ -432,12 +459,14 @@ class State:
 
     def __matmul__(self, other: 'State') -> 'State':
         """Matrix multiplication."""
+        print(f"DEBUG Python: __matmul__ called with self.device={self._device}, other.device={other._device}")
         new_storage = self._storage.matmul(other._storage)
         # Compute result shape for matmul
         if len(self._shape) == 2 and len(other._shape) == 2:
             new_shape = (self._shape[0], other._shape[1])
         else:
             new_shape = tuple(new_storage.shape)  # pragma: no cover
+        print(f"DEBUG Python: matmul completed, new_shape={new_shape}")
         return self._with_storage(new_storage, shape=new_shape)
 
     def __pow__(self, n: int) -> 'State':

@@ -15,6 +15,7 @@ use rand::Rng;
 use crate::exact::golden::GoldenExact;
 use crate::exact::constants::FundamentalConstant;
 use crate::exact::SymExpr;
+use crate::linalg::matmul;
 
 // SRT kernel constants and functions (non-CUDA)
 #[cfg(not(feature = "cuda"))]
@@ -889,26 +890,8 @@ impl TensorStorage {
     }
 
     pub fn matmul(&self, other: &TensorStorage) -> PyResult<TensorStorage> {
-        let a = self.ensure_cpu()?;
-        let b = other.ensure_cpu()?;
-
-        match (a, b) {
-            (CpuData::Float64(a), CpuData::Float64(b)) => {
-                let a_2d = a.clone().into_dimensionality::<Ix2>()
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("ShapeError/IncompatibleShape: {}", e)))?;
-                let b_2d = b.clone().into_dimensionality::<Ix2>()
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("ShapeError/IncompatibleShape: {}", e)))?;
-                Ok(Self::wrap_cpu(CpuData::Float64(a_2d.dot(&b_2d).into_dyn()), &self.device))
-            },
-            (CpuData::Complex128(a), CpuData::Complex128(b)) => {
-                let a_2d = a.clone().into_dimensionality::<Ix2>()
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("ShapeError/IncompatibleShape: {}", e)))?;
-                let b_2d = b.clone().into_dimensionality::<Ix2>()
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("ShapeError/IncompatibleShape: {}", e)))?;
-                Ok(Self::wrap_cpu(CpuData::Complex128(a_2d.dot(&b_2d).into_dyn()), &self.device))
-            },
-            _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("ShapeError/IncompatibleShape: incompatible shapes")),
-        }
+        matmul::mm(self, other)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))
     }
 
     pub fn transpose(&self) -> PyResult<TensorStorage> {
@@ -2575,6 +2558,63 @@ impl TensorStorage {
             self.shape.clone(),
             device_idx,
         ))
+    }
+
+    /// SRT-optimized transfer to CPU (async path with device sync)
+    /// Uses golden ratio batching and pinned memory pooling for improved throughput
+    #[cfg(feature = "cuda")]
+    pub fn to_cpu_async_srt(&self, device_idx: usize) -> PyResult<TensorStorage> {
+        let cuda_data = match &self.data {
+            TensorData::Cuda { data, .. } => data.as_ref(),
+            _ => return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Not on CUDA device")),
+        };
+
+        // Create overlap manager which provides SRT transfer helpers
+        let overlap = TransferComputeOverlap::new(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Execute SRT-optimized D2H transfer based on dtype
+        let cpu_data = match cuda_data {
+            CudaData::Float32(slice) => {
+                let host_vec = overlap.receive_f32(slice)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                CpuData::Float32(ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&self.shape), host_vec)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?)
+            },
+            CudaData::Float64(slice) => {
+                let host_vec = overlap.receive_f64(slice)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                CpuData::Float64(ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&self.shape), host_vec)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?)
+            },
+            CudaData::Complex128(slice) => {
+                let host_vec = overlap.receive_f64(slice)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                
+                // Convert Vec<f64> to Vec<Complex64> safely
+                // Complex64 is layout compatible with [f64; 2]
+                unsafe {
+                     let ptr = host_vec.as_ptr() as *mut num_complex::Complex64;
+                     let len = host_vec.len() / 2;
+                     let cap = host_vec.capacity() / 2;
+                     std::mem::forget(host_vec);
+                     let complex_vec = Vec::from_raw_parts(ptr, len, cap);
+                     
+                     CpuData::Complex128(ndarray::ArrayD::from_shape_vec(ndarray::IxDyn(&self.shape), complex_vec)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?)
+                }
+            },
+        };
+
+        // Ensure transfer completion
+        overlap.sync()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        Ok(TensorStorage {
+            data: TensorData::Cpu(cpu_data),
+            shape: self.shape.clone(),
+            device: DeviceType::Cpu,
+        })
     }
 
     /// Copy data back from device to host asynchronously

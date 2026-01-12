@@ -117,12 +117,13 @@ class ComprehensiveBenchmark:
         elif library == 'syntonic':
             if not HAS_SYNTONIC:
                 raise ImportError("Syntonic not available")
-            device_str = 'cuda' if self.use_gpu else 'cpu'
-            device = syn.device(device_str)
             a_np = np.random.randn(*size).astype(np_dtype)
             b_np = np.random.randn(*size).astype(np_dtype)
-            a = syn.State.from_numpy(a_np).to(device)
-            b = syn.State.from_numpy(b_np).to(device)
+            a = syn.State.from_numpy(a_np)
+            b = syn.State.from_numpy(b_np)
+            if self.use_gpu:
+                a = a.cuda()
+                b = b.cuda()
             return a, b
 
         else:
@@ -296,9 +297,17 @@ class ComprehensiveBenchmark:
                                     (size, size), dtype, lib, device
                                 )
                             elif lib == 'syntonic':
-                                # For syntonic, we need to check what operations are available
-                                # For now, skip element-wise ops that might not be implemented
-                                continue
+                                # Use Syntonic's element-wise operations
+                                if hasattr(a, op_name):
+                                    syn_op = getattr(a, op_name)
+                                    result = self.benchmark_operation(
+                                        f"{op_name}_{size}x{size}",
+                                        lambda: syn_op(),
+                                        (size, size), dtype, lib, device
+                                    )
+                                else:
+                                    # Skip if operation not available
+                                    continue
                             else:
                                 result = self.benchmark_operation(
                                     f"{op_name}_{size}x{size}",
@@ -393,7 +402,7 @@ class ComprehensiveBenchmark:
                             torch_dtype = getattr(torch, dtype)
                             create_func = lambda: torch.randn(*(size, size), dtype=torch_dtype, device=device)
                         elif lib == 'syntonic':
-                            create_func = lambda: syn.State.random((size, size), dtype=dtype, device=device)
+                            create_func = lambda: syn.State.from_numpy(np.random.randn(size, size).astype(getattr(np, dtype))).cuda() if self.use_gpu else syn.State.from_numpy(np.random.randn(size, size).astype(getattr(np, dtype)))
 
                         result = self.benchmark_operation(
                             f"create_{size}x{size}",

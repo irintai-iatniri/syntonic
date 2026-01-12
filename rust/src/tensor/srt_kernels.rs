@@ -751,24 +751,46 @@ pub fn cuda_matmul_tiled_f64(
     b: &CudaSlice<f64>,
     m: usize, n: usize, k: usize,
 ) -> PyResult<()> {
+    println!("DEBUG: cuda_matmul_tiled_f64 called with m={}, n={}, k={}", m, n, k);
+    
     let (major, minor) = get_compute_capability(device);
-    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(major, minor)))
+    println!("DEBUG: CUDA compute capability: {}.{}", major, minor);
+    
+    let ptx_src = select_matmul_ptx(major, minor);
+    println!("DEBUG: Selected PTX length: {}", ptx_src.len());
+    
+    let module = device.load_module(cudarc::nvrtc::Ptx::from_src(ptx_src))
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(
             format!("Failed to load matmul kernels: {}", e)
         ))?;
+    println!("DEBUG: Module loaded successfully");
 
     let func = module.load_function("matmul_tiled_f64")
-        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel matmul_tiled_f64 not found"))?;
+    println!("DEBUG: Function matmul_tiled_f64 loaded successfully");
 
     let block_dim = (16, 16, 1);
     let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+    println!("DEBUG: Launch config: block_dim={:?}, grid_dim={:?}", block_dim, grid_dim);
 
-    unsafe {
+    let launch_result = unsafe {
         device.default_stream().launch_builder(&func)
             .arg(c).arg(a).arg(b)
             .arg(&(m as i32)).arg(&(n as i32)).arg(&(k as i32))
             .launch(LaunchConfig { block_dim, grid_dim, shared_mem_bytes: 0 })
-    }.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+    };
+    
+    match &launch_result {
+        Ok(_) => println!("DEBUG: Kernel launch succeeded"),
+        Err(e) => println!("DEBUG: Kernel launch failed: {}", e),
+    }
+    
+    launch_result.map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    // Synchronize to ensure kernel completes
+    device.default_stream().synchronize()
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Stream sync failed: {}", e)))?;
+    println!("DEBUG: Stream synchronized successfully");
 
     Ok(())
 }
