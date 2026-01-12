@@ -21,9 +21,11 @@ dmypy.json
 # Environments
 .env
 .venv
+.venv*/
 env/
 venv/
 ENV/
+env*/
 env.bak/
 venv.bak/
 
@@ -33,6 +35,11 @@ venv.bak/
 *.swp
 *.swo
 *~
+*.tmp
+*.temp
+.cache/
+.vscode/settings.json
+.vscode/launch.json
 
 # OS-specific
 .DS_Store
@@ -60,19 +67,34 @@ docs/build/
 # AI/Assistant
 .claude/
 
-# Temporary files
-*.tmp
-*.temp
-*.bak
-.cache/
-
 # Logs
 *.log
 logs/
+*.log.*
+
+# Data files
+*.csv
+*.json
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+
+# Configuration (may contain secrets)
+config.local.*
+secrets.*
+*.key
+*.pem
 
 # Performance profiling
 *.prof
 *.lprof
+
+# Benchmark results (generated files)
+benchmark_results.json
+BENCHMARK_RESULTS.md
+benchmarks/benchmark_results.json
+benchmarks/BENCHMARK_RESULTS.md
 
 # Testing artifacts
 htmlcov/
@@ -91,3 +113,5 @@ coverage.xml
 .debug/
 *.orig
 *.rej
+*.bak
+*.backup
