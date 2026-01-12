@@ -42,6 +42,9 @@ from syntonic._core import (
     srt_memory_resonance,
     _debug_stress_pool_take,
 
+    # Physics operations (Geodesic Gravity Slide)
+    py_apply_geodesic_slide,
+
     # Linear algebra functions
     linalg_mm, linalg_mm_add,
     linalg_mm_tn, linalg_mm_nt, linalg_mm_tt,
@@ -93,6 +96,60 @@ from syntonic._core import (
     knot_heat_kernel_trace,
     knot_spectral_zeta,
     knot_spectral_zeta_complex,
+    # Number theory and syntony
+    py_mobius,
+    py_is_square_free,
+    py_mertens,
+    py_golden_weight,
+    py_golden_weights,
+    py_e_star,
+    py_compute_winding_syntony,
+    py_batch_winding_syntony,
+    py_aggregate_syntony,
+    py_standard_mode_norms,
+    # Crystallization
+    py_crystallize_with_dwell_legacy,
+    py_snap_distance,
+    py_compute_snap_gradient,
+    # Loss functions
+    py_mse_loss,
+    py_softmax,
+    py_cross_entropy_loss,
+    py_batch_cross_entropy_loss,
+    py_syntony_loss,
+    py_syntony_loss_srt,
+    py_get_target_syntony,
+    py_get_q_deficit,
+    py_phase_alignment_loss,
+    py_syntonic_loss,
+    py_estimate_syntony_from_probs,
+    py_golden_decay_loss,
+    # Broadcasting operations
+    py_broadcast_shape,
+    py_are_broadcastable,
+    py_broadcast_add,
+    py_broadcast_mul,
+    py_broadcast_sub,
+    py_broadcast_div,
+    py_linear_index,
+    # In-place operations
+    py_inplace_add_scalar,
+    py_inplace_mul_scalar,
+    py_inplace_sub_scalar,
+    py_inplace_div_scalar,
+    py_inplace_negate,
+    py_inplace_abs,
+    py_inplace_clamp,
+    py_inplace_golden_weight,
+    # Convolution operations
+    py_conv2d,
+    py_max_pool2d,
+    py_avg_pool2d,
+    py_global_avg_pool2d,
+    # Linear algebra (generalized)
+    linalg_mm_gemm,
+    linalg_mm_q_corrected_direct,
+    linalg_q_correction_scalar,
 )
 
 __all__ = [
@@ -138,6 +195,9 @@ __all__ = [
     'srt_pool_stats',
     'srt_memory_resonance',
     '_debug_stress_pool_take',
+
+    # Physics operations (Geodesic Gravity Slide)
+    'py_apply_geodesic_slide',
     # Linear algebra functions
     'linalg_mm', 'linalg_mm_add',
     'linalg_mm_tn', 'linalg_mm_nt', 'linalg_mm_tt',
@@ -146,6 +206,9 @@ __all__ = [
     'linalg_mm_phi', 'linalg_phi_bracket', 'linalg_phi_antibracket',
     'linalg_mm_corrected', 'linalg_mm_golden_phase', 'linalg_mm_golden_weighted',
     'linalg_projection_sum',
+    'linalg_mm_gemm',
+    'linalg_mm_q_corrected_direct',
+    'linalg_q_correction_scalar',
     'Structure',
     # Exact arithmetic
     'Rational',
@@ -189,4 +252,54 @@ __all__ = [
     'knot_heat_kernel_trace',
     'knot_spectral_zeta',
     'knot_spectral_zeta_complex',
+    # Number theory and syntony
+    'py_mobius',
+    'py_is_square_free',
+    'py_mertens',
+    'py_golden_weight',
+    'py_golden_weights',
+    'py_e_star',
+    'py_compute_winding_syntony',
+    'py_batch_winding_syntony',
+    'py_aggregate_syntony',
+    'py_standard_mode_norms',
+    # Crystallization
+    'py_crystallize_with_dwell_legacy',
+    'py_snap_distance',
+    'py_compute_snap_gradient',
+    # Loss functions
+    'py_mse_loss',
+    'py_softmax',
+    'py_cross_entropy_loss',
+    'py_batch_cross_entropy_loss',
+    'py_syntony_loss',
+    'py_syntony_loss_srt',
+    'py_get_target_syntony',
+    'py_get_q_deficit',
+    'py_phase_alignment_loss',
+    'py_syntonic_loss',
+    'py_estimate_syntony_from_probs',
+    'py_golden_decay_loss',
+    # Broadcasting operations
+    'py_broadcast_shape',
+    'py_are_broadcastable',
+    'py_broadcast_add',
+    'py_broadcast_mul',
+    'py_broadcast_sub',
+    'py_broadcast_div',
+    'py_linear_index',
+    # In-place operations
+    'py_inplace_add_scalar',
+    'py_inplace_mul_scalar',
+    'py_inplace_sub_scalar',
+    'py_inplace_div_scalar',
+    'py_inplace_negate',
+    'py_inplace_abs',
+    'py_inplace_clamp',
+    'py_inplace_golden_weight',
+    # Convolution operations
+    'py_conv2d',
+    'py_max_pool2d',
+    'py_avg_pool2d',
+    'py_global_avg_pool2d',
 ]

@@ -202,47 +202,56 @@ class RetrocausalTrainer:
         weight_idx: int,
     ) -> Dict[str, Any]:
         """
-        Evolve a single weight tensor.
-        
-        Uses the training data to compute fitness.
+        Evolve a single weight tensor using Geodesic Gravity.
         """
-        # Run evolution
+        # 1. Run Standard RES Evolution
         result: RESResult = evolver.run()
+        best_tensor = result.winner
         
-        # Track progress
-        self._syntony_tracker.update(result.final_syntony)
-        self._current_syntony = result.final_syntony
-        self._current_generation += result.generations
-        
-        # Apply Geodesic Gravity Slide (Physical AI)
-        # Use weight template as attractor state
-        attractor = self._weight_templates[weight_idx]
-        
-        # Calculate thermodynamics
-        temp = (1.0 - result.final_syntony) * self.config.noise_scale
-        gravity = self.config.pull_strength * 1.618
-        
-        # Apply slide if on CUDA
-        try:
-            # We access .tensor (TensorStorage) and .mode_norms (TensorStorage)
-            # This allows safe Rust-side mutation of the TensorStorage if on CUDA
-            py_apply_geodesic_slide(
-                result.winner.tensor,
-                attractor.tensor,
-                result.winner.mode_norms,
-                gravity,
-                temp
-            )
-        except Exception:
-            # Sliently continue if physics engine fails (e.g. CPU mode)
-            pass
+        # 2. Apply Geodesic Gravity Slide (The "Physical Lock")
+        # Only apply if we have a valid attractor (template)
+        if self.config.pull_strength > 0:
+             # Calculate Physics Parameters
+             # High Syntony = Low Temp (Freeze). Low Syntony = High Temp (Melt).
+             temp = (1.0 - result.final_syntony) * self.config.noise_scale
+             gravity = self.config.pull_strength * PHI # Scale by Phi
+             
+             # Get the attractor (using the template/history as the guide)
+             attractor = self._weight_templates[weight_idx]
+             
+             # Create mode norms if they don't exist (needed for metric)
+             if not hasattr(self, '_mode_norms_cache'):
+                 self._mode_norms_cache = {}
+             
+             w_shape = best_tensor.shape
+             if w_shape not in self._mode_norms_cache:
+                 # Helper to get norms on correct device
+                 from syntonic._core import py_standard_mode_norms
+                 self._mode_norms_cache[w_shape] = py_standard_mode_norms(w_shape, best_tensor.device)
+             
+             norms = self._mode_norms_cache[w_shape]
 
+             # Apply the Kernel via Rust Bridge
+             try:
+                 py_apply_geodesic_slide(
+                     best_tensor._storage,
+                     attractor._storage,
+                     norms._storage,
+                     gravity,
+                     temp
+                 )
+             except Exception as e:
+                 print(f"Warning: Geodesic slide skipped: {e}")
+        
+        self._syntony_tracker.update(result.final_syntony)
+        
         return {
             'weight_idx': weight_idx,
             'final_syntony': result.final_syntony,
             'generations': result.generations,
             'converged': result.converged,
             'best_tensor': result.winner,
+            'is_archonic': getattr(result, 'is_archonic', False)
         }
 
     def _evaluate(self) -> Tuple[float, float]:

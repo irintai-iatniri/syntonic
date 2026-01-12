@@ -2014,13 +2014,14 @@ pub fn cuda_syntonic_softmax_provided_f64(
 // Geodesic Gravity Operations
 // =============================================================================
 
+/// Apply Geodesic Gravity Slide to weights (Physical AI update)
 #[cfg(feature = "cuda")]
 pub fn apply_geodesic_gravity_f64(
     device: &Arc<CudaDevice>,
     weights: &CudaSlice<f64>,
     attractor: &CudaSlice<f64>,
     mode_norm_sq: &CudaSlice<f64>,
-    gravity_strength: f64,
+    gravity: f64,
     temperature: f64,
     n: usize,
 ) -> Result<(), String> {
@@ -2031,9 +2032,13 @@ pub fn apply_geodesic_gravity_f64(
 
     let func = module
         .load_function("apply_geodesic_gravity_f64")
-        .map_err(|_| "Kernel not found".to_string())?;
+        .map_err(|_| "Kernel apply_geodesic_gravity_f64 not found".to_string())?;
 
-    let cfg = launch_cfg_e8(n);
+    // We process 8 floats per thread (one E8 lattice point)
+    // The kernel handles the bounds check (offset + 7 < n)
+    // Grid size needs to cover n/8 items
+    let num_threads = (n + 7) / 8;
+    let cfg = launch_cfg_256(num_threads);
 
     unsafe {
         device
@@ -2042,7 +2047,7 @@ pub fn apply_geodesic_gravity_f64(
             .arg(weights)
             .arg(attractor)
             .arg(mode_norm_sq)
-            .arg(&gravity_strength)
+            .arg(&gravity)
             .arg(&temperature)
             .arg(&(n as i32))
             .launch(cfg)
