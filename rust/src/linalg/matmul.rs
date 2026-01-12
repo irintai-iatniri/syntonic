@@ -380,7 +380,7 @@ fn mm_tn_cuda_dispatch(
             Ok(TensorStorage::new_from_cuda(CudaData::Float64(c_slice), a_device.clone(), vec![m, n], a_device_idx))
         }
         (CudaData::Float32(a_slice), CudaData::Float32(b_slice)) => {
-            let mut c_slice = device.default_stream().alloc_zeros::<f32>(m * n)
+            let c_slice = device.default_stream().alloc_zeros::<f32>(m * n)
                 .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
 
             // Note: cuda_matmul_tn_f64 is f64 only, fallback to CPU for f32

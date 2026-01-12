@@ -550,7 +550,7 @@ impl ResonantEvolver {
         } else {
             // CPU fallback: simple Box-Muller implementation
             let mut gaussian_noise = Vec::with_capacity(count);
-            let mut rng = rand::thread_rng();
+            let rng = rand::thread_rng();
 
             for i in (0..(2 * count)).step_by(2) {
                 // Box-Muller transform: convert two uniform [0,1) to one Gaussian

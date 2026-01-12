@@ -11,6 +11,8 @@ mod resonant;
 use tensor::storage::{TensorStorage, cuda_is_available, cuda_device_count,
     srt_scale_phi, srt_golden_gaussian_weights, srt_apply_correction,
     srt_e8_batch_projection, srt_theta_series, srt_compute_syntony, srt_dhsr_cycle};
+#[cfg(feature = "cuda")]
+use tensor::storage::srt_transfer_stats;
 use tensor::srt_kernels;
 use hypercomplex::{Quaternion, Octonion};
 
@@ -174,6 +176,10 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(srt_theta_series, m)?)?;
     m.add_function(wrap_pyfunction!(srt_compute_syntony, m)?)?;
     m.add_function(wrap_pyfunction!(srt_dhsr_cycle, m)?)?;
+
+    // === SRT Memory Transfer Statistics ===
+    #[cfg(feature = "cuda")]
+    m.add_function(wrap_pyfunction!(srt_transfer_stats, m)?)?;
 
     // === Winding State ===
     m.add_class::<WindingState>()?;

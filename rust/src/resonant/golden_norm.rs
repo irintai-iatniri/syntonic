@@ -396,7 +396,7 @@ fn cuda_golden_batch_norm_2d_dispatch(
     use crate::tensor::cuda::device_manager::get_device;
     use crate::tensor::srt_kernels::cuda_golden_bn_2d_f64;
     use cudarc::driver::CudaSlice;
-    use std::sync::Arc;
+    
 
     // Only use CUDA for Golden mode (the kernel is hardcoded for golden ratio)
     if !matches!(mode, GoldenNormMode::Golden {}) {

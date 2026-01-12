@@ -45,6 +45,7 @@ from syntonic.core import (
     cuda,
     cuda_is_available,
     cuda_device_count,
+    srt_transfer_stats,
     device,
 )
 
@@ -132,6 +133,7 @@ __all__ = [
     'cuda',
     'cuda_is_available',
     'cuda_device_count',
+    'srt_transfer_stats',
     'device',
     # Exceptions
     'SyntonicError',

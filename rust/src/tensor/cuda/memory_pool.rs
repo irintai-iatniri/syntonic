@@ -279,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_round_size() {
-        let device = Arc::new(CudaDevice::new(0).unwrap());
+        let device = CudaDevice::new(0).unwrap();
         let pool = MemoryPool::new(0, device);
 
         assert_eq!(pool.round_size(100), 256); // min size

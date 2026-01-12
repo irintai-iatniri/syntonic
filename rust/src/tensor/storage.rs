@@ -46,7 +46,7 @@ use super::cuda::multi_gpu::MultiGpuInfo;
 #[cfg(feature = "cuda")]
 use super::srt_kernels;
 #[cfg(feature = "cuda")]
-use super::cuda::srt_memory_protocol::{SRTMemoryTransferProtocol, SRTMemoryConfig};
+use super::cuda::device_manager::get_srt_protocol;
 
 /// Pre-compiled PTX kernels for different compute capabilities
 /// These are compiled offline to ensure driver compatibility
@@ -2520,6 +2520,63 @@ impl TensorStorage {
         Ok((format!("cuda:{}", transfer.device_idx()), was_ready))
     }
 
+    /// SRT-optimized transfer to CUDA (async kernel path with device sync)
+    /// Uses golden ratio batching and pinned memory pooling for improved throughput
+    #[cfg(feature = "cuda")]
+    pub fn to_cuda_async_srt(&self, device_idx: usize) -> PyResult<TensorStorage> {
+        // Ensure CPU data available
+        let cpu_data = self.ensure_cpu()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Create overlap manager which provides SRT transfer helpers
+        let overlap = TransferComputeOverlap::new(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Execute SRT-optimized transfer based on dtype
+        let (cuda_data, dtype) = match cpu_data {
+            CpuData::Float32(arr) => {
+                let slice = overlap.transfer_f32(arr.as_slice().unwrap())
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                (CudaData::Float32(slice), "float32".to_string())
+            },
+            CpuData::Float64(arr) => {
+                let slice = overlap.transfer_f64(arr.as_slice().unwrap())
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                (CudaData::Float64(slice), "float64".to_string())
+            },
+            CpuData::Complex128(arr) => {
+                // Reinterpret complex128 as interleaved f64 for transfer
+                let complex_slice = arr.as_slice().unwrap();
+                let interleaved: &[f64] = unsafe {
+                    std::slice::from_raw_parts(
+                        complex_slice.as_ptr() as *const f64,
+                        complex_slice.len() * 2
+                    )
+                };
+                let slice = overlap.transfer_f64(interleaved)
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                (CudaData::Complex128(slice), "complex128".to_string())
+            },
+            CpuData::Int64(_) => return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+                "Int64 not supported on CUDA"
+            )),
+        };
+
+        // Ensure transfer completion
+        overlap.sync()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+        // Build TensorStorage on CUDA device
+        let device = get_device(device_idx)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok(TensorStorage::new_from_cuda(
+            cuda_data,
+            device,
+            self.shape.clone(),
+            device_idx,
+        ))
+    }
+
     /// Copy data back from device to host asynchronously
     /// Uses dtoh_async function
     #[cfg(feature = "cuda")]
@@ -2988,21 +3045,21 @@ impl TensorStorage {
     fn cpu_to_cuda(cpu_data: CpuData, shape: Vec<usize>, device_idx: usize) -> PyResult<TensorStorage> {
         // Use DeviceManager for cached device handles
         let device = get_device(device_idx)?;
-        let manager = get_local_manager();
-
-        // Get SRT memory transfer protocol for this device
-        let srt_protocol = manager.with(|mgr| mgr.get_srt_protocol(device_idx))?;
 
         let (cuda_data, dtype) = match cpu_data {
             CpuData::Float32(arr) => {
-                // Use SRT protocol for H2D transfer
-                let slice = srt_protocol.srt_h2d_transfer_f32(&device, &arr.as_slice().unwrap())
+                // Simple synchronous H2D transfer via default stream
+                let mut slice = device.default_stream().alloc_zeros::<f32>(arr.len())
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                device.default_stream().memcpy_htod(arr.as_slice().unwrap(), &mut slice)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
                 (CudaData::Float32(slice), "float32".to_string())
             },
             CpuData::Float64(arr) => {
-                // Use SRT protocol for H2D transfer
-                let slice = srt_protocol.srt_h2d_transfer_f64(&device, &arr.as_slice().unwrap())
+                // Simple synchronous H2D transfer via default stream
+                let mut slice = device.default_stream().alloc_zeros::<f64>(arr.len())
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                device.default_stream().memcpy_htod(arr.as_slice().unwrap(), &mut slice)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
                 (CudaData::Float64(slice), "float64".to_string())
             },
@@ -3016,10 +3073,12 @@ impl TensorStorage {
                         complex_slice.len() * 2
                     )
                 };
-                // Use SRT protocol for H2D transfer
-                let slice = srt_protocol.srt_h2d_transfer_f64(&device, interleaved)
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-                (CudaData::Complex128(slice), "complex128".to_string())
+                    // Simple synchronous H2D transfer via default stream (interleaved f64)
+                    let mut slice = device.default_stream().alloc_zeros::<f64>(interleaved.len())
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    device.default_stream().memcpy_htod(interleaved, &mut slice)
+                        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    (CudaData::Complex128(slice), "complex128".to_string())
             },
             CpuData::Int64(_) => return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
                 "Int64 not supported on CUDA"
@@ -3041,31 +3100,29 @@ impl TensorStorage {
     #[cfg(feature = "cuda")]
     fn cuda_to_cpu(data: &Arc<CudaData>, device: &Arc<CudaDevice>, shape: &[usize]) -> PyResult<CpuData> {
         let dim = IxDyn(shape);
-        let manager = get_local_manager();
-        let device_idx = device.ordinal() as usize;
-
-        // Get SRT memory transfer protocol for this device
-        let srt_protocol = manager.with(|mgr| mgr.get_srt_protocol(device_idx))?;
 
         match data.as_ref() {
             CudaData::Float32(slice) => {
-                // Use SRT protocol for D2H transfer
-                let host_data = srt_protocol.srt_d2h_transfer_f32(&device, slice)
+                    // Simple synchronous D2H transfer via default stream
+                    let mut host_data = vec![0.0f32; slice.len()];
+                    device.default_stream().memcpy_dtoh(slice, &mut host_data)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
                 Ok(CpuData::Float32(ArrayD::from_shape_vec(dim, host_data)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?))
             },
             CudaData::Float64(slice) => {
-                // Use SRT protocol for D2H transfer
-                let host_data = srt_protocol.srt_d2h_transfer_f64(&device, slice)
+                    // Simple synchronous D2H transfer via default stream
+                    let mut host_data = vec![0.0f64; slice.len()];
+                    device.default_stream().memcpy_dtoh(slice, &mut host_data)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
                 Ok(CpuData::Float64(ArrayD::from_shape_vec(dim, host_data)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?))
             },
             CudaData::Complex128(slice) => {
                 // slice contains interleaved [re0, im0, re1, im1, ...]
-                // Use SRT protocol for D2H transfer
-                let host_data = srt_protocol.srt_d2h_transfer_f64(&device, slice)
+                    // Simple synchronous D2H transfer via default stream
+                    let mut host_data = vec![0.0f64; slice.len()];
+                    device.default_stream().memcpy_dtoh(slice, &mut host_data)
                     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
                 // Convert the Vec<f64> to Vec<Complex64> via reinterpret
@@ -3194,6 +3251,30 @@ pub fn cuda_device_count() -> usize {
     {
         0
     }
+}
+
+/// Get SRT Memory Transfer Protocol statistics for a device
+/// 
+/// Returns a dict with:
+/// - total_transfers: Number of SRT-optimized transfers
+/// - total_bytes: Total bytes transferred
+/// - avg_transfer_time_us: Average transfer latency in microseconds
+/// - resonance_efficiency: Cache efficiency (0.0-1.0, target > 0.618)
+/// - q_correction_applied: q-deficit correction factor (~1.0034)
+#[pyfunction]
+#[cfg(feature = "cuda")]
+pub fn srt_transfer_stats(device_idx: usize) -> PyResult<std::collections::HashMap<String, f64>> {
+    let protocol = get_srt_protocol(device_idx)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+    let stats = protocol.get_stats();
+    
+    let mut result = std::collections::HashMap::new();
+    result.insert("total_transfers".to_string(), stats.total_transfers as f64);
+    result.insert("total_bytes".to_string(), stats.total_bytes as f64);
+    result.insert("avg_transfer_time_us".to_string(), stats.avg_transfer_time_us);
+    result.insert("resonance_efficiency".to_string(), stats.resonance_efficiency);
+    result.insert("q_correction_applied".to_string(), stats.q_correction_applied);
+    Ok(result)
 }
 
 // =============================================================================

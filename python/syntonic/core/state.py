@@ -341,6 +341,33 @@ class State:
         new_state._gnosis_cache = None
         return new_state
 
+    def cuda_async(self, device_id: int = 0, wait: bool = True) -> 'State':
+        """Move to CUDA using SRT-optimized async transfer.
+
+        When `wait` is True (default), waits for transfer completion.
+        """
+        if not cuda_is_available():
+            raise RuntimeError("CUDA not available")
+        if self._device.is_cuda and self._device.index == device_id:
+            return self
+
+        # Use SRT-optimized async transfer path
+        new_storage = self._storage.to_cuda_async_srt(device_id)
+
+        # Optionally ensure device sync (already synced in Rust path)
+        if wait:
+            from syntonic.core import TensorStorage
+            TensorStorage.sync_cuda_device(device_id)
+
+        new_state = object.__new__(State)
+        new_state._storage = new_storage
+        new_state._dtype = self._dtype
+        new_state._shape = self._shape
+        new_state._device = Device('cuda', device_id)
+        new_state._syntony_cache = None
+        new_state._gnosis_cache = None
+        return new_state
+
     def cpu(self) -> 'State':
         """Move to CPU."""
         if self._device.is_cpu:

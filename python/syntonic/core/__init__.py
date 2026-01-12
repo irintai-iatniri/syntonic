@@ -27,6 +27,23 @@ from syntonic._core import (
     ResonantEvolver,
     cuda_is_available,
     cuda_device_count,
+    # SRT Tensor Operations (GPU-accelerated when on CUDA)
+    srt_scale_phi,
+    srt_golden_gaussian_weights,
+    srt_apply_correction,
+    srt_e8_batch_projection,
+    srt_theta_series,
+    srt_compute_syntony,
+    srt_dhsr_cycle,
+)
+
+# Conditionally import SRT Memory Transfer stats (only available with CUDA)
+try:
+    from syntonic._core import srt_transfer_stats
+except ImportError:
+    srt_transfer_stats = None
+
+from syntonic._core import (
     # Linear algebra functions
     linalg_mm, linalg_mm_add,
     linalg_mm_tn, linalg_mm_nt, linalg_mm_tt,
@@ -109,6 +126,15 @@ __all__ = [
     'device',
     # Rust backend
     'TensorStorage',
+    # SRT Tensor Operations (GPU-accelerated when on CUDA)
+    'srt_scale_phi',
+    'srt_golden_gaussian_weights',
+    'srt_apply_correction',
+    'srt_e8_batch_projection',
+    'srt_theta_series',
+    'srt_compute_syntony',
+    'srt_dhsr_cycle',
+    'srt_transfer_stats',
     # Linear algebra functions
     'linalg_mm', 'linalg_mm_add',
     'linalg_mm_tn', 'linalg_mm_nt', 'linalg_mm_tt',

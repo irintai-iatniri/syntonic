@@ -313,7 +313,7 @@ mod tests {
         ).unwrap();
 
         let pull = memory.compute_attractor_pull(&current).unwrap();
-        assert_eq!(pull.len(), current.lattice.len());
+        assert_eq!(pull.len(), current.len());
         // All zeros
         for val in pull {
             assert_eq!(val, GoldenExact::zero());

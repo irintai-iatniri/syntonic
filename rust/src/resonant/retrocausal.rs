@@ -210,7 +210,7 @@ mod tests {
         )
         .unwrap();
 
-        let initial_syntony = tensor.syntony;
+        let initial_syntony = tensor.syntony();
         let syntony = standard_harmonization(&mut tensor).unwrap();
 
         // Syntony should change after harmonization
@@ -279,12 +279,12 @@ mod tests {
     #[test]
     fn test_blend_harmonization() {
         let h_std = vec![
-            GoldenExact::from_f64(1.0),
-            GoldenExact::from_f64(2.0),
+            GoldenExact::find_nearest(1.0, 100),
+            GoldenExact::find_nearest(2.0, 100),
         ];
         let pull = vec![
-            GoldenExact::from_f64(3.0),
-            GoldenExact::from_f64(4.0),
+            GoldenExact::find_nearest(3.0, 100),
+            GoldenExact::find_nearest(4.0, 100),
         ];
 
         // With lambda=0, should get standard
@@ -299,7 +299,7 @@ mod tests {
 
         // With lambda=0.5, should get average
         let result = blend_harmonization(&h_std, &pull, 0.5);
-        let expected_0 = h_std[0] * 0.5 + pull[0] * 0.5;
+        let expected_0 = h_std[0] * GoldenExact::from_rational(Rational::new(1, 2)) + pull[0] * GoldenExact::from_rational(Rational::new(1, 2));
         assert_eq!(result[0], expected_0);
     }
 }
