@@ -13,7 +13,10 @@ use hypercomplex::{Octonion, Quaternion};
 use tensor::cuda::{AsyncTensorTransfer, TransferComputeOverlap};
 use tensor::srt_kernels;
 #[cfg(feature = "cuda")]
-use tensor::storage::srt_transfer_stats;
+use tensor::storage::{
+    srt_memory_resonance, srt_pool_stats, srt_reserve_memory, srt_transfer_stats,
+    srt_wait_for_resonance,
+};
 use tensor::storage::{
     cuda_device_count, cuda_is_available, srt_apply_correction, srt_compute_syntony,
     srt_dhsr_cycle, srt_e8_batch_projection, srt_golden_gaussian_weights, srt_scale_phi,
@@ -244,6 +247,16 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // === SRT Memory Transfer Statistics ===
     #[cfg(feature = "cuda")]
     m.add_function(wrap_pyfunction!(srt_transfer_stats, m)?)?;
+    #[cfg(feature = "cuda")]
+    m.add_function(wrap_pyfunction!(srt_reserve_memory, m)?)?;
+    #[cfg(feature = "cuda")]
+    m.add_function(wrap_pyfunction!(srt_wait_for_resonance, m)?)?;
+    #[cfg(feature = "cuda")]
+    m.add_function(wrap_pyfunction!(srt_pool_stats, m)?)?;
+    #[cfg(feature = "cuda")]
+    m.add_function(wrap_pyfunction!(srt_memory_resonance, m)?)?;
+    #[cfg(feature = "cuda")]
+    m.add_function(wrap_pyfunction!(tensor::storage::_debug_stress_pool_take, m)?)?;
     #[cfg(feature = "cuda")]
     m.add_function(wrap_pyfunction!(srt_kernels::validate_kernels, m)?)?;
 

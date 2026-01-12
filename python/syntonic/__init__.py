@@ -46,6 +46,11 @@ from syntonic.core import (
     cuda_is_available,
     cuda_device_count,
     srt_transfer_stats,
+    srt_reserve_memory,
+    srt_wait_for_resonance,
+    srt_pool_stats,
+    srt_memory_resonance,
+    _debug_stress_pool_take,
     device,
 )
 
@@ -134,6 +139,10 @@ __all__ = [
     'cuda_is_available',
     'cuda_device_count',
     'srt_transfer_stats',
+    'srt_reserve_memory',
+    'srt_wait_for_resonance',
+    'srt_pool_stats',
+    'srt_memory_resonance',
     'device',
     # Exceptions
     'SyntonicError',

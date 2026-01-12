@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use super::memory_pool::MemoryPool;
-use super::srt_memory_protocol::{SRTMemoryConfig, SRTMemoryTransferProtocol};
+use super::srt_memory_protocol::SRTMemoryTransferProtocol;
 
 /// CUDA operation errors
 #[derive(Debug, Clone)]
@@ -158,9 +158,8 @@ impl DeviceManager {
         }
 
         // Slow path: create and cache
-        let config = SRTMemoryConfig::default();
         let device = self.get_device(device_idx)?;
-        let protocol = Arc::new(SRTMemoryTransferProtocol::new(config, device));
+        let protocol = Arc::new(SRTMemoryTransferProtocol::default(device));
 
         {
             let mut protocols = self.srt_protocols.write().unwrap();
@@ -173,7 +172,7 @@ impl DeviceManager {
     /// Get the number of available CUDA devices
     pub fn device_count() -> usize {
         // In cudarc 0.18.2, use the driver API
-        unsafe { cudarc::driver::result::device::get_count().unwrap_or(0) as usize }
+        cudarc::driver::result::device::get_count().unwrap_or(0) as usize
     }
 
     /// Check if CUDA is available

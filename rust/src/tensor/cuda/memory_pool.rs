@@ -571,6 +571,9 @@ mod tests {
 
     #[test]
     fn test_round_size() {
+        if !CudaDevice::new(0).is_ok() {
+            return;
+        }
         let device = CudaDevice::new(0).unwrap();
         let pool = MemoryPool::new(0, device);
 
@@ -578,5 +581,18 @@ mod tests {
         assert_eq!(pool.round_size(256), 256);
         assert_eq!(pool.round_size(257), 512);
         assert_eq!(pool.round_size(1000), 1024);
+    }
+
+    #[test]
+    fn test_pooled_slice_take() {
+        if !CudaDevice::new(0).is_ok() {
+            return;
+        }
+        let device = CudaDevice::new(0).unwrap();
+        let pool = Arc::new(MemoryPool::new(0, device));
+
+        let slice: PooledSlice<f32> = PooledSlice::alloc(pool, 10).unwrap();
+        let cuda_slice = slice.take();
+        assert_eq!(cuda_slice.len(), 10);
     }
 }

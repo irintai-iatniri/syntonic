@@ -35,15 +35,13 @@ from syntonic._core import (
     srt_theta_series,
     srt_compute_syntony,
     srt_dhsr_cycle,
-)
+    srt_transfer_stats,
+    srt_reserve_memory,
+    srt_wait_for_resonance,
+    srt_pool_stats,
+    srt_memory_resonance,
+    _debug_stress_pool_take,
 
-# Conditionally import SRT Memory Transfer stats (only available with CUDA)
-try:
-    from syntonic._core import srt_transfer_stats
-except ImportError:
-    srt_transfer_stats = None
-
-from syntonic._core import (
     # Linear algebra functions
     linalg_mm, linalg_mm_add,
     linalg_mm_tn, linalg_mm_nt, linalg_mm_tt,
@@ -135,6 +133,11 @@ __all__ = [
     'srt_compute_syntony',
     'srt_dhsr_cycle',
     'srt_transfer_stats',
+    'srt_reserve_memory',
+    'srt_wait_for_resonance',
+    'srt_pool_stats',
+    'srt_memory_resonance',
+    '_debug_stress_pool_take',
     # Linear algebra functions
     'linalg_mm', 'linalg_mm_add',
     'linalg_mm_tn', 'linalg_mm_nt', 'linalg_mm_tt',
