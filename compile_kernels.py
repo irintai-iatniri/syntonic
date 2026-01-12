@@ -21,6 +21,7 @@ from typing import List, Optional, Tuple
 # Configuration
 KERNEL_DIR = Path("rust/kernels")
 PTX_DIR = Path("rust/kernels/ptx")
+NVCC_PATHS = ["/usr/local/cuda/bin/nvcc", "/usr/local/cuda-13.1/bin/nvcc", "/usr/local/cuda-13/bin/nvcc", "nvcc"]
 NVCC_FLAGS = ["-ptx", "--use_fast_math", "-O3", f"-I{KERNEL_DIR}"]
 
 # GPU architectures
@@ -71,28 +72,31 @@ def print_header(title: str):
     print_colored(Colors.BLUE, "━" * 70)
     print()
 
-def check_nvcc() -> bool:
-    """Check if nvcc is available and get version"""
-    try:
-        result = subprocess.run(
-            ["nvcc", "--version"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        # Extract version from output
-        for line in result.stdout.split('\n'):
-            if "release" in line:
-                version = line.split("release")[1].split(",")[0].strip()
-                print_colored(Colors.GREEN, f"✓ Found nvcc version: {version}")
-                return True
-    except FileNotFoundError:
-        print_colored(Colors.RED, "ERROR: nvcc not found!")
-        print_colored(Colors.YELLOW, "Please install CUDA Toolkit: https://developer.nvidia.com/cuda-downloads")
-        return False
-    except subprocess.CalledProcessError:
-        print_colored(Colors.RED, "ERROR: Failed to run nvcc")
-        return False
+def check_nvcc() -> Optional[str]:
+    """Check if nvcc is available and get version. Returns path to working nvcc or None."""
+    for nvcc_path in NVCC_PATHS:
+        try:
+            result = subprocess.run(
+                [nvcc_path, "--version"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            # Extract version from output
+            for line in result.stdout.split('\n'):
+                if "release" in line:
+                    version = line.split("release")[1].split(",")[0].strip()
+                    print_colored(Colors.GREEN, f"✓ Found nvcc at {nvcc_path}: version {version}")
+                    return nvcc_path
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            continue
+    
+    print_colored(Colors.RED, "ERROR: nvcc not found!")
+    print_colored(Colors.YELLOW, "Tried paths:")
+    for path in NVCC_PATHS:
+        print_colored(Colors.YELLOW, f"  - {path}")
+    print_colored(Colors.YELLOW, "Please install CUDA Toolkit: https://developer.nvidia.com/cuda-downloads")
+    return None
 
 def setup_directories():
     """Create PTX directory if it doesn't exist"""
@@ -101,7 +105,7 @@ def setup_directories():
         PTX_DIR.mkdir(parents=True, exist_ok=True)
     print_colored(Colors.GREEN, f"✓ PTX directory ready: {PTX_DIR}")
 
-def compile_kernel_arch(kernel: str, arch: str) -> bool:
+def compile_kernel_arch(kernel: str, arch: str, nvcc_path: str) -> bool:
     """Compile a single kernel for a single architecture"""
     cu_file = KERNEL_DIR / f"{kernel}.cu"
     ptx_file = PTX_DIR / f"{kernel}_{arch}.ptx"
@@ -120,7 +124,7 @@ def compile_kernel_arch(kernel: str, arch: str) -> bool:
         print_colored(Colors.YELLOW, f"    ⚠ Downgrading {arch} to {target_arch} for driver compatibility")
 
     try:
-        cmd = ["nvcc", f"-arch={target_arch}"] + NVCC_FLAGS + ["-o", str(ptx_file), str(cu_file)]
+        cmd = [nvcc_path, f"-arch={target_arch}"] + NVCC_FLAGS + ["-o", str(ptx_file), str(cu_file)]
         result = subprocess.run(
             cmd,
             capture_output=True,
@@ -148,7 +152,7 @@ def format_size(size_bytes: int) -> str:
         size_bytes /= 1024.0
     return f"{size_bytes:.1f}TB"
 
-def compile_kernel(kernel: str) -> Tuple[int, int]:
+def compile_kernel(kernel: str, nvcc_path: str) -> Tuple[int, int]:
     """Compile a single kernel for all architectures
 
     Returns:
@@ -160,7 +164,7 @@ def compile_kernel(kernel: str) -> Tuple[int, int]:
     total = len(ARCHITECTURES)
 
     for arch in ARCHITECTURES:
-        if compile_kernel_arch(kernel, arch):
+        if compile_kernel_arch(kernel, arch, nvcc_path):
             success += 1
 
     if success == total:
@@ -172,7 +176,7 @@ def compile_kernel(kernel: str) -> Tuple[int, int]:
 
     return success, total
 
-def compile_all() -> bool:
+def compile_all(nvcc_path: str) -> bool:
     """Compile all kernels for all architectures"""
     print_header("Compiling All CUDA Kernels")
 
@@ -181,7 +185,7 @@ def compile_all() -> bool:
 
     for kernel in KERNELS:
         total_kernels += 1
-        success, _ = compile_kernel(kernel)
+        success, _ = compile_kernel(kernel, nvcc_path)
         if success > 0:
             successful_kernels += 1
         print()
@@ -316,7 +320,8 @@ Supported Architectures:
     print_header("Syntonic CUDA Kernel Compiler")
 
     # Check prerequisites
-    if not check_nvcc():
+    nvcc_path = check_nvcc()
+    if nvcc_path is None:
         return 1
 
     setup_directories()
@@ -327,7 +332,7 @@ Supported Architectures:
         if args.kernel and args.arch:
             # Specific kernel and architecture
             print_colored(Colors.BLUE, f"Compiling {args.kernel}.cu for {args.arch}...")
-            if compile_kernel_arch(args.kernel, args.arch):
+            if compile_kernel_arch(args.kernel, args.arch, nvcc_path):
                 print_colored(Colors.GREEN, "✓ Compilation successful")
                 return 0
             else:
@@ -336,7 +341,7 @@ Supported Architectures:
 
         elif args.kernel:
             # Specific kernel, all architectures
-            success, total = compile_kernel(args.kernel)
+            success, total = compile_kernel(args.kernel, nvcc_path)
             return 0 if success > 0 else 1
 
         elif args.arch:
@@ -346,7 +351,7 @@ Supported Architectures:
             total = len(KERNELS)
 
             for kernel in KERNELS:
-                if compile_kernel_arch(kernel, args.arch):
+                if compile_kernel_arch(kernel, args.arch, nvcc_path):
                     success += 1
 
             print()
@@ -361,7 +366,7 @@ Supported Architectures:
 
         else:
             # All kernels, all architectures (default)
-            return 0 if compile_all() else 1
+            return 0 if compile_all(nvcc_path) else 1
 
     except KeyboardInterrupt:
         print()
