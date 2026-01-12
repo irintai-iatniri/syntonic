@@ -137,6 +137,37 @@ pub fn syntony_loss(model_syntony: f64, lambda_syntony: f64) -> f64 {
     lambda_syntony * (1.0 - model_syntony)
 }
 
+/// Compute SRT-grounded syntony loss using target syntony S* = φ - q.
+///
+/// L_syntony = λ × |S_model - S*|²
+///
+/// where S* = φ - q ≈ 1.5906 is the theoretical target syntony.
+///
+/// # Arguments
+/// * `model_syntony` - Current model syntony
+/// * `lambda_syntony` - Weight for syntony term
+///
+/// # Returns
+/// SRT syntony loss value
+pub fn syntony_loss_srt(model_syntony: f64, lambda_syntony: f64) -> f64 {
+    let deviation = model_syntony - S_TARGET;
+    lambda_syntony * deviation * deviation
+}
+
+/// Get the SRT target syntony value S* = φ - q.
+///
+/// This is the theoretically optimal syntony for converged states.
+pub fn get_target_syntony() -> f64 {
+    S_TARGET
+}
+
+/// Get the Q-deficit constant q ≈ 0.027395.
+///
+/// This is the universal syntony deficit derived from φ, π, e.
+pub fn get_q_deficit() -> f64 {
+    Q_DEFICIT
+}
+
 /// Compute phase alignment loss.
 ///
 /// C_{iπ} = |estimated_phase - target_phase|²

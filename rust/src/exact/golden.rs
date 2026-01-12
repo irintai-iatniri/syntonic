@@ -881,8 +881,9 @@ fn lll_reduce_nearest(x: f64, phi: f64, k: f64, max_coeff: i64) -> (i64, i64) {
     for i in -search_range..=search_range {
         for j in -search_range..=search_range {
             // Combination: i*b1 + j*b2
-            let a = (i as f64 * b1[0] + j as f64 * b2[0]).round() as i64;
-            let b = (i as f64 * b1[1] + j as f64 * b2[1]).round() as i64;
+            let combination = add(&scale(&b1, i as f64), &scale(&b2, j as f64));
+            let a = combination[0].round() as i64;
+            let b = combination[1].round() as i64;
 
             if a.abs() <= max_coeff && b.abs() <= max_coeff {
                 let error = (a as f64 + b as f64 * phi - x).abs();

@@ -103,6 +103,9 @@ use resonant::py_wrappers::{
     py_standard_mode_norms,
     py_syntonic_loss,
     py_syntony_loss,
+    py_syntony_loss_srt,
+    py_get_target_syntony,
+    py_get_q_deficit,
 };
 
 // Linear algebra operations
@@ -303,6 +306,9 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_cross_entropy_loss, m)?)?;
     m.add_function(wrap_pyfunction!(py_batch_cross_entropy_loss, m)?)?;
     m.add_function(wrap_pyfunction!(py_syntony_loss, m)?)?;
+    m.add_function(wrap_pyfunction!(py_syntony_loss_srt, m)?)?;
+    m.add_function(wrap_pyfunction!(py_get_target_syntony, m)?)?;
+    m.add_function(wrap_pyfunction!(py_get_q_deficit, m)?)?;
     m.add_function(wrap_pyfunction!(py_phase_alignment_loss, m)?)?;
     m.add_function(wrap_pyfunction!(py_syntonic_loss, m)?)?;
     m.add_function(wrap_pyfunction!(py_estimate_syntony_from_probs, m)?)?;

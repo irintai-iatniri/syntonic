@@ -234,17 +234,33 @@ fn mm_cuda_dispatch(
             let mut c_slice = PooledSlice::alloc(pool.clone(), m * n)
                 .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
 
-            println!("DEBUG: f64 CUDA matmul - calling cuda_matmul_tiled_f64");
-            crate::tensor::srt_kernels::cuda_matmul_tiled_f64(
-                device,
-                c_slice.as_slice_mut(),
-                a_slice.as_slice(),
-                b_slice.as_slice(),
-                m,
-                n,
-                k,
-            )
-            .map_err(|e| MatmulError::ShapeError(format!("CUDA matmul failed: {}", e)))?;
+            // Use basic kernel for smaller matrices (< 128), tiled for larger
+            let threshold = 128;
+            if m < threshold && n < threshold && k < threshold {
+                println!("DEBUG: f64 CUDA matmul - using basic kernel for small matrix");
+                crate::tensor::srt_kernels::cuda_matmul_f64(
+                    device,
+                    c_slice.as_slice_mut(),
+                    a_slice.as_slice(),
+                    b_slice.as_slice(),
+                    m,
+                    n,
+                    k,
+                )
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA matmul failed: {}", e)))?;
+            } else {
+                println!("DEBUG: f64 CUDA matmul - using tiled kernel for large matrix");
+                crate::tensor::srt_kernels::cuda_matmul_tiled_f64(
+                    device,
+                    c_slice.as_slice_mut(),
+                    a_slice.as_slice(),
+                    b_slice.as_slice(),
+                    m,
+                    n,
+                    k,
+                )
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA matmul failed: {}", e)))?;
+            }
 
             println!("DEBUG: f64 CUDA matmul - completed successfully");
             Ok(TensorStorage::new_from_cuda(
@@ -769,6 +785,30 @@ fn bmm_cpu_dispatch(
     k: usize,
     n: usize,
 ) -> Result<TensorStorage, MatmulError> {
+    // Validate dimensions: A is (batch, m, k) and B is (batch, k, n)
+    let a_shape = a.shape();
+    let b_shape = b.shape();
+
+    if a_shape.len() != 3 || b_shape.len() != 3 {
+        return Err(MatmulError::ShapeError(
+            "Batched matmul requires 3D tensors".to_string(),
+        ));
+    }
+
+    if a_shape[0] != batch || a_shape[1] != m || a_shape[2] != k {
+        return Err(MatmulError::ShapeError(format!(
+            "Matrix A shape {:?} doesn't match expected ({}, {}, {})",
+            a_shape, batch, m, k
+        )));
+    }
+
+    if b_shape[0] != batch || b_shape[1] != k || b_shape[2] != n {
+        return Err(MatmulError::ShapeError(format!(
+            "Matrix B shape {:?} doesn't match expected ({}, {}, {})",
+            b_shape, batch, k, n
+        )));
+    }
+
     let a_cpu = a
         .ensure_cpu_internal()
         .map_err(|e| MatmulError::ShapeError(e.to_string()))?;

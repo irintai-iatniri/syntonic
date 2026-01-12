@@ -332,4 +332,11 @@ impl TransferComputeOverlap {
     fn py_sync(&self) -> PyResult<()> {
         self.sync().map_err(PyErr::from)
     }
+
+    /// Get SRT transfer statistics (total_transfers, total_bytes, avg_time_us, resonance_efficiency)
+    #[pyo3(name = "get_srt_stats")]
+    fn py_get_srt_stats(&self) -> PyResult<(usize, usize, f64, f64)> {
+        let stats = self.srt_stats().map_err(PyErr::from)?;
+        Ok((stats.total_transfers, stats.total_bytes, stats.avg_transfer_time_us, stats.resonance_efficiency))
+    }
 }

@@ -115,11 +115,11 @@ impl DeviceManager {
     ) -> Result<cudarc::driver::CudaStream, CudaError> {
         let device = self.get_device(device_idx)?;
         // In cudarc 0.18.2, streams are accessed via device.default_stream()
-        // For now, return an error as this method is deprecated
-        Err(CudaError::StreamCreateFailed(
-            "Stream creation not supported in cudarc 0.18.2. Use device.default_stream() instead."
-                .to_string(),
-        ))
+        // Validate device ordinal and return informative error
+        Err(CudaError::StreamCreateFailed(format!(
+            "Stream creation not supported in cudarc 0.18.2 for device {}. Use device.default_stream() instead.",
+            device.ordinal()
+        )))
     }
 
     /// Get or create a memory pool for the given device

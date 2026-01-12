@@ -3443,31 +3443,52 @@ impl TensorStorage {
                 (CudaData::Float32(Arc::new(out)), "float32".to_string())
             }
             (CudaData::Complex128(a_slice), CudaData::Complex128(b_slice)) => {
-                let mut out = PooledSlice::alloc(pool.clone(), n).map_err(|e| {
-                    PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
-                })?;
-                let func_name = format!("{}_c128", op);
-                let func = functions.get(&func_name).ok_or_else(|| {
-                    PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
-                        "Function {} not found in cached module",
-                        func_name
-                    ))
-                })?;
-                unsafe {
-                    device
-                        .default_stream()
-                        .launch_builder(&func)
-                        .arg(out.as_slice_mut())
-                        .arg(a_slice.as_slice())
-                        .arg(b_slice.as_slice())
-                        .arg(&(n as i32))
-                        .launch(cfg)
+                // Special case: use dedicated kernel for complex division
+                if op == "div" {
+                    let mut out = PooledSlice::alloc(pool.clone(), n).map_err(|e| {
+                        PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
+                    })?;
+
+                    crate::tensor::srt_kernels::cuda_complex_div_c128(
+                        device,
+                        out.as_slice_mut(),
+                        a_slice.as_slice(),
+                        b_slice.as_slice(),
+                        n,
+                    )?;
+
+                    (
+                        CudaData::Complex128(Arc::new(out)),
+                        "complex128".to_string(),
+                    )
+                } else {
+                    // Generic path for other operations
+                    let mut out = PooledSlice::alloc(pool.clone(), n).map_err(|e| {
+                        PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
+                    })?;
+                    let func_name = format!("{}_c128", op);
+                    let func = functions.get(&func_name).ok_or_else(|| {
+                        PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                            "Function {} not found in cached module",
+                            func_name
+                        ))
+                    })?;
+                    unsafe {
+                        device
+                            .default_stream()
+                            .launch_builder(&func)
+                            .arg(out.as_slice_mut())
+                            .arg(a_slice.as_slice())
+                            .arg(b_slice.as_slice())
+                            .arg(&(n as i32))
+                            .launch(cfg)
+                    }
+                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    (
+                        CudaData::Complex128(Arc::new(out)),
+                        "complex128".to_string(),
+                    )
                 }
-                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-                (
-                    CudaData::Complex128(Arc::new(out)),
-                    "complex128".to_string(),
-                )
             }
             _ => {
                 return Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
@@ -3591,10 +3612,8 @@ impl TensorStorage {
                         "complex128".to_string(),
                     )
                 } else {
-                    // abs on complex returns to CPU (complex abs not implemented in CUDA yet)
-                    return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
-                        "abs() on complex CUDA tensors not yet implemented",
-                    ));
+                    // abs on complex: fall back to CPU (complex abs not implemented in CUDA yet)
+                    return self.unary_cpu_fallback(op);
                 }
             }
         };

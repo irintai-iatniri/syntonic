@@ -591,12 +591,22 @@ impl ResonantEvolver {
         } else {
             // CPU fallback: simple Box-Muller implementation
             let mut gaussian_noise = Vec::with_capacity(count);
-            let rng = rand::thread_rng();
+            let mut rng = rand::thread_rng();
+
+            // Ensure we have enough uniform noise for Box-Muller (needs 2 per Gaussian)
+            let mut local_uniform = uniform_noise.clone();
+            if local_uniform.len() < 2 * count {
+                // Generate additional uniform noise if needed
+                use rand::Rng;
+                while local_uniform.len() < 2 * count {
+                    local_uniform.push(rng.gen::<f64>());
+                }
+            }
 
             for i in (0..(2 * count)).step_by(2) {
                 // Box-Muller transform: convert two uniform [0,1) to one Gaussian
-                let u1 = uniform_noise[i];
-                let u2 = uniform_noise[i + 1];
+                let u1 = local_uniform[i];
+                let u2 = local_uniform[i + 1];
                 let r = (-2.0 * u1.ln()).sqrt();
                 let theta = 2.0 * std::f64::consts::PI * u2;
                 let z0 = r * theta.cos();
@@ -919,6 +929,12 @@ impl ResonantEvolver {
             .into_iter()
             .cloned()
             .collect()
+    }
+
+    /// Get the number of attractors currently stored.
+    #[getter]
+    fn attractor_count(&self) -> usize {
+        self.attractor_memory.len()
     }
 
     /// Retrieve syntony values for all attractors.

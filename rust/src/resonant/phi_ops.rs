@@ -122,7 +122,10 @@ impl ResonantTensor {
         {
             if let Some(device_idx) = identity.device_idx().or(residual.device_idx()) {
                 if let Ok(device) = crate::tensor::cuda::device_manager::get_device(device_idx) {
-                    return Self::phi_residual_relu_cuda(identity, residual);
+                    // Validate device ordinal matches requested index
+                    if device.ordinal() as usize == device_idx {
+                        return Self::phi_residual_relu_cuda(identity, residual);
+                    }
                 }
             }
         }

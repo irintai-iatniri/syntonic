@@ -130,6 +130,18 @@ pub fn golden_batch_norm_1d(
     let batch_size = input.shape()[0];
     let num_features = input.shape()[1];
 
+    // Validate batch size and features
+    if batch_size == 0 {
+        return Err(ResonantError::ShapeMismatch(
+            "Batch size must be > 0 for golden batch norm".to_string(),
+        ));
+    }
+    if num_features == 0 {
+        return Err(ResonantError::ShapeMismatch(
+            "Number of features must be > 0 for golden batch norm".to_string(),
+        ));
+    }
+
     // Validate affine parameters if provided
     if let Some(gamma) = affine_gamma {
         if gamma.shape() != &[num_features] {
@@ -261,6 +273,24 @@ pub fn golden_batch_norm_2d(
     let channels = input.shape()[1];
     let height = input.shape()[2];
     let width = input.shape()[3];
+
+    // Validate tensor dimensions
+    if batch_size == 0 {
+        return Err(ResonantError::ShapeMismatch(
+            "Batch size must be > 0 for 2D golden batch norm".to_string(),
+        ));
+    }
+    if channels == 0 {
+        return Err(ResonantError::ShapeMismatch(
+            "Number of channels must be > 0 for 2D golden batch norm".to_string(),
+        ));
+    }
+    if height == 0 || width == 0 {
+        return Err(ResonantError::ShapeMismatch(format!(
+            "Spatial dimensions must be > 0, got height={}, width={}",
+            height, width
+        )));
+    }
 
     // Validate affine parameters if provided
     if let Some(gamma) = affine_gamma {

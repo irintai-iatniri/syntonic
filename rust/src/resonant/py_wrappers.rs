@@ -179,6 +179,24 @@ pub fn py_syntony_loss(model_syntony: f64, lambda_syntony: f64) -> f64 {
     super::loss::syntony_loss(model_syntony, lambda_syntony)
 }
 
+/// Compute SRT-grounded syntony loss using target S* = φ - q.
+#[pyfunction]
+pub fn py_syntony_loss_srt(model_syntony: f64, lambda_syntony: f64) -> f64 {
+    super::loss::syntony_loss_srt(model_syntony, lambda_syntony)
+}
+
+/// Get the SRT target syntony S* = φ - q ≈ 1.5906.
+#[pyfunction]
+pub fn py_get_target_syntony() -> f64 {
+    super::loss::get_target_syntony()
+}
+
+/// Get the Q-deficit constant q ≈ 0.027395.
+#[pyfunction]
+pub fn py_get_q_deficit() -> f64 {
+    super::loss::get_q_deficit()
+}
+
 /// Compute phase alignment loss.
 #[pyfunction]
 pub fn py_phase_alignment_loss(values: Vec<f64>, target_phase: f64, mu_phase: f64) -> f64 {
