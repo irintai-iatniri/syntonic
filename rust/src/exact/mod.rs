@@ -24,12 +24,12 @@
 //! - E* (e_star) - spectral Möbius constant = e^π - π
 //! - q - universal syntony deficit, THE fundamental scale of SRT
 
-pub mod rational;
-pub mod golden;
 pub mod constants;
+pub mod golden;
+pub mod rational;
 pub mod symexpr;
 
-pub use rational::Rational;
+pub use constants::{CorrectionLevel, FundamentalConstant, Structure};
 pub use golden::GoldenExact;
-pub use constants::{FundamentalConstant, CorrectionLevel, Structure};
-pub use symexpr::{SymExpr, PySymExpr};
+pub use rational::Rational;
+pub use symexpr::{PySymExpr, SymExpr};

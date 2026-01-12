@@ -5,9 +5,9 @@
 use cudarc::driver::CudaSlice;
 use std::sync::Arc;
 
-use super::device_manager::{CudaError, get_device, get_pool, DeviceManager};
+use super::device_manager::{get_device, get_pool, CudaError, DeviceManager};
 use super::memory_pool::PooledSlice;
-use crate::tensor::storage::{TensorStorage, CpuData, DeviceType, CudaData};
+use crate::tensor::storage::{CpuData, CudaData, DeviceType, TensorStorage};
 
 /// Reduction operations for multi-GPU collectives
 #[derive(Clone, Copy, Debug)]
@@ -29,10 +29,14 @@ pub fn peer_copy(
         // Same device: copy within device
         let device = get_device(src_device)?;
 
-        let mut dst = device.default_stream().alloc_zeros::<f64>(src_data.len())
+        let mut dst = device
+            .default_stream()
+            .alloc_zeros::<f64>(src_data.len())
             .map_err(|e| CudaError::AllocationFailed(e.to_string()))?;
 
-        device.default_stream().memcpy_dtod(src_data, &mut dst)
+        device
+            .default_stream()
+            .memcpy_dtod(src_data, &mut dst)
             .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
         return Ok(dst);
@@ -55,26 +59,30 @@ fn staged_copy(
     let mut host_buf = vec![0.0f64; src_data.len()];
 
     // D2H from source
-    src_dev.default_stream().memcpy_dtoh(src_data, &mut host_buf)
+    src_dev
+        .default_stream()
+        .memcpy_dtoh(src_data, &mut host_buf)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
     // H2D to destination
-    let dst = dst_dev.default_stream().clone_htod(&host_buf)
+    let dst = dst_dev
+        .default_stream()
+        .clone_htod(&host_buf)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
     Ok(dst)
 }
 
 /// Scatter a tensor across multiple GPUs
-pub fn scatter(
-    tensor: &TensorStorage,
-    devices: &[usize],
-) -> Result<Vec<TensorStorage>, CudaError> {
+pub fn scatter(tensor: &TensorStorage, devices: &[usize]) -> Result<Vec<TensorStorage>, CudaError> {
     if devices.is_empty() {
-        return Err(CudaError::TransferFailed("No devices specified for scatter".to_string()));
+        return Err(CudaError::TransferFailed(
+            "No devices specified for scatter".to_string(),
+        ));
     }
 
-    let cpu_data = tensor.ensure_cpu_internal()
+    let cpu_data = tensor
+        .ensure_cpu_internal()
         .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
     let mut results = Vec::with_capacity(devices.len());
@@ -95,7 +103,9 @@ pub fn scatter(
                 let chunk = &data[start..end];
                 let device = get_device(dev_idx)?;
 
-                let gpu_data = device.default_stream().clone_htod(chunk)
+                let gpu_data = device
+                    .default_stream()
+                    .clone_htod(chunk)
                     .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
                 let chunk_shape = vec![end - start];
@@ -103,19 +113,22 @@ pub fn scatter(
                 results.push(tensor);
             }
         }
-        _ => return Err(CudaError::TransferFailed("Scatter only supports f64".to_string())),
+        _ => {
+            return Err(CudaError::TransferFailed(
+                "Scatter only supports f64".to_string(),
+            ))
+        }
     }
 
     Ok(results)
 }
 
 /// Gather tensors from multiple GPUs to a single device
-pub fn gather(
-    tensors: &[TensorStorage],
-    target_device: usize,
-) -> Result<TensorStorage, CudaError> {
+pub fn gather(tensors: &[TensorStorage], target_device: usize) -> Result<TensorStorage, CudaError> {
     if tensors.is_empty() {
-        return Err(CudaError::TransferFailed("No tensors to gather".to_string()));
+        return Err(CudaError::TransferFailed(
+            "No tensors to gather".to_string(),
+        ));
     }
 
     let target_dev = get_device(target_device)?;
@@ -124,19 +137,26 @@ pub fn gather(
     let mut all_data = Vec::new();
 
     for tensor in tensors {
-        let cpu_data = tensor.ensure_cpu_internal()
+        let cpu_data = tensor
+            .ensure_cpu_internal()
             .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
         match cpu_data {
             CpuData::Float64(arr) => {
                 all_data.extend(arr.iter().cloned());
             }
-            _ => return Err(CudaError::TransferFailed("Gather only supports f64".to_string())),
+            _ => {
+                return Err(CudaError::TransferFailed(
+                    "Gather only supports f64".to_string(),
+                ))
+            }
         }
     }
 
     // Transfer to target device
-    let gpu_data = target_dev.default_stream().clone_htod(&all_data)
+    let gpu_data = target_dev
+        .default_stream()
+        .clone_htod(&all_data)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
     let shape = vec![all_data.len()];
@@ -144,10 +164,7 @@ pub fn gather(
 }
 
 /// All-reduce operation across GPUs
-pub fn all_reduce(
-    tensors: &mut [TensorStorage],
-    op: ReduceOp,
-) -> Result<(), CudaError> {
+pub fn all_reduce(tensors: &mut [TensorStorage], op: ReduceOp) -> Result<(), CudaError> {
     if tensors.len() <= 1 {
         return Ok(());
     }
@@ -156,21 +173,28 @@ pub fn all_reduce(
     let mut all_cpu: Vec<Vec<f64>> = Vec::new();
 
     for tensor in tensors.iter() {
-        let cpu_data = tensor.ensure_cpu_internal()
+        let cpu_data = tensor
+            .ensure_cpu_internal()
             .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
         match cpu_data {
             CpuData::Float64(arr) => {
                 all_cpu.push(arr.iter().cloned().collect());
             }
-            _ => return Err(CudaError::TransferFailed("All-reduce only supports f64".to_string())),
+            _ => {
+                return Err(CudaError::TransferFailed(
+                    "All-reduce only supports f64".to_string(),
+                ))
+            }
         }
     }
 
     // Check all have same length
     let len = all_cpu[0].len();
     if !all_cpu.iter().all(|v| v.len() == len) {
-        return Err(CudaError::TransferFailed("All tensors must have same size for all-reduce".to_string()));
+        return Err(CudaError::TransferFailed(
+            "All tensors must have same size for all-reduce".to_string(),
+        ));
     }
 
     // Perform reduction
@@ -195,7 +219,9 @@ pub fn all_reduce(
         };
 
         let device = get_device(device_idx)?;
-        let gpu_data = device.default_stream().clone_htod(&reduced)
+        let gpu_data = device
+            .default_stream()
+            .clone_htod(&reduced)
             .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
         *tensor = create_cuda_tensor_f64(gpu_data, vec![len], device_idx)?;
@@ -212,7 +238,7 @@ fn create_cuda_tensor_f64(
 ) -> Result<TensorStorage, CudaError> {
     let device = get_device(device_idx)?;
     let pool = get_pool(device_idx)?;
-    
+
     let pooled = PooledSlice::new(data, pool);
 
     Ok(TensorStorage::new_from_cuda(
@@ -232,7 +258,9 @@ impl MultiGpuInfo {
     /// Query multi-GPU information
     pub fn query() -> Result<Self, CudaError> {
         let count = DeviceManager::device_count();
-        Ok(MultiGpuInfo { device_count: count })
+        Ok(MultiGpuInfo {
+            device_count: count,
+        })
     }
 
     /// Print topology info

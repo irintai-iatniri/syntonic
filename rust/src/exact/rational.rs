@@ -6,7 +6,7 @@
 use pyo3::prelude::*;
 use std::cmp::Ordering;
 use std::fmt;
-use std::ops::{Add, Sub, Mul, Div, Neg};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 /// Exact rational number: num/denom where gcd(num, denom) = 1 and denom > 0
 #[pyclass]
@@ -197,7 +197,7 @@ impl Add for Rational {
     fn add(self, other: Self) -> Self {
         Rational::new(
             self.num * other.denom + other.num * self.denom,
-            self.denom * other.denom
+            self.denom * other.denom,
         )
     }
 }
@@ -208,7 +208,7 @@ impl Sub for Rational {
     fn sub(self, other: Self) -> Self {
         Rational::new(
             self.num * other.denom - other.num * self.denom,
-            self.denom * other.denom
+            self.denom * other.denom,
         )
     }
 }
@@ -217,10 +217,7 @@ impl Mul for Rational {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self {
-        Rational::new(
-            self.num * other.num,
-            self.denom * other.denom
-        )
+        Rational::new(self.num * other.num, self.denom * other.denom)
     }
 }
 
@@ -231,10 +228,7 @@ impl Div for Rational {
         if other.num == 0 {
             panic!("Rational: division by zero");
         }
-        Rational::new(
-            self.num * other.denom,
-            self.denom * other.num
-        )
+        Rational::new(self.num * other.denom, self.denom * other.num)
     }
 }
 
@@ -367,8 +361,8 @@ impl Rational {
     }
 
     fn __hash__(&self) -> u64 {
-        use std::hash::{Hash, Hasher};
         use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
         let mut hasher = DefaultHasher::new();
         self.hash(&mut hasher);
         hasher.finish()

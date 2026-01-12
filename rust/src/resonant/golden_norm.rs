@@ -24,9 +24,8 @@
 // 4. Apply affine transform (optional γ, β parameters)
 
 use crate::exact::golden::GoldenExact;
-use crate::resonant::tensor::{ResonantTensor, ResonantPhase};
+use crate::resonant::tensor::{ResonantPhase, ResonantTensor};
 use crate::resonant::ResonantError;
-
 
 use pyo3::prelude::*;
 
@@ -81,7 +80,7 @@ impl GoldenNormMode {
     fn custom(target_var: f64) -> Result<Self, ResonantError> {
         if target_var <= 0.0 {
             return Err(ResonantError::InvalidPhaseTransition(
-                "Target variance must be positive".to_string()
+                "Target variance must be positive".to_string(),
             ));
         }
         Ok(GoldenNormMode::Custom { target_var })
@@ -91,7 +90,9 @@ impl GoldenNormMode {
         match self {
             GoldenNormMode::Golden {} => "GoldenNormMode('golden')".to_string(),
             GoldenNormMode::Standard {} => "GoldenNormMode('standard')".to_string(),
-            GoldenNormMode::Custom { target_var } => format!("GoldenNormMode.custom({})", target_var),
+            GoldenNormMode::Custom { target_var } => {
+                format!("GoldenNormMode.custom({})", target_var)
+            }
         }
     }
 }
@@ -134,7 +135,8 @@ pub fn golden_batch_norm_1d(
         if gamma.shape() != &[num_features] {
             return Err(ResonantError::ShapeMismatch(format!(
                 "Gamma shape {:?} doesn't match num_features {}",
-                gamma.shape(), num_features
+                gamma.shape(),
+                num_features
             )));
         }
     }
@@ -143,7 +145,8 @@ pub fn golden_batch_norm_1d(
         if beta.shape() != &[num_features] {
             return Err(ResonantError::ShapeMismatch(format!(
                 "Beta shape {:?} doesn't match num_features {}",
-                beta.shape(), num_features
+                beta.shape(),
+                num_features
             )));
         }
     }
@@ -151,9 +154,7 @@ pub fn golden_batch_norm_1d(
     #[cfg(feature = "cuda")]
     if input.phase() == ResonantPhase::Flux {
         // Tensor is on GPU - use CUDA implementation
-        return cuda_golden_batch_norm_1d_dispatch(
-            input, mode, eps, affine_gamma, affine_beta
-        );
+        return cuda_golden_batch_norm_1d_dispatch(input, mode, eps, affine_gamma, affine_beta);
     }
 
     // CPU implementation (tensor is Crystallized)
@@ -266,7 +267,8 @@ pub fn golden_batch_norm_2d(
         if gamma.shape() != &[channels] {
             return Err(ResonantError::ShapeMismatch(format!(
                 "Gamma shape {:?} doesn't match channels {}",
-                gamma.shape(), channels
+                gamma.shape(),
+                channels
             )));
         }
     }
@@ -275,7 +277,8 @@ pub fn golden_batch_norm_2d(
         if beta.shape() != &[channels] {
             return Err(ResonantError::ShapeMismatch(format!(
                 "Beta shape {:?} doesn't match channels {}",
-                beta.shape(), channels
+                beta.shape(),
+                channels
             )));
         }
     }
@@ -283,9 +286,7 @@ pub fn golden_batch_norm_2d(
     #[cfg(feature = "cuda")]
     if input.phase() == ResonantPhase::Flux {
         // Tensor is on GPU - use CUDA implementation
-        return cuda_golden_batch_norm_2d_dispatch(
-            input, mode, eps, affine_gamma, affine_beta
-        );
+        return cuda_golden_batch_norm_2d_dispatch(input, mode, eps, affine_gamma, affine_beta);
     }
 
     // CPU implementation (tensor is Crystallized)
@@ -396,7 +397,6 @@ fn cuda_golden_batch_norm_2d_dispatch(
     use crate::tensor::cuda::device_manager::get_device;
     use crate::tensor::srt_kernels::cuda_golden_bn_2d_f64;
     use cudarc::driver::CudaSlice;
-    
 
     // Only use CUDA for Golden mode (the kernel is hardcoded for golden ratio)
     if !matches!(mode, GoldenNormMode::Golden {}) {
@@ -414,8 +414,7 @@ fn cuda_golden_batch_norm_2d_dispatch(
     let width = input.shape()[3] as i32;
 
     // Get flux data from GPU
-    let flux = input.flux_ref()
-        .ok_or(ResonantError::NoFluxPresent)?;
+    let flux = input.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
 
     // Compute batch statistics (mean and variance per channel)
     // This is a simplified version - in practice you'd want to use CUDA kernels for this too
@@ -445,31 +444,45 @@ fn cuda_golden_batch_norm_2d_dispatch(
     }
 
     // Upload statistics to GPU
-    let gpu_mean = device.default_stream().clone_htod(&mean_data)
+    let gpu_mean = device
+        .default_stream()
+        .clone_htod(&mean_data)
         .map_err(|e| ResonantError::CudaError(e.to_string()))?;
-    let gpu_var = device.default_stream().clone_htod(&var_data)
+    let gpu_var = device
+        .default_stream()
+        .clone_htod(&var_data)
         .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
     // Prepare affine parameters
     let gpu_gamma = if let Some(gamma) = affine_gamma {
         let gamma_data = gamma.to_floats_core();
-        Some(device.default_stream().clone_htod(&gamma_data)
-            .map_err(|e| ResonantError::CudaError(e.to_string()))?)
+        Some(
+            device
+                .default_stream()
+                .clone_htod(&gamma_data)
+                .map_err(|e| ResonantError::CudaError(e.to_string()))?,
+        )
     } else {
         None
     };
 
     let gpu_beta = if let Some(beta) = affine_beta {
         let beta_data = beta.to_floats_core();
-        Some(device.default_stream().clone_htod(&beta_data)
-            .map_err(|e| ResonantError::CudaError(e.to_string()))?)
+        Some(
+            device
+                .default_stream()
+                .clone_htod(&beta_data)
+                .map_err(|e| ResonantError::CudaError(e.to_string()))?,
+        )
     } else {
         None
     };
 
     // Allocate output buffer
     let total_elements = (batch_size * channels * height * width) as usize;
-    let mut gpu_output: CudaSlice<f64> = device.default_stream().alloc_zeros(total_elements)
+    let mut gpu_output: CudaSlice<f64> = device
+        .default_stream()
+        .alloc_zeros(total_elements)
         .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
     // Run CUDA kernel
@@ -486,11 +499,14 @@ fn cuda_golden_batch_norm_2d_dispatch(
         channels,
         height,
         width,
-    ).map_err(|e| ResonantError::CudaError(e))?;
+    )
+    .map_err(|e| ResonantError::CudaError(e))?;
 
     // Download result
     let mut output_data = vec![0.0f64; total_elements];
-    device.default_stream().memcpy_dtoh(&gpu_output, &mut output_data)
+    device
+        .default_stream()
+        .memcpy_dtoh(&gpu_output, &mut output_data)
         .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
     // Create output tensor
@@ -505,7 +521,6 @@ fn cuda_golden_batch_norm_2d_dispatch(
 // ============================================================================
 // Python API
 // ============================================================================
-
 
 #[pyfunction]
 #[pyo3(signature = (input, mode, eps=1e-5, gamma=None, beta=None))]
@@ -553,10 +568,10 @@ mod tests {
     fn test_golden_batch_norm_1d_golden_mode() {
         // Create test input: (batch=4, features=2)
         let input_data = vec![
-            1.0, 2.0,   // batch 0
-            3.0, 4.0,   // batch 1
-            5.0, 6.0,   // batch 2
-            7.0, 8.0,   // batch 3
+            1.0, 2.0, // batch 0
+            3.0, 4.0, // batch 1
+            5.0, 6.0, // batch 2
+            7.0, 8.0, // batch 3
         ];
         let mode_norms = vec![0.0; 8]; // Default mode norms
         let input = ResonantTensor::from_floats(&input_data, vec![4, 2], mode_norms, 100).unwrap();
@@ -579,10 +594,11 @@ mod tests {
         assert_relative_eq!(feat1_mean, 0.0, epsilon = 0.1);
 
         // Check that variance is approximately 1/φ
-        let feat0_var = ((output_data[0] - feat0_mean).powi(2) +
-                        (output_data[2] - feat0_mean).powi(2) +
-                        (output_data[4] - feat0_mean).powi(2) +
-                        (output_data[6] - feat0_mean).powi(2)) / 4.0;
+        let feat0_var = ((output_data[0] - feat0_mean).powi(2)
+            + (output_data[2] - feat0_mean).powi(2)
+            + (output_data[4] - feat0_mean).powi(2)
+            + (output_data[6] - feat0_mean).powi(2))
+            / 4.0;
 
         let target_var = 1.0 / 1.618034;
         assert_relative_eq!(feat0_var, target_var, epsilon = 0.1);
@@ -602,9 +618,10 @@ mod tests {
         // For standard mode, variance should be ≈ 1.0
         let output_data = output.to_floats_core();
         let mean = (output_data[0] + output_data[2] + output_data[4]) / 3.0;
-        let variance = ((output_data[0] - mean).powi(2) +
-                       (output_data[2] - mean).powi(2) +
-                       (output_data[4] - mean).powi(2)) / 3.0;
+        let variance = ((output_data[0] - mean).powi(2)
+            + (output_data[2] - mean).powi(2)
+            + (output_data[4] - mean).powi(2))
+            / 3.0;
 
         assert_relative_eq!(variance, 1.0, epsilon = 0.2);
     }
@@ -613,7 +630,8 @@ mod tests {
     fn test_golden_batch_norm_1d_with_affine() {
         let input_data = vec![1.0, 2.0, 3.0, 4.0];
         let mode_norms = vec![0.0; 4];
-        let input = ResonantTensor::from_floats(&input_data, vec![2, 2], mode_norms.clone(), 100).unwrap();
+        let input =
+            ResonantTensor::from_floats(&input_data, vec![2, 2], mode_norms.clone(), 100).unwrap();
 
         // Affine parameters: gamma=[2.0, 3.0], beta=[1.0, -1.0]
         let gamma = ResonantTensor::from_floats(&[2.0, 3.0], vec![2], vec![0.0; 2], 100).unwrap();
@@ -643,8 +661,9 @@ mod tests {
             &input_data,
             vec![batch_size, channels, height, width],
             mode_norms,
-            100
-        ).unwrap();
+            100,
+        )
+        .unwrap();
 
         let mode = GoldenNormMode::Golden {};
         let output = golden_batch_norm_2d(&input, mode, 1e-5, None, None).unwrap();
@@ -657,21 +676,15 @@ mod tests {
         // Verify that normalization is done per channel
         let input_data = vec![
             // Batch 0, Channel 0 (2x2)
-            1.0, 2.0,
-            3.0, 4.0,
-            // Batch 0, Channel 1 (2x2)
-            10.0, 20.0,
-            30.0, 40.0,
-            // Batch 1, Channel 0 (2x2)
-            5.0, 6.0,
-            7.0, 8.0,
-            // Batch 1, Channel 1 (2x2)
-            50.0, 60.0,
-            70.0, 80.0,
+            1.0, 2.0, 3.0, 4.0, // Batch 0, Channel 1 (2x2)
+            10.0, 20.0, 30.0, 40.0, // Batch 1, Channel 0 (2x2)
+            5.0, 6.0, 7.0, 8.0, // Batch 1, Channel 1 (2x2)
+            50.0, 60.0, 70.0, 80.0,
         ];
 
         let mode_norms = vec![0.0; input_data.len()];
-        let input = ResonantTensor::from_floats(&input_data, vec![2, 2, 2, 2], mode_norms, 100).unwrap();
+        let input =
+            ResonantTensor::from_floats(&input_data, vec![2, 2, 2, 2], mode_norms, 100).unwrap();
 
         let mode = GoldenNormMode::Golden {};
         let output = golden_batch_norm_2d(&input, mode, 1e-5, None, None).unwrap();
@@ -692,23 +705,14 @@ mod tests {
         // Verify that golden mode gives smaller variance than standard
         let input_data: Vec<f64> = (0..20).map(|i| i as f64).collect();
         let mode_norms = vec![0.0; 20];
-        let input = ResonantTensor::from_floats(&input_data, vec![10, 2], mode_norms.clone(), 100).unwrap();
+        let input =
+            ResonantTensor::from_floats(&input_data, vec![10, 2], mode_norms.clone(), 100).unwrap();
 
-        let golden_output = golden_batch_norm_1d(
-            &input,
-            GoldenNormMode::Golden {},
-            1e-5,
-            None,
-            None
-        ).unwrap();
+        let golden_output =
+            golden_batch_norm_1d(&input, GoldenNormMode::Golden {}, 1e-5, None, None).unwrap();
 
-        let standard_output = golden_batch_norm_1d(
-            &input,
-            GoldenNormMode::Standard {},
-            1e-5,
-            None,
-            None
-        ).unwrap();
+        let standard_output =
+            golden_batch_norm_1d(&input, GoldenNormMode::Standard {}, 1e-5, None, None).unwrap();
 
         let golden_data = golden_output.to_floats_core();
         let standard_data = standard_output.to_floats_core();

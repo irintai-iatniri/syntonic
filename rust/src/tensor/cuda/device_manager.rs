@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use super::memory_pool::MemoryPool;
-use super::srt_memory_protocol::{SRTMemoryTransferProtocol, SRTMemoryConfig};
+use super::srt_memory_protocol::{SRTMemoryConfig, SRTMemoryTransferProtocol};
 
 /// CUDA operation errors
 #[derive(Debug, Clone)]
@@ -69,8 +69,10 @@ pub struct DeviceManager {
     /// Cached device handles
     devices: RwLock<HashMap<usize, Arc<CudaDevice>>>,
     /// Memory pools per device (also not thread-safe, created on-demand)
-    pools: RwLock<HashMap<usize, Arc<MemoryPool>>>,    /// SRT Memory Transfer Protocol per device
-    srt_protocols: RwLock<HashMap<usize, Arc<SRTMemoryTransferProtocol>>>,}
+    pools: RwLock<HashMap<usize, Arc<MemoryPool>>>,
+    /// SRT Memory Transfer Protocol per device
+    srt_protocols: RwLock<HashMap<usize, Arc<SRTMemoryTransferProtocol>>>,
+}
 
 impl DeviceManager {
     /// Create a new device manager
@@ -94,8 +96,8 @@ impl DeviceManager {
 
         // Slow path: create and cache
         // Note: CudaDevice::new already returns Arc<CudaDevice>
-        let device = CudaDevice::new(idx)
-            .map_err(|e| CudaError::DeviceInitFailed(e.to_string()))?;
+        let device =
+            CudaDevice::new(idx).map_err(|e| CudaError::DeviceInitFailed(e.to_string()))?;
 
         {
             let mut devices = self.devices.write().unwrap();
@@ -107,11 +109,17 @@ impl DeviceManager {
 
     /// Create a new stream for the given device
     /// Note: In cudarc 0.18.2, we use device.default_stream() instead of creating new streams
-    pub fn create_stream(&self, device_idx: usize) -> Result<cudarc::driver::CudaStream, CudaError> {
+    pub fn create_stream(
+        &self,
+        device_idx: usize,
+    ) -> Result<cudarc::driver::CudaStream, CudaError> {
         let device = self.get_device(device_idx)?;
         // In cudarc 0.18.2, streams are accessed via device.default_stream()
         // For now, return an error as this method is deprecated
-        Err(CudaError::StreamCreateFailed("Stream creation not supported in cudarc 0.18.2. Use device.default_stream() instead.".to_string()))
+        Err(CudaError::StreamCreateFailed(
+            "Stream creation not supported in cudarc 0.18.2. Use device.default_stream() instead."
+                .to_string(),
+        ))
     }
 
     /// Get or create a memory pool for the given device
@@ -137,7 +145,10 @@ impl DeviceManager {
     }
 
     /// Get or create SRT Memory Transfer Protocol for the given device
-    pub fn get_srt_protocol(&self, device_idx: usize) -> Result<Arc<SRTMemoryTransferProtocol>, CudaError> {
+    pub fn get_srt_protocol(
+        &self,
+        device_idx: usize,
+    ) -> Result<Arc<SRTMemoryTransferProtocol>, CudaError> {
         // Fast path: check if already cached
         {
             let protocols = self.srt_protocols.read().unwrap();
@@ -148,7 +159,8 @@ impl DeviceManager {
 
         // Slow path: create and cache
         let config = SRTMemoryConfig::default();
-        let protocol = Arc::new(SRTMemoryTransferProtocol::new(config));
+        let device = self.get_device(device_idx)?;
+        let protocol = Arc::new(SRTMemoryTransferProtocol::new(config, device));
 
         {
             let mut protocols = self.srt_protocols.write().unwrap();
@@ -172,7 +184,8 @@ impl DeviceManager {
     /// Synchronize a device
     pub fn sync_device(&self, device_idx: usize) -> Result<(), CudaError> {
         let device = self.get_device(device_idx)?;
-        device.synchronize()
+        device
+            .synchronize()
             .map_err(|e| CudaError::SyncFailed(e.to_string()))
     }
 

@@ -19,7 +19,7 @@
 
 use pyo3::prelude::*;
 use std::fmt;
-use std::ops::{Add, Sub, Mul, Div, Neg};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use super::rational::Rational;
 
@@ -585,9 +585,13 @@ impl GoldenExact {
     }
 
     fn __repr__(&self) -> String {
-        format!("GoldenExact({}/{}  + ({}/{})·φ)",
-            self.a.numerator(), self.a.denominator(),
-            self.b.numerator(), self.b.denominator())
+        format!(
+            "GoldenExact({}/{}  + ({}/{})·φ)",
+            self.a.numerator(),
+            self.a.denominator(),
+            self.b.numerator(),
+            self.b.denominator()
+        )
     }
 
     fn __str__(&self) -> String {
@@ -1031,10 +1035,7 @@ mod tests {
             let result = GoldenExact::find_nearest(x, 1000);
             let error = (result.to_f64() - x).abs();
             // Error should be less than 1/1000 for max_coeff=1000
-            assert!(
-                error < 0.01,
-                "Error {} too large for x={}", error, x
-            );
+            assert!(error < 0.01, "Error {} too large for x={}", error, x);
         }
     }
 
@@ -1043,11 +1044,11 @@ mod tests {
         // Fibonacci ratios F_{n+1}/F_n converge to φ
         // These should be well-approximated
         let fib_ratios = [
-            (2.0, 1.0),   // 2/1 = 2
-            (3.0, 2.0),   // 3/2 = 1.5
-            (5.0, 3.0),   // 5/3 ≈ 1.667
-            (8.0, 5.0),   // 8/5 = 1.6
-            (13.0, 8.0),  // 13/8 = 1.625
+            (2.0, 1.0),  // 2/1 = 2
+            (3.0, 2.0),  // 3/2 = 1.5
+            (5.0, 3.0),  // 5/3 ≈ 1.667
+            (8.0, 5.0),  // 8/5 = 1.6
+            (13.0, 8.0), // 13/8 = 1.625
         ];
 
         for (num, denom) in fib_ratios {
@@ -1070,15 +1071,12 @@ mod tests {
 
         // Check that residuals are small
         for (i, &r) in residuals.iter().enumerate() {
-            assert!(
-                r.abs() < 0.01,
-                "Residual {} too large at index {}", r, i
-            );
+            assert!(r.abs() < 0.01, "Residual {} too large at index {}", r, i);
         }
 
         // Check specific snaps
         assert_eq!(lattice[0], GoldenExact::from_ints(1, 0)); // 1.0 → 1
-        assert_eq!(lattice[1], GoldenExact::phi());            // φ → φ
-        assert_eq!(lattice[2], GoldenExact::phi_squared());    // φ² → 1 + φ
+        assert_eq!(lattice[1], GoldenExact::phi()); // φ → φ
+        assert_eq!(lattice[2], GoldenExact::phi_squared()); // φ² → 1 + φ
     }
 }

@@ -313,7 +313,7 @@ pytest tests/test_resonant/test_attractor.py -v
 ## Notes
 
 - **AttractorMemory methods already implemented** in previous session
-- AsyncTransfer and inplace operations are **optional enhancements**
+- AsyncTransfer and inplace operations are not optional.
 - Priority: Implement the plan respecting the theory and existent files.
 - All changes are non-breaking (additions only)
 

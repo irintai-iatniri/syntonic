@@ -20,12 +20,12 @@
 pub fn broadcast_shape(a: &[usize], b: &[usize]) -> Option<Vec<usize>> {
     let max_ndim = a.len().max(b.len());
     let mut result = Vec::with_capacity(max_ndim);
-    
+
     // Iterate from the last dimension backwards
     for i in 0..max_ndim {
         let dim_a = if i < a.len() { a[a.len() - 1 - i] } else { 1 };
         let dim_b = if i < b.len() { b[b.len() - 1 - i] } else { 1 };
-        
+
         if dim_a == dim_b {
             result.push(dim_a);
         } else if dim_a == 1 {
@@ -37,7 +37,7 @@ pub fn broadcast_shape(a: &[usize], b: &[usize]) -> Option<Vec<usize>> {
             return None;
         }
     }
-    
+
     result.reverse();
     Some(result)
 }
@@ -58,7 +58,11 @@ pub fn compute_strides(shape: &[usize]) -> Vec<usize> {
 
 /// Calculate the linear index in a tensor given multi-dimensional indices.
 pub fn linear_index(indices: &[usize], strides: &[usize]) -> usize {
-    indices.iter().zip(strides.iter()).map(|(&i, &s)| i * s).sum()
+    indices
+        .iter()
+        .zip(strides.iter())
+        .map(|(&i, &s)| i * s)
+        .sum()
 }
 
 /// Calculate multi-dimensional indices from a linear index.
@@ -66,36 +70,32 @@ pub fn unravel_index(linear_idx: usize, shape: &[usize]) -> Vec<usize> {
     let strides = compute_strides(shape);
     let mut indices = Vec::with_capacity(shape.len());
     let mut remaining = linear_idx;
-    
+
     for &stride in &strides {
         indices.push(remaining / stride);
         remaining %= stride;
     }
-    
+
     indices
 }
 
 /// Map a linear index from the output tensor to source tensor indices,
 /// handling broadcasting (size-1 dimensions map to index 0).
-pub fn broadcast_index(
-    linear_idx: usize,
-    output_shape: &[usize],
-    source_shape: &[usize],
-) -> usize {
+pub fn broadcast_index(linear_idx: usize, output_shape: &[usize], source_shape: &[usize]) -> usize {
     let output_indices = unravel_index(linear_idx, output_shape);
     let _output_strides = compute_strides(output_shape);
     let source_strides = compute_strides(source_shape);
-    
+
     let offset = output_shape.len().saturating_sub(source_shape.len());
     let mut source_idx = 0;
-    
+
     for (i, &dim) in source_shape.iter().enumerate() {
         let out_idx = output_indices[offset + i];
         // If dimension is 1, broadcast (always use index 0)
         let src_idx = if dim == 1 { 0 } else { out_idx };
         source_idx += src_idx * source_strides[i];
     }
-    
+
     source_idx
 }
 
@@ -122,15 +122,15 @@ where
 {
     let out_shape = broadcast_shape(a_shape, b_shape)?;
     let out_size: usize = out_shape.iter().product();
-    
+
     let mut result = Vec::with_capacity(out_size);
-    
+
     for i in 0..out_size {
         let a_idx = broadcast_index(i, &out_shape, a_shape);
         let b_idx = broadcast_index(i, &out_shape, b_shape);
         result.push(op(a[a_idx], b[b_idx]));
     }
-    
+
     Some((result, out_shape))
 }
 
@@ -259,7 +259,9 @@ mod tests {
     #[test]
     fn test_broadcast_mul_scalar_like() {
         // [3, 4] * [1] -> [3, 4]
-        let a = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0];
+        let a = vec![
+            1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+        ];
         let b = vec![2.0];
         let (result, shape) = broadcast_mul(&a, &[3, 4], &b, &[1]).unwrap();
         assert_eq!(shape, vec![3, 4]);
@@ -272,13 +274,13 @@ mod tests {
         let mut data = vec![1.0, 2.0, 3.0];
         inplace_add_scalar(&mut data, 10.0);
         assert_eq!(data, vec![11.0, 12.0, 13.0]);
-        
+
         inplace_mul_scalar(&mut data, 2.0);
         assert_eq!(data, vec![22.0, 24.0, 26.0]);
-        
+
         inplace_negate(&mut data);
         assert_eq!(data, vec![-22.0, -24.0, -26.0]);
-        
+
         inplace_abs(&mut data);
         assert_eq!(data, vec![22.0, 24.0, 26.0]);
     }

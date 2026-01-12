@@ -6,8 +6,8 @@
 //! - Syntony loss (task + syntony penalty)
 //! - Phase alignment loss
 
-use std::f64::consts::PI;
 use super::number_theory::PHI;
+use std::f64::consts::PI;
 
 /// Q deficit constant
 pub const Q_DEFICIT: f64 = 0.027395146920;
@@ -29,14 +29,15 @@ pub fn mse_loss(pred: &[f64], target: &[f64]) -> f64 {
     if pred.is_empty() || target.is_empty() {
         return 0.0;
     }
-    
+
     let n = pred.len().min(target.len());
-    let sum_sq: f64 = pred.iter()
+    let sum_sq: f64 = pred
+        .iter()
         .zip(target.iter())
         .take(n)
         .map(|(p, t)| (p - t).powi(2))
         .sum();
-    
+
     sum_sq / n as f64
 }
 
@@ -47,12 +48,12 @@ pub fn softmax(logits: &[f64]) -> Vec<f64> {
     if logits.is_empty() {
         return vec![];
     }
-    
+
     // Numerical stability: subtract max
     let max_val = logits.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
     let exp_vals: Vec<f64> = logits.iter().map(|&x| (x - max_val).exp()).collect();
     let sum_exp: f64 = exp_vals.iter().sum();
-    
+
     exp_vals.iter().map(|&e| e / sum_exp).collect()
 }
 
@@ -70,15 +71,16 @@ pub fn cross_entropy_loss(logits: &[f64], target: &[f64]) -> f64 {
     if logits.is_empty() || target.is_empty() {
         return 0.0;
     }
-    
+
     let probs = softmax(logits);
     let epsilon = 1e-10;
-    
-    let loss: f64 = target.iter()
+
+    let loss: f64 = target
+        .iter()
         .zip(probs.iter())
         .map(|(&t, &p)| -t * (p + epsilon).ln())
         .sum();
-    
+
     loss
 }
 
@@ -101,23 +103,23 @@ pub fn batch_cross_entropy_loss(
     if batch_size == 0 || num_classes == 0 {
         return 0.0;
     }
-    
+
     let mut total_loss = 0.0;
-    
+
     for b in 0..batch_size {
         let start = b * num_classes;
         let end = start + num_classes;
-        
+
         if end > logits.len() || end > targets.len() {
             break;
         }
-        
+
         let sample_logits = &logits[start..end];
         let sample_target = &targets[start..end];
-        
+
         total_loss += cross_entropy_loss(sample_logits, sample_target);
     }
-    
+
     total_loss / batch_size as f64
 }
 
@@ -152,18 +154,18 @@ pub fn phase_alignment_loss(values: &[f64], target_phase: f64, mu_phase: f64) ->
     if values.is_empty() {
         return 0.0;
     }
-    
+
     // Compute variance
     let n = values.len() as f64;
     let mean: f64 = values.iter().sum::<f64>() / n;
     let var: f64 = values.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / n;
-    
+
     // Map variance to phase estimate
     // Low variance → concentrated → phase near 0
     // High variance → spread → phase near π/2
     let normalized_var = var / (1.0 + var);
     let estimated_phase = normalized_var * (PI / 2.0);
-    
+
     let phase_deviation = (estimated_phase - target_phase).powi(2);
     mu_phase * phase_deviation
 }
@@ -191,7 +193,7 @@ pub fn syntonic_loss(
     let loss_syntony = lambda_syntony * (1.0 - model_syntony);
     let loss_phase = mu_phase * phase_cost;
     let total = task_loss + loss_syntony + loss_phase;
-    
+
     (total, task_loss, loss_syntony, loss_phase)
 }
 
@@ -208,27 +210,22 @@ pub fn estimate_syntony_from_probs(probs: &[f64]) -> f64 {
     if probs.is_empty() {
         return 0.5;
     }
-    
+
     let epsilon = 1e-10;
-    
+
     // Shannon entropy: -Σ p_i log(p_i)
-    let entropy: f64 = probs.iter()
-        .map(|&p| {
-            if p > epsilon {
-                -p * p.ln()
-            } else {
-                0.0
-            }
-        })
+    let entropy: f64 = probs
+        .iter()
+        .map(|&p| if p > epsilon { -p * p.ln() } else { 0.0 })
         .sum();
-    
+
     let max_entropy = (probs.len() as f64).ln();
     if max_entropy < epsilon {
         return 0.5;
     }
-    
+
     let normalized_entropy = entropy / max_entropy;
-    
+
     // Syntony = 1 - normalized_entropy
     (1.0 - normalized_entropy).clamp(0.0, 1.0)
 }
@@ -245,12 +242,12 @@ pub fn estimate_syntony_from_probs(probs: &[f64]) -> f64 {
 /// Golden decay loss
 pub fn golden_decay_loss(weight_norms: &[f64], lambda_decay: f64) -> f64 {
     let mut total = 0.0;
-    
+
     for (i, &norm) in weight_norms.iter().enumerate() {
         let scale = PHI.powi(-(i as i32));
         total += scale * norm;
     }
-    
+
     lambda_decay * total
 }
 
@@ -264,18 +261,18 @@ mod tests {
         let target = vec![1.0, 2.0, 4.0];
         let loss = mse_loss(&pred, &target);
         // (0 + 0 + 1) / 3 = 0.333...
-        assert!((loss - 1.0/3.0).abs() < 1e-10);
+        assert!((loss - 1.0 / 3.0).abs() < 1e-10);
     }
 
     #[test]
     fn test_softmax() {
         let logits = vec![1.0, 2.0, 3.0];
         let probs = softmax(&logits);
-        
+
         // Sum should be 1
         let sum: f64 = probs.iter().sum();
         assert!((sum - 1.0).abs() < 1e-10);
-        
+
         // Should be increasing
         assert!(probs[0] < probs[1]);
         assert!(probs[1] < probs[2]);
@@ -284,13 +281,13 @@ mod tests {
     #[test]
     fn test_cross_entropy() {
         // Perfect prediction
-        let logits = vec![10.0, 0.0, 0.0];  // Will softmax to ~[1, 0, 0]
+        let logits = vec![10.0, 0.0, 0.0]; // Will softmax to ~[1, 0, 0]
         let target = vec![1.0, 0.0, 0.0];
         let loss = cross_entropy_loss(&logits, &target);
         assert!(loss < 0.01, "Perfect prediction should have near-zero loss");
-        
+
         // Wrong prediction
-        let logits2 = vec![0.0, 0.0, 10.0];  // Will softmax to ~[0, 0, 1]
+        let logits2 = vec![0.0, 0.0, 10.0]; // Will softmax to ~[0, 0, 1]
         let loss2 = cross_entropy_loss(&logits2, &target);
         assert!(loss2 > 5.0, "Wrong prediction should have high loss");
     }
@@ -301,22 +298,22 @@ mod tests {
         let loss_high = syntony_loss(0.9, 0.1);
         // Low syntony → high loss
         let loss_low = syntony_loss(0.3, 0.1);
-        
+
         assert!(loss_high < loss_low);
     }
 
     #[test]
     fn test_syntonic_loss_combined() {
         let (total, task, syntony, phase) = syntonic_loss(
-            1.0,   // task_loss
-            0.8,   // model_syntony
-            0.1,   // phase_cost
-            0.1,   // lambda_syntony
-            0.01,  // mu_phase
+            1.0,  // task_loss
+            0.8,  // model_syntony
+            0.1,  // phase_cost
+            0.1,  // lambda_syntony
+            0.01, // mu_phase
         );
-        
-        assert!((syntony - 0.02).abs() < 1e-10);  // 0.1 * (1 - 0.8) = 0.02
-        assert!((phase - 0.001).abs() < 1e-10);   // 0.01 * 0.1 = 0.001
+
+        assert!((syntony - 0.02).abs() < 1e-10); // 0.1 * (1 - 0.8) = 0.02
+        assert!((phase - 0.001).abs() < 1e-10); // 0.01 * 0.1 = 0.001
         assert!((total - (1.0 + 0.02 + 0.001)).abs() < 1e-10);
     }
 
@@ -325,19 +322,22 @@ mod tests {
         // Uniform distribution → low syntony (high entropy)
         let uniform = vec![0.25, 0.25, 0.25, 0.25];
         let s_uniform = estimate_syntony_from_probs(&uniform);
-        
+
         // Concentrated distribution → high syntony (low entropy)
         let concentrated = vec![0.97, 0.01, 0.01, 0.01];
         let s_concentrated = estimate_syntony_from_probs(&concentrated);
-        
-        assert!(s_concentrated > s_uniform, "Concentrated should have higher syntony");
+
+        assert!(
+            s_concentrated > s_uniform,
+            "Concentrated should have higher syntony"
+        );
     }
 
     #[test]
     fn test_golden_decay() {
-        let weights = vec![1.0, 1.0, 1.0];  // Same norm per layer
+        let weights = vec![1.0, 1.0, 1.0]; // Same norm per layer
         let decay = golden_decay_loss(&weights, 0.01);
-        
+
         // Decay: φ^0 + φ^-1 + φ^-2 = 1 + 0.618 + 0.382 ≈ 2.0
         assert!(decay > 0.019 && decay < 0.021);
     }

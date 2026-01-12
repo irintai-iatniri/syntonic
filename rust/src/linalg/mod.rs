@@ -16,9 +16,9 @@
 
 pub mod matmul;
 
-use pyo3::prelude::*;
-use crate::tensor::storage::TensorStorage;
 use crate::exact::constants::Structure;
+use crate::tensor::storage::TensorStorage;
+use pyo3::prelude::*;
 
 // =============================================================================
 // PyO3 Wrapper Functions for Python Access
@@ -191,17 +191,23 @@ pub fn py_mm_gemm(
         "N" | "NONE" => matmul::Transpose::None,
         "T" | "TRANS" => matmul::Transpose::Trans,
         "H" | "CONJTRANS" | "HERMITIAN" => matmul::Transpose::ConjTrans,
-        _ => return Err(pyo3::exceptions::PyValueError::new_err(
-            format!("Invalid transpose '{}': use 'N', 'T', or 'H'", trans_a)
-        )),
+        _ => {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Invalid transpose '{}': use 'N', 'T', or 'H'",
+                trans_a
+            )))
+        }
     };
     let tb = match trans_b.to_uppercase().as_str() {
         "N" | "NONE" => matmul::Transpose::None,
         "T" | "TRANS" => matmul::Transpose::Trans,
         "H" | "CONJTRANS" | "HERMITIAN" => matmul::Transpose::ConjTrans,
-        _ => return Err(pyo3::exceptions::PyValueError::new_err(
-            format!("Invalid transpose '{}': use 'N', 'T', or 'H'", trans_b)
-        )),
+        _ => {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Invalid transpose '{}': use 'N', 'T', or 'H'",
+                trans_b
+            )))
+        }
     };
     matmul::mm_gemm(a, b, ta, tb, alpha, beta, c).map_err(|e| e.into())
 }

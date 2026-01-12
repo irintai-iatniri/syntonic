@@ -35,10 +35,10 @@ pub fn compute_winding_syntony(values: &[f64], mode_norms: &[f64]) -> f64 {
             // Extrapolate mode norm if fewer norms than values
             mode_norms[mode_norms.len() - 1]
         };
-        
+
         let energy = val * val;
         let weight = golden_weight(norm);
-        
+
         weighted_energy += energy * weight;
         total_energy += energy;
     }
@@ -92,10 +92,10 @@ pub fn batch_winding_syntony(
             if idx >= values.len() {
                 break;
             }
-            
+
             let val = values[idx];
             let energy = val * val;
-            
+
             weighted_energy += energy * weights[d];
             total_energy += energy;
         }
@@ -105,7 +105,7 @@ pub fn batch_winding_syntony(
         } else {
             (weighted_energy / total_energy).clamp(0.0, 1.0)
         };
-        
+
         syntonies.push(syntony);
     }
 
@@ -129,9 +129,7 @@ pub fn aggregate_syntony(syntonies: &[f64], method: &str) -> f64 {
         "mean" => syntonies.iter().sum::<f64>() / syntonies.len() as f64,
         "min" => syntonies.iter().cloned().fold(f64::INFINITY, f64::min),
         "geometric" => {
-            let product: f64 = syntonies.iter()
-                .map(|&s| s.max(1e-10))
-                .product();
+            let product: f64 = syntonies.iter().map(|&s| s.max(1e-10)).product();
             product.powf(1.0 / syntonies.len() as f64)
         }
         _ => syntonies.iter().sum::<f64>() / syntonies.len() as f64,
@@ -161,7 +159,11 @@ mod tests {
         let values = vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
         let mode_norms = standard_mode_norms(8);
         let s = compute_winding_syntony(&values, &mode_norms);
-        assert!(s > 0.8, "Expected high syntony for concentrated energy, got {}", s);
+        assert!(
+            s > 0.8,
+            "Expected high syntony for concentrated energy, got {}",
+            s
+        );
     }
 
     #[test]
@@ -171,7 +173,11 @@ mod tests {
         let mode_norms = standard_mode_norms(8);
         let s = compute_winding_syntony(&values, &mode_norms);
         // High mode indices (6, 7) have weights exp(-36/φ) and exp(-49/φ) ≈ 0
-        assert!(s < 0.1, "Expected low syntony for scattered energy, got {}", s);
+        assert!(
+            s < 0.1,
+            "Expected low syntony for scattered energy, got {}",
+            s
+        );
     }
 
     #[test]
@@ -179,27 +185,29 @@ mod tests {
         // Two samples: one concentrated, one scattered
         let values = vec![
             // Sample 0: concentrated
-            1.0, 1.0, 0.0, 0.0,
-            // Sample 1: scattered
+            1.0, 1.0, 0.0, 0.0, // Sample 1: scattered
             0.0, 0.0, 1.0, 1.0,
         ];
         let mode_norms = standard_mode_norms(4);
         let syntonies = batch_winding_syntony(&values, 2, 4, &mode_norms);
-        
+
         assert_eq!(syntonies.len(), 2);
-        assert!(syntonies[0] > syntonies[1], "Concentrated should have higher syntony");
+        assert!(
+            syntonies[0] > syntonies[1],
+            "Concentrated should have higher syntony"
+        );
     }
 
     #[test]
     fn test_aggregate_methods() {
         let syntonies = vec![0.6, 0.8, 0.7];
-        
+
         let mean = aggregate_syntony(&syntonies, "mean");
         assert!((mean - 0.7).abs() < 0.001);
-        
+
         let min = aggregate_syntony(&syntonies, "min");
         assert!((min - 0.6).abs() < 0.001);
-        
+
         let geo = aggregate_syntony(&syntonies, "geometric");
         // geometric mean < arithmetic mean
         assert!(geo < mean);

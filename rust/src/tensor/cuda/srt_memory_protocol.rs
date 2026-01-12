@@ -40,11 +40,13 @@ use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
 use cudarc::driver::safe::CudaContext as CudaDevice;
-use cudarc::driver::sys::{cuMemHostRegister_v2 as cuMemHostRegister, cuMemHostUnregister, CU_MEMHOSTREGISTER_PORTABLE};
+use cudarc::driver::sys::{
+    cuMemHostRegister_v2 as cuMemHostRegister, cuMemHostUnregister, CU_MEMHOSTREGISTER_PORTABLE,
+};
 use cudarc::driver::CudaSlice;
 
-use crate::exact::golden::GoldenExact;
 use crate::exact::constants::Structure;
+use crate::exact::golden::GoldenExact;
 use crate::tensor::cuda::device_manager::CudaError;
 
 /// SRT Memory Transfer Protocol Configuration
@@ -70,9 +72,9 @@ impl Default for SRTMemoryConfig {
             phi_batch_scale: GoldenExact::phi().to_f64().powi(2), // φ²
             q_correction: Structure::E8Rank.correction_plus().eval_f64(), // 1 + q/8
             resonant_period_us: (GoldenExact::phi_power(3).to_f64() * 1e6) as u64, // φ³ μs
-            resonance_decay: GoldenExact::phi_hat().to_f64(), // φ⁻¹
-            max_pinned_bytes: 512 * 1024 * 1024, // 512MB
-            max_fib_batch: 610, // F₁₅
+            resonance_decay: GoldenExact::phi_hat().to_f64(),     // φ⁻¹
+            max_pinned_bytes: 512 * 1024 * 1024,                  // 512MB
+            max_fib_batch: 610,                                   // F₁₅
         }
     }
 }
@@ -104,13 +106,37 @@ impl FibonacciBatcher {
 
     /// Get next golden ratio batch size
     fn next_batch_size(&mut self, requested: usize) -> usize {
-        // Find the largest Fibonacci number ≤ requested
-        for &fib in self.fib_sequence.iter().rev() {
-            if fib <= requested {
-                return fib;
-            }
+        if self.fib_sequence.is_empty() {
+            self.current_idx = 0;
+            return 1;
         }
-        1 // fallback
+
+        let len = self.fib_sequence.len();
+        if self.current_idx >= len {
+            self.current_idx = len - 1;
+        }
+
+        let mut idx = self.current_idx;
+
+        // Walk down until the bucket fits the requested size
+        while idx > 0 && self.fib_sequence[idx] > requested {
+            idx -= 1;
+        }
+
+        // Walk up to the largest Fibonacci number that still fits
+        while idx + 1 < len && self.fib_sequence[idx + 1] <= requested {
+            idx += 1;
+        }
+
+        // Record position for the next call to provide round-robin behavior
+        self.current_idx = (idx + 1) % len;
+
+        // Fallback to smallest bucket if none fit
+        if self.fib_sequence[idx] <= requested {
+            self.fib_sequence[idx]
+        } else {
+            1
+        }
     }
 
     /// Get resonant batch size using φ-scaling
@@ -152,8 +178,14 @@ impl ResonantScheduler {
             let phase = (cycles * phi) % (2.0 * std::f64::consts::PI);
 
             // Resonant windows occur at phase ≈ 0, π/φ, 2π/φ, etc.
-            let resonant_phases = [0.0, std::f64::consts::PI / phi, 2.0 * std::f64::consts::PI / phi];
-            resonant_phases.iter().any(|&r_phase| (phase - r_phase).abs() < 0.1)
+            let resonant_phases = [
+                0.0,
+                std::f64::consts::PI / phi,
+                2.0 * std::f64::consts::PI / phi,
+            ];
+            resonant_phases
+                .iter()
+                .any(|&r_phase| (phase - r_phase).abs() < 0.1)
         } else {
             true // First transfer is always resonant
         }
@@ -171,7 +203,8 @@ impl ResonantScheduler {
     /// Record transfer completion
     fn record_transfer(&mut self) {
         self.last_transfer = Some(Instant::now());
-        self.phase_accumulator = (self.phase_accumulator + GoldenExact::phi().to_f64()) % (2.0 * std::f64::consts::PI);
+        self.phase_accumulator =
+            (self.phase_accumulator + GoldenExact::phi().to_f64()) % (2.0 * std::f64::consts::PI);
     }
 }
 
@@ -193,7 +226,8 @@ impl SRTPinnedPool {
         let mut fib_sizes = vec![1, 1];
         while let Some(&last) = fib_sizes.last() {
             let next = fib_sizes[fib_sizes.len() - 2] + last;
-            if next > 1024 * 1024 * 1024 { // 1GB limit per block
+            if next > 1024 * 1024 * 1024 {
+                // 1GB limit per block
                 break;
             }
             fib_sizes.push(next);
@@ -208,13 +242,19 @@ impl SRTPinnedPool {
     }
 
     /// Allocate SRT-aligned pinned memory block (re-enabled with true pinning)
-    fn alloc_pinned(&mut self, size: usize, _device: &Arc<CudaDevice>) -> Result<Vec<u8>, CudaError> {
+    fn alloc_pinned(
+        &mut self,
+        size: usize,
+        _device: &Arc<CudaDevice>,
+    ) -> Result<Vec<u8>, CudaError> {
         // Find appropriate Fibonacci size bucket
-        let fib_size = self.fib_sizes.iter()
+        let fib_size = self
+            .fib_sizes
+            .iter()
             .find(|&&s| s >= size)
             .copied()
             .unwrap_or(size);
-        
+
         // Try to recycle an existing pinned block
         if let Some(blocks) = self.pinned_blocks.get_mut(&fib_size) {
             if let Some(block) = blocks.pop() {
@@ -233,16 +273,19 @@ impl SRTPinnedPool {
         // Allocate new pinned memory
         // We use Vec and register it to ensure it's pinned
         let mut block = vec![0u8; fib_size];
-        
+
         unsafe {
             let res = cuMemHostRegister(
                 block.as_mut_ptr() as *mut _,
                 fib_size,
                 CU_MEMHOSTREGISTER_PORTABLE,
             );
-            
+
             if res != cudarc::driver::sys::CUresult::CUDA_SUCCESS {
-                return Err(CudaError::AllocationFailed(format!("Failed to register pinned memory: {:?}", res)));
+                return Err(CudaError::AllocationFailed(format!(
+                    "Failed to register pinned memory: {:?}",
+                    res
+                )));
             }
         }
 
@@ -252,11 +295,16 @@ impl SRTPinnedPool {
 
     /// Return pinned memory block to pool for reuse
     fn free_pinned(&mut self, block: Vec<u8>) {
-        if block.len() == 0 { return; }
-        
+        if block.len() == 0 {
+            return;
+        }
+
         // Find bucket (assuming block size didn't change and matches our bins)
         let size = block.len();
-        self.pinned_blocks.entry(size).or_insert_with(Vec::new).push(block);
+        self.pinned_blocks
+            .entry(size)
+            .or_insert_with(Vec::new)
+            .push(block);
     }
 
     /// Get pool statistics
@@ -338,6 +386,8 @@ pub struct SRTMemoryTransferProtocol {
     resonance: RwLock<MemoryResonance>,
     /// Transfer statistics
     stats: RwLock<SRTTransferStats>,
+    /// CUDA device backing this protocol
+    device: Arc<CudaDevice>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -356,7 +406,7 @@ pub struct SRTTransferStats {
 
 impl SRTMemoryTransferProtocol {
     /// Create new SRT-MTP instance
-    pub fn new(config: SRTMemoryConfig) -> Self {
+    pub fn new(config: SRTMemoryConfig, device: Arc<CudaDevice>) -> Self {
         let fib_batcher = FibonacciBatcher::new(config.max_fib_batch);
         let scheduler = ResonantScheduler::new(config.resonant_period_us);
         let pinned_pool = SRTPinnedPool::new(config.max_pinned_bytes);
@@ -369,12 +419,13 @@ impl SRTMemoryTransferProtocol {
             pinned_pool: RwLock::new(pinned_pool),
             resonance: RwLock::new(resonance),
             stats: RwLock::new(SRTTransferStats::default()),
+            device,
         }
     }
 
     /// Create with default SRT configuration
-    pub fn default() -> Self {
-        Self::new(SRTMemoryConfig::default())
+    pub fn default(device: Arc<CudaDevice>) -> Self {
+        Self::new(SRTMemoryConfig::default(), device)
     }
 
     /// Perform SRT-optimized H2D (Host-to-Device) transfer for f64 with pinned memory
@@ -391,48 +442,61 @@ impl SRTMemoryTransferProtocol {
 
         // Get optimal batch size using golden ratio batching
         let data_size = std::mem::size_of_val(data);
-        let batch_size = self.fib_batcher.write().unwrap()
+        let batch_size = self
+            .fib_batcher
+            .write()
+            .unwrap()
             .resonant_batch_size(data_size, self.config.phi_batch_scale);
 
         // Apply q-deficit correction, ensure at least as large as data
-        let corrected_batch = ((batch_size as f64 * self.config.q_correction) as usize).max(data.len());
+        let corrected_batch =
+            ((batch_size as f64 * self.config.q_correction) as usize).max(data.len());
 
         // Allocate device memory using SRT-aligned size
-        let mut device_slice = device.default_stream().alloc_zeros::<f64>(corrected_batch)
+        let mut device_slice = device
+            .default_stream()
+            .alloc_zeros::<f64>(corrected_batch)
             .map_err(|e| CudaError::AllocationFailed(e.to_string()))?;
 
         // Use pinned memory for the transfer if possible
-        let transfer_result = if data.len() * std::mem::size_of::<f64>() <= 64 * 1024 * 1024 { // 64MB limit
+        let transfer_result = if data.len() * std::mem::size_of::<f64>() <= 64 * 1024 * 1024 {
+            // 64MB limit
             // Try pinned memory transfer for better performance
-            let pinned_alloc = self.pinned_pool.write().unwrap().alloc_pinned(data.len() * std::mem::size_of::<f64>(), device);
+            let pinned_alloc = self.alloc_srt_pinned(data.len() * std::mem::size_of::<f64>());
             match pinned_alloc {
                 Ok(mut pinned_vec) => {
                     // Copy data to pinned memory first
                     let pinned_f64 = unsafe {
                         std::slice::from_raw_parts_mut(
                             pinned_vec.as_mut_ptr() as *mut f64,
-                            data.len()
+                            data.len(),
                         )
                     };
                     pinned_f64.copy_from_slice(data);
 
                     // Transfer from pinned to device (potentially faster)
-                    let res = device.default_stream().memcpy_htod(pinned_f64, &mut device_slice)
+                    let res = device
+                        .default_stream()
+                        .memcpy_htod(pinned_f64, &mut device_slice)
                         .map_err(|e| CudaError::TransferFailed(e.to_string()));
 
                     // Return pinned memory to pool
                     self.pinned_pool.write().unwrap().free_pinned(pinned_vec);
                     res
-                },
+                }
                 Err(_) => {
                     // Fallback to direct transfer
-                    device.default_stream().memcpy_htod(data, &mut device_slice)
+                    device
+                        .default_stream()
+                        .memcpy_htod(data, &mut device_slice)
                         .map_err(|e| CudaError::TransferFailed(e.to_string()))
                 }
             }
         } else {
             // Direct transfer for large data
-            device.default_stream().memcpy_htod(data, &mut device_slice)
+            device
+                .default_stream()
+                .memcpy_htod(data, &mut device_slice)
                 .map_err(|e| CudaError::TransferFailed(e.to_string()))
         };
 
@@ -447,7 +511,9 @@ impl SRTMemoryTransferProtocol {
         let mut stats = self.stats.write().unwrap();
         stats.total_transfers += 1;
         stats.total_bytes += data_size;
-        stats.avg_transfer_time_us = (stats.avg_transfer_time_us * (stats.total_transfers - 1) as f64 + transfer_time) / stats.total_transfers as f64;
+        stats.avg_transfer_time_us =
+            (stats.avg_transfer_time_us * (stats.total_transfers - 1) as f64 + transfer_time)
+                / stats.total_transfers as f64;
         stats.resonance_efficiency = self.calculate_resonance_efficiency();
         stats.q_correction_applied = self.config.q_correction;
 
@@ -468,48 +534,61 @@ impl SRTMemoryTransferProtocol {
 
         // Get optimal batch size using golden ratio batching
         let data_size = std::mem::size_of_val(data);
-        let batch_size = self.fib_batcher.write().unwrap()
+        let batch_size = self
+            .fib_batcher
+            .write()
+            .unwrap()
             .resonant_batch_size(data_size, self.config.phi_batch_scale);
 
         // Apply q-deficit correction, ensure at least as large as data
-        let corrected_batch = ((batch_size as f64 * self.config.q_correction) as usize).max(data.len());
+        let corrected_batch =
+            ((batch_size as f64 * self.config.q_correction) as usize).max(data.len());
 
         // Allocate device memory using SRT-aligned size
-        let mut device_slice = device.default_stream().alloc_zeros::<f32>(corrected_batch)
+        let mut device_slice = device
+            .default_stream()
+            .alloc_zeros::<f32>(corrected_batch)
             .map_err(|e| CudaError::AllocationFailed(e.to_string()))?;
 
         // Use pinned memory for the transfer if possible
-        let transfer_result = if data.len() * std::mem::size_of::<f32>() <= 64 * 1024 * 1024 { // 64MB limit
+        let transfer_result = if data.len() * std::mem::size_of::<f32>() <= 64 * 1024 * 1024 {
+            // 64MB limit
             // Try pinned memory transfer for better performance
-            let pinned_alloc = self.pinned_pool.write().unwrap().alloc_pinned(data.len() * std::mem::size_of::<f32>(), device);
+            let pinned_alloc = self.alloc_srt_pinned(data.len() * std::mem::size_of::<f32>());
             match pinned_alloc {
                 Ok(mut pinned_vec) => {
                     // Copy data to pinned memory first
                     let pinned_f32 = unsafe {
                         std::slice::from_raw_parts_mut(
                             pinned_vec.as_mut_ptr() as *mut f32,
-                            data.len()
+                            data.len(),
                         )
                     };
                     pinned_f32.copy_from_slice(data);
 
                     // Transfer from pinned to device (potentially faster)
-                    let res = device.default_stream().memcpy_htod(pinned_f32, &mut device_slice)
+                    let res = device
+                        .default_stream()
+                        .memcpy_htod(pinned_f32, &mut device_slice)
                         .map_err(|e| CudaError::TransferFailed(e.to_string()));
 
                     // Return pinned memory to pool
                     self.pinned_pool.write().unwrap().free_pinned(pinned_vec);
                     res
-                },
+                }
                 Err(_) => {
                     // Fallback to direct transfer
-                    device.default_stream().memcpy_htod(data, &mut device_slice)
+                    device
+                        .default_stream()
+                        .memcpy_htod(data, &mut device_slice)
                         .map_err(|e| CudaError::TransferFailed(e.to_string()))
                 }
             }
         } else {
             // Direct transfer for large data
-            device.default_stream().memcpy_htod(data, &mut device_slice)
+            device
+                .default_stream()
+                .memcpy_htod(data, &mut device_slice)
                 .map_err(|e| CudaError::TransferFailed(e.to_string()))
         };
 
@@ -524,7 +603,9 @@ impl SRTMemoryTransferProtocol {
         let mut stats = self.stats.write().unwrap();
         stats.total_transfers += 1;
         stats.total_bytes += data_size;
-        stats.avg_transfer_time_us = (stats.avg_transfer_time_us * (stats.total_transfers - 1) as f64 + transfer_time) / stats.total_transfers as f64;
+        stats.avg_transfer_time_us =
+            (stats.avg_transfer_time_us * (stats.total_transfers - 1) as f64 + transfer_time)
+                / stats.total_transfers as f64;
         stats.resonance_efficiency = self.calculate_resonance_efficiency();
         stats.q_correction_applied = self.config.q_correction;
 
@@ -548,40 +629,47 @@ impl SRTMemoryTransferProtocol {
         let data_size = data_len * std::mem::size_of::<f64>();
 
         // Use pinned memory for the transfer if possible
-        let transfer_result = if data_size <= 64 * 1024 * 1024 { // 64MB limit
+        let transfer_result = if data_size <= 64 * 1024 * 1024 {
+            // 64MB limit
             // Try pinned memory transfer for better performance
-            let pinned_alloc = self.pinned_pool.write().unwrap().alloc_pinned(data_size, device);
+            let pinned_alloc = self.alloc_srt_pinned(data_size);
             match pinned_alloc {
                 Ok(mut pinned_vec) => {
                     // Transfer from device to pinned memory first
                     let pinned_f64 = unsafe {
                         std::slice::from_raw_parts_mut(
                             pinned_vec.as_mut_ptr() as *mut f64,
-                            data_len
+                            data_len,
                         )
                     };
 
-                    let res = device.default_stream().memcpy_dtoh(device_data, pinned_f64)
+                    let res = device
+                        .default_stream()
+                        .memcpy_dtoh(device_data, pinned_f64)
                         .map_err(|e| CudaError::TransferFailed(e.to_string()));
 
                     if res.is_ok() {
-                         // Copy from pinned memory to host buffer
-                         host_buffer.copy_from_slice(pinned_f64);
+                        // Copy from pinned memory to host buffer
+                        host_buffer.copy_from_slice(pinned_f64);
                     }
 
                     // Return pinned memory to pool
                     self.pinned_pool.write().unwrap().free_pinned(pinned_vec);
                     res
-                },
+                }
                 Err(_) => {
                     // Fallback to direct transfer
-                    device.default_stream().memcpy_dtoh(device_data, host_buffer)
+                    device
+                        .default_stream()
+                        .memcpy_dtoh(device_data, host_buffer)
                         .map_err(|e| CudaError::TransferFailed(e.to_string()))
                 }
             }
         } else {
             // Direct transfer for large data
-            device.default_stream().memcpy_dtoh(device_data, host_buffer)
+            device
+                .default_stream()
+                .memcpy_dtoh(device_data, host_buffer)
                 .map_err(|e| CudaError::TransferFailed(e.to_string()))
         };
 
@@ -596,7 +684,9 @@ impl SRTMemoryTransferProtocol {
         let mut stats = self.stats.write().unwrap();
         stats.total_transfers += 1;
         stats.total_bytes += data_size;
-        stats.avg_transfer_time_us = (stats.avg_transfer_time_us * (stats.total_transfers - 1) as f64 + transfer_time) / stats.total_transfers as f64;
+        stats.avg_transfer_time_us =
+            (stats.avg_transfer_time_us * (stats.total_transfers - 1) as f64 + transfer_time)
+                / stats.total_transfers as f64;
         stats.resonance_efficiency = self.calculate_resonance_efficiency();
         stats.q_correction_applied = self.config.q_correction;
 
@@ -620,20 +710,23 @@ impl SRTMemoryTransferProtocol {
         let data_size = data_len * std::mem::size_of::<f32>();
 
         // Use pinned memory for the transfer if possible
-        let transfer_result = if data_size <= 64 * 1024 * 1024 { // 64MB limit
+        let transfer_result = if data_size <= 64 * 1024 * 1024 {
+            // 64MB limit
             // Try pinned memory transfer for better performance
-            let pinned_alloc = self.pinned_pool.write().unwrap().alloc_pinned(data_size, device);
+            let pinned_alloc = self.alloc_srt_pinned(data_size);
             match pinned_alloc {
                 Ok(mut pinned_vec) => {
                     // Transfer from device to pinned memory first
                     let pinned_f32 = unsafe {
                         std::slice::from_raw_parts_mut(
                             pinned_vec.as_mut_ptr() as *mut f32,
-                            data_len
+                            data_len,
                         )
                     };
 
-                    let res = device.default_stream().memcpy_dtoh(device_data, pinned_f32)
+                    let res = device
+                        .default_stream()
+                        .memcpy_dtoh(device_data, pinned_f32)
                         .map_err(|e| CudaError::TransferFailed(e.to_string()));
 
                     if res.is_ok() {
@@ -644,16 +737,20 @@ impl SRTMemoryTransferProtocol {
                     // Return pinned memory to pool
                     self.pinned_pool.write().unwrap().free_pinned(pinned_vec);
                     res
-                },
+                }
                 Err(_) => {
                     // Fallback to direct transfer
-                    device.default_stream().memcpy_dtoh(device_data, host_buffer)
+                    device
+                        .default_stream()
+                        .memcpy_dtoh(device_data, host_buffer)
                         .map_err(|e| CudaError::TransferFailed(e.to_string()))
                 }
             }
         } else {
             // Direct transfer for large data
-            device.default_stream().memcpy_dtoh(device_data, host_buffer)
+            device
+                .default_stream()
+                .memcpy_dtoh(device_data, host_buffer)
                 .map_err(|e| CudaError::TransferFailed(e.to_string()))
         };
 
@@ -668,7 +765,9 @@ impl SRTMemoryTransferProtocol {
         let mut stats = self.stats.write().unwrap();
         stats.total_transfers += 1;
         stats.total_bytes += data_size;
-        stats.avg_transfer_time_us = (stats.avg_transfer_time_us * (stats.total_transfers - 1) as f64 + transfer_time) / stats.total_transfers as f64;
+        stats.avg_transfer_time_us =
+            (stats.avg_transfer_time_us * (stats.total_transfers - 1) as f64 + transfer_time)
+                / stats.total_transfers as f64;
         stats.resonance_efficiency = self.calculate_resonance_efficiency();
         stats.q_correction_applied = self.config.q_correction;
 
@@ -676,9 +775,11 @@ impl SRTMemoryTransferProtocol {
     }
 
     /// Allocate SRT-optimized pinned memory for transfers
-    pub fn alloc_srt_pinned(&self, _size: usize) -> Result<Vec<u8>, CudaError> {
-        // TODO: Implement proper pinned memory allocation
-        Err(CudaError::AllocationFailed("Pinned memory not yet implemented".to_string()))
+    pub fn alloc_srt_pinned(&self, size: usize) -> Result<Vec<u8>, CudaError> {
+        self.pinned_pool
+            .write()
+            .unwrap()
+            .alloc_pinned(size, &self.device)
     }
 
     /// Get transfer statistics
@@ -695,7 +796,8 @@ impl SRTMemoryTransferProtocol {
             return 1.0;
         }
 
-        let avg_resonance: f64 = resonance.resonance_scores.values().sum::<f64>() / total_blocks as f64;
+        let avg_resonance: f64 =
+            resonance.resonance_scores.values().sum::<f64>() / total_blocks as f64;
         let phi = GoldenExact::phi().to_f64();
 
         // Efficiency is normalized resonance score (max possible is φ)
@@ -703,24 +805,40 @@ impl SRTMemoryTransferProtocol {
     }
 
     /// Convenience method for H2D transfer of f32 data
-    pub fn srt_h2d_transfer_f32(&self, device: &Arc<CudaDevice>, data: &[f32]) -> Result<CudaSlice<f32>, CudaError> {
+    pub fn srt_h2d_transfer_f32(
+        &self,
+        device: &Arc<CudaDevice>,
+        data: &[f32],
+    ) -> Result<CudaSlice<f32>, CudaError> {
         self.srt_h2d_transfer_f32_core(device, data, 0)
     }
 
     /// Convenience method for H2D transfer of f64 data
-    pub fn srt_h2d_transfer_f64(&self, device: &Arc<CudaDevice>, data: &[f64]) -> Result<CudaSlice<f64>, CudaError> {
+    pub fn srt_h2d_transfer_f64(
+        &self,
+        device: &Arc<CudaDevice>,
+        data: &[f64],
+    ) -> Result<CudaSlice<f64>, CudaError> {
         self.srt_h2d_transfer_f64_core(device, data, 0)
     }
 
     /// Convenience method for D2H transfer of f32 data
-    pub fn srt_d2h_transfer_f32(&self, device: &Arc<CudaDevice>, device_data: &CudaSlice<f32>) -> Result<Vec<f32>, CudaError> {
+    pub fn srt_d2h_transfer_f32(
+        &self,
+        device: &Arc<CudaDevice>,
+        device_data: &CudaSlice<f32>,
+    ) -> Result<Vec<f32>, CudaError> {
         let mut host_buffer = vec![0f32; device_data.len()];
         self.srt_d2h_transfer_f32_core(device, device_data, &mut host_buffer, 0)?;
         Ok(host_buffer)
     }
 
     /// Convenience method for D2H transfer of f64 data
-    pub fn srt_d2h_transfer_f64(&self, device: &Arc<CudaDevice>, device_data: &CudaSlice<f64>) -> Result<Vec<f64>, CudaError> {
+    pub fn srt_d2h_transfer_f64(
+        &self,
+        device: &Arc<CudaDevice>,
+        device_data: &CudaSlice<f64>,
+    ) -> Result<Vec<f64>, CudaError> {
         let mut host_buffer = vec![0f64; device_data.len()];
         self.srt_d2h_transfer_f64_core(device, device_data, &mut host_buffer, 0)?;
         Ok(host_buffer)
@@ -746,12 +864,19 @@ mod tests {
             // For now, just test the size calculation logic
 
             // Find the Fibonacci size that fits
-            let fib_size = pinned_pool.fib_sizes.iter()
+            let fib_size = pinned_pool
+                .fib_sizes
+                .iter()
                 .find(|&&s| s >= size)
                 .copied()
                 .unwrap_or(size);
 
-            assert!(fib_size >= size, "Fibonacci size {} should be >= requested size {}", fib_size, size);
+            assert!(
+                fib_size >= size,
+                "Fibonacci size {} should be >= requested size {}",
+                fib_size,
+                size
+            );
 
             // Check that it's actually a Fibonacci number
             let mut a = 1;
@@ -766,7 +891,11 @@ mod tests {
                 a = b;
                 b = next;
             }
-            assert!(found || fib_size == size, "Size {} should be Fibonacci or exact", fib_size);
+            assert!(
+                found || fib_size == size,
+                "Size {} should be Fibonacci or exact",
+                fib_size
+            );
         }
 
         // Test pool statistics
@@ -814,7 +943,10 @@ mod tests {
         // Test resonant batching with φ scaling
         let phi_scale = GoldenExact::phi().to_f64().powi(2);
         let resonant_batch = batcher.resonant_batch_size(10, phi_scale);
-        assert!(resonant_batch >= 10, "Resonant batch should be at least requested size");
+        assert!(
+            resonant_batch >= 10,
+            "Resonant batch should be at least requested size"
+        );
     }
 
     #[test]

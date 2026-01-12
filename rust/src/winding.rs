@@ -75,7 +75,8 @@ impl WindingState {
     /// Maximum absolute value of winding components.
     #[getter]
     pub fn max_component(&self) -> i64 {
-        self.n7.abs()
+        self.n7
+            .abs()
             .max(self.n8.abs())
             .max(self.n9.abs())
             .max(self.n10.abs())
@@ -105,10 +106,7 @@ impl WindingState {
 
     /// Inner product n . m = sum_i n_i * m_i.
     pub fn inner_product(&self, other: &WindingState) -> i64 {
-        self.n7 * other.n7
-            + self.n8 * other.n8
-            + self.n9 * other.n9
-            + self.n10 * other.n10
+        self.n7 * other.n7 + self.n8 * other.n8 + self.n9 * other.n9 + self.n10 * other.n10
     }
 
     /// Check if this is the vacuum state |0,0,0,0>.
@@ -144,7 +142,7 @@ impl WindingState {
             2 => Ok(WindingState::new(0, 0, 1, 0)),
             3 => Ok(WindingState::new(0, 0, 0, 1)),
             _ => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "Index must be 0-3"
+                "Index must be 0-3",
             )),
         }
     }
@@ -234,7 +232,7 @@ impl WindingState {
             2 | -2 => Ok(self.n9),
             3 | -1 => Ok(self.n10),
             _ => Err(PyErr::new::<pyo3::exceptions::PyIndexError, _>(
-                "Index out of range"
+                "Index out of range",
             )),
         }
     }

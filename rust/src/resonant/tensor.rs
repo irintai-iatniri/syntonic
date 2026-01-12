@@ -13,22 +13,22 @@ use pyo3::prelude::*;
 use std::fmt;
 use std::time::Duration;
 
-use crate::exact::{GoldenExact, Rational};
-use super::crystallize::{compute_lattice_syntony, crystallize_with_dwell, harmonize_and_crystallize, snap_to_lattice};
+use super::crystallize::{
+    compute_lattice_syntony, crystallize_with_dwell, harmonize_and_crystallize, snap_to_lattice,
+};
 use super::{PHI, PHI_INV, PHI_INV_SQ};
+use crate::exact::{GoldenExact, Rational};
 
+#[cfg(feature = "cuda")]
+use crate::tensor::srt_kernels::{
+    cuda_resonant_compute_syntony_f64, cuda_resonant_d_phase_f64, ensure_srt_kernels_loaded,
+};
 #[cfg(feature = "cuda")]
 use cudarc::driver::safe::CudaContext as CudaDevice;
 #[cfg(feature = "cuda")]
 use cudarc::driver::CudaSlice;
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
-#[cfg(feature = "cuda")]
-use crate::tensor::srt_kernels::{
-    cuda_resonant_d_phase_f64,
-    cuda_resonant_compute_syntony_f64,
-    ensure_srt_kernels_loaded,
-};
 
 /// Error type for resonant operations
 #[derive(Debug, Clone)]
@@ -49,7 +49,9 @@ pub enum ResonantError {
 impl fmt::Display for ResonantError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ResonantError::InvalidPhaseTransition(msg) => write!(f, "Invalid phase transition: {}", msg),
+            ResonantError::InvalidPhaseTransition(msg) => {
+                write!(f, "Invalid phase transition: {}", msg)
+            }
             ResonantError::NoFluxPresent => write!(f, "No flux present"),
             ResonantError::NoDevicePresent => write!(f, "No CUDA device present"),
             #[cfg(feature = "cuda")]
@@ -155,14 +157,18 @@ impl ResonantTensor {
     ) -> Result<Self, ResonantError> {
         let expected_size: usize = shape.iter().product();
         if lattice.len() != expected_size {
-            return Err(ResonantError::ShapeMismatch(
-                format!("Lattice size {} doesn't match shape {:?}", lattice.len(), shape)
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Lattice size {} doesn't match shape {:?}",
+                lattice.len(),
+                shape
+            )));
         }
         if mode_norm_sq.len() != lattice.len() {
-            return Err(ResonantError::ShapeMismatch(
-                format!("mode_norm_sq size {} doesn't match lattice size {}", mode_norm_sq.len(), lattice.len())
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "mode_norm_sq size {} doesn't match lattice size {}",
+                mode_norm_sq.len(),
+                lattice.len()
+            )));
         }
 
         let syntony = compute_lattice_syntony(&lattice, &mode_norm_sq);
@@ -202,9 +208,7 @@ impl ResonantTensor {
         shape: Vec<usize>,
         precision: i64,
     ) -> Result<Self, ResonantError> {
-        let mode_norm_sq: Vec<f64> = (0..data.len())
-            .map(|i| (i as f64).powi(2))
-            .collect();
+        let mode_norm_sq: Vec<f64> = (0..data.len()).map(|i| (i as f64).powi(2)).collect();
         Self::from_floats(data, shape, mode_norm_sq, precision)
     }
 
@@ -220,20 +224,19 @@ impl ResonantTensor {
     pub fn wake_flux(&mut self, device: Arc<CudaDevice>) -> Result<(), ResonantError> {
         if self.phase != ResonantPhase::Crystallized {
             return Err(ResonantError::InvalidPhaseTransition(
-                "wake_flux requires Crystallized phase".to_string()
+                "wake_flux requires Crystallized phase".to_string(),
             ));
         }
 
         self.phase = ResonantPhase::Transitioning;
 
         // Project exact lattice to f64
-        let floats: Vec<f64> = self.lattice
-            .iter()
-            .map(|g| g.to_f64())
-            .collect();
+        let floats: Vec<f64> = self.lattice.iter().map(|g| g.to_f64()).collect();
 
         // Upload to GPU
-        let gpu_slice = device.default_stream().clone_htod(&floats)
+        let gpu_slice = device
+            .default_stream()
+            .clone_htod(&floats)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         self.flux = Some(gpu_slice);
@@ -248,15 +251,12 @@ impl ResonantTensor {
     pub fn wake_flux_cpu(&mut self) -> Result<Vec<f64>, ResonantError> {
         if self.phase != ResonantPhase::Crystallized {
             return Err(ResonantError::InvalidPhaseTransition(
-                "wake_flux requires Crystallized phase".to_string()
+                "wake_flux requires Crystallized phase".to_string(),
             ));
         }
 
         // Project exact lattice to f64
-        let floats: Vec<f64> = self.lattice
-            .iter()
-            .map(|g| g.to_f64())
-            .collect();
+        let floats: Vec<f64> = self.lattice.iter().map(|g| g.to_f64()).collect();
 
         self.phase = ResonantPhase::Flux;
         Ok(floats)
@@ -270,20 +270,20 @@ impl ResonantTensor {
     pub fn crystallize(&mut self, precision: i64) -> Result<f64, ResonantError> {
         if self.phase != ResonantPhase::Flux {
             return Err(ResonantError::InvalidPhaseTransition(
-                "crystallize requires Flux phase".to_string()
+                "crystallize requires Flux phase".to_string(),
             ));
         }
 
-        let flux = self.flux.as_ref()
-            .ok_or(ResonantError::NoFluxPresent)?;
-        let device = self.device.as_ref()
-            .ok_or(ResonantError::NoDevicePresent)?;
+        let flux = self.flux.as_ref().ok_or(ResonantError::NoFluxPresent)?;
+        let device = self.device.as_ref().ok_or(ResonantError::NoDevicePresent)?;
 
         self.phase = ResonantPhase::Transitioning;
 
         // Download from GPU
         let mut host_data = vec![0.0f64; flux.len()];
-        device.default_stream().memcpy_dtoh(flux, &mut host_data)
+        device
+            .default_stream()
+            .memcpy_dtoh(flux, &mut host_data)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Golden snap: find nearest exact lattice point for each element
@@ -320,32 +320,31 @@ impl ResonantTensor {
     ) -> Result<f64, ResonantError> {
         if self.phase != ResonantPhase::Flux {
             return Err(ResonantError::InvalidPhaseTransition(
-                "crystallize requires Flux phase".to_string()
+                "crystallize requires Flux phase".to_string(),
             ));
         }
 
-        let flux = self.flux.as_ref()
-            .ok_or(ResonantError::NoFluxPresent)?;
-        let device = self.device.as_ref()
-            .ok_or(ResonantError::NoDevicePresent)?;
+        let flux = self.flux.as_ref().ok_or(ResonantError::NoFluxPresent)?;
+        let device = self.device.as_ref().ok_or(ResonantError::NoDevicePresent)?;
 
         self.phase = ResonantPhase::Transitioning;
 
         // Download from GPU
         let mut host_data = vec![0.0f64; flux.len()];
-        device.default_stream().memcpy_dtoh(flux, &mut host_data)
+        device
+            .default_stream()
+            .memcpy_dtoh(flux, &mut host_data)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Crystallize with Ĥ attenuation and φ-dwell timing
         // Pass mode_norm_sq and syntony for Ĥ operator
-        let (new_lattice, final_precision, _actual_duration) =
-            crystallize_with_dwell(
-                &host_data,
-                &self.mode_norm_sq,
-                self.syntony,
-                base_precision,
-                target_duration,
-            );
+        let (new_lattice, final_precision, _actual_duration) = crystallize_with_dwell(
+            &host_data,
+            &self.mode_norm_sq,
+            self.syntony,
+            base_precision,
+            target_duration,
+        );
 
         self.lattice = new_lattice;
         self.precision = final_precision;
@@ -364,15 +363,22 @@ impl ResonantTensor {
     ///   Ĥ[ψ]ₙ = ψₙ × (1 - β(S) × (1 - w(n)))
     ///
     /// Where β(S) = φ⁻¹ × S and w(n) = exp(-|n|²/φ)
-    pub fn crystallize_cpu(&mut self, values: &[f64], precision: i64) -> Result<f64, ResonantError> {
+    pub fn crystallize_cpu(
+        &mut self,
+        values: &[f64],
+        precision: i64,
+    ) -> Result<f64, ResonantError> {
         if values.len() != self.lattice.len() {
-            return Err(ResonantError::ShapeMismatch(
-                format!("Values length {} doesn't match lattice length {}", values.len(), self.lattice.len())
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Values length {} doesn't match lattice length {}",
+                values.len(),
+                self.lattice.len()
+            )));
         }
 
         // Apply Ĥ attenuation + snap to lattice
-        self.lattice = harmonize_and_crystallize(values, &self.mode_norm_sq, self.syntony, precision);
+        self.lattice =
+            harmonize_and_crystallize(values, &self.mode_norm_sq, self.syntony, precision);
         self.precision = precision;
         self.syntony = compute_lattice_syntony(&self.lattice, &self.mode_norm_sq);
         self.phase = ResonantPhase::Crystallized;
@@ -409,34 +415,41 @@ impl ResonantTensor {
 
         if self.phase != ResonantPhase::Crystallized {
             return Err(ResonantError::InvalidPhaseTransition(
-                "wake_flux requires Crystallized phase".to_string()
+                "wake_flux requires Crystallized phase".to_string(),
             ));
         }
 
         self.phase = ResonantPhase::Transitioning;
 
         // Ensure kernels are loaded
-        ensure_srt_kernels_loaded(&device)
-            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+        ensure_srt_kernels_loaded(&device).map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Project exact lattice to f64
         let floats: Vec<f64> = self.lattice.iter().map(|g| g.to_f64()).collect();
         let n = floats.len();
 
         // Upload lattice and mode norms to GPU
-        let gpu_lattice = device.default_stream().clone_htod(&floats)
+        let gpu_lattice = device
+            .default_stream()
+            .clone_htod(&floats)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
-        let gpu_mode_norms = device.default_stream().clone_htod(&self.mode_norm_sq)
+        let gpu_mode_norms = device
+            .default_stream()
+            .clone_htod(&self.mode_norm_sq)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Generate Gaussian noise on CPU and upload
         let mut rng = rand::thread_rng();
         let noise: Vec<f64> = (0..n).map(|_| rng.gen::<f64>() * 2.0 - 1.0).collect();
-        let gpu_noise = device.default_stream().clone_htod(&noise)
+        let gpu_noise = device
+            .default_stream()
+            .clone_htod(&noise)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Allocate output buffer
-        let mut gpu_flux: CudaSlice<f64> = device.default_stream().alloc_zeros(n)
+        let mut gpu_flux: CudaSlice<f64> = device
+            .default_stream()
+            .alloc_zeros(n)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Run D-phase kernel
@@ -450,7 +463,8 @@ impl ResonantTensor {
             self.syntony,
             noise_scale,
             n,
-        ).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+        )
+        .map_err(|e| ResonantError::CudaError(e.to_string()))?;
         self.last_d_duration_ns = start.elapsed().as_nanos() as u64;
 
         self.flux = Some(gpu_flux);
@@ -510,13 +524,13 @@ impl ResonantTensor {
     /// Compute syntony on current GPU flux (without crystallizing).
     #[cfg(feature = "cuda")]
     pub fn compute_flux_syntony(&self) -> Result<f64, ResonantError> {
-        let flux = self.flux.as_ref()
-            .ok_or(ResonantError::NoFluxPresent)?;
-        let device = self.device.as_ref()
-            .ok_or(ResonantError::NoDevicePresent)?;
+        let flux = self.flux.as_ref().ok_or(ResonantError::NoFluxPresent)?;
+        let device = self.device.as_ref().ok_or(ResonantError::NoDevicePresent)?;
 
         // Upload mode norms if needed (they may already be there, but simpler to re-upload)
-        let gpu_mode_norms = device.default_stream().clone_htod(&self.mode_norm_sq)
+        let gpu_mode_norms = device
+            .default_stream()
+            .clone_htod(&self.mode_norm_sq)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         cuda_resonant_compute_syntony_f64(device, flux, &gpu_mode_norms, self.len())
@@ -617,7 +631,11 @@ impl ResonantTensor {
     /// by applying noise to the values and then crystallizing.
     ///
     /// Returns the new syntony value.
-    pub fn run_cpu_cycle(&mut self, noise_scale: f64, precision: i64) -> Result<f64, ResonantError> {
+    pub fn run_cpu_cycle(
+        &mut self,
+        noise_scale: f64,
+        precision: i64,
+    ) -> Result<f64, ResonantError> {
         use rand::Rng;
 
         // Wake flux
@@ -652,7 +670,7 @@ impl ResonantTensor {
     pub fn matmul_core(&self, weights: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
         if self.shape.len() != 2 || weights.shape.len() != 2 {
             return Err(ResonantError::ShapeMismatch(
-                "matmul currently requires 2D tensors [batch, in] and [out, in]".to_string()
+                "matmul currently requires 2D tensors [batch, in] and [out, in]".to_string(),
             ));
         }
 
@@ -661,9 +679,10 @@ impl ResonantTensor {
         let out_features = weights.shape[0];
 
         if weights.shape[1] != in_features {
-            return Err(ResonantError::ShapeMismatch(
-                format!("DIM mismatch: self.in={} vs weights.in={}", in_features, weights.shape[1])
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "DIM mismatch: self.in={} vs weights.in={}",
+                in_features, weights.shape[1]
+            )));
         }
 
         let mut result_lattice = Vec::with_capacity(batch_size * out_features);
@@ -690,11 +709,7 @@ impl ResonantTensor {
             }
         }
 
-        Self::from_lattice(
-            result_lattice,
-            vec![batch_size, out_features],
-            result_norms
-        )
+        Self::from_lattice(result_lattice, vec![batch_size, out_features], result_norms)
     }
 
     /// Native bias addition for GoldenExact lattice.
@@ -702,21 +717,26 @@ impl ResonantTensor {
     /// Performs self + bias where self is (batch, out) and bias is (out).
     pub fn add_bias_core(&mut self, bias: &ResonantTensor) -> Result<(), ResonantError> {
         if self.shape.len() != 2 {
-            return Err(ResonantError::ShapeMismatch("self must be 2D [batch, out]".to_string()));
+            return Err(ResonantError::ShapeMismatch(
+                "self must be 2D [batch, out]".to_string(),
+            ));
         }
-        
+
         let batch_size = self.shape[0];
         let out_features = self.shape[1];
 
         if bias.len() != out_features {
-            return Err(ResonantError::ShapeMismatch(
-                format!("Bias dim {} must match layer dim {}", bias.len(), out_features)
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Bias dim {} must match layer dim {}",
+                bias.len(),
+                out_features
+            )));
         }
 
         for b in 0..batch_size {
             for o in 0..out_features {
-                self.lattice[b * out_features + o] = self.lattice[b * out_features + o] + bias.lattice[o];
+                self.lattice[b * out_features + o] =
+                    self.lattice[b * out_features + o] + bias.lattice[o];
             }
         }
 
@@ -772,7 +792,8 @@ impl ResonantTensor {
     ///
     /// This converts lattice values to floats, applies sigmoid, and snaps back to Q(φ).
     pub fn sigmoid_core(&mut self, precision: i64) {
-        let floats: Vec<f64> = self.lattice
+        let floats: Vec<f64> = self
+            .lattice
             .iter()
             .map(|g| {
                 let x = g.to_f64();
@@ -787,10 +808,7 @@ impl ResonantTensor {
 
     /// Apply tanh activation to all lattice values.
     pub fn tanh_core(&mut self, precision: i64) {
-        let floats: Vec<f64> = self.lattice
-            .iter()
-            .map(|g| g.to_f64().tanh())
-            .collect();
+        let floats: Vec<f64> = self.lattice.iter().map(|g| g.to_f64().tanh()).collect();
 
         self.lattice = snap_to_lattice(&floats, precision);
         self.precision = precision;
@@ -799,7 +817,8 @@ impl ResonantTensor {
 
     /// Apply GELU activation (erf-based) and snap to lattice.
     pub fn gelu_core(&mut self, precision: i64) {
-        let floats: Vec<f64> = self.lattice
+        let floats: Vec<f64> = self
+            .lattice
             .iter()
             .map(|g| {
                 let x = g.to_f64();
@@ -819,14 +838,19 @@ impl ResonantTensor {
     ///
     /// Both tensors must have the same shape.
     /// Result is in exact Q(φ) arithmetic.
-    pub fn elementwise_mul_core(&self, other: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
+    pub fn elementwise_mul_core(
+        &self,
+        other: &ResonantTensor,
+    ) -> Result<ResonantTensor, ResonantError> {
         if self.shape != other.shape {
-            return Err(ResonantError::ShapeMismatch(
-                format!("Shape mismatch: {:?} vs {:?}", self.shape, other.shape)
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Shape mismatch: {:?} vs {:?}",
+                self.shape, other.shape
+            )));
         }
 
-        let result_lattice: Vec<GoldenExact> = self.lattice
+        let result_lattice: Vec<GoldenExact> = self
+            .lattice
             .iter()
             .zip(other.lattice.iter())
             .map(|(a, b)| *a * *b)
@@ -842,14 +866,19 @@ impl ResonantTensor {
     ///
     /// Both tensors must have the same shape.
     /// Result is in exact Q(φ) arithmetic.
-    pub fn elementwise_add_core(&self, other: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
+    pub fn elementwise_add_core(
+        &self,
+        other: &ResonantTensor,
+    ) -> Result<ResonantTensor, ResonantError> {
         if self.shape != other.shape {
-            return Err(ResonantError::ShapeMismatch(
-                format!("Shape mismatch: {:?} vs {:?}", self.shape, other.shape)
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Shape mismatch: {:?} vs {:?}",
+                self.shape, other.shape
+            )));
         }
 
-        let result_lattice: Vec<GoldenExact> = self.lattice
+        let result_lattice: Vec<GoldenExact> = self
+            .lattice
             .iter()
             .zip(other.lattice.iter())
             .map(|(a, b)| *a + *b)
@@ -868,10 +897,8 @@ impl ResonantTensor {
         // Convert scalar to Q(φ) with precision from self
         let scalar_golden = GoldenExact::find_nearest(scalar, self.precision);
 
-        let result_lattice: Vec<GoldenExact> = self.lattice
-            .iter()
-            .map(|g| *g * scalar_golden)
-            .collect();
+        let result_lattice: Vec<GoldenExact> =
+            self.lattice.iter().map(|g| *g * scalar_golden).collect();
 
         let result_norms = self.mode_norm_sq.clone();
 
@@ -886,10 +913,8 @@ impl ResonantTensor {
         // Convert scalar to Q(φ) with precision from self
         let scalar_golden = GoldenExact::find_nearest(scalar, self.precision);
 
-        let result_lattice: Vec<GoldenExact> = self.lattice
-            .iter()
-            .map(|g| *g + scalar_golden)
-            .collect();
+        let result_lattice: Vec<GoldenExact> =
+            self.lattice.iter().map(|g| *g + scalar_golden).collect();
 
         let result_norms = self.mode_norm_sq.clone();
 
@@ -904,10 +929,7 @@ impl ResonantTensor {
         // -1 = -1 + 0·φ
         let neg_one = GoldenExact::new(Rational::new(-1, 1), Rational::new(0, 1));
 
-        let result_lattice: Vec<GoldenExact> = self.lattice
-            .iter()
-            .map(|g| *g * neg_one)
-            .collect();
+        let result_lattice: Vec<GoldenExact> = self.lattice.iter().map(|g| *g * neg_one).collect();
 
         let result_norms = self.mode_norm_sq.clone();
 
@@ -924,10 +946,8 @@ impl ResonantTensor {
         // -1 = -1 + 0·φ
         let neg_one = GoldenExact::new(Rational::new(-1, 1), Rational::new(0, 1));
 
-        let result_lattice: Vec<GoldenExact> = self.lattice
-            .iter()
-            .map(|g| one + (*g * neg_one))
-            .collect();
+        let result_lattice: Vec<GoldenExact> =
+            self.lattice.iter().map(|g| one + (*g * neg_one)).collect();
 
         let result_norms = self.mode_norm_sq.clone();
 
@@ -989,9 +1009,10 @@ impl ResonantTensor {
                 result
             }
             _ => {
-                return Err(ResonantError::ShapeMismatch(
-                    format!("Softmax only supports 1D and 2D tensors, got shape {:?}", self.shape)
-                ));
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Softmax only supports 1D and 2D tensors, got shape {:?}",
+                    self.shape
+                )));
             }
         };
 
@@ -1034,16 +1055,19 @@ impl ResonantTensor {
         precision: i64,
     ) -> Result<ResonantTensor, ResonantError> {
         if self.is_empty() {
-            return Err(ResonantError::ShapeMismatch("Mean on empty tensor".to_string()));
+            return Err(ResonantError::ShapeMismatch(
+                "Mean on empty tensor".to_string(),
+            ));
         }
 
         let ndim = self.shape.len();
         let axis = match dim {
             Some(d) if d < ndim => Some(d),
             Some(d) => {
-                return Err(ResonantError::ShapeMismatch(
-                    format!("Dimension {} out of bounds for {}-D tensor", d, ndim)
-                ))
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Dimension {} out of bounds for {}-D tensor",
+                    d, ndim
+                )))
             }
             None => None,
         };
@@ -1089,9 +1113,7 @@ impl ResonantTensor {
             }
         };
 
-        let mode_norm_sq: Vec<f64> = (0..outputs.len())
-            .map(|i| (i as f64).powi(2))
-            .collect();
+        let mode_norm_sq: Vec<f64> = (0..outputs.len()).map(|i| (i as f64).powi(2)).collect();
 
         let lattice = snap_to_lattice(&outputs, precision);
         if result_shape.is_empty() {
@@ -1108,27 +1130,36 @@ impl ResonantTensor {
         precision: i64,
     ) -> Result<ResonantTensor, ResonantError> {
         if self.is_empty() {
-            return Err(ResonantError::ShapeMismatch("Var on empty tensor".to_string()));
+            return Err(ResonantError::ShapeMismatch(
+                "Var on empty tensor".to_string(),
+            ));
         }
 
         let ndim = self.shape.len();
         let axis = match dim {
             Some(d) if d < ndim => Some(d),
             Some(d) => {
-                return Err(ResonantError::ShapeMismatch(
-                    format!("Dimension {} out of bounds for {}-D tensor", d, ndim)
-                ))
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Dimension {} out of bounds for {}-D tensor",
+                    d, ndim
+                )))
             }
             None => None,
         };
 
         // Global variance
         if axis.is_none() {
-            let mean: f64 = self.lattice.iter().map(|g| g.to_f64()).sum::<f64>() / self.len() as f64;
-            let var: f64 = self.lattice.iter().map(|g| {
-                let v = g.to_f64() - mean;
-                v * v
-            }).sum::<f64>() / self.len() as f64;
+            let mean: f64 =
+                self.lattice.iter().map(|g| g.to_f64()).sum::<f64>() / self.len() as f64;
+            let var: f64 = self
+                .lattice
+                .iter()
+                .map(|g| {
+                    let v = g.to_f64() - mean;
+                    v * v
+                })
+                .sum::<f64>()
+                / self.len() as f64;
             let lattice = vec![GoldenExact::find_nearest(var, precision)];
             let mode_norm_sq = vec![0.0];
             return Self::from_lattice(lattice, vec![1], mode_norm_sq);
@@ -1173,9 +1204,7 @@ impl ResonantTensor {
             }
         };
 
-        let mode_norm_sq: Vec<f64> = (0..outputs.len())
-            .map(|i| (i as f64).powi(2))
-            .collect();
+        let mode_norm_sq: Vec<f64> = (0..outputs.len()).map(|i| (i as f64).powi(2)).collect();
 
         let lattice = snap_to_lattice(&outputs, precision);
         if result_shape.is_empty() {
@@ -1202,33 +1231,42 @@ impl ResonantTensor {
     /// let b = ResonantTensor::from_floats(&[3.0, 4.0], vec![2], ...);
     /// let c = ResonantTensor::concat(&[&a, &b], 0)?; // Shape: [4]
     /// ```
-    pub fn concat_core(tensors: &[&ResonantTensor], dim: usize) -> Result<ResonantTensor, ResonantError> {
+    pub fn concat_core(
+        tensors: &[&ResonantTensor],
+        dim: usize,
+    ) -> Result<ResonantTensor, ResonantError> {
         if tensors.is_empty() {
-            return Err(ResonantError::ShapeMismatch("Cannot concat empty tensor list".to_string()));
+            return Err(ResonantError::ShapeMismatch(
+                "Cannot concat empty tensor list".to_string(),
+            ));
         }
 
         let first = tensors[0];
         let ndim = first.shape.len();
 
         if dim >= ndim {
-            return Err(ResonantError::ShapeMismatch(
-                format!("Dimension {} out of bounds for {}-dimensional tensor", dim, ndim)
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Dimension {} out of bounds for {}-dimensional tensor",
+                dim, ndim
+            )));
         }
 
         // Validate all tensors have compatible shapes
         for (i, tensor) in tensors.iter().enumerate().skip(1) {
             if tensor.shape.len() != ndim {
-                return Err(ResonantError::ShapeMismatch(
-                    format!("Tensor {} has {} dimensions, expected {}", i, tensor.shape.len(), ndim)
-                ));
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Tensor {} has {} dimensions, expected {}",
+                    i,
+                    tensor.shape.len(),
+                    ndim
+                )));
             }
             for (d, (&s1, &s2)) in first.shape.iter().zip(tensor.shape.iter()).enumerate() {
                 if d != dim && s1 != s2 {
-                    return Err(ResonantError::ShapeMismatch(
-                        format!("Tensor {} has incompatible shape {:?}, expected {:?} along dim {}",
-                                i, tensor.shape, first.shape, d)
-                    ));
+                    return Err(ResonantError::ShapeMismatch(format!(
+                        "Tensor {} has incompatible shape {:?}, expected {:?} along dim {}",
+                        i, tensor.shape, first.shape, d
+                    )));
                 }
             }
         }
@@ -1278,7 +1316,9 @@ impl ResonantTensor {
         golden_target: bool,
     ) -> Result<ResonantTensor, ResonantError> {
         if self.shape.len() < 1 {
-            return Err(ResonantError::ShapeMismatch("LayerNorm requires at least 1D tensor".to_string()));
+            return Err(ResonantError::ShapeMismatch(
+                "LayerNorm requires at least 1D tensor".to_string(),
+            ));
         }
 
         let feature_dim = self.shape[self.shape.len() - 1];
@@ -1288,16 +1328,20 @@ impl ResonantTensor {
         // Validate gamma/beta shapes if provided
         if let Some(g) = gamma {
             if g.len() != feature_dim {
-                return Err(ResonantError::ShapeMismatch(
-                    format!("Gamma length {} must match feature_dim {}", g.len(), feature_dim)
-                ));
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Gamma length {} must match feature_dim {}",
+                    g.len(),
+                    feature_dim
+                )));
             }
         }
         if let Some(b) = beta {
             if b.len() != feature_dim {
-                return Err(ResonantError::ShapeMismatch(
-                    format!("Beta length {} must match feature_dim {}", b.len(), feature_dim)
-                ));
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Beta length {} must match feature_dim {}",
+                    b.len(),
+                    feature_dim
+                )));
             }
         }
 
@@ -1314,9 +1358,8 @@ impl ResonantTensor {
             let mean: f64 = sample.iter().sum::<f64>() / feature_dim as f64;
 
             // Compute variance
-            let var: f64 = sample.iter()
-                .map(|&x| (x - mean).powi(2))
-                .sum::<f64>() / feature_dim as f64;
+            let var: f64 =
+                sample.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / feature_dim as f64;
 
             // Compute reciprocal standard deviation
             let mut rstd = 1.0 / (var + eps).sqrt();
@@ -1366,18 +1409,20 @@ impl ResonantTensor {
 
         if self.shape.len() < 2 {
             return Err(ResonantError::ShapeMismatch(
-                "batch_cpu_cycle requires at least 2 dimensions [batch, dim, ...]".to_string()
+                "batch_cpu_cycle requires at least 2 dimensions [batch, dim, ...]".to_string(),
             ));
         }
 
         let batch_size = self.shape[0];
         let sample_dim: usize = self.shape[1..].iter().product();
-        
+
         if self.mode_norm_sq.len() != sample_dim && self.mode_norm_sq.len() != self.len() {
-             return Err(ResonantError::ShapeMismatch(
-                format!("mode_norm_sq length {} must match sample dimension {} or total length {}", 
-                        self.mode_norm_sq.len(), sample_dim, self.len())
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "mode_norm_sq length {} must match sample dimension {} or total length {}",
+                self.mode_norm_sq.len(),
+                sample_dim,
+                self.len()
+            )));
         }
 
         // Wake flux
@@ -1391,7 +1436,7 @@ impl ResonantTensor {
         for b in 0..batch_size {
             let offset = b * sample_dim;
             let sample_slice = &mut values[offset..offset + sample_dim];
-            
+
             // Current syntony (approximate for the whole batch or per-sample?)
             // For now, use the tensor's global syntony to drive the D-phase
             let s = self.syntony;
@@ -1406,24 +1451,29 @@ impl ResonantTensor {
         }
 
         // Crystallize: returns exact lattice
-        self.lattice = harmonize_and_crystallize(&values, &vec![0.0; values.len()], self.syntony, precision);
+        self.lattice =
+            harmonize_and_crystallize(&values, &vec![0.0; values.len()], self.syntony, precision);
         // Note: harmonize_and_crystallize above uses dummy mode_norms because we already applied DH logic?
         // Wait, harmonize_and_crystallize applies H-phase (attenuation).
         // I should probably implement a batch version of harmonize_and_crystallize too.
-        
+
         // Actually, let's just use the logic directly here for clarity
         let beta = PHI_INV * self.syntony;
-        self.lattice = values.iter().enumerate().map(|(idx, &val)| {
-            let i = idx % sample_dim;
-            let norm_sq = self.mode_norm_sq[i];
-            let golden_weight = (-norm_sq / PHI).exp();
-            let h_scale = 1.0 - beta * (1.0 - golden_weight);
-            GoldenExact::find_nearest(val * h_scale, precision)
-        }).collect();
+        self.lattice = values
+            .iter()
+            .enumerate()
+            .map(|(idx, &val)| {
+                let i = idx % sample_dim;
+                let norm_sq = self.mode_norm_sq[i];
+                let golden_weight = (-norm_sq / PHI).exp();
+                let h_scale = 1.0 - beta * (1.0 - golden_weight);
+                GoldenExact::find_nearest(val * h_scale, precision)
+            })
+            .collect();
 
         self.precision = precision;
         self.phase = ResonantPhase::Crystallized;
-        
+
         // Compute per-sample syntony for return values
         // Note: each sample shares the same mode structure, so we use the first sample_dim norms
         let sample_norms = &self.mode_norm_sq[0..sample_dim];
@@ -1464,11 +1514,9 @@ impl ResonantTensor {
         mode_norm_sq: Option<Vec<f64>>,
         precision: i64,
     ) -> PyResult<Self> {
-        let mode_norms = mode_norm_sq.unwrap_or_else(|| {
-            (0..data.len()).map(|i| (i as f64).powi(2)).collect()
-        });
-        Self::from_floats(&data, shape, mode_norms, precision)
-            .map_err(|e| e.into())
+        let mode_norms =
+            mode_norm_sq.unwrap_or_else(|| (0..data.len()).map(|i| (i as f64).powi(2)).collect());
+        Self::from_floats(&data, shape, mode_norms, precision).map_err(|e| e.into())
     }
 
     /// Create from a list of GoldenExact values.
@@ -1479,11 +1527,9 @@ impl ResonantTensor {
         shape: Vec<usize>,
         mode_norm_sq: Option<Vec<f64>>,
     ) -> PyResult<Self> {
-        let mode_norms = mode_norm_sq.unwrap_or_else(|| {
-            (0..lattice.len()).map(|i| (i as f64).powi(2)).collect()
-        });
-        Self::from_lattice(lattice, shape, mode_norms)
-            .map_err(|e| e.into())
+        let mode_norms = mode_norm_sq
+            .unwrap_or_else(|| (0..lattice.len()).map(|i| (i as f64).powi(2)).collect());
+        Self::from_lattice(lattice, shape, mode_norms).map_err(|e| e.into())
     }
 
     /// Matrix multiplication: self @ weights.
@@ -1508,11 +1554,7 @@ impl ResonantTensor {
     }
 
     /// Complete a full D→H cycle for a batch of samples.
-    fn batch_cpu_cycle(
-        &mut self,
-        noise_scale: f64,
-        precision: i64,
-    ) -> PyResult<Vec<f64>> {
+    fn batch_cpu_cycle(&mut self, noise_scale: f64, precision: i64) -> PyResult<Vec<f64>> {
         self.run_batch_cpu_cycle(noise_scale, precision)
             .map_err(|e| e.into())
     }
@@ -1590,8 +1632,9 @@ impl ResonantTensor {
     fn wake_flux_values(&mut self) -> PyResult<Vec<f64>> {
         if self.phase != ResonantPhase::Crystallized {
             return Err(ResonantError::InvalidPhaseTransition(
-                "wake_flux requires Crystallized phase".to_string()
-            ).into());
+                "wake_flux requires Crystallized phase".to_string(),
+            )
+            .into());
         }
 
         let floats = self.to_floats_core();
@@ -1809,21 +1852,16 @@ impl ResonantTensor {
     fn concat(py: Python, tensors: Vec<Py<ResonantTensor>>, dim: i32) -> PyResult<Self> {
         if tensors.is_empty() {
             return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                "Cannot concatenate empty tensor list"
+                "Cannot concatenate empty tensor list",
             ));
         }
 
         // Borrow all tensors and collect PyRef objects
-        let borrowed_tensors: Vec<pyo3::PyRef<ResonantTensor>> = tensors
-            .iter()
-            .map(|t| t.borrow(py))
-            .collect();
+        let borrowed_tensors: Vec<pyo3::PyRef<ResonantTensor>> =
+            tensors.iter().map(|t| t.borrow(py)).collect();
 
         // Convert to slice of references
-        let tensor_refs: Vec<&ResonantTensor> = borrowed_tensors
-            .iter()
-            .map(|t| &**t)
-            .collect();
+        let tensor_refs: Vec<&ResonantTensor> = borrowed_tensors.iter().map(|t| &**t).collect();
 
         // Handle negative dimension indexing
         let ndim = tensor_refs[0].shape.len() as i32;
@@ -1862,20 +1900,17 @@ impl ResonantTensor {
 
     /// Mean reduction along an optional dimension.
     #[pyo3(signature = (dim=None, keepdim=false, precision=None))]
-    fn mean(
-        &self,
-        dim: Option<i32>,
-        keepdim: bool,
-        precision: Option<i64>,
-    ) -> PyResult<Self> {
+    fn mean(&self, dim: Option<i32>, keepdim: bool, precision: Option<i64>) -> PyResult<Self> {
         let ndim = self.shape.len() as i32;
         let axis = match dim {
             Some(d) if d < 0 => {
                 let adj = ndim + d;
                 if adj < 0 {
-                    return Err(ResonantError::ShapeMismatch(
-                        format!("Dimension {} out of bounds for {}-D tensor", d, ndim)
-                    ).into());
+                    return Err(ResonantError::ShapeMismatch(format!(
+                        "Dimension {} out of bounds for {}-D tensor",
+                        d, ndim
+                    ))
+                    .into());
                 }
                 Some(adj as usize)
             }
@@ -1888,20 +1923,17 @@ impl ResonantTensor {
 
     /// Variance reduction along an optional dimension (population variance).
     #[pyo3(signature = (dim=None, keepdim=false, precision=None))]
-    fn var(
-        &self,
-        dim: Option<i32>,
-        keepdim: bool,
-        precision: Option<i64>,
-    ) -> PyResult<Self> {
+    fn var(&self, dim: Option<i32>, keepdim: bool, precision: Option<i64>) -> PyResult<Self> {
         let ndim = self.shape.len() as i32;
         let axis = match dim {
             Some(d) if d < 0 => {
                 let adj = ndim + d;
                 if adj < 0 {
-                    return Err(ResonantError::ShapeMismatch(
-                        format!("Dimension {} out of bounds for {}-D tensor", d, ndim)
-                    ).into());
+                    return Err(ResonantError::ShapeMismatch(format!(
+                        "Dimension {} out of bounds for {}-D tensor",
+                        d, ndim
+                    ))
+                    .into());
                 }
                 Some(adj as usize)
             }
@@ -1924,9 +1956,15 @@ impl ResonantTensor {
     ///     precision: precision for crystallization
     #[cfg(feature = "cuda")]
     #[pyo3(signature = (device_idx, noise_scale=0.1, precision=100))]
-    fn cuda_cycle_gpu(&mut self, device_idx: usize, noise_scale: f64, precision: i64) -> PyResult<f64> {
-        let device = crate::tensor::cuda::device_manager::get_device(device_idx)
-            .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("cuda device error: {}", e)))?;
+    fn cuda_cycle_gpu(
+        &mut self,
+        device_idx: usize,
+        noise_scale: f64,
+        precision: i64,
+    ) -> PyResult<f64> {
+        let device = crate::tensor::cuda::device_manager::get_device(device_idx).map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("cuda device error: {}", e))
+        })?;
 
         self.cuda_cycle(device, noise_scale, precision)
             .map_err(|e| e.into())
@@ -1936,8 +1974,9 @@ impl ResonantTensor {
     #[cfg(feature = "cuda")]
     #[pyo3(signature = (device_idx, noise_scale=0.1))]
     fn wake_flux_with_d_phase_py(&mut self, device_idx: usize, noise_scale: f64) -> PyResult<()> {
-        let device = crate::tensor::cuda::device_manager::get_device(device_idx)
-            .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("cuda device error: {}", e)))?;
+        let device = crate::tensor::cuda::device_manager::get_device(device_idx).map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("cuda device error: {}", e))
+        })?;
 
         self.wake_flux_with_d_phase(device, noise_scale)
             .map_err(|e| e.into())
@@ -2003,8 +2042,7 @@ mod tests {
         let initial_syntony = tensor.syntony();
 
         // Run a CPU cycle
-        let new_syntony = tensor.cpu_cycle(0.1, 100)
-            .expect("Should complete cycle");
+        let new_syntony = tensor.cpu_cycle(0.1, 100).expect("Should complete cycle");
 
         assert!(new_syntony >= 0.0 && new_syntony <= 1.0);
         assert_eq!(tensor.phase(), ResonantPhase::Crystallized);
@@ -2042,8 +2080,9 @@ mod tests {
 
     #[test]
     fn test_mean_var_axis() {
-        let tensor = ResonantTensor::from_floats_default_modes(&[1.0, 2.0, 3.0, 5.0], vec![2, 2], 200)
-            .expect("create tensor");
+        let tensor =
+            ResonantTensor::from_floats_default_modes(&[1.0, 2.0, 3.0, 5.0], vec![2, 2], 200)
+                .expect("create tensor");
 
         let mean = tensor.mean_core(Some(1), false, 200).expect("mean");
         assert_eq!(mean.shape(), &[2]);
@@ -2071,9 +2110,12 @@ mod tests {
 
     #[test]
     fn test_layer_norm_golden_target() {
-        let tensor = ResonantTensor::from_floats_default_modes(&[1.0, 2.0, 3.0, 4.0], vec![2, 2], 300)
-            .expect("create tensor");
-        let out = tensor.layer_norm_core(None, None, 1e-8, true).expect("layer norm");
+        let tensor =
+            ResonantTensor::from_floats_default_modes(&[1.0, 2.0, 3.0, 4.0], vec![2, 2], 300)
+                .expect("create tensor");
+        let out = tensor
+            .layer_norm_core(None, None, 1e-8, true)
+            .expect("layer norm");
         let vals = out.to_floats_core();
 
         // Per-sample mean ≈ 0 and variance ≈ 1/φ
@@ -2081,10 +2123,14 @@ mod tests {
             let start = sample * 2;
             let sample_vals = &vals[start..start + 2];
             let mean: f64 = sample_vals.iter().sum::<f64>() / 2.0;
-            let var: f64 = sample_vals.iter().map(|v| {
-                let d = *v - mean;
-                d * d
-            }).sum::<f64>() / 2.0;
+            let var: f64 = sample_vals
+                .iter()
+                .map(|v| {
+                    let d = *v - mean;
+                    d * d
+                })
+                .sum::<f64>()
+                / 2.0;
 
             assert!(mean.abs() < 1e-6);
             assert!((var - PHI_INV).abs() < 1e-3);

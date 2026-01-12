@@ -203,12 +203,8 @@ mod tests {
 
     #[test]
     fn test_standard_harmonization() {
-        let mut tensor = ResonantTensor::from_floats_default_modes(
-            &[1.0, 2.0, 3.0],
-            vec![3],
-            100,
-        )
-        .unwrap();
+        let mut tensor =
+            ResonantTensor::from_floats_default_modes(&[1.0, 2.0, 3.0], vec![3], 100).unwrap();
 
         let initial_syntony = tensor.syntony();
         let syntony = standard_harmonization(&mut tensor).unwrap();
@@ -219,12 +215,8 @@ mod tests {
 
     #[test]
     fn test_retrocausal_harmonization_no_attractors() {
-        let mut tensor = ResonantTensor::from_floats_default_modes(
-            &[1.0, 2.0, 3.0],
-            vec![3],
-            100,
-        )
-        .unwrap();
+        let mut tensor =
+            ResonantTensor::from_floats_default_modes(&[1.0, 2.0, 3.0], vec![3], 100).unwrap();
 
         let memory = AttractorMemory::new(10, 0.7, 0.95);
 
@@ -235,21 +227,13 @@ mod tests {
 
     #[test]
     fn test_retrocausal_harmonization_with_attractors() {
-        let mut tensor = ResonantTensor::from_floats_default_modes(
-            &[1.0, 2.0, 3.0],
-            vec![3],
-            100,
-        )
-        .unwrap();
+        let mut tensor =
+            ResonantTensor::from_floats_default_modes(&[1.0, 2.0, 3.0], vec![3], 100).unwrap();
 
         // Create attractor memory with one high-syntony attractor
         let mut memory = AttractorMemory::new(10, 0.5, 0.95);
-        let attractor = ResonantTensor::from_floats_default_modes(
-            &[2.0, 3.0, 4.0],
-            vec![3],
-            100,
-        )
-        .unwrap();
+        let attractor =
+            ResonantTensor::from_floats_default_modes(&[2.0, 3.0, 4.0], vec![3], 100).unwrap();
         memory.maybe_add(&attractor, 0.9, 0);
 
         // Apply retrocausal harmonization
@@ -299,7 +283,8 @@ mod tests {
 
         // With lambda=0.5, should get average
         let result = blend_harmonization(&h_std, &pull, 0.5);
-        let expected_0 = h_std[0] * GoldenExact::from_rational(Rational::new(1, 2)) + pull[0] * GoldenExact::from_rational(Rational::new(1, 2));
+        let expected_0 = h_std[0] * GoldenExact::from_rational(Rational::new(1, 2))
+            + pull[0] * GoldenExact::from_rational(Rational::new(1, 2));
         assert_eq!(result[0], expected_0);
     }
 }

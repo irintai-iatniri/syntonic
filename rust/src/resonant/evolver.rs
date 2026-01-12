@@ -35,20 +35,20 @@ use pyo3::prelude::*;
 use rand::Rng;
 use std::cmp::Ordering;
 
-use crate::exact::GoldenExact;
-use super::tensor::{ResonantTensor, ResonantError};
 use super::attractor::AttractorMemory;
 use super::retrocausal::harmonize_with_attractor_pull;
+use super::tensor::{ResonantError, ResonantTensor};
 use super::PHI;
+use crate::exact::GoldenExact;
 
+#[cfg(feature = "cuda")]
+use crate::tensor::srt_kernels::{cuda_resonant_box_muller_f64, cuda_resonant_d_phase_batch_f64};
 #[cfg(feature = "cuda")]
 use cudarc::driver::safe::CudaContext as CudaDevice;
 #[cfg(feature = "cuda")]
 use cudarc::driver::CudaSlice;
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
-#[cfg(feature = "cuda")]
-use crate::tensor::srt_kernels::{cuda_resonant_d_phase_batch_f64, cuda_resonant_box_muller_f64};
 
 /// Universal syntony deficit q - NOT a hyperparameter!
 /// This is a fundamental constant from SRT.
@@ -196,8 +196,12 @@ impl RESConfig {
     fn __repr__(&self) -> String {
         format!(
             "RESConfig(pop={}, survivors={}, λ={:.6}, mut_scale={}, prec={}, cuda_device={})",
-            self.population_size, self.survivor_count, self.lambda_val,
-            self.mutation_scale, self.precision, self.cuda_device_idx
+            self.population_size,
+            self.survivor_count,
+            self.lambda_val,
+            self.mutation_scale,
+            self.precision,
+            self.cuda_device_idx
         )
     }
 }
@@ -342,10 +346,8 @@ impl ResonantEvolver {
                 let delta_b = (rng.gen::<f64>() - 0.5) * self.config.mutation_scale;
 
                 // Snap perturbation to golden lattice
-                let perturbation = GoldenExact::find_nearest(
-                    delta_a + delta_b * PHI,
-                    self.config.precision
-                );
+                let perturbation =
+                    GoldenExact::find_nearest(delta_a + delta_b * PHI, self.config.precision);
 
                 // Add perturbation to original
                 *g + perturbation
@@ -360,7 +362,10 @@ impl ResonantEvolver {
     /// Filter candidates by lattice syntony (CPU, cheap).
     ///
     /// Returns the top `survivor_count` candidates sorted by descending syntony.
-    pub fn filter_by_lattice_syntony(&self, candidates: Vec<ResonantTensor>) -> Vec<ResonantTensor> {
+    pub fn filter_by_lattice_syntony(
+        &self,
+        candidates: Vec<ResonantTensor>,
+    ) -> Vec<ResonantTensor> {
         let mut scored: Vec<(ResonantTensor, f64)> = candidates
             .into_iter()
             .map(|t| {
@@ -370,9 +375,7 @@ impl ResonantEvolver {
             .collect();
 
         // Sort by syntony descending
-        scored.sort_by(|a, b| {
-            b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal)
-        });
+        scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal));
 
         // Take top survivors
         scored
@@ -390,12 +393,16 @@ impl ResonantEvolver {
     /// 3. Compute final syntony
     ///
     /// Returns survivors with their scores (syntony after D→H cycle).
-    pub fn evaluate_survivors_cpu(&self, survivors: Vec<ResonantTensor>) -> Vec<(ResonantTensor, f64)> {
+    pub fn evaluate_survivors_cpu(
+        &self,
+        survivors: Vec<ResonantTensor>,
+    ) -> Vec<(ResonantTensor, f64)> {
         survivors
             .into_iter()
             .map(|mut tensor| {
                 // CPU D→H cycle
-                let syntony = tensor.run_cpu_cycle(self.config.noise_scale, self.config.precision)
+                let syntony = tensor
+                    .run_cpu_cycle(self.config.noise_scale, self.config.precision)
                     .unwrap_or(tensor.syntony());
                 (tensor, syntony)
             })
@@ -411,7 +418,11 @@ impl ResonantEvolver {
     ///
     /// Returns survivors with their scores (syntony after D→H cycle).
     #[cfg(feature = "cuda")]
-    pub fn evaluate_survivors_cuda(&self, survivors: &[ResonantTensor], device: Arc<CudaDevice>) -> Result<Vec<(ResonantTensor, f64)>, ResonantError> {
+    pub fn evaluate_survivors_cuda(
+        &self,
+        survivors: &[ResonantTensor],
+        device: Arc<CudaDevice>,
+    ) -> Result<Vec<(ResonantTensor, f64)>, ResonantError> {
         if survivors.is_empty() {
             return Ok(Vec::new());
         }
@@ -422,9 +433,12 @@ impl ResonantEvolver {
         // Verify all survivors have the same shape
         for (i, survivor) in survivors.iter().enumerate() {
             if survivor.len() != n {
-                return Err(ResonantError::ShapeMismatch(
-                    format!("Survivor {} has length {}, expected {}", i, survivor.len(), n)
-                ));
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Survivor {} has length {}, expected {}",
+                    i,
+                    survivor.len(),
+                    n
+                )));
             }
         }
 
@@ -440,23 +454,34 @@ impl ResonantEvolver {
         }
 
         // Generate Gaussian noise for all survivors using Box-Muller transform
-        let noise_batch: Vec<f64> = self.generate_gaussian_noise(n * pop_size)
+        let noise_batch: Vec<f64> = self
+            .generate_gaussian_noise(n * pop_size)
             .into_iter()
             .map(|x| x * self.config.noise_scale)
             .collect();
 
         // Upload to GPU
-        let gpu_lattice_batch = device.default_stream().clone_htod(&lattice_batch)
+        let gpu_lattice_batch = device
+            .default_stream()
+            .clone_htod(&lattice_batch)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
-        let gpu_mode_norm_sq = device.default_stream().clone_htod(&mode_norm_sq_batch)
+        let gpu_mode_norm_sq = device
+            .default_stream()
+            .clone_htod(&mode_norm_sq_batch)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
-        let gpu_noise_batch = device.default_stream().clone_htod(&noise_batch)
+        let gpu_noise_batch = device
+            .default_stream()
+            .clone_htod(&noise_batch)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Allocate output buffers
-        let mut gpu_flux_batch: CudaSlice<f64> = device.default_stream().alloc_zeros(n * pop_size)
+        let mut gpu_flux_batch: CudaSlice<f64> = device
+            .default_stream()
+            .alloc_zeros(n * pop_size)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
-        let gpu_syntonies: CudaSlice<f64> = device.default_stream().alloc_zeros(pop_size)
+        let gpu_syntonies: CudaSlice<f64> = device
+            .default_stream()
+            .alloc_zeros(pop_size)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Run batch D-phase kernel
@@ -470,15 +495,20 @@ impl ResonantEvolver {
             self.config.noise_scale,
             n,
             pop_size,
-        ).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+        )
+        .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Download results
         let mut host_flux_batch = vec![0.0f64; n * pop_size];
         let mut host_syntonies = vec![0.0f64; pop_size];
 
-        device.default_stream().memcpy_dtoh(&gpu_flux_batch, &mut host_flux_batch)
+        device
+            .default_stream()
+            .memcpy_dtoh(&gpu_flux_batch, &mut host_flux_batch)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
-        device.default_stream().memcpy_dtoh(&gpu_syntonies, &mut host_syntonies)
+        device
+            .default_stream()
+            .memcpy_dtoh(&gpu_syntonies, &mut host_syntonies)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Process each survivor: crystallize and update syntony
@@ -490,7 +520,8 @@ impl ResonantEvolver {
 
             // Create a copy of the survivor and crystallize it
             let mut survivor = survivors[i].clone();
-            survivor.crystallize_cpu(flux_slice, self.config.precision)
+            survivor
+                .crystallize_cpu(flux_slice, self.config.precision)
                 .map_err(|e| ResonantError::CudaError(format!("Crystallization failed: {}", e)))?;
 
             let final_syntony = survivor.syntony();
@@ -512,7 +543,11 @@ impl ResonantEvolver {
     /// # Returns
     /// Vector of Gaussian random numbers with mean 0, variance 1
     #[cfg(feature = "cuda")]
-    pub fn generate_gaussian_noise_cuda(&self, count: usize, device: Option<&Arc<CudaDevice>>) -> Result<Vec<f64>, ResonantError> {
+    pub fn generate_gaussian_noise_cuda(
+        &self,
+        count: usize,
+        device: Option<&Arc<CudaDevice>>,
+    ) -> Result<Vec<f64>, ResonantError> {
         if count == 0 {
             return Ok(Vec::new());
         }
@@ -526,25 +561,31 @@ impl ResonantEvolver {
 
         if let Some(device) = device {
             // Upload uniform noise to GPU
-            let gpu_uniform = device.default_stream().clone_htod(&uniform_noise)
-                .map_err(|e| ResonantError::CudaError(format!("Failed to upload uniform noise: {}", e)))?;
+            let gpu_uniform = device
+                .default_stream()
+                .clone_htod(&uniform_noise)
+                .map_err(|e| {
+                    ResonantError::CudaError(format!("Failed to upload uniform noise: {}", e))
+                })?;
 
             // Allocate output buffer for Gaussian noise
-            let mut gpu_gaussian: CudaSlice<f64> = device.default_stream().alloc_zeros(count)
-                .map_err(|e| ResonantError::CudaError(format!("Failed to allocate Gaussian buffer: {}", e)))?;
+            let mut gpu_gaussian: CudaSlice<f64> =
+                device.default_stream().alloc_zeros(count).map_err(|e| {
+                    ResonantError::CudaError(format!("Failed to allocate Gaussian buffer: {}", e))
+                })?;
 
             // Run Box-Muller transform on GPU
-            cuda_resonant_box_muller_f64(
-                device,
-                &mut gpu_gaussian,
-                &gpu_uniform,
-                count,
-            ).map_err(|e| ResonantError::CudaError(format!("CUDA Box-Muller failed: {}", e)))?;
+            cuda_resonant_box_muller_f64(device, &mut gpu_gaussian, &gpu_uniform, count)
+                .map_err(|e| ResonantError::CudaError(format!("CUDA Box-Muller failed: {}", e)))?;
 
             // Download Gaussian noise
             let mut gaussian_noise = vec![0.0f64; count];
-            device.default_stream().memcpy_dtoh(&gpu_gaussian, &mut gaussian_noise)
-                .map_err(|e| ResonantError::CudaError(format!("Failed to download Gaussian noise: {}", e)))?;
+            device
+                .default_stream()
+                .memcpy_dtoh(&gpu_gaussian, &mut gaussian_noise)
+                .map_err(|e| {
+                    ResonantError::CudaError(format!("Failed to download Gaussian noise: {}", e))
+                })?;
 
             Ok(gaussian_noise)
         } else {
@@ -579,7 +620,9 @@ impl ResonantEvolver {
         #[cfg(feature = "cuda")]
         {
             if self.config.cuda_device_idx >= 0 {
-                if let Ok(device) = crate::tensor::cuda::device_manager::get_device(self.config.cuda_device_idx as usize) {
+                if let Ok(device) = crate::tensor::cuda::device_manager::get_device(
+                    self.config.cuda_device_idx as usize,
+                ) {
                     match self.generate_gaussian_noise_cuda(count, Some(&device)) {
                         Ok(noise) => return noise,
                         Err(_) => {} // Fall back to CPU
@@ -610,7 +653,7 @@ impl ResonantEvolver {
     /// Uses attractor memory to bias harmonization toward proven high-syntony states.
     fn apply_retrocausal_harmonization(
         &self,
-        survivors: Vec<ResonantTensor>
+        survivors: Vec<ResonantTensor>,
     ) -> Result<Vec<ResonantTensor>, ResonantError> {
         survivors
             .into_iter()
@@ -618,7 +661,7 @@ impl ResonantEvolver {
                 harmonize_with_attractor_pull(
                     &mut t,
                     &self.attractor_memory,
-                    self.config.attractor_pull_strength
+                    self.config.attractor_pull_strength,
                 )?;
                 Ok(t)
             })
@@ -638,7 +681,10 @@ impl ResonantEvolver {
     /// Select the winner from evaluated candidates, returning both tensor and score.
     ///
     /// Winner is selected by: score = syntony (since we don't have external fitness yet)
-    fn select_winner_with_score(&self, evaluated: &[(ResonantTensor, f64)]) -> Option<(ResonantTensor, f64)> {
+    fn select_winner_with_score(
+        &self,
+        evaluated: &[(ResonantTensor, f64)],
+    ) -> Option<(ResonantTensor, f64)> {
         evaluated
             .iter()
             .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal))
@@ -652,9 +698,11 @@ impl ResonantEvolver {
         // Get parent (or create random if none)
         let parent = match &self.best_tensor {
             Some(t) => t.clone(),
-            None => return Err(ResonantError::InvalidPhaseTransition(
-                "No parent tensor set. Use from_template() to initialize.".to_string()
-            )),
+            None => {
+                return Err(ResonantError::InvalidPhaseTransition(
+                    "No parent tensor set. Use from_template() to initialize.".to_string(),
+                ))
+            }
         };
 
         // Step 1: Spawn mutants (CPU)
@@ -672,7 +720,9 @@ impl ResonantEvolver {
         let evaluated = if self.config.cuda_device_idx >= 0 {
             #[cfg(feature = "cuda")]
             {
-                match crate::tensor::cuda::device_manager::get_device(self.config.cuda_device_idx as usize) {
+                match crate::tensor::cuda::device_manager::get_device(
+                    self.config.cuda_device_idx as usize,
+                ) {
                     Ok(device) => {
                         match self.evaluate_survivors_cuda(&survivors, device) {
                             Ok(results) => results,
@@ -706,7 +756,8 @@ impl ResonantEvolver {
             if self.config.enable_retrocausal {
                 for (tensor, _) in &evaluated {
                     let syntony = tensor.syntony();
-                    self.attractor_memory.maybe_add(tensor, syntony, self.generation);
+                    self.attractor_memory
+                        .maybe_add(tensor, syntony, self.generation);
                 }
             }
 
@@ -744,8 +795,16 @@ impl ResonantEvolver {
             return false;
         }
 
-        let min = self.convergence_window.iter().cloned().fold(f64::INFINITY, f64::min);
-        let max = self.convergence_window.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+        let min = self
+            .convergence_window
+            .iter()
+            .cloned()
+            .fold(f64::INFINITY, f64::min);
+        let max = self
+            .convergence_window
+            .iter()
+            .cloned()
+            .fold(f64::NEG_INFINITY, f64::max);
 
         (max - min) < self.config.convergence_threshold
     }
@@ -756,10 +815,9 @@ impl ResonantEvolver {
             self.step()?;
         }
 
-        let winner = self.best_tensor.clone()
-            .ok_or_else(|| ResonantError::InvalidPhaseTransition(
-                "No winner found after evolution".to_string()
-            ))?;
+        let winner = self.best_tensor.clone().ok_or_else(|| {
+            ResonantError::InvalidPhaseTransition("No winner found after evolution".to_string())
+        })?;
 
         Ok(RESResult {
             winner,
@@ -818,6 +876,12 @@ impl ResonantEvolver {
         self.best_tensor.clone()
     }
 
+    /// Get the template tensor used for initialization.
+    #[getter]
+    fn get_template(&self) -> Option<ResonantTensor> {
+        self.template.clone()
+    }
+
     /// Get the current generation number.
     #[getter]
     fn get_generation(&self) -> usize {
@@ -848,10 +912,38 @@ impl ResonantEvolver {
         self.config.clone()
     }
 
+    /// Get the top-k attractors currently stored in memory.
+    fn get_top_attractors(&self, k: usize) -> Vec<ResonantTensor> {
+        self.attractor_memory
+            .get_top_attractors(k)
+            .into_iter()
+            .cloned()
+            .collect()
+    }
+
+    /// Retrieve syntony values for all attractors.
+    #[getter]
+    fn get_attractor_syntony_values(&self) -> Vec<f64> {
+        self.attractor_memory.get_syntony_values().to_vec()
+    }
+
+    /// Retrieve generations when each attractor was recorded.
+    #[getter]
+    fn get_attractor_generations(&self) -> Vec<usize> {
+        self.attractor_memory.get_generations().to_vec()
+    }
+
+    /// Clear all attractors from memory.
+    fn clear_attractors(&mut self) {
+        self.attractor_memory.clear();
+    }
+
     fn __repr__(&self) -> String {
         format!(
             "ResonantEvolver(generation={}, best_syntony={:.4}, converged={})",
-            self.generation, self.best_syntony, self.is_converged()
+            self.generation,
+            self.best_syntony,
+            self.is_converged()
         )
     }
 }

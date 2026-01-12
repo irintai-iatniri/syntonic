@@ -24,16 +24,13 @@ pub mod srt_memory_protocol;
 
 // Re-exports for convenience
 #[cfg(feature = "cuda")]
-pub use device_manager::{DeviceManager, StreamKind, CudaError};
+pub use device_manager::{CudaError, DeviceManager, StreamKind};
 
 #[cfg(feature = "cuda")]
-pub use async_transfer::{AsyncTransfer, AsyncTensorTransfer};
-
-
-#[cfg(feature = "cuda")]
-pub use memory_pool::{MemoryPool, PooledSlice, PoolConfig, PoolStats, CudaComplex64};
+pub use async_transfer::{AsyncTensorTransfer, AsyncTransfer, TransferComputeOverlap};
 
 #[cfg(feature = "cuda")]
-pub use multi_gpu::{peer_copy, scatter, gather, ReduceOp};
+pub use memory_pool::{CudaComplex64, MemoryPool, PoolConfig, PoolStats, PooledSlice};
 
-
+#[cfg(feature = "cuda")]
+pub use multi_gpu::{gather, peer_copy, scatter, ReduceOp};

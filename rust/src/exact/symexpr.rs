@@ -33,15 +33,14 @@
 use pyo3::prelude::*;
 use std::fmt;
 
-use super::rational::Rational;
-use super::golden::GoldenExact;
 use super::constants::FundamentalConstant;
+use super::golden::GoldenExact;
+use super::rational::Rational;
 
 /// Symbolic expression in SRT
 #[derive(Clone, Debug)]
 pub enum SymExpr {
     // === Exact Numeric Types ===
-
     /// Exact integer
     Integer(i128),
 
@@ -52,12 +51,10 @@ pub enum SymExpr {
     Golden(GoldenExact),
 
     // === Fundamental Constants ===
-
     /// One of the five fundamental SRT constants
     Const(FundamentalConstant),
 
     // === Binary Operations ===
-
     /// Addition
     Add(Box<SymExpr>, Box<SymExpr>),
 
@@ -74,7 +71,6 @@ pub enum SymExpr {
     Pow(Box<SymExpr>, Rational),
 
     // === Transcendental Functions ===
-
     /// Exponential: e^x
     Exp(Box<SymExpr>),
 
@@ -92,7 +88,6 @@ pub enum SymExpr {
     Cos(Box<SymExpr>),
 
     // === Special ===
-
     /// Negation (unary minus)
     Neg(Box<SymExpr>),
 }
@@ -265,8 +260,7 @@ impl SymExpr {
         // Numerator: 2φ + e/(2φ²)
         let two = SymExpr::from_int(2);
         let phi_sq = phi.clone().pow_int(2);
-        let numerator = two.clone().mul(phi.clone())
-            .add(e.div(two.mul(phi_sq)));
+        let numerator = two.clone().mul(phi.clone()).add(e.div(two.mul(phi_sq)));
 
         // Denominator: φ⁴ · E*
         let phi_4 = phi.pow_int(4);
@@ -336,7 +330,10 @@ impl SymExpr {
 
     /// Check if this is an exact (non-transcendental) expression
     pub fn is_exact(&self) -> bool {
-        matches!(self, SymExpr::Integer(_) | SymExpr::Rat(_) | SymExpr::Golden(_))
+        matches!(
+            self,
+            SymExpr::Integer(_) | SymExpr::Rat(_) | SymExpr::Golden(_)
+        )
     }
 }
 
@@ -384,31 +381,41 @@ impl PySymExpr {
     /// The constant π
     #[staticmethod]
     fn pi() -> Self {
-        PySymExpr { inner: SymExpr::pi() }
+        PySymExpr {
+            inner: SymExpr::pi(),
+        }
     }
 
     /// Euler's number e
     #[staticmethod]
     fn e() -> Self {
-        PySymExpr { inner: SymExpr::e() }
+        PySymExpr {
+            inner: SymExpr::e(),
+        }
     }
 
     /// The golden ratio φ
     #[staticmethod]
     fn phi() -> Self {
-        PySymExpr { inner: SymExpr::phi() }
+        PySymExpr {
+            inner: SymExpr::phi(),
+        }
     }
 
     /// The Spectral Möbius constant E*
     #[staticmethod]
     fn e_star() -> Self {
-        PySymExpr { inner: SymExpr::e_star() }
+        PySymExpr {
+            inner: SymExpr::e_star(),
+        }
     }
 
     /// The universal syntony deficit q
     #[staticmethod]
     fn q() -> Self {
-        PySymExpr { inner: SymExpr::q() }
+        PySymExpr {
+            inner: SymExpr::q(),
+        }
     }
 
     // === Value constructors ===
@@ -416,19 +423,25 @@ impl PySymExpr {
     /// Create from integer
     #[staticmethod]
     fn from_int(n: i64) -> Self {
-        PySymExpr { inner: SymExpr::from_int(n as i128) }
+        PySymExpr {
+            inner: SymExpr::from_int(n as i128),
+        }
     }
 
     /// Create from rational num/denom
     #[staticmethod]
     fn rational(num: i64, denom: i64) -> Self {
-        PySymExpr { inner: SymExpr::rational(num as i128, denom as i128) }
+        PySymExpr {
+            inner: SymExpr::rational(num as i128, denom as i128),
+        }
     }
 
     /// Create from golden (a + b·φ) with integer coefficients
     #[staticmethod]
     fn golden(a: i64, b: i64) -> Self {
-        PySymExpr { inner: SymExpr::from_golden(GoldenExact::from_ints(a, b)) }
+        PySymExpr {
+            inner: SymExpr::from_golden(GoldenExact::from_ints(a, b)),
+        }
     }
 
     // === SRT expressions ===
@@ -436,66 +449,92 @@ impl PySymExpr {
     /// E* expanded as e^π - π
     #[staticmethod]
     fn e_star_expanded() -> Self {
-        PySymExpr { inner: SymExpr::e_star_expanded() }
+        PySymExpr {
+            inner: SymExpr::e_star_expanded(),
+        }
     }
 
     /// q expanded using the Universal Formula
     #[staticmethod]
     fn q_expanded() -> Self {
-        PySymExpr { inner: SymExpr::q_expanded() }
+        PySymExpr {
+            inner: SymExpr::q_expanded(),
+        }
     }
 
     /// E* decomposition into Γ(1/4)² + π(π-1) + (35/12)e^(-π) + Δ
     #[staticmethod]
     fn e_star_decomposition() -> Self {
-        PySymExpr { inner: SymExpr::e_star_decomposition() }
+        PySymExpr {
+            inner: SymExpr::e_star_decomposition(),
+        }
     }
 
     /// Syntony correction factor: (num/denom) · q
     #[staticmethod]
     fn correction(num: i32, denom: i32) -> Self {
-        PySymExpr { inner: SymExpr::correction(num, denom) }
+        PySymExpr {
+            inner: SymExpr::correction(num, denom),
+        }
     }
 
     // === Operations ===
 
     fn __add__(&self, other: &PySymExpr) -> Self {
-        PySymExpr { inner: self.inner.clone().add(other.inner.clone()) }
+        PySymExpr {
+            inner: self.inner.clone().add(other.inner.clone()),
+        }
     }
 
     fn __sub__(&self, other: &PySymExpr) -> Self {
-        PySymExpr { inner: self.inner.clone().sub(other.inner.clone()) }
+        PySymExpr {
+            inner: self.inner.clone().sub(other.inner.clone()),
+        }
     }
 
     fn __mul__(&self, other: &PySymExpr) -> Self {
-        PySymExpr { inner: self.inner.clone().mul(other.inner.clone()) }
+        PySymExpr {
+            inner: self.inner.clone().mul(other.inner.clone()),
+        }
     }
 
     fn __truediv__(&self, other: &PySymExpr) -> Self {
-        PySymExpr { inner: self.inner.clone().div(other.inner.clone()) }
+        PySymExpr {
+            inner: self.inner.clone().div(other.inner.clone()),
+        }
     }
 
     fn __neg__(&self) -> Self {
-        PySymExpr { inner: self.inner.clone().neg() }
+        PySymExpr {
+            inner: self.inner.clone().neg(),
+        }
     }
 
     fn __pow__(&self, exp: i32, _modulo: Option<i32>) -> Self {
-        PySymExpr { inner: self.inner.clone().pow_int(exp) }
+        PySymExpr {
+            inner: self.inner.clone().pow_int(exp),
+        }
     }
 
     /// Exponential e^self
     fn exp(&self) -> Self {
-        PySymExpr { inner: self.inner.clone().exp_of() }
+        PySymExpr {
+            inner: self.inner.clone().exp_of(),
+        }
     }
 
     /// Natural logarithm ln(self)
     fn ln(&self) -> Self {
-        PySymExpr { inner: self.inner.clone().ln_of() }
+        PySymExpr {
+            inner: self.inner.clone().ln_of(),
+        }
     }
 
     /// Gamma function Γ(self)
     fn gamma(&self) -> Self {
-        PySymExpr { inner: self.inner.clone().gamma_of() }
+        PySymExpr {
+            inner: self.inner.clone().gamma_of(),
+        }
     }
 
     // === Evaluation ===

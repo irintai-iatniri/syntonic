@@ -1,5 +1,5 @@
-pub mod quaternion;
 pub mod octonion;
+pub mod quaternion;
 
-pub use quaternion::Quaternion;
 pub use octonion::Octonion;
+pub use quaternion::Quaternion;

@@ -56,7 +56,11 @@ pub fn mobius(n: i64) -> i64 {
         num_factors += 1;
     }
 
-    if num_factors % 2 == 0 { 1 } else { -1 }
+    if num_factors % 2 == 0 {
+        1
+    } else {
+        -1
+    }
 }
 
 /// Check if n is square-free (has no squared prime factors).
@@ -121,23 +125,23 @@ mod tests {
     fn test_mobius_values() {
         // μ(1) = 1
         assert_eq!(mobius(1), 1);
-        
+
         // Primes have μ(p) = -1
         assert_eq!(mobius(2), -1);
         assert_eq!(mobius(3), -1);
         assert_eq!(mobius(5), -1);
         assert_eq!(mobius(7), -1);
-        
+
         // Perfect squares have μ(n) = 0
         assert_eq!(mobius(4), 0);
         assert_eq!(mobius(9), 0);
         assert_eq!(mobius(25), 0);
-        
+
         // Products of two distinct primes have μ = 1
-        assert_eq!(mobius(6), 1);   // 2×3
-        assert_eq!(mobius(10), 1);  // 2×5
-        assert_eq!(mobius(15), 1);  // 3×5
-        
+        assert_eq!(mobius(6), 1); // 2×3
+        assert_eq!(mobius(10), 1); // 2×5
+        assert_eq!(mobius(15), 1); // 3×5
+
         // Products of three distinct primes have μ = -1
         assert_eq!(mobius(30), -1); // 2×3×5
     }
@@ -165,11 +169,11 @@ mod tests {
     fn test_golden_weight() {
         // w(0) = exp(0) = 1
         assert!((golden_weight(0.0) - 1.0).abs() < 1e-10);
-        
+
         // w(φ) = exp(-1) ≈ 0.368
         let w = golden_weight(PHI);
         assert!((w - (-1.0_f64).exp()).abs() < 1e-10);
-        
+
         // Decreasing with mode norm
         assert!(golden_weight(1.0) > golden_weight(2.0));
         assert!(golden_weight(2.0) > golden_weight(4.0));

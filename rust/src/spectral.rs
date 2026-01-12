@@ -106,11 +106,7 @@ pub fn heat_kernel_trace(windings: Vec<WindingState>, t: f64, base_eigenvalue: f
 
 /// Compute weighted heat kernel trace: K(t) = Σ_n w(n) exp(-λ_n t)
 #[pyfunction]
-pub fn heat_kernel_weighted(
-    windings: Vec<WindingState>,
-    t: f64,
-    base_eigenvalue: f64,
-) -> f64 {
+pub fn heat_kernel_weighted(windings: Vec<WindingState>, t: f64, base_eigenvalue: f64) -> f64 {
     let mut sum = 0.0;
 
     for w in &windings {
@@ -125,11 +121,7 @@ pub fn heat_kernel_weighted(
 
 /// Compute heat kernel derivative: dK/dt = -Σ_n λ_n exp(-λ_n t)
 #[pyfunction]
-pub fn heat_kernel_derivative(
-    windings: Vec<WindingState>,
-    t: f64,
-    base_eigenvalue: f64,
-) -> f64 {
+pub fn heat_kernel_derivative(windings: Vec<WindingState>, t: f64, base_eigenvalue: f64) -> f64 {
     let mut sum = 0.0;
 
     for w in &windings {
@@ -207,11 +199,7 @@ pub fn spectral_zeta(windings: Vec<WindingState>, s: f64, base_eigenvalue: f64) 
 
 /// Compute weighted spectral zeta: ζ_w(s) = Σ_{n≠0} w(n) λ_n^(-s)
 #[pyfunction]
-pub fn spectral_zeta_weighted(
-    windings: Vec<WindingState>,
-    s: f64,
-    base_eigenvalue: f64,
-) -> f64 {
+pub fn spectral_zeta_weighted(windings: Vec<WindingState>, s: f64, base_eigenvalue: f64) -> f64 {
     let mut sum = 0.0;
 
     for w in &windings {

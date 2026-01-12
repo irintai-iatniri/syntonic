@@ -73,16 +73,26 @@ impl FundamentalConstant {
     /// These values are exact to the displayed precision.
     pub fn decimal_value(&self) -> &'static str {
         match self {
-            Self::Pi => "3.14159265358979323846264338327950288419716939937510\
-                         58209749445923078164062862089986280348253421170679",
-            Self::Euler => "2.71828182845904523536028747135266249775724709369995\
-                            95749669676277240766303535475945713821785251664274",
-            Self::Phi => "1.61803398874989484820458683436563811772030917980576\
-                          28621354486227052604628189024497072072041893911375",
-            Self::EStar => "19.9990999791894757672664429846690429197224416781423\
-                            6858336953124189574809985424545289195611836432",
-            Self::Q => "0.02739514692015854536545317970880286797914906945068\
-                        75412837509623147291034502816413258903762145897",
+            Self::Pi => {
+                "3.14159265358979323846264338327950288419716939937510\
+                         58209749445923078164062862089986280348253421170679"
+            }
+            Self::Euler => {
+                "2.71828182845904523536028747135266249775724709369995\
+                            95749669676277240766303535475945713821785251664274"
+            }
+            Self::Phi => {
+                "1.61803398874989484820458683436563811772030917980576\
+                          28621354486227052604628189024497072072041893911375"
+            }
+            Self::EStar => {
+                "19.9990999791894757672664429846690429197224416781423\
+                            6858336953124189574809985424545289195611836432"
+            }
+            Self::Q => {
+                "0.02739514692015854536545317970880286797914906945068\
+                        75412837509623147291034502816413258903762145897"
+            }
         }
     }
 
@@ -190,13 +200,16 @@ impl FundamentalConstant {
     }
 
     fn __repr__(&self) -> String {
-        format!("FundamentalConstant.{}", match self {
-            Self::Pi => "Pi",
-            Self::Euler => "Euler",
-            Self::Phi => "Phi",
-            Self::EStar => "EStar",
-            Self::Q => "Q",
-        })
+        format!(
+            "FundamentalConstant.{}",
+            match self {
+                Self::Pi => "Pi",
+                Self::Euler => "Euler",
+                Self::Phi => "Phi",
+                Self::EStar => "EStar",
+                Self::Q => "Q",
+            }
+        )
     }
 
     fn __str__(&self) -> String {
@@ -349,7 +362,11 @@ impl CorrectionLevel {
         if denom == 1 {
             format!("CorrectionLevel({}q ≈ {:.3}%)", num, self.approx_percent())
         } else {
-            format!("CorrectionLevel(q/{} ≈ {:.3}%)", denom, self.approx_percent())
+            format!(
+                "CorrectionLevel(q/{} ≈ {:.3}%)",
+                denom,
+                self.approx_percent()
+            )
         }
     }
 }
@@ -468,16 +485,21 @@ impl Structure {
     /// Get the Lie algebra name
     pub fn algebra_name(self) -> &'static str {
         match self {
-            Self::E8Adjoint | Self::E8Roots | Self::E8Positive |
-            Self::E8Coxeter | Self::E8Rank => "E₈",
-            Self::E7Adjoint | Self::E7Roots | Self::E7Positive |
-            Self::E7Fund | Self::E7Coxeter | Self::E7Rank => "E₇",
-            Self::E6Adjoint | Self::E6Roots | Self::E6Positive |
-            Self::E6Fund | Self::E6Rank => "E₆",
+            Self::E8Adjoint | Self::E8Roots | Self::E8Positive | Self::E8Coxeter | Self::E8Rank => {
+                "E₈"
+            }
+            Self::E7Adjoint
+            | Self::E7Roots
+            | Self::E7Positive
+            | Self::E7Fund
+            | Self::E7Coxeter
+            | Self::E7Rank => "E₇",
+            Self::E6Adjoint | Self::E6Roots | Self::E6Positive | Self::E6Fund | Self::E6Rank => {
+                "E₆"
+            }
             Self::D4Adjoint | Self::D4Kissing | Self::D4Rank => "D₄",
             Self::G2Adjoint | Self::G2Roots | Self::G2Rank => "G₂",
-            Self::Loop3Flavor | Self::Loop4Flavor |
-            Self::Loop5Flavor | Self::Loop6Flavor => "Loop",
+            Self::Loop3Flavor | Self::Loop4Flavor | Self::Loop5Flavor | Self::Loop6Flavor => "Loop",
         }
     }
 }
@@ -526,21 +548,37 @@ impl Structure {
 
     // Static constructors for common structures
     #[staticmethod]
-    fn e8_adjoint() -> Self { Self::E8Adjoint }
+    fn e8_adjoint() -> Self {
+        Self::E8Adjoint
+    }
     #[staticmethod]
-    fn e8_roots() -> Self { Self::E8Roots }
+    fn e8_roots() -> Self {
+        Self::E8Roots
+    }
     #[staticmethod]
-    fn e8_positive() -> Self { Self::E8Positive }
+    fn e8_positive() -> Self {
+        Self::E8Positive
+    }
     #[staticmethod]
-    fn e6_adjoint() -> Self { Self::E6Adjoint }
+    fn e6_adjoint() -> Self {
+        Self::E6Adjoint
+    }
     #[staticmethod]
-    fn e6_positive() -> Self { Self::E6Positive }
+    fn e6_positive() -> Self {
+        Self::E6Positive
+    }
     #[staticmethod]
-    fn e6_fund() -> Self { Self::E6Fund }
+    fn e6_fund() -> Self {
+        Self::E6Fund
+    }
     #[staticmethod]
-    fn d4_kissing() -> Self { Self::D4Kissing }
+    fn d4_kissing() -> Self {
+        Self::D4Kissing
+    }
     #[staticmethod]
-    fn g2_adjoint() -> Self { Self::G2Adjoint }
+    fn g2_adjoint() -> Self {
+        Self::G2Adjoint
+    }
 }
 
 #[cfg(test)]

@@ -9,10 +9,11 @@
 
 use cudarc::driver::safe::CudaContext as CudaDevice;
 use cudarc::driver::CudaSlice;
+use pyo3::prelude::*;
 use std::sync::Arc;
 
-use super::device_manager::{CudaError, get_device, get_srt_protocol};
-use crate::tensor::storage::{TensorStorage, CpuData, DeviceType};
+use super::device_manager::{get_device, get_srt_protocol, CudaError};
+use crate::tensor::storage::{CpuData, DeviceType, TensorStorage};
 
 /// Handle for tracking an async transfer
 pub struct AsyncTransfer {
@@ -39,7 +40,9 @@ pub fn htod_async<T: cudarc::driver::DeviceRepr>(
 where
     T: Clone + Default,
 {
-    device.default_stream().clone_htod(host_data)
+    device
+        .default_stream()
+        .clone_htod(host_data)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))
 }
 
@@ -74,7 +77,9 @@ pub fn dtoh_async<T: cudarc::driver::DeviceRepr>(
 where
     T: Clone,
 {
-    device.default_stream().memcpy_dtoh(dev_data, host_buf)
+    device
+        .default_stream()
+        .memcpy_dtoh(dev_data, host_buf)
         .map_err(|e| CudaError::TransferFailed(e.to_string()))
 }
 
@@ -101,6 +106,7 @@ pub fn dtoh_async_srt_f64(
 }
 
 /// Handle for an in-flight tensor transfer operation
+#[pyclass]
 pub struct AsyncTensorTransfer {
     device_idx: usize,
     shape: Vec<usize>,
@@ -124,8 +130,8 @@ impl AsyncTensorTransfer {
         self.completed
     }
 
-    /// Wait for the transfer to complete
-    pub fn wait(&mut self) -> Result<(), CudaError> {
+    /// Wait for the transfer to complete and mark it finished
+    pub fn wait_blocking(&mut self) -> Result<(), CudaError> {
         if !self.completed {
             super::device_manager::sync_device(self.device_idx)?;
             self.completed = true;
@@ -133,19 +139,52 @@ impl AsyncTensorTransfer {
         Ok(())
     }
 
+    /// Backward compatible alias for wait_blocking
+    pub fn wait(&mut self) -> Result<(), CudaError> {
+        self.wait_blocking()
+    }
+
     /// Get the target device index
-    pub fn device_idx(&self) -> usize {
+    pub fn device_index(&self) -> usize {
         self.device_idx
     }
 
     /// Get the shape of the tensor being transferred
-    pub fn shape(&self) -> &[usize] {
+    pub fn tensor_shape(&self) -> &[usize] {
         &self.shape
     }
 
     /// Get the dtype of the tensor being transferred
-    pub fn dtype(&self) -> &str {
+    pub fn dtype_str(&self) -> &str {
         &self.dtype
+    }
+}
+
+#[pymethods]
+impl AsyncTensorTransfer {
+    #[pyo3(name = "is_ready")]
+    fn py_is_ready(&self) -> bool {
+        AsyncTensorTransfer::is_ready(self)
+    }
+
+    #[getter]
+    fn device_idx(&self) -> usize {
+        self.device_index()
+    }
+
+    #[getter]
+    fn shape(&self) -> Vec<usize> {
+        self.tensor_shape().to_vec()
+    }
+
+    #[getter]
+    fn dtype(&self) -> String {
+        self.dtype_str().to_string()
+    }
+
+    #[pyo3(name = "wait")]
+    fn py_wait(&mut self) -> PyResult<()> {
+        self.wait_blocking().map_err(PyErr::from)
     }
 }
 
@@ -160,19 +199,20 @@ pub trait AsyncTensorOps {
 
 impl AsyncTensorOps for TensorStorage {
     fn to_device_async(&self, device: &str) -> Result<AsyncTensorTransfer, CudaError> {
-        let target_device = DeviceType::from_str(device)
-            .map_err(|e| CudaError::DeviceInitFailed(e.to_string()))?;
+        let target_device =
+            DeviceType::from_str(device).map_err(|e| CudaError::DeviceInitFailed(e.to_string()))?;
 
         match &target_device {
-            DeviceType::Cpu => {
-                Err(CudaError::TransferFailed("Async transfer to CPU not supported".to_string()))
-            }
+            DeviceType::Cpu => Err(CudaError::TransferFailed(
+                "Async transfer to CPU not supported".to_string(),
+            )),
             #[cfg(feature = "cuda")]
             DeviceType::Cuda(idx) => {
                 let device = get_device(*idx)?;
 
                 // Get CPU data
-                let cpu_data = self.ensure_cpu_internal()
+                let cpu_data = self
+                    .ensure_cpu_internal()
                     .map_err(|e| CudaError::TransferFailed(e.to_string()))?;
 
                 // Start SRT-optimized transfer based on dtype
@@ -187,7 +227,11 @@ impl AsyncTensorOps for TensorStorage {
                         // Use SRT protocol for optimized H2D transfer
                         let _gpu_data = htod_async_srt_f32(&device, data, *idx)?;
                     }
-                    _ => return Err(CudaError::TransferFailed("Unsupported dtype for async transfer".to_string())),
+                    _ => {
+                        return Err(CudaError::TransferFailed(
+                            "Unsupported dtype for async transfer".to_string(),
+                        ))
+                    }
                 }
 
                 Ok(AsyncTensorTransfer::new(
@@ -206,6 +250,7 @@ impl AsyncTensorOps for TensorStorage {
 }
 
 /// Helper for overlapping transfer with compute
+#[pyclass(unsendable)]
 pub struct TransferComputeOverlap {
     device_idx: usize,
     device: Arc<CudaDevice>,
@@ -267,5 +312,24 @@ impl TransferComputeOverlap {
     pub fn srt_stats(&self) -> Result<super::srt_memory_protocol::SRTTransferStats, CudaError> {
         let srt_protocol = get_srt_protocol(self.device_idx)?;
         Ok(srt_protocol.get_stats())
+    }
+}
+
+#[pymethods]
+impl TransferComputeOverlap {
+    #[new]
+    fn py_new(device_idx: usize) -> PyResult<Self> {
+        TransferComputeOverlap::new(device_idx).map_err(PyErr::from)
+    }
+
+    #[getter]
+    #[pyo3(name = "device_idx")]
+    fn py_device_idx(&self) -> usize {
+        self.device_idx
+    }
+
+    #[pyo3(name = "sync")]
+    fn py_sync(&self) -> PyResult<()> {
+        self.sync().map_err(PyErr::from)
     }
 }

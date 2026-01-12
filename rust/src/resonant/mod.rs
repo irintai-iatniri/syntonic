@@ -47,24 +47,24 @@
 //! let syntony = tensor.crystallize(1000)?;
 //! ```
 
-mod tensor;
+mod attractor;
 mod crystallize;
 mod evolver;
-mod attractor;
-mod retrocausal;
-pub mod phi_ops;
 pub mod golden_norm;
-pub mod syntonic_softmax;
-pub mod number_theory;
-pub mod syntony;
-pub mod py_wrappers;
 pub mod loss;
+pub mod number_theory;
+pub mod phi_ops;
+pub mod py_wrappers;
+mod retrocausal;
+pub mod syntonic_softmax;
+pub mod syntony;
+mod tensor;
 
-pub use tensor::{ResonantTensor, ResonantPhase, ResonantError};
-pub use evolver::{ResonantEvolver, RESConfig, RESResult};
-pub use phi_ops::{PhiResidualMode, phi_residual, phi_residual_relu};
+pub use evolver::{RESConfig, RESResult, ResonantEvolver};
 pub use golden_norm::GoldenNormMode;
-pub use syntonic_softmax::{SyntonicSoftmaxMode, SyntonicSoftmaxState, syntonic_softmax_py};
+pub use phi_ops::{phi_residual, phi_residual_relu, PhiResidualMode};
+pub use syntonic_softmax::{syntonic_softmax_py, SyntonicSoftmaxMode, SyntonicSoftmaxState};
+pub use tensor::{ResonantError, ResonantPhase, ResonantTensor};
 
 // Re-export key constants
 pub const PHI: f64 = 1.6180339887498948482;

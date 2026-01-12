@@ -8,18 +8,18 @@
 //! 2. Snap to Q(φ) lattice
 //! 3. Enforce φ-dwell: t_H ≥ φ × t_D
 
-use std::time::{Duration, Instant};
-use crate::exact::GoldenExact;
 use super::{PHI, PHI_INV};
+use crate::exact::GoldenExact;
+use std::time::{Duration, Instant};
 
+#[cfg(feature = "cuda")]
+use crate::tensor::srt_kernels::cuda_resonant_snap_gradient_f64;
 #[cfg(feature = "cuda")]
 use cudarc::driver::safe::CudaContext as CudaDevice;
 #[cfg(feature = "cuda")]
 use cudarc::driver::CudaSlice;
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
-#[cfg(feature = "cuda")]
-use crate::tensor::srt_kernels::cuda_resonant_snap_gradient_f64;
 
 /// Apply Ĥ (harmonization) operator and crystallize to Q(φ) lattice.
 ///
@@ -102,11 +102,10 @@ pub fn crystallize_with_dwell(
         precision = candidate_precision.max(precision + 1);
 
         // Re-snap with higher precision (Ĥ already applied, just re-snap)
-        let float_values: Vec<f64> = lattice.iter()
-            .map(|g| g.to_f64())
-            .collect();
+        let float_values: Vec<f64> = lattice.iter().map(|g| g.to_f64()).collect();
 
-        lattice = float_values.iter()
+        lattice = float_values
+            .iter()
             .map(|&x| GoldenExact::find_nearest(x, precision))
             .collect();
     }
@@ -151,9 +150,7 @@ pub fn crystallize_with_dwell_legacy(
 
         // Re-snap with higher precision
         // Get float values from current lattice, then re-snap
-        let float_values: Vec<f64> = lattice.iter()
-            .map(|g| g.to_f64())
-            .collect();
+        let float_values: Vec<f64> = lattice.iter().map(|g| g.to_f64()).collect();
 
         lattice = snap_to_lattice(&float_values, precision);
 
@@ -226,11 +223,9 @@ pub fn compute_lattice_syntony(lattice: &[GoldenExact], mode_norm_sq: &[f64]) ->
 ///
 /// # Returns
 /// Vector of gradients (post - pre) for each element
-pub fn compute_snap_gradient(
-    pre_snap: &[f64],
-    post_snap: &[GoldenExact],
-) -> Vec<f64> {
-    pre_snap.iter()
+pub fn compute_snap_gradient(pre_snap: &[f64], post_snap: &[GoldenExact]) -> Vec<f64> {
+    pre_snap
+        .iter()
         .zip(post_snap.iter())
         .map(|(&pre, post)| {
             let post_f64 = post.to_f64();
@@ -274,15 +269,23 @@ pub fn compute_snap_gradient_cuda(
     // Use CUDA if device is provided
     if let Some(device) = device {
         // Upload data to GPU
-        let gpu_pre_snap = device.default_stream().clone_htod(pre_snap)
+        let gpu_pre_snap = device
+            .default_stream()
+            .clone_htod(pre_snap)
             .map_err(|e| format!("Failed to upload pre_snap to GPU: {}", e))?;
-        let gpu_post_snap = device.default_stream().clone_htod(&post_snap_f64)
+        let gpu_post_snap = device
+            .default_stream()
+            .clone_htod(&post_snap_f64)
             .map_err(|e| format!("Failed to upload post_snap to GPU: {}", e))?;
-        let gpu_mode_norm_sq = device.default_stream().clone_htod(mode_norm_sq)
+        let gpu_mode_norm_sq = device
+            .default_stream()
+            .clone_htod(mode_norm_sq)
             .map_err(|e| format!("Failed to upload mode_norm_sq to GPU: {}", e))?;
 
         // Allocate output buffer
-        let mut gpu_gradient: CudaSlice<f64> = device.default_stream().alloc_zeros(n)
+        let mut gpu_gradient: CudaSlice<f64> = device
+            .default_stream()
+            .alloc_zeros(n)
             .map_err(|e| format!("Failed to allocate gradient buffer: {}", e))?;
 
         // Run CUDA kernel
@@ -293,11 +296,14 @@ pub fn compute_snap_gradient_cuda(
             &gpu_post_snap,
             &gpu_mode_norm_sq,
             n,
-        ).map_err(|e| format!("CUDA snap gradient failed: {}", e))?;
+        )
+        .map_err(|e| format!("CUDA snap gradient failed: {}", e))?;
 
         // Download result
         let mut gradient = vec![0.0f64; n];
-        device.default_stream().memcpy_dtoh(&gpu_gradient, &mut gradient)
+        device
+            .default_stream()
+            .memcpy_dtoh(&gpu_gradient, &mut gradient)
             .map_err(|e| format!("Failed to download gradient from GPU: {}", e))?;
 
         Ok(gradient)
@@ -378,17 +384,17 @@ mod tests {
     fn test_snap_gradient() {
         let pre = vec![1.5, 2.5, 3.5];
         let post = vec![
-            GoldenExact::from_ints(2, 0),  // 2.0
-            GoldenExact::from_ints(2, 0),  // 2.0
-            GoldenExact::from_ints(4, 0),  // 4.0
+            GoldenExact::from_ints(2, 0), // 2.0
+            GoldenExact::from_ints(2, 0), // 2.0
+            GoldenExact::from_ints(4, 0), // 4.0
         ];
 
         let gradient = compute_snap_gradient(&pre, &post);
 
         assert_eq!(gradient.len(), 3);
-        assert!((gradient[0] - 0.5).abs() < 1e-10);  // 2.0 - 1.5
+        assert!((gradient[0] - 0.5).abs() < 1e-10); // 2.0 - 1.5
         assert!((gradient[1] - (-0.5)).abs() < 1e-10); // 2.0 - 2.5
-        assert!((gradient[2] - 0.5).abs() < 1e-10);  // 4.0 - 3.5
+        assert!((gradient[2] - 0.5).abs() < 1e-10); // 4.0 - 3.5
     }
 
     #[test]

@@ -1,80 +1,131 @@
 use pyo3::prelude::*;
 
-mod tensor;
-mod hypercomplex;
 mod exact;
+mod hypercomplex;
 mod linalg;
-mod winding;
-mod spectral;
 mod resonant;
+mod spectral;
+mod tensor;
+mod winding;
 
-use tensor::storage::{TensorStorage, cuda_is_available, cuda_device_count,
-    srt_scale_phi, srt_golden_gaussian_weights, srt_apply_correction,
-    srt_e8_batch_projection, srt_theta_series, srt_compute_syntony, srt_dhsr_cycle};
+use hypercomplex::{Octonion, Quaternion};
+#[cfg(feature = "cuda")]
+use tensor::cuda::{AsyncTensorTransfer, TransferComputeOverlap};
+use tensor::srt_kernels;
 #[cfg(feature = "cuda")]
 use tensor::storage::srt_transfer_stats;
-use tensor::srt_kernels;
-use hypercomplex::{Quaternion, Octonion};
+use tensor::storage::{
+    cuda_device_count, cuda_is_available, srt_apply_correction, srt_compute_syntony,
+    srt_dhsr_cycle, srt_e8_batch_projection, srt_golden_gaussian_weights, srt_scale_phi,
+    srt_theta_series, TensorStorage,
+};
 
 // Winding state and enumeration
 use winding::{
+    count_windings, enumerate_windings, enumerate_windings_by_norm, enumerate_windings_exact_norm,
     WindingState, WindingStateIterator,
-    enumerate_windings, enumerate_windings_by_norm, enumerate_windings_exact_norm, count_windings,
 };
 
 // Spectral operations
 use spectral::{
-    theta_series_evaluate, theta_series_weighted, theta_series_derivative,
-    heat_kernel_trace, heat_kernel_weighted, heat_kernel_derivative,
-    compute_eigenvalues, compute_golden_weights, compute_norm_squared,
-    spectral_zeta, spectral_zeta_weighted,
-    partition_function, theta_sum_combined,
-    count_by_generation, filter_by_generation,
+    compute_eigenvalues,
+    compute_golden_weights,
+    compute_knot_eigenvalues,
+    compute_norm_squared,
+    count_by_generation,
+    filter_by_generation,
+    heat_kernel_derivative,
+    heat_kernel_trace,
+    heat_kernel_weighted,
     // Knot Laplacian operations
-    knot_eigenvalue, compute_knot_eigenvalues,
-    knot_heat_kernel_trace, knot_spectral_zeta, knot_spectral_zeta_complex,
+    knot_eigenvalue,
+    knot_heat_kernel_trace,
+    knot_spectral_zeta,
+    knot_spectral_zeta_complex,
+    partition_function,
+    spectral_zeta,
+    spectral_zeta_weighted,
+    theta_series_derivative,
+    theta_series_evaluate,
+    theta_series_weighted,
+    theta_sum_combined,
 };
 
 // New exact arithmetic types
-use exact::{
-    Rational,
-    GoldenExact,
-    FundamentalConstant,
-    CorrectionLevel,
-    PySymExpr,
-    Structure,
-};
+use exact::{CorrectionLevel, FundamentalConstant, GoldenExact, PySymExpr, Rational, Structure};
 
 // Resonant Engine types
-use resonant::{ResonantTensor, ResonantEvolver, RESConfig, RESResult};
+use resonant::{RESConfig, RESResult, ResonantEvolver, ResonantTensor};
 
 // Number theory and syntony wrappers
 use resonant::py_wrappers::{
-    py_mobius, py_is_square_free, py_mertens, py_golden_weight, py_golden_weights, py_e_star,
-    py_compute_winding_syntony, py_batch_winding_syntony, py_aggregate_syntony, py_standard_mode_norms,
-    py_crystallize_with_dwell_legacy, py_snap_distance, py_compute_snap_gradient,
-    py_mse_loss, py_softmax, py_cross_entropy_loss, py_batch_cross_entropy_loss,
-    py_syntony_loss, py_phase_alignment_loss, py_syntonic_loss,
-    py_estimate_syntony_from_probs, py_golden_decay_loss,
+    py_aggregate_syntony,
+    py_are_broadcastable,
+    py_avg_pool2d,
+    py_batch_cross_entropy_loss,
+    py_batch_winding_syntony,
+    py_broadcast_add,
+    py_broadcast_div,
+    py_broadcast_mul,
     // Broadcasting
-    py_broadcast_shape, py_are_broadcastable, py_broadcast_add, py_broadcast_mul,
-    py_broadcast_sub, py_broadcast_div,
-    // In-place
-    py_inplace_add_scalar, py_inplace_mul_scalar, py_inplace_negate,
-    py_inplace_abs, py_inplace_clamp, py_inplace_golden_weight,
+    py_broadcast_shape,
+    py_broadcast_sub,
+    py_compute_snap_gradient,
+    py_compute_winding_syntony,
     // Convolution
-    py_conv2d, py_max_pool2d, py_avg_pool2d, py_global_avg_pool2d,
+    py_conv2d,
+    py_cross_entropy_loss,
+    py_crystallize_with_dwell_legacy,
+    py_e_star,
+    py_estimate_syntony_from_probs,
+    py_global_avg_pool2d,
+    py_golden_decay_loss,
+    py_golden_weight,
+    py_golden_weights,
+    py_inplace_abs,
+    // In-place
+    py_inplace_add_scalar,
+    py_inplace_clamp,
+    py_inplace_div_scalar,
+    py_inplace_golden_weight,
+    py_inplace_mul_scalar,
+    py_inplace_negate,
+    py_inplace_sub_scalar,
+    py_is_square_free,
+    py_linear_index,
+    py_max_pool2d,
+    py_mertens,
+    py_mobius,
+    py_mse_loss,
+    py_phase_alignment_loss,
+    py_snap_distance,
+    py_softmax,
+    py_standard_mode_norms,
+    py_syntonic_loss,
+    py_syntony_loss,
 };
 
 // Linear algebra operations
 use linalg::{
-    py_mm, py_mm_add, py_mm_tn, py_mm_nt, py_mm_tt,
-    py_mm_hn, py_mm_nh, py_bmm,
-    py_mm_phi, py_phi_bracket, py_phi_antibracket,
-    py_mm_corrected, py_mm_golden_phase, py_mm_golden_weighted,
-    py_projection_sum,
+    py_bmm,
+    py_mm,
+    py_mm_add,
+    py_mm_corrected,
     // New generalized functions
-    py_mm_gemm, py_mm_q_corrected_direct, py_q_correction_scalar,
+    py_mm_gemm,
+    py_mm_golden_phase,
+    py_mm_golden_weighted,
+    py_mm_hn,
+    py_mm_nh,
+    py_mm_nt,
+    py_mm_phi,
+    py_mm_q_corrected_direct,
+    py_mm_tn,
+    py_mm_tt,
+    py_phi_antibracket,
+    py_phi_bracket,
+    py_projection_sum,
+    py_q_correction_scalar,
 };
 
 // =============================================================================
@@ -144,8 +195,14 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // === Golden Batch Normalization ===
     m.add_class::<resonant::GoldenNormMode>()?;
-    m.add_function(wrap_pyfunction!(resonant::golden_norm::golden_batch_norm_1d_py, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::golden_norm::golden_batch_norm_2d_py, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::golden_norm::golden_batch_norm_1d_py,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::golden_norm::golden_batch_norm_2d_py,
+        m
+    )?)?;
 
     // === Syntonic Softmax ===
     m.add_class::<resonant::SyntonicSoftmaxMode>()?;
@@ -154,6 +211,10 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // === Core Tensor Operations ===
     m.add_class::<TensorStorage>()?;
+    #[cfg(feature = "cuda")]
+    m.add_class::<AsyncTensorTransfer>()?;
+    #[cfg(feature = "cuda")]
+    m.add_class::<TransferComputeOverlap>()?;
     m.add_function(wrap_pyfunction!(cuda_is_available, m)?)?;
     m.add_function(wrap_pyfunction!(cuda_device_count, m)?)?;
 
@@ -180,6 +241,8 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // === SRT Memory Transfer Statistics ===
     #[cfg(feature = "cuda")]
     m.add_function(wrap_pyfunction!(srt_transfer_stats, m)?)?;
+    #[cfg(feature = "cuda")]
+    m.add_function(wrap_pyfunction!(srt_kernels::validate_kernels, m)?)?;
 
     // === Winding State ===
     m.add_class::<WindingState>()?;
@@ -229,7 +292,10 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_crystallize_with_dwell_legacy, m)?)?;
     m.add_function(wrap_pyfunction!(py_snap_distance, m)?)?;
     m.add_function(wrap_pyfunction!(py_compute_snap_gradient, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_compute_snap_gradient_cuda, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_compute_snap_gradient_cuda,
+        m
+    )?)?;
 
     // === Loss Functions (Rust Performance Backend) ===
     m.add_function(wrap_pyfunction!(py_mse_loss, m)?)?;
@@ -249,10 +315,13 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_broadcast_mul, m)?)?;
     m.add_function(wrap_pyfunction!(py_broadcast_sub, m)?)?;
     m.add_function(wrap_pyfunction!(py_broadcast_div, m)?)?;
+    m.add_function(wrap_pyfunction!(py_linear_index, m)?)?;
 
     // === In-place Operations ===
     m.add_function(wrap_pyfunction!(py_inplace_add_scalar, m)?)?;
     m.add_function(wrap_pyfunction!(py_inplace_mul_scalar, m)?)?;
+    m.add_function(wrap_pyfunction!(py_inplace_sub_scalar, m)?)?;
+    m.add_function(wrap_pyfunction!(py_inplace_div_scalar, m)?)?;
     m.add_function(wrap_pyfunction!(py_inplace_negate, m)?)?;
     m.add_function(wrap_pyfunction!(py_inplace_abs, m)?)?;
     m.add_function(wrap_pyfunction!(py_inplace_clamp, m)?)?;

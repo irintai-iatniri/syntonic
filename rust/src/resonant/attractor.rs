@@ -261,11 +261,7 @@ mod tests {
     #[test]
     fn test_maybe_add_above_threshold() {
         let mut memory = AttractorMemory::new(10, 0.7, 0.95);
-        let tensor = ResonantTensor::from_floats_default_modes(
-            &[1.0, 2.0],
-            vec![2],
-            100
-        ).unwrap();
+        let tensor = ResonantTensor::from_floats_default_modes(&[1.0, 2.0], vec![2], 100).unwrap();
 
         memory.maybe_add(&tensor, 0.8, 0);
         assert_eq!(memory.len(), 1);
@@ -274,11 +270,7 @@ mod tests {
     #[test]
     fn test_maybe_add_below_threshold() {
         let mut memory = AttractorMemory::new(10, 0.7, 0.95);
-        let tensor = ResonantTensor::from_floats_default_modes(
-            &[1.0, 2.0],
-            vec![2],
-            100
-        ).unwrap();
+        let tensor = ResonantTensor::from_floats_default_modes(&[1.0, 2.0], vec![2], 100).unwrap();
 
         memory.maybe_add(&tensor, 0.5, 0);
         assert_eq!(memory.len(), 0); // Not added
@@ -293,8 +285,9 @@ mod tests {
             let tensor = ResonantTensor::from_floats_default_modes(
                 &[i as f64, (i + 1) as f64],
                 vec![2],
-                100
-            ).unwrap();
+                100,
+            )
+            .unwrap();
             let syntony = 0.6 + i as f64 * 0.1;
             memory.maybe_add(&tensor, syntony, i);
         }
@@ -306,11 +299,7 @@ mod tests {
     #[test]
     fn test_compute_attractor_pull_empty() {
         let memory = AttractorMemory::new(10, 0.7, 0.95);
-        let current = ResonantTensor::from_floats_default_modes(
-            &[1.0, 2.0],
-            vec![2],
-            100
-        ).unwrap();
+        let current = ResonantTensor::from_floats_default_modes(&[1.0, 2.0], vec![2], 100).unwrap();
 
         let pull = memory.compute_attractor_pull(&current).unwrap();
         assert_eq!(pull.len(), current.len());
@@ -324,11 +313,7 @@ mod tests {
     fn test_temporal_decay() {
         let mut memory = AttractorMemory::new(10, 0.5, 0.95);
 
-        let tensor = ResonantTensor::from_floats_default_modes(
-            &[1.0, 2.0],
-            vec![2],
-            100
-        ).unwrap();
+        let tensor = ResonantTensor::from_floats_default_modes(&[1.0, 2.0], vec![2], 100).unwrap();
         memory.maybe_add(&tensor, 0.8, 0);
 
         let initial_weight = memory.compute_effective_weight(0);

@@ -5,10 +5,9 @@
 //! - phi_symmetric: output = (identity + residual)/φ
 //! - standard: output = identity + residual (for ablation)
 
-use pyo3::prelude::*;
-use crate::resonant::{ResonantTensor, ResonantPhase, ResonantError};
 use super::PHI_INV;
-
+use crate::resonant::{ResonantError, ResonantPhase, ResonantTensor};
+use pyo3::prelude::*;
 
 /// Phi-residual modes
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -30,9 +29,10 @@ impl PhiResidualMode {
             "phi" => Ok(PhiResidualMode::Phi),
             "phi_symmetric" => Ok(PhiResidualMode::PhiSymmetric),
             "standard" => Ok(PhiResidualMode::Standard),
-            _ => Err(pyo3::exceptions::PyValueError::new_err(
-                format!("Unknown mode: {}. Use 'phi', 'phi_symmetric', or 'standard'", mode_str)
-            )),
+            _ => Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Unknown mode: {}. Use 'phi', 'phi_symmetric', or 'standard'",
+                mode_str
+            ))),
         }
     }
 
@@ -54,10 +54,11 @@ impl ResonantTensor {
     ) -> Result<ResonantTensor, ResonantError> {
         // Validate shapes match
         if identity.shape() != residual.shape() {
-            return Err(ResonantError::ShapeMismatch(
-                format!("Identity shape {:?} does not match residual shape {:?}",
-                    identity.shape(), residual.shape())
-            ));
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Identity shape {:?} does not match residual shape {:?}",
+                identity.shape(),
+                residual.shape()
+            )));
         }
 
         // Convert to floats for computation
@@ -65,24 +66,21 @@ impl ResonantTensor {
         let residual_floats = residual.to_floats_core();
 
         let output_floats: Vec<f64> = match mode {
-            PhiResidualMode::Phi => {
-                identity_floats.iter()
-                    .zip(residual_floats.iter())
-                    .map(|(i, r)| i + r * PHI_INV)
-                    .collect()
-            },
-            PhiResidualMode::PhiSymmetric => {
-                identity_floats.iter()
-                    .zip(residual_floats.iter())
-                    .map(|(i, r)| (i + r) * PHI_INV)
-                    .collect()
-            },
-            PhiResidualMode::Standard => {
-                identity_floats.iter()
-                    .zip(residual_floats.iter())
-                    .map(|(i, r)| i + r)
-                    .collect()
-            },
+            PhiResidualMode::Phi => identity_floats
+                .iter()
+                .zip(residual_floats.iter())
+                .map(|(i, r)| i + r * PHI_INV)
+                .collect(),
+            PhiResidualMode::PhiSymmetric => identity_floats
+                .iter()
+                .zip(residual_floats.iter())
+                .map(|(i, r)| (i + r) * PHI_INV)
+                .collect(),
+            PhiResidualMode::Standard => identity_floats
+                .iter()
+                .zip(residual_floats.iter())
+                .map(|(i, r)| i + r)
+                .collect(),
         };
 
         // Create output tensor
@@ -106,7 +104,8 @@ impl ResonantTensor {
             // Fallback to CPU for non-phi modes
             let combined = Self::phi_residual(identity, residual, mode)?;
             let combined_floats = combined.to_floats_core();
-            let relu_floats: Vec<f64> = combined_floats.iter()
+            let relu_floats: Vec<f64> = combined_floats
+                .iter()
                 .map(|&x| if x > 0.0 { x } else { 0.0 })
                 .collect();
 
@@ -131,7 +130,8 @@ impl ResonantTensor {
         // Fallback to CPU
         let combined = Self::phi_residual(identity, residual, mode)?;
         let combined_floats = combined.to_floats_core();
-        let relu_floats: Vec<f64> = combined_floats.iter()
+        let relu_floats: Vec<f64> = combined_floats
+            .iter()
             .map(|&x| if x > 0.0 { x } else { 0.0 })
             .collect();
 
@@ -151,8 +151,7 @@ pub fn phi_residual(
     residual: &ResonantTensor,
     mode: PhiResidualMode,
 ) -> PyResult<ResonantTensor> {
-    ResonantTensor::phi_residual(identity, residual, mode)
-        .map_err(|e| PyErr::from(e))
+    ResonantTensor::phi_residual(identity, residual, mode).map_err(|e| PyErr::from(e))
 }
 
 #[pyfunction]
@@ -161,8 +160,7 @@ pub fn phi_residual_relu(
     residual: &ResonantTensor,
     mode: PhiResidualMode,
 ) -> PyResult<ResonantTensor> {
-    ResonantTensor::phi_residual_relu(identity, residual, mode)
-        .map_err(|e| PyErr::from(e))
+    ResonantTensor::phi_residual_relu(identity, residual, mode).map_err(|e| PyErr::from(e))
 }
 
 // =============================================================================
@@ -196,20 +194,17 @@ impl ResonantTensor {
 
         // Allocate output
         let n = identity.len();
-        let mut out_flux = device.default_stream().alloc_zeros::<f64>(n)
+        let mut out_flux = device
+            .default_stream()
+            .alloc_zeros::<f64>(n)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Launch kernel
         let identity_flux = identity.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
         let residual_flux = residual.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
 
-        cuda_phi_residual_f64(
-            &device,
-            &mut out_flux,
-            identity_flux,
-            residual_flux,
-            mode,
-        ).map_err(|e| ResonantError::CudaError(e))?;
+        cuda_phi_residual_f64(&device, &mut out_flux, identity_flux, residual_flux, mode)
+            .map_err(|e| ResonantError::CudaError(e))?;
 
         // Create output tensor (flux phase)
         let mut output = identity.clone();
@@ -243,19 +238,17 @@ impl ResonantTensor {
 
         // Allocate output
         let n = identity.len();
-        let mut out_flux = device.default_stream().alloc_zeros::<f64>(n)
+        let mut out_flux = device
+            .default_stream()
+            .alloc_zeros::<f64>(n)
             .map_err(|e| ResonantError::CudaError(e.to_string()))?;
 
         // Launch kernel (note: cuda_phi_residual_relu_f64 doesn't take mode, assumes phi mode)
         let identity_flux = identity.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
         let residual_flux = residual.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
 
-        cuda_phi_residual_relu_f64(
-            &device,
-            &mut out_flux,
-            identity_flux,
-            residual_flux,
-        ).map_err(|e| ResonantError::CudaError(e))?;
+        cuda_phi_residual_relu_f64(&device, &mut out_flux, identity_flux, residual_flux)
+            .map_err(|e| ResonantError::CudaError(e))?;
 
         // Create output tensor (flux phase)
         let mut output = identity.clone();
@@ -272,19 +265,14 @@ mod tests {
 
     #[test]
     fn test_phi_residual_mode_phi() {
-        let identity = ResonantTensor::from_floats(&vec![1.0; 4], vec![4], vec![0.0; 4], 100).unwrap();
-        let residual = ResonantTensor::from_floats(
-            &vec![1.0, 2.0, 3.0, 4.0],
-            vec![4],
-            vec![0.0; 4],
-            100,
-        ).unwrap();
+        let identity =
+            ResonantTensor::from_floats(&vec![1.0; 4], vec![4], vec![0.0; 4], 100).unwrap();
+        let residual =
+            ResonantTensor::from_floats(&vec![1.0, 2.0, 3.0, 4.0], vec![4], vec![0.0; 4], 100)
+                .unwrap();
 
-        let result = ResonantTensor::phi_residual(
-            &identity,
-            &residual,
-            PhiResidualMode::Phi,
-        ).unwrap();
+        let result =
+            ResonantTensor::phi_residual(&identity, &residual, PhiResidualMode::Phi).unwrap();
 
         let expected = vec![
             1.0 + 1.0 * PHI_INV,
@@ -301,19 +289,15 @@ mod tests {
 
     #[test]
     fn test_phi_residual_mode_symmetric() {
-        let identity = ResonantTensor::from_floats(&vec![1.0; 4], vec![4], vec![0.0; 4], 100).unwrap();
-        let residual = ResonantTensor::from_floats(
-            &vec![2.0, 4.0, 6.0, 8.0],
-            vec![4],
-            vec![0.0; 4],
-            100,
-        ).unwrap();
+        let identity =
+            ResonantTensor::from_floats(&vec![1.0; 4], vec![4], vec![0.0; 4], 100).unwrap();
+        let residual =
+            ResonantTensor::from_floats(&vec![2.0, 4.0, 6.0, 8.0], vec![4], vec![0.0; 4], 100)
+                .unwrap();
 
-        let result = ResonantTensor::phi_residual(
-            &identity,
-            &residual,
-            PhiResidualMode::PhiSymmetric,
-        ).unwrap();
+        let result =
+            ResonantTensor::phi_residual(&identity, &residual, PhiResidualMode::PhiSymmetric)
+                .unwrap();
 
         let expected = vec![
             (1.0 + 2.0) * PHI_INV,
@@ -330,19 +314,14 @@ mod tests {
 
     #[test]
     fn test_phi_residual_mode_standard() {
-        let identity = ResonantTensor::from_floats(&vec![1.0; 4], vec![4], vec![0.0; 4], 100).unwrap();
-        let residual = ResonantTensor::from_floats(
-            &vec![1.0, 2.0, 3.0, 4.0],
-            vec![4],
-            vec![0.0; 4],
-            100,
-        ).unwrap();
+        let identity =
+            ResonantTensor::from_floats(&vec![1.0; 4], vec![4], vec![0.0; 4], 100).unwrap();
+        let residual =
+            ResonantTensor::from_floats(&vec![1.0, 2.0, 3.0, 4.0], vec![4], vec![0.0; 4], 100)
+                .unwrap();
 
-        let result = ResonantTensor::phi_residual(
-            &identity,
-            &residual,
-            PhiResidualMode::Standard,
-        ).unwrap();
+        let result =
+            ResonantTensor::phi_residual(&identity, &residual, PhiResidualMode::Standard).unwrap();
 
         let expected = vec![2.0, 3.0, 4.0, 5.0];
 
@@ -354,14 +333,12 @@ mod tests {
 
     #[test]
     fn test_phi_residual_shape_mismatch() {
-        let identity = ResonantTensor::from_floats(&vec![1.0; 4], vec![4], vec![0.0; 4], 100).unwrap();
-        let residual = ResonantTensor::from_floats(&vec![1.0; 8], vec![8], vec![0.0; 8], 100).unwrap();
+        let identity =
+            ResonantTensor::from_floats(&vec![1.0; 4], vec![4], vec![0.0; 4], 100).unwrap();
+        let residual =
+            ResonantTensor::from_floats(&vec![1.0; 8], vec![8], vec![0.0; 8], 100).unwrap();
 
-        let result = ResonantTensor::phi_residual(
-            &identity,
-            &residual,
-            PhiResidualMode::Phi,
-        );
+        let result = ResonantTensor::phi_residual(&identity, &residual, PhiResidualMode::Phi);
 
         assert!(result.is_err());
     }

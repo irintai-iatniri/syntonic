@@ -2,10 +2,10 @@
 //!
 //! Exposes Rust implementations to Python via PyO3.
 
-use pyo3::prelude::*;
-use std::time::Duration;
 use super::number_theory;
 use super::syntony;
+use pyo3::prelude::*;
+use std::time::Duration;
 
 /// Compute the Möbius function μ(n).
 ///
@@ -82,7 +82,7 @@ pub fn py_standard_mode_norms(dim: usize) -> Vec<f64> {
 // === Crystallization Functions ===
 
 /// Legacy crystallization with dwell time enforcement.
-/// 
+///
 /// This function provides the original crystallization algorithm
 /// with explicit dwell timing for φ-resonance enforcement.
 #[pyfunction]
@@ -92,18 +92,18 @@ pub fn py_crystallize_with_dwell_legacy(
     target_duration_ms: u64,
 ) -> (Vec<f64>, i64, u64) {
     let target_duration = Duration::from_millis(target_duration_ms);
-    let (lattice, precision, actual_duration) = 
+    let (lattice, precision, actual_duration) =
         super::crystallize::crystallize_with_dwell_legacy(&values, base_precision, target_duration);
-    
+
     // Convert GoldenExact to f64 for Python
     let lattice_f64 = lattice.iter().map(|g| g.to_f64()).collect();
     let actual_duration_ms = actual_duration.as_millis() as u64;
-    
+
     (lattice_f64, precision, actual_duration_ms)
 }
 
 /// Compute snap distance for crystallization.
-/// 
+///
 /// Measures how far values are from their nearest lattice points.
 #[pyfunction]
 pub fn py_snap_distance(values: Vec<f64>, max_coeff: i64) -> f64 {
@@ -111,23 +111,21 @@ pub fn py_snap_distance(values: Vec<f64>, max_coeff: i64) -> f64 {
 }
 
 /// Compute snap gradient for crystallization.
-/// 
+///
 /// Computes the gradient towards lattice points for optimization.
 #[pyfunction]
-pub fn py_compute_snap_gradient(
-    pre_snap: Vec<f64>,
-    post_snap_lattice: Vec<f64>,
-) -> Vec<f64> {
+pub fn py_compute_snap_gradient(pre_snap: Vec<f64>, post_snap_lattice: Vec<f64>) -> Vec<f64> {
     // Convert f64 post_snap to GoldenExact for the function
-    let post_snap: Vec<crate::GoldenExact> = post_snap_lattice.iter()
+    let post_snap: Vec<crate::GoldenExact> = post_snap_lattice
+        .iter()
         .map(|&x| crate::GoldenExact::find_nearest(x, 1000))
         .collect();
-    
+
     super::crystallize::compute_snap_gradient(&pre_snap, &post_snap)
 }
 
 /// Compute snap gradient with CUDA acceleration.
-/// 
+///
 /// Uses GPU acceleration when available for computing gradients towards lattice points.
 #[pyfunction]
 pub fn py_compute_snap_gradient_cuda(
@@ -136,10 +134,11 @@ pub fn py_compute_snap_gradient_cuda(
     mode_norm_sq: Vec<f64>,
 ) -> Vec<f64> {
     // Convert f64 post_snap to GoldenExact for the function
-    let post_snap: Vec<crate::GoldenExact> = post_snap_lattice.iter()
+    let post_snap: Vec<crate::GoldenExact> = post_snap_lattice
+        .iter()
         .map(|&x| crate::GoldenExact::find_nearest(x, 1000))
         .collect();
-    
+
     super::crystallize::compute_snap_gradient_dispatch(&pre_snap, &post_snap, &mode_norm_sq)
 }
 
@@ -196,7 +195,13 @@ pub fn py_syntonic_loss(
     lambda_syntony: f64,
     mu_phase: f64,
 ) -> (f64, f64, f64, f64) {
-    super::loss::syntonic_loss(task_loss, model_syntony, phase_cost, lambda_syntony, mu_phase)
+    super::loss::syntonic_loss(
+        task_loss,
+        model_syntony,
+        phase_cost,
+        lambda_syntony,
+        mu_phase,
+    )
 }
 
 /// Estimate syntony from probability distribution.
@@ -288,6 +293,20 @@ pub fn py_inplace_mul_scalar(mut data: Vec<f64>, scalar: f64) -> Vec<f64> {
     data
 }
 
+/// In-place subtract scalar.
+#[pyfunction]
+pub fn py_inplace_sub_scalar(mut data: Vec<f64>, scalar: f64) -> Vec<f64> {
+    broadcast::inplace_sub_scalar(&mut data, scalar);
+    data
+}
+
+/// In-place divide scalar.
+#[pyfunction]
+pub fn py_inplace_div_scalar(mut data: Vec<f64>, scalar: f64) -> Vec<f64> {
+    broadcast::inplace_div_scalar(&mut data, scalar);
+    data
+}
+
 /// In-place negate.
 #[pyfunction]
 pub fn py_inplace_negate(mut data: Vec<f64>) -> Vec<f64> {
@@ -316,12 +335,18 @@ pub fn py_inplace_golden_weight(mut data: Vec<f64>, phi: f64) -> Vec<f64> {
     data
 }
 
+/// Compute linear index from indices and strides.
+#[pyfunction]
+pub fn py_linear_index(indices: Vec<usize>, strides: Vec<usize>) -> usize {
+    broadcast::linear_index(&indices, &strides)
+}
+
 // === Convolution Operations ===
 
 use crate::tensor::conv;
 
 /// 2D Convolution.
-/// 
+///
 /// Args:
 ///     input: Flattened input [batch, height, width, in_channels]
 ///     input_shape: [batch, height, width, in_channels]
@@ -341,8 +366,18 @@ pub fn py_conv2d(
     stride: (usize, usize),
     padding: (usize, usize),
 ) -> (Vec<f64>, Vec<usize>) {
-    let in_shape: [usize; 4] = [input_shape[0], input_shape[1], input_shape[2], input_shape[3]];
-    let k_shape: [usize; 4] = [kernel_shape[0], kernel_shape[1], kernel_shape[2], kernel_shape[3]];
+    let in_shape: [usize; 4] = [
+        input_shape[0],
+        input_shape[1],
+        input_shape[2],
+        input_shape[3],
+    ];
+    let k_shape: [usize; 4] = [
+        kernel_shape[0],
+        kernel_shape[1],
+        kernel_shape[2],
+        kernel_shape[3],
+    ];
     let (output, out_shape) = conv::conv2d(&input, &in_shape, &kernel, &k_shape, stride, padding);
     (output, out_shape.to_vec())
 }
@@ -355,7 +390,12 @@ pub fn py_max_pool2d(
     pool_size: (usize, usize),
     stride: (usize, usize),
 ) -> (Vec<f64>, Vec<usize>) {
-    let in_shape: [usize; 4] = [input_shape[0], input_shape[1], input_shape[2], input_shape[3]];
+    let in_shape: [usize; 4] = [
+        input_shape[0],
+        input_shape[1],
+        input_shape[2],
+        input_shape[3],
+    ];
     let (output, out_shape) = conv::max_pool2d(&input, &in_shape, pool_size, stride);
     (output, out_shape.to_vec())
 }
@@ -368,19 +408,25 @@ pub fn py_avg_pool2d(
     pool_size: (usize, usize),
     stride: (usize, usize),
 ) -> (Vec<f64>, Vec<usize>) {
-    let in_shape: [usize; 4] = [input_shape[0], input_shape[1], input_shape[2], input_shape[3]];
+    let in_shape: [usize; 4] = [
+        input_shape[0],
+        input_shape[1],
+        input_shape[2],
+        input_shape[3],
+    ];
     let (output, out_shape) = conv::avg_pool2d(&input, &in_shape, pool_size, stride);
     (output, out_shape.to_vec())
 }
 
 /// Global Average Pooling (spatial -> per-channel average).
 #[pyfunction]
-pub fn py_global_avg_pool2d(
-    input: Vec<f64>,
-    input_shape: Vec<usize>,
-) -> (Vec<f64>, Vec<usize>) {
-    let in_shape: [usize; 4] = [input_shape[0], input_shape[1], input_shape[2], input_shape[3]];
+pub fn py_global_avg_pool2d(input: Vec<f64>, input_shape: Vec<usize>) -> (Vec<f64>, Vec<usize>) {
+    let in_shape: [usize; 4] = [
+        input_shape[0],
+        input_shape[1],
+        input_shape[2],
+        input_shape[3],
+    ];
     let (output, out_shape) = conv::global_avg_pool2d(&input, &in_shape);
     (output, out_shape.to_vec())
 }
-
