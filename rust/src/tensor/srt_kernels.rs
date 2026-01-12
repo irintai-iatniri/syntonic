@@ -207,6 +207,12 @@ const DHSR_FUNCS: &[&str] = &[
     "dhsr_multi_cycle_c128",
 ];
 
+/// DHSR gravity functions
+#[cfg(feature = "cuda")]
+const DHSR_GRAVITY_FUNCS: &[&str] = &[
+    "apply_geodesic_gravity_f64",
+];
+
 /// Correction factor functions
 #[cfg(feature = "cuda")]
 const CORR_FUNCS: &[&str] = &[
@@ -536,6 +542,7 @@ fn validate_kernels_for_device(device: &Arc<CudaDevice>) -> PyResult<Vec<String>
     check_module(select_e8_ptx(major, minor), "e8", E8_FUNCS)?;
     check_module(select_heat_ptx(major, minor), "heat", HEAT_FUNCS)?;
     check_module(select_dhsr_ptx(major, minor), "dhsr", DHSR_FUNCS)?;
+    check_module(select_dhsr_ptx(major, minor), "dhsr_gravity", DHSR_GRAVITY_FUNCS)?;
     check_module(select_corr_ptx(major, minor), "correction", CORR_FUNCS)?;
     check_module(
         select_resonant_ptx(major, minor),
@@ -1997,6 +2004,47 @@ pub fn cuda_syntonic_softmax_provided_f64(
             .arg(&syntony_scale)
             .arg(&batch_size)
             .arg(&num_classes)
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+// =============================================================================
+// Geodesic Gravity Operations
+// =============================================================================
+
+#[cfg(feature = "cuda")]
+pub fn apply_geodesic_gravity_f64(
+    device: &Arc<CudaDevice>,
+    weights: &CudaSlice<f64>,
+    attractor: &CudaSlice<f64>,
+    mode_norm_sq: &CudaSlice<f64>,
+    gravity_strength: f64,
+    temperature: f64,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)))
+        .map_err(|e| format!("Failed to load dhsr kernels: {}", e))?;
+
+    let func = module
+        .load_function("apply_geodesic_gravity_f64")
+        .map_err(|_| "Kernel not found".to_string())?;
+
+    let cfg = launch_cfg_e8(n);
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(weights)
+            .arg(attractor)
+            .arg(mode_norm_sq)
+            .arg(&gravity_strength)
+            .arg(&temperature)
+            .arg(&(n as i32))
             .launch(cfg)
     }
     .map(|_| ())

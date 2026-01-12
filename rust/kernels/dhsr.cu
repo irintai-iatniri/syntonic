@@ -605,3 +605,68 @@ extern "C" __global__ void dhsr_multi_cycle_c128(
     psi[idx] = re;
     psi[idx + 1] = im;
 }
+
+// =============================================================================
+// Geodesic Gravity (Physical AI Update)
+// =============================================================================
+
+#define PHI_F64 1.618033988749895
+#define PHI_INV_F64 0.618033988749895
+
+// Helper: Project gradient onto E8 lattice tangent space
+__device__ void project_to_e8_tangent(double* grad, int dim) {
+    // Simple projection: Quantize to nearest lattice step (approximate E8 behavior)
+    double sum = 0.0;
+    
+    // Snap to nearest 0.5 step
+    for(int i=0; i<dim; i++) {
+        grad[i] = rint(grad[i] * 2.0) * 0.5;
+        sum += grad[i];
+    }
+    
+    // Enforce even sum constraint (parity conservation for E8)
+    if (fmod(fabs(sum), 2.0) > 1e-6) {
+        // Adjust the first coordinate to satisfy parity
+        // In a full implementation, we would adjust the coordinate that minimizes error
+        grad[0] += (sum > 0) ? -1.0 : 1.0;
+    }
+}
+
+extern "C" __global__ void apply_geodesic_gravity_f64(
+    double *weights,            // Current State (Mutable)
+    const double *attractor,    // Future State (Read-Only)
+    const double *mode_norm_sq, // Geometry info
+    double gravity_strength,    // Lambda (Pull)
+    double temperature,         // D-Phase Noise
+    int n
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int offset = idx * 8; // Operate on blocks of 8 (E8 unit cells)
+    
+    if (offset + 7 >= n) return;
+    
+    double local_grad[8];
+    double local_w[8];
+    
+    // 1. Calculate the Euclidean "Pull" (The raw desire)
+    for(int i=0; i<8; i++) {
+        local_w[i] = weights[offset + i];
+        local_grad[i] = attractor[offset + i] - local_w[i];
+    }
+    
+    // 2. The "Physical" Constraint: Project desire onto E8 Lattice Roots
+    project_to_e8_tangent(local_grad, 8);
+    
+    // 3. Apply Update with Thermodynamics
+    for(int i=0; i<8; i++) {
+        double update = local_grad[i] * gravity_strength * PHI_INV_F64;
+        
+        // Add D-Phase Heat (Tunneling Energy)
+        if (temperature > 1e-4) {
+            double noise = sin(idx * i * PHI_F64) * temperature;
+            update += noise;
+        }
+        
+        weights[offset + i] += update;
+    }
+}

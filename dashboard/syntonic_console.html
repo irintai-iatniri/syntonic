@@ -1,0 +1,1319 @@
+<html lang="en"><head>
+
+<script class="injected-ffc2e83d85">
+(function(){'use strict';function q(b){var c=0;return function(){return c<b.length?{done:!1,value:b[c++]}:{done:!0}}}function t(b){var c=typeof Symbol!="undefined"&&Symbol.iterator&&b[Symbol.iterator];if(c)return c.call(b);if(typeof b.length=="number")return{next:q(b)};throw Error(String(b)+" is not an iterable or ArrayLike");}var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,c,g){if(b==Array.prototype||b==Object.prototype)return b;b[c]=g.value;return b};
+function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var c=0;c<b.length;++c){var g=b[c];if(g&&g.Math==Math)return g}throw Error("Cannot find global object");}var w=v(this);function x(b,c){if(c)a:{var g=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var l=b[h];if(!(l in g))break a;g=g[l]}b=b[b.length-1];h=g[b];c=c(h);c!=h&&c!=null&&u(g,b,{configurable:!0,writable:!0,value:c})}}
+function y(){this.j=!1;this.g=null;this.u=void 0;this.h=1;this.v=this.l=0;this.i=null}function z(b){if(b.j)throw new TypeError("Generator is already running");b.j=!0}y.prototype.o=function(b){this.u=b};function A(b,c){b.i={I:c,J:!0};b.h=b.l||b.v}y.prototype.return=function(b){this.i={return:b};this.h=this.v};function B(b){this.g=new y;this.h=b}function E(b,c){z(b.g);var g=b.g.g;if(g)return F(b,"return"in g?g["return"]:function(h){return{value:h,done:!0}},c,b.g.return);b.g.return(c);return G(b)}
+function F(b,c,g,h){try{var l=c.call(b.g.g,g);if(!(l instanceof Object))throw new TypeError("Iterator result "+l+" is not an object");if(!l.done)return b.g.j=!1,l;var m=l.value}catch(f){return b.g.g=null,A(b.g,f),G(b)}b.g.g=null;h.call(b.g,m);return G(b)}function G(b){for(;b.g.h;)try{var c=b.h(b.g);if(c)return b.g.j=!1,{value:c.value,done:!1}}catch(g){b.g.u=void 0,A(b.g,g)}b.g.j=!1;if(b.g.i){c=b.g.i;b.g.i=null;if(c.J)throw c.I;return{value:c.return,done:!0}}return{value:void 0,done:!0}}
+function H(b){this.next=function(c){z(b.g);b.g.g?c=F(b,b.g.g.next,c,b.g.o):(b.g.o(c),c=G(b));return c};this.throw=function(c){z(b.g);b.g.g?c=F(b,b.g.g["throw"],c,b.g.o):(A(b.g,c),c=G(b));return c};this.return=function(c){return E(b,c)};this[Symbol.iterator]=function(){return this}}function I(b){function c(h){return b.next(h)}function g(h){return b.throw(h)}return new Promise(function(h,l){function m(f){f.done?h(f.value):Promise.resolve(f.value).then(c,g).then(m,l)}m(b.next())})}
+x("Symbol",function(b){function c(m){if(this instanceof c)throw new TypeError("Symbol is not a constructor");return new g(h+(m||"")+"_"+l++,m)}function g(m,f){this.g=m;u(this,"description",{configurable:!0,writable:!0,value:f})}if(b)return b;g.prototype.toString=function(){return this.g};var h="jscomp_symbol_"+(Math.random()*1E9>>>0)+"_",l=0;return c});
+x("Symbol.iterator",function(b){if(b)return b;b=Symbol("Symbol.iterator");u(Array.prototype,b,{configurable:!0,writable:!0,value:function(){return J(q(this))}});return b});function J(b){b={next:b};b[Symbol.iterator]=function(){return this};return b}
+x("Promise",function(b){function c(f){this.h=0;this.i=void 0;this.g=[];this.u=!1;var a=this.j();try{f(a.resolve,a.reject)}catch(d){a.reject(d)}}function g(){this.g=null}function h(f){return f instanceof c?f:new c(function(a){a(f)})}if(b)return b;g.prototype.h=function(f){if(this.g==null){this.g=[];var a=this;this.i(function(){a.l()})}this.g.push(f)};var l=w.setTimeout;g.prototype.i=function(f){l(f,0)};g.prototype.l=function(){for(;this.g&&this.g.length;){var f=this.g;this.g=[];for(var a=0;a<f.length;++a){var d=
+f[a];f[a]=null;try{d()}catch(e){this.j(e)}}}this.g=null};g.prototype.j=function(f){this.i(function(){throw f;})};c.prototype.j=function(){function f(e){return function(k){d||(d=!0,e.call(a,k))}}var a=this,d=!1;return{resolve:f(this.D),reject:f(this.l)}};c.prototype.D=function(f){if(f===this)this.l(new TypeError("A Promise cannot resolve to itself"));else if(f instanceof c)this.G(f);else{a:switch(typeof f){case "object":var a=f!=null;break a;case "function":a=!0;break a;default:a=!1}a?this.C(f):this.o(f)}};
+c.prototype.C=function(f){var a=void 0;try{a=f.then}catch(d){this.l(d);return}typeof a=="function"?this.H(a,f):this.o(f)};c.prototype.l=function(f){this.v(2,f)};c.prototype.o=function(f){this.v(1,f)};c.prototype.v=function(f,a){if(this.h!=0)throw Error("Cannot settle("+f+", "+a+"): Promise already settled in state"+this.h);this.h=f;this.i=a;this.h===2&&this.F();this.K()};c.prototype.F=function(){var f=this;l(function(){if(f.B()){var a=w.console;typeof a!=="undefined"&&a.error(f.i)}},1)};c.prototype.B=
+function(){if(this.u)return!1;var f=w.CustomEvent,a=w.Event,d=w.dispatchEvent;if(typeof d==="undefined")return!0;typeof f==="function"?f=new f("unhandledrejection",{cancelable:!0}):typeof a==="function"?f=new a("unhandledrejection",{cancelable:!0}):(f=w.document.createEvent("CustomEvent"),f.initCustomEvent("unhandledrejection",!1,!0,f));f.promise=this;f.reason=this.i;return d(f)};c.prototype.K=function(){if(this.g!=null){for(var f=0;f<this.g.length;++f)m.h(this.g[f]);this.g=null}};var m=new g;c.prototype.G=
+function(f){var a=this.j();f.A(a.resolve,a.reject)};c.prototype.H=function(f,a){var d=this.j();try{f.call(a,d.resolve,d.reject)}catch(e){d.reject(e)}};c.prototype.then=function(f,a){function d(n,r){return typeof n=="function"?function(C){try{e(n(C))}catch(D){k(D)}}:r}var e,k,p=new c(function(n,r){e=n;k=r});this.A(d(f,e),d(a,k));return p};c.prototype.catch=function(f){return this.then(void 0,f)};c.prototype.A=function(f,a){function d(){switch(e.h){case 1:f(e.i);break;case 2:a(e.i);break;default:throw Error("Unexpected state: "+
+e.h);}}var e=this;this.g==null?m.h(d):this.g.push(d);this.u=!0};c.resolve=h;c.reject=function(f){return new c(function(a,d){d(f)})};c.race=function(f){return new c(function(a,d){for(var e=t(f),k=e.next();!k.done;k=e.next())h(k.value).A(a,d)})};c.all=function(f){var a=t(f),d=a.next();return d.done?h([]):new c(function(e,k){function p(C){return function(D){n[C]=D;r--;r==0&&e(n)}}var n=[],r=0;do n.push(void 0),r++,h(d.value).A(p(n.length-1),k),d=a.next();while(!d.done)})};return c});
+function K(b,c){return Object.prototype.hasOwnProperty.call(b,c)}x("Object.is",function(b){return b?b:function(c,g){return c===g?c!==0||1/c===1/g:c!==c&&g!==g}});x("Array.prototype.includes",function(b){return b?b:function(c,g){var h=this;h instanceof String&&(h=String(h));var l=h.length;g=g||0;for(g<0&&(g=Math.max(g+l,0));g<l;g++){var m=h[g];if(m===c||Object.is(m,c))return!0}return!1}});
+x("String.prototype.includes",function(b){return b?b:function(c,g){if(this==null)throw new TypeError("The 'this' value for String.prototype.includes must not be null or undefined");if(c instanceof RegExp)throw new TypeError("First argument to String.prototype.includes must not be a regular expression");return this.indexOf(c,g||0)!==-1}});
+x("WeakMap",function(b){function c(d){this.g=(a+=Math.random()+1).toString();if(d){d=t(d);for(var e;!(e=d.next()).done;)e=e.value,this.set(e[0],e[1])}}function g(){}function h(d){var e=typeof d;return e==="object"&&d!==null||e==="function"}function l(d){if(!K(d,f)){var e=new g;u(d,f,{value:e})}}function m(d){var e=Object[d];e&&(Object[d]=function(k){if(k instanceof g)return k;Object.isExtensible(k)&&l(k);return e(k)})}if(function(){if(!b||!Object.seal)return!1;try{var d=Object.seal({}),e=Object.seal({}),
+k=new b([[d,2],[e,3]]);if(k.get(d)!=2||k.get(e)!=3)return!1;k.delete(d);k.set(e,4);return!k.has(d)&&k.get(e)==4}catch(p){return!1}}())return b;var f="$jscomp_hidden_"+Math.random();m("freeze");m("preventExtensions");m("seal");var a=0;c.prototype.set=function(d,e){if(!h(d))throw Error("Invalid WeakMap key");l(d);if(!K(d,f))throw Error("WeakMap key fail: "+d);d[f][this.g]=e;return this};c.prototype.get=function(d){return h(d)&&K(d,f)?d[f][this.g]:void 0};c.prototype.has=function(d){return h(d)&&K(d,
+f)&&K(d[f],this.g)};c.prototype.delete=function(d){return h(d)&&K(d,f)&&K(d[f],this.g)?delete d[f][this.g]:!1};return c});
+x("Map",function(b){function c(){var a={};return a.m=a.next=a.head=a}function g(a,d){var e=a[1];return J(function(){if(e){for(;e.head!=a[1];)e=e.m;for(;e.next!=e.head;)return e=e.next,{done:!1,value:d(e)};e=null}return{done:!0,value:void 0}})}function h(a,d){var e=d&&typeof d;e=="object"||e=="function"?m.has(d)?e=m.get(d):(e=""+ ++f,m.set(d,e)):e="p_"+d;var k=a[0][e];if(k&&K(a[0],e))for(a=0;a<k.length;a++){var p=k[a];if(d!==d&&p.key!==p.key||d===p.key)return{id:e,list:k,index:a,entry:p}}return{id:e,
+list:k,index:-1,entry:void 0}}function l(a){this[0]={};this[1]=c();this.size=0;if(a){a=t(a);for(var d;!(d=a.next()).done;)d=d.value,this.set(d[0],d[1])}}if(function(){if(!b||typeof b!="function"||!b.prototype.entries||typeof Object.seal!="function")return!1;try{var a=Object.seal({x:4}),d=new b(t([[a,"s"]]));if(d.get(a)!="s"||d.size!=1||d.get({x:4})||d.set({x:4},"t")!=d||d.size!=2)return!1;var e=d.entries(),k=e.next();if(k.done||k.value[0]!=a||k.value[1]!="s")return!1;k=e.next();return k.done||k.value[0].x!=
+4||k.value[1]!="t"||!e.next().done?!1:!0}catch(p){return!1}}())return b;var m=new WeakMap;l.prototype.set=function(a,d){a=a===0?0:a;var e=h(this,a);e.list||(e.list=this[0][e.id]=[]);e.entry?e.entry.value=d:(e.entry={next:this[1],m:this[1].m,head:this[1],key:a,value:d},e.list.push(e.entry),this[1].m.next=e.entry,this[1].m=e.entry,this.size++);return this};l.prototype.delete=function(a){a=h(this,a);return a.entry&&a.list?(a.list.splice(a.index,1),a.list.length||delete this[0][a.id],a.entry.m.next=a.entry.next,
+a.entry.next.m=a.entry.m,a.entry.head=null,this.size--,!0):!1};l.prototype.clear=function(){this[0]={};this[1]=this[1].m=c();this.size=0};l.prototype.has=function(a){return!!h(this,a).entry};l.prototype.get=function(a){return(a=h(this,a).entry)&&a.value};l.prototype.entries=function(){return g(this,function(a){return[a.key,a.value]})};l.prototype.keys=function(){return g(this,function(a){return a.key})};l.prototype.values=function(){return g(this,function(a){return a.value})};l.prototype.forEach=
+function(a,d){for(var e=this.entries(),k;!(k=e.next()).done;)k=k.value,a.call(d,k[1],k[0],this)};l.prototype[Symbol.iterator]=l.prototype.entries;var f=0;return l});
+x("Set",function(b){function c(g){this.g=new Map;if(g){g=t(g);for(var h;!(h=g.next()).done;)this.add(h.value)}this.size=this.g.size}if(function(){if(!b||typeof b!="function"||!b.prototype.entries||typeof Object.seal!="function")return!1;try{var g=Object.seal({x:4}),h=new b(t([g]));if(!h.has(g)||h.size!=1||h.add(g)!=h||h.size!=1||h.add({x:4})!=h||h.size!=2)return!1;var l=h.entries(),m=l.next();if(m.done||m.value[0]!=g||m.value[1]!=g)return!1;m=l.next();return m.done||m.value[0]==g||m.value[0].x!=4||
+m.value[1]!=m.value[0]?!1:l.next().done}catch(f){return!1}}())return b;c.prototype.add=function(g){g=g===0?0:g;this.g.set(g,g);this.size=this.g.size;return this};c.prototype.delete=function(g){g=this.g.delete(g);this.size=this.g.size;return g};c.prototype.clear=function(){this.g.clear();this.size=0};c.prototype.has=function(g){return this.g.has(g)};c.prototype.entries=function(){return this.g.entries()};c.prototype.values=function(){return this.g.values()};c.prototype.keys=c.prototype.values;c.prototype[Symbol.iterator]=
+c.prototype.values;c.prototype.forEach=function(g,h){var l=this;this.g.forEach(function(m){return g.call(h,m,m,l)})};return c});(function(){function b(){return m?Promise.resolve(m):f?f:f=fetch("https://www.gstatic.com/bard-maui/resources/material-design-icon-names.804824289.json").then(function(a){if(!a.ok)throw Error("HTTP error! status: "+a.status+" fetching https://www.gstatic.com/bard-maui/resources/material-design-icon-names.804824289.json");return a.json()}).then(function(a){if(!Array.isArray(a))throw new TypeError("Fetched icon names from https://www.gstatic.com/bard-maui/resources/material-design-icon-names.804824289.json is not an array.");
+return m=a}).catch(function(a){console.error("IconChecker: Failed to load valid icon names from https://www.gstatic.com/bard-maui/resources/material-design-icon-names.804824289.json.",a);f=null;throw a;})}function c(a){var d,e,k,p;return I(new H(new B(function(n){switch(n.h){case 1:d=(a.textContent||"").trim();if(!d||a.classList.contains("js-replaced-missing-icon")&&d==="radio_button_unchecked")return n.return();e=window.getComputedStyle(a);if(e.display==="none"||e.visibility==="hidden")return n.return();
+n.l=2;var r=b();n.h=4;return{value:r};case 4:k=n.u;n.h=3;n.l=0;break;case 2:return n.l=0,n.i=null,console.warn('IconChecker: Skipping check for icon "'+d+'" as valid names could not be loaded.'),n.return();case 3:(p=k.includes(d))?a.classList.contains("js-replaced-missing-icon")&&a.classList.remove("js-replaced-missing-icon"):d==="radio_button_unchecked"&&a.classList.contains("js-replaced-missing-icon")||(a.textContent="radio_button_unchecked",a.classList.add("js-replaced-missing-icon")),n.h=0}})))}
+function g(a){a=a===void 0?document.body:a;a.querySelectorAll(l).forEach(function(d){c(d)})}function h(){b().catch(function(){});document.fonts.ready.then(function(){requestAnimationFrame(function(){g(document.body);(new MutationObserver(function(a){var d=new Set;a=t(a);for(var e=a.next();!e.done;e=a.next())if(e=e.value,e.type==="childList")e.addedNodes.forEach(function(p){p.nodeType===Node.ELEMENT_NODE&&(p.matches(l)&&d.add(p),p.querySelectorAll(l).forEach(function(n){d.add(n)}))});else if(e.type===
+"attributes"&&e.attributeName==="class"){var k=e.target;e.target.nodeType===Node.ELEMENT_NODE&&k.matches(l)&&d.add(k)}else e.type==="characterData"&&e.target.parentNode&&(e=e.target.parentNode,e.nodeType===Node.ELEMENT_NODE&&e.matches(l)&&d.add(e));d.size>0&&setTimeout(function(){d.forEach(function(p){c(p)})},500)})).observe(document.body,{childList:!0,subtree:!0,attributes:!0,attributeFilter:["class"],characterData:!0})})}).catch(function(a){console.error("IconChecker: Font loading error. Scanning icons anyway.",
+a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons","material-symbols-outlined","material-symbols-rounded","material-symbols-sharp"].map(function(a){return"."+a}).join(","),m=null,f=null;document.readyState==="loading"?document.addEventListener("DOMContentLoaded",function(){h()}):h()})();}).call(this);
+
+
+</script>
+
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Syntonic Engineering Console v2.1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Three.js & Post Processing -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&amp;family=Share+Tech+Mono&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #050505;
+            color: #D4AF37;
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
+            margin: 0;
+        }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+        
+        /* Custom UI Elements */
+        .glass-panel {
+            background: rgba(10, 11, 13, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .hud-border {
+            position: relative;
+        }
+        .hud-border::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 10px; height: 10px;
+            border-top: 2px solid #D4AF37;
+            border-left: 2px solid #D4AF37;
+        }
+        .hud-border::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; right: -1px;
+            width: 10px; height: 10px;
+            border-bottom: 2px solid #D4AF37;
+            border-right: 2px solid #D4AF37;
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+        }
+
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 8px;
+            background: #D4AF37;
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #333;
+        }
+        
+        /* Syntax Highlight specific to the Source Viewer */
+        .source-code {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #e6e6e6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.right-6{right:1.5rem}.top-32{top:8rem}.z-0{z-index:0}.z-10{z-index:10}.z-50{z-index:50}.mb-1{margin-bottom:0.25rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mt-1{margin-top:0.25rem}.flex{display:flex}.hidden{display:none}.h-24{height:6rem}.h-full{height:100%}.h-screen{height:100vh}.max-h-\[90vh\]{max-height:90vh}.w-2\/3{width:66.666667%}.w-72{width:18rem}.w-full{width:100%}.w-px{width:1px}.max-w-5xl{max-width:64rem}.flex-1{flex:1 1 0%}.scale-95{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.flex-col{flex-direction:column}.flex-col-reverse{flex-direction:column-reverse}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.overflow-auto{overflow:auto}.overflow-y-auto{overflow-y:auto}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-blue-500\/50{border-color:rgb(59 130 246 / 0.5)}.border-gray-700{--tw-border-opacity:1;border-color:rgb(55 65 81 / var(--tw-border-opacity, 1))}.border-red-900{--tw-border-opacity:1;border-color:rgb(127 29 29 / var(--tw-border-opacity, 1))}.border-transparent{border-color:transparent}.border-yellow-500\/50{border-color:rgb(234 179 8 / 0.5)}.border-yellow-600{--tw-border-opacity:1;border-color:rgb(202 138 4 / var(--tw-border-opacity, 1))}.border-yellow-900{--tw-border-opacity:1;border-color:rgb(113 63 18 / var(--tw-border-opacity, 1))}.border-yellow-900\/50{border-color:rgb(113 63 18 / 0.5)}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-black\/50{background-color:rgb(0 0 0 / 0.5)}.bg-black\/95{background-color:rgb(0 0 0 / 0.95)}.bg-blue-500\/10{background-color:rgb(59 130 246 / 0.1)}.bg-gray-700{--tw-bg-opacity:1;background-color:rgb(55 65 81 / var(--tw-bg-opacity, 1))}.bg-red-900\/20{background-color:rgb(127 29 29 / 0.2)}.bg-yellow-500\/10{background-color:rgb(234 179 8 / 0.1)}.bg-yellow-900\/10{background-color:rgb(113 63 18 / 0.1)}.bg-yellow-900\/20{background-color:rgb(113 63 18 / 0.2)}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-4{padding-left:1rem;padding-right:1rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.pb-1{padding-bottom:0.25rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.uppercase{text-transform:uppercase}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-green-500{--tw-text-opacity:1;color:rgb(34 197 94 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-yellow-400{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.text-yellow-500{--tw-text-opacity:1;color:rgb(234 179 8 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.accent-yellow-500{accent-color:#eab308}.opacity-0{opacity:0}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-red-500:hover{--tw-bg-opacity:1;background-color:rgb(239 68 68 / var(--tw-bg-opacity, 1))}.hover\:bg-red-500\/20:hover{background-color:rgb(239 68 68 / 0.2)}.hover\:bg-yellow-500:hover{--tw-bg-opacity:1;background-color:rgb(234 179 8 / var(--tw-bg-opacity, 1))}.hover\:bg-yellow-500\/20:hover{background-color:rgb(234 179 8 / 0.2)}.hover\:text-black:hover{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.hover\:text-red-400:hover{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}</style></head>
+<body class="w-full h-screen relative">
+    
+    <!-- 3D Canvas Container -->
+    <div class="absolute inset-0 z-0 bg-black" id="canvas-container"><canvas style="display: block; width: 2965px; height: 949px; touch-action: none;" data-engine="three.js r160" width="2965" height="949"></canvas></div>
+    <div class="scanlines"></div>
+
+    <!-- HUD Overlay -->
+    <div class="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-6">
+        
+        <!-- Top Bar -->
+        <header class="flex justify-between items-start pointer-events-auto">
+            <div class="glass-panel p-4 hud-border flex flex-col gap-2">
+                <h1 class="text-2xl font-bold tracking-widest text-yellow-500 uppercase flex items-center gap-2">
+                    <span class="material-symbols-outlined">hub</span>
+                    Syntonic Console
+                </h1>
+                <div class="text-xs font-mono text-gray-400">
+                    BACKEND: <span class="text-green-500">CONNECTED</span> | VERSION: 2.1
+                </div>
+            </div>
+
+            <!-- Action Cluster -->
+            <div class="flex gap-4">
+                <!-- Stats -->
+                <div class="glass-panel p-4 flex gap-6 hud-border text-center">
+                    <div>
+                        <div class="text-[10px] text-gray-500 uppercase tracking-wider">Syntony (Φ)</div>
+                        <div class="text-2xl font-mono text-yellow-400 font-bold" id="syntony-display">1.000</div>
+                    </div>
+                    <div class="w-px bg-gray-700"></div>
+                    <div>
+                        <div class="text-[10px] text-gray-500 uppercase tracking-wider">Entropy (ΔS)</div>
+                        <div class="text-2xl font-mono text-red-400 font-bold" id="entropy-display">0.000</div>
+                    </div>
+                </div>
+
+                <!-- Source Button (The Answer to your Question) -->
+                <button onclick="toggleSourceModal()" class="glass-panel px-4 hover:bg-yellow-500/20 transition-colors hud-border flex flex-col items-center justify-center group cursor-pointer">
+                    <span class="material-symbols-outlined text-yellow-500 group-hover:scale-110 transition-transform">code</span>
+                    <span class="text-[10px] font-bold text-yellow-500 mt-1">GET CODE</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Right Control Panel -->
+        <aside class="absolute right-6 top-32 pointer-events-auto w-72 flex flex-col gap-4">
+            <!-- Phase Controller -->
+            <div class="glass-panel p-4 hud-border">
+                <div class="text-sm font-bold text-yellow-500 mb-3 border-b border-gray-700 pb-1">PHASE CONTROL</div>
+                <div class="flex gap-2 mb-4">
+                    <button class="flex-1 py-2 text-xs font-bold border border-red-900 bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-black transition-colors" id="btn-d-phase">
+                        D-PHASE (MELT)
+                    </button>
+                    <button class="flex-1 py-2 text-xs font-bold border border-yellow-900 bg-yellow-900/20 text-yellow-500 hover:bg-yellow-500 hover:text-black transition-colors" id="btn-h-phase">
+                        H-PHASE (CRYSTAL)
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs font-mono text-gray-400 mb-1">
+                            <span>TEMPERATURE (NOISE)</span>
+                            <span id="temp-val">10%</span>
+                        </div>
+                        <input class="w-full" id="slider-temp" max="100" min="0" type="range" value="50">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-mono text-gray-400 mb-1">
+                            <span>GRAVITY WELL (G)</span>
+                            <span id="grav-val">80%</span>
+                        </div>
+                        <input class="w-full" id="slider-gravity" max="100" min="0" type="range" value="50">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Toggles -->
+            <div class="glass-panel p-4 hud-border">
+                <div class="text-sm font-bold text-blue-400 mb-3 border-b border-gray-700 pb-1">VISUAL LAYERS</div>
+                <div class="flex flex-col gap-2 font-mono text-xs">
+                    <label class="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
+                        <input checked="" class="accent-yellow-500" id="toggle-ghost" type="checkbox">
+                        SHOW GHOST (ATTRACTOR)
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
+                        <input checked="" class="accent-yellow-500" id="toggle-tethers" type="checkbox">
+                        SHOW TETHERS (RETRO-CAUSAL)
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
+                        <input checked="" class="accent-yellow-500" id="toggle-bloom" type="checkbox">
+                        ENABLE BLOOM SHADER
+                    </label>
+                </div>
+            </div>
+
+            <button class="glass-panel p-3 text-center text-xs font-bold tracking-widest hover:bg-yellow-500 hover:text-black transition-all border border-yellow-600" id="btn-audio">
+                INITIALIZE AUDIO KERNEL
+            </button>
+        </aside>
+
+        <!-- Bottom Log -->
+        <footer class="pointer-events-auto w-2/3 glass-panel p-2 hud-border">
+            <div class="h-24 overflow-y-auto font-mono text-[10px] flex flex-col-reverse" id="system-log"><div class="text-green-500">&gt; INITIATING H-PHASE: GEODESIC LOCK</div><div class="text-gray-300">&gt; GEOMETRY INSTANTIATED: 2048 NODES.</div><div class="text-gray-300">&gt; KERNEL LOADED.</div>
+                <div class="text-yellow-500">&gt; TIP: CLICK 'GET CODE' IN TOP RIGHT TO DOWNLOAD THIS SOURCE.</div>
+                <div class="text-green-500">&gt; SYSTEM INITIALIZED. AWAITING DATA STREAM...</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Source Code Modal -->
+    <div id="source-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex-col items-center justify-center p-8 transition-opacity duration-300">
+        <div class="w-full max-w-5xl h-full max-h-[90vh] glass-panel hud-border flex flex-col pointer-events-auto transform transition-transform duration-300" id="source-modal-content">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-yellow-900/50 flex justify-between items-center bg-yellow-900/10">
+                <h2 class="text-xl font-bold text-yellow-500 flex items-center gap-2">
+                    <span class="material-symbols-outlined">data_object</span>
+                    SOURCE CODE EXPORT
+                </h2>
+                <div class="flex gap-4">
+                    <button onclick="copySource()" class="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 hover:bg-yellow-500 text-yellow-500 hover:text-black border border-yellow-500/50 transition-all font-mono text-xs font-bold uppercase">
+                        <span class="material-symbols-outlined text-sm">content_copy</span> Copy
+                    </button>
+                    <button onclick="downloadSource()" class="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-black border border-blue-500/50 transition-all font-mono text-xs font-bold uppercase">
+                        <span class="material-symbols-outlined text-sm">download</span> Save .html
+                    </button>
+                    <button onclick="toggleSourceModal()" class="flex items-center gap-2 px-4 py-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-transparent transition-all font-mono text-xs font-bold uppercase">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-auto p-4 bg-black/50">
+                <pre class="source-code" id="source-display">&lt;html lang="en"&gt;&lt;head&gt;
+
+&lt;script class="injected-ffc2e83d85"&gt;
+(function(){'use strict';function q(b){var c=0;return function(){return c&lt;b.length?{done:!1,value:b[c++]}:{done:!0}}}function t(b){var c=typeof Symbol!="undefined"&amp;&amp;Symbol.iterator&amp;&amp;b[Symbol.iterator];if(c)return c.call(b);if(typeof b.length=="number")return{next:q(b)};throw Error(String(b)+" is not an iterable or ArrayLike");}var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,c,g){if(b==Array.prototype||b==Object.prototype)return b;b[c]=g.value;return b};
+function v(b){b=["object"==typeof globalThis&amp;&amp;globalThis,b,"object"==typeof window&amp;&amp;window,"object"==typeof self&amp;&amp;self,"object"==typeof global&amp;&amp;global];for(var c=0;c&lt;b.length;++c){var g=b[c];if(g&amp;&amp;g.Math==Math)return g}throw Error("Cannot find global object");}var w=v(this);function x(b,c){if(c)a:{var g=w;b=b.split(".");for(var h=0;h&lt;b.length-1;h++){var l=b[h];if(!(l in g))break a;g=g[l]}b=b[b.length-1];h=g[b];c=c(h);c!=h&amp;&amp;c!=null&amp;&amp;u(g,b,{configurable:!0,writable:!0,value:c})}}
+function y(){this.j=!1;this.g=null;this.u=void 0;this.h=1;this.v=this.l=0;this.i=null}function z(b){if(b.j)throw new TypeError("Generator is already running");b.j=!0}y.prototype.o=function(b){this.u=b};function A(b,c){b.i={I:c,J:!0};b.h=b.l||b.v}y.prototype.return=function(b){this.i={return:b};this.h=this.v};function B(b){this.g=new y;this.h=b}function E(b,c){z(b.g);var g=b.g.g;if(g)return F(b,"return"in g?g["return"]:function(h){return{value:h,done:!0}},c,b.g.return);b.g.return(c);return G(b)}
+function F(b,c,g,h){try{var l=c.call(b.g.g,g);if(!(l instanceof Object))throw new TypeError("Iterator result "+l+" is not an object");if(!l.done)return b.g.j=!1,l;var m=l.value}catch(f){return b.g.g=null,A(b.g,f),G(b)}b.g.g=null;h.call(b.g,m);return G(b)}function G(b){for(;b.g.h;)try{var c=b.h(b.g);if(c)return b.g.j=!1,{value:c.value,done:!1}}catch(g){b.g.u=void 0,A(b.g,g)}b.g.j=!1;if(b.g.i){c=b.g.i;b.g.i=null;if(c.J)throw c.I;return{value:c.return,done:!0}}return{value:void 0,done:!0}}
+function H(b){this.next=function(c){z(b.g);b.g.g?c=F(b,b.g.g.next,c,b.g.o):(b.g.o(c),c=G(b));return c};this.throw=function(c){z(b.g);b.g.g?c=F(b,b.g.g["throw"],c,b.g.o):(A(b.g,c),c=G(b));return c};this.return=function(c){return E(b,c)};this[Symbol.iterator]=function(){return this}}function I(b){function c(h){return b.next(h)}function g(h){return b.throw(h)}return new Promise(function(h,l){function m(f){f.done?h(f.value):Promise.resolve(f.value).then(c,g).then(m,l)}m(b.next())})}
+x("Symbol",function(b){function c(m){if(this instanceof c)throw new TypeError("Symbol is not a constructor");return new g(h+(m||"")+"_"+l++,m)}function g(m,f){this.g=m;u(this,"description",{configurable:!0,writable:!0,value:f})}if(b)return b;g.prototype.toString=function(){return this.g};var h="jscomp_symbol_"+(Math.random()*1E9&gt;&gt;&gt;0)+"_",l=0;return c});
+x("Symbol.iterator",function(b){if(b)return b;b=Symbol("Symbol.iterator");u(Array.prototype,b,{configurable:!0,writable:!0,value:function(){return J(q(this))}});return b});function J(b){b={next:b};b[Symbol.iterator]=function(){return this};return b}
+x("Promise",function(b){function c(f){this.h=0;this.i=void 0;this.g=[];this.u=!1;var a=this.j();try{f(a.resolve,a.reject)}catch(d){a.reject(d)}}function g(){this.g=null}function h(f){return f instanceof c?f:new c(function(a){a(f)})}if(b)return b;g.prototype.h=function(f){if(this.g==null){this.g=[];var a=this;this.i(function(){a.l()})}this.g.push(f)};var l=w.setTimeout;g.prototype.i=function(f){l(f,0)};g.prototype.l=function(){for(;this.g&amp;&amp;this.g.length;){var f=this.g;this.g=[];for(var a=0;a&lt;f.length;++a){var d=
+f[a];f[a]=null;try{d()}catch(e){this.j(e)}}}this.g=null};g.prototype.j=function(f){this.i(function(){throw f;})};c.prototype.j=function(){function f(e){return function(k){d||(d=!0,e.call(a,k))}}var a=this,d=!1;return{resolve:f(this.D),reject:f(this.l)}};c.prototype.D=function(f){if(f===this)this.l(new TypeError("A Promise cannot resolve to itself"));else if(f instanceof c)this.G(f);else{a:switch(typeof f){case "object":var a=f!=null;break a;case "function":a=!0;break a;default:a=!1}a?this.C(f):this.o(f)}};
+c.prototype.C=function(f){var a=void 0;try{a=f.then}catch(d){this.l(d);return}typeof a=="function"?this.H(a,f):this.o(f)};c.prototype.l=function(f){this.v(2,f)};c.prototype.o=function(f){this.v(1,f)};c.prototype.v=function(f,a){if(this.h!=0)throw Error("Cannot settle("+f+", "+a+"): Promise already settled in state"+this.h);this.h=f;this.i=a;this.h===2&amp;&amp;this.F();this.K()};c.prototype.F=function(){var f=this;l(function(){if(f.B()){var a=w.console;typeof a!=="undefined"&amp;&amp;a.error(f.i)}},1)};c.prototype.B=
+function(){if(this.u)return!1;var f=w.CustomEvent,a=w.Event,d=w.dispatchEvent;if(typeof d==="undefined")return!0;typeof f==="function"?f=new f("unhandledrejection",{cancelable:!0}):typeof a==="function"?f=new a("unhandledrejection",{cancelable:!0}):(f=w.document.createEvent("CustomEvent"),f.initCustomEvent("unhandledrejection",!1,!0,f));f.promise=this;f.reason=this.i;return d(f)};c.prototype.K=function(){if(this.g!=null){for(var f=0;f&lt;this.g.length;++f)m.h(this.g[f]);this.g=null}};var m=new g;c.prototype.G=
+function(f){var a=this.j();f.A(a.resolve,a.reject)};c.prototype.H=function(f,a){var d=this.j();try{f.call(a,d.resolve,d.reject)}catch(e){d.reject(e)}};c.prototype.then=function(f,a){function d(n,r){return typeof n=="function"?function(C){try{e(n(C))}catch(D){k(D)}}:r}var e,k,p=new c(function(n,r){e=n;k=r});this.A(d(f,e),d(a,k));return p};c.prototype.catch=function(f){return this.then(void 0,f)};c.prototype.A=function(f,a){function d(){switch(e.h){case 1:f(e.i);break;case 2:a(e.i);break;default:throw Error("Unexpected state: "+
+e.h);}}var e=this;this.g==null?m.h(d):this.g.push(d);this.u=!0};c.resolve=h;c.reject=function(f){return new c(function(a,d){d(f)})};c.race=function(f){return new c(function(a,d){for(var e=t(f),k=e.next();!k.done;k=e.next())h(k.value).A(a,d)})};c.all=function(f){var a=t(f),d=a.next();return d.done?h([]):new c(function(e,k){function p(C){return function(D){n[C]=D;r--;r==0&amp;&amp;e(n)}}var n=[],r=0;do n.push(void 0),r++,h(d.value).A(p(n.length-1),k),d=a.next();while(!d.done)})};return c});
+function K(b,c){return Object.prototype.hasOwnProperty.call(b,c)}x("Object.is",function(b){return b?b:function(c,g){return c===g?c!==0||1/c===1/g:c!==c&amp;&amp;g!==g}});x("Array.prototype.includes",function(b){return b?b:function(c,g){var h=this;h instanceof String&amp;&amp;(h=String(h));var l=h.length;g=g||0;for(g&lt;0&amp;&amp;(g=Math.max(g+l,0));g&lt;l;g++){var m=h[g];if(m===c||Object.is(m,c))return!0}return!1}});
+x("String.prototype.includes",function(b){return b?b:function(c,g){if(this==null)throw new TypeError("The 'this' value for String.prototype.includes must not be null or undefined");if(c instanceof RegExp)throw new TypeError("First argument to String.prototype.includes must not be a regular expression");return this.indexOf(c,g||0)!==-1}});
+x("WeakMap",function(b){function c(d){this.g=(a+=Math.random()+1).toString();if(d){d=t(d);for(var e;!(e=d.next()).done;)e=e.value,this.set(e[0],e[1])}}function g(){}function h(d){var e=typeof d;return e==="object"&amp;&amp;d!==null||e==="function"}function l(d){if(!K(d,f)){var e=new g;u(d,f,{value:e})}}function m(d){var e=Object[d];e&amp;&amp;(Object[d]=function(k){if(k instanceof g)return k;Object.isExtensible(k)&amp;&amp;l(k);return e(k)})}if(function(){if(!b||!Object.seal)return!1;try{var d=Object.seal({}),e=Object.seal({}),
+k=new b([[d,2],[e,3]]);if(k.get(d)!=2||k.get(e)!=3)return!1;k.delete(d);k.set(e,4);return!k.has(d)&amp;&amp;k.get(e)==4}catch(p){return!1}}())return b;var f="$jscomp_hidden_"+Math.random();m("freeze");m("preventExtensions");m("seal");var a=0;c.prototype.set=function(d,e){if(!h(d))throw Error("Invalid WeakMap key");l(d);if(!K(d,f))throw Error("WeakMap key fail: "+d);d[f][this.g]=e;return this};c.prototype.get=function(d){return h(d)&amp;&amp;K(d,f)?d[f][this.g]:void 0};c.prototype.has=function(d){return h(d)&amp;&amp;K(d,
+f)&amp;&amp;K(d[f],this.g)};c.prototype.delete=function(d){return h(d)&amp;&amp;K(d,f)&amp;&amp;K(d[f],this.g)?delete d[f][this.g]:!1};return c});
+x("Map",function(b){function c(){var a={};return a.m=a.next=a.head=a}function g(a,d){var e=a[1];return J(function(){if(e){for(;e.head!=a[1];)e=e.m;for(;e.next!=e.head;)return e=e.next,{done:!1,value:d(e)};e=null}return{done:!0,value:void 0}})}function h(a,d){var e=d&amp;&amp;typeof d;e=="object"||e=="function"?m.has(d)?e=m.get(d):(e=""+ ++f,m.set(d,e)):e="p_"+d;var k=a[0][e];if(k&amp;&amp;K(a[0],e))for(a=0;a&lt;k.length;a++){var p=k[a];if(d!==d&amp;&amp;p.key!==p.key||d===p.key)return{id:e,list:k,index:a,entry:p}}return{id:e,
+list:k,index:-1,entry:void 0}}function l(a){this[0]={};this[1]=c();this.size=0;if(a){a=t(a);for(var d;!(d=a.next()).done;)d=d.value,this.set(d[0],d[1])}}if(function(){if(!b||typeof b!="function"||!b.prototype.entries||typeof Object.seal!="function")return!1;try{var a=Object.seal({x:4}),d=new b(t([[a,"s"]]));if(d.get(a)!="s"||d.size!=1||d.get({x:4})||d.set({x:4},"t")!=d||d.size!=2)return!1;var e=d.entries(),k=e.next();if(k.done||k.value[0]!=a||k.value[1]!="s")return!1;k=e.next();return k.done||k.value[0].x!=
+4||k.value[1]!="t"||!e.next().done?!1:!0}catch(p){return!1}}())return b;var m=new WeakMap;l.prototype.set=function(a,d){a=a===0?0:a;var e=h(this,a);e.list||(e.list=this[0][e.id]=[]);e.entry?e.entry.value=d:(e.entry={next:this[1],m:this[1].m,head:this[1],key:a,value:d},e.list.push(e.entry),this[1].m.next=e.entry,this[1].m=e.entry,this.size++);return this};l.prototype.delete=function(a){a=h(this,a);return a.entry&amp;&amp;a.list?(a.list.splice(a.index,1),a.list.length||delete this[0][a.id],a.entry.m.next=a.entry.next,
+a.entry.next.m=a.entry.m,a.entry.head=null,this.size--,!0):!1};l.prototype.clear=function(){this[0]={};this[1]=this[1].m=c();this.size=0};l.prototype.has=function(a){return!!h(this,a).entry};l.prototype.get=function(a){return(a=h(this,a).entry)&amp;&amp;a.value};l.prototype.entries=function(){return g(this,function(a){return[a.key,a.value]})};l.prototype.keys=function(){return g(this,function(a){return a.key})};l.prototype.values=function(){return g(this,function(a){return a.value})};l.prototype.forEach=
+function(a,d){for(var e=this.entries(),k;!(k=e.next()).done;)k=k.value,a.call(d,k[1],k[0],this)};l.prototype[Symbol.iterator]=l.prototype.entries;var f=0;return l});
+x("Set",function(b){function c(g){this.g=new Map;if(g){g=t(g);for(var h;!(h=g.next()).done;)this.add(h.value)}this.size=this.g.size}if(function(){if(!b||typeof b!="function"||!b.prototype.entries||typeof Object.seal!="function")return!1;try{var g=Object.seal({x:4}),h=new b(t([g]));if(!h.has(g)||h.size!=1||h.add(g)!=h||h.size!=1||h.add({x:4})!=h||h.size!=2)return!1;var l=h.entries(),m=l.next();if(m.done||m.value[0]!=g||m.value[1]!=g)return!1;m=l.next();return m.done||m.value[0]==g||m.value[0].x!=4||
+m.value[1]!=m.value[0]?!1:l.next().done}catch(f){return!1}}())return b;c.prototype.add=function(g){g=g===0?0:g;this.g.set(g,g);this.size=this.g.size;return this};c.prototype.delete=function(g){g=this.g.delete(g);this.size=this.g.size;return g};c.prototype.clear=function(){this.g.clear();this.size=0};c.prototype.has=function(g){return this.g.has(g)};c.prototype.entries=function(){return this.g.entries()};c.prototype.values=function(){return this.g.values()};c.prototype.keys=c.prototype.values;c.prototype[Symbol.iterator]=
+c.prototype.values;c.prototype.forEach=function(g,h){var l=this;this.g.forEach(function(m){return g.call(h,m,m,l)})};return c});(function(){function b(){return m?Promise.resolve(m):f?f:f=fetch("https://www.gstatic.com/bard-maui/resources/material-design-icon-names.804824289.json").then(function(a){if(!a.ok)throw Error("HTTP error! status: "+a.status+" fetching https://www.gstatic.com/bard-maui/resources/material-design-icon-names.804824289.json");return a.json()}).then(function(a){if(!Array.isArray(a))throw new TypeError("Fetched icon names from https://www.gstatic.com/bard-maui/resources/material-design-icon-names.804824289.json is not an array.");
+return m=a}).catch(function(a){console.error("IconChecker: Failed to load valid icon names from https://www.gstatic.com/bard-maui/resources/material-design-icon-names.804824289.json.",a);f=null;throw a;})}function c(a){var d,e,k,p;return I(new H(new B(function(n){switch(n.h){case 1:d=(a.textContent||"").trim();if(!d||a.classList.contains("js-replaced-missing-icon")&amp;&amp;d==="radio_button_unchecked")return n.return();e=window.getComputedStyle(a);if(e.display==="none"||e.visibility==="hidden")return n.return();
+n.l=2;var r=b();n.h=4;return{value:r};case 4:k=n.u;n.h=3;n.l=0;break;case 2:return n.l=0,n.i=null,console.warn('IconChecker: Skipping check for icon "'+d+'" as valid names could not be loaded.'),n.return();case 3:(p=k.includes(d))?a.classList.contains("js-replaced-missing-icon")&amp;&amp;a.classList.remove("js-replaced-missing-icon"):d==="radio_button_unchecked"&amp;&amp;a.classList.contains("js-replaced-missing-icon")||(a.textContent="radio_button_unchecked",a.classList.add("js-replaced-missing-icon")),n.h=0}})))}
+function g(a){a=a===void 0?document.body:a;a.querySelectorAll(l).forEach(function(d){c(d)})}function h(){b().catch(function(){});document.fonts.ready.then(function(){requestAnimationFrame(function(){g(document.body);(new MutationObserver(function(a){var d=new Set;a=t(a);for(var e=a.next();!e.done;e=a.next())if(e=e.value,e.type==="childList")e.addedNodes.forEach(function(p){p.nodeType===Node.ELEMENT_NODE&amp;&amp;(p.matches(l)&amp;&amp;d.add(p),p.querySelectorAll(l).forEach(function(n){d.add(n)}))});else if(e.type===
+"attributes"&amp;&amp;e.attributeName==="class"){var k=e.target;e.target.nodeType===Node.ELEMENT_NODE&amp;&amp;k.matches(l)&amp;&amp;d.add(k)}else e.type==="characterData"&amp;&amp;e.target.parentNode&amp;&amp;(e=e.target.parentNode,e.nodeType===Node.ELEMENT_NODE&amp;&amp;e.matches(l)&amp;&amp;d.add(e));d.size&gt;0&amp;&amp;setTimeout(function(){d.forEach(function(p){c(p)})},500)})).observe(document.body,{childList:!0,subtree:!0,attributes:!0,attributeFilter:["class"],characterData:!0})})}).catch(function(a){console.error("IconChecker: Font loading error. Scanning icons anyway.",
+a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons","material-symbols-outlined","material-symbols-rounded","material-symbols-sharp"].map(function(a){return"."+a}).join(","),m=null,f=null;document.readyState==="loading"?document.addEventListener("DOMContentLoaded",function(){h()}):h()})();}).call(this);
+
+
+&lt;/script&gt;
+
+    &lt;meta charset="utf-8"&gt;
+    &lt;meta content="width=device-width, initial-scale=1.0" name="viewport"&gt;
+    &lt;title&gt;Syntonic Engineering Console v2.1&lt;/title&gt;
+    &lt;!-- Tailwind CSS --&gt;
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
+    &lt;!-- Tone.js --&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"&gt;&lt;/script&gt;
+    &lt;!-- Three.js &amp; Post Processing --&gt;
+    &lt;script type="importmap"&gt;
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    &lt;/script&gt;
+    &lt;!-- Google Fonts &amp; Icons --&gt;
+    &lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet"&gt;
+    &lt;link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&amp;amp;family=Share+Tech+Mono&amp;amp;display=swap" rel="stylesheet"&gt;
+    &lt;style&gt;
+        body {
+            background-color: #050505;
+            color: #D4AF37;
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
+            margin: 0;
+        }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+        
+        /* Custom UI Elements */
+        .glass-panel {
+            background: rgba(10, 11, 13, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .hud-border {
+            position: relative;
+        }
+        .hud-border::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 10px; height: 10px;
+            border-top: 2px solid #D4AF37;
+            border-left: 2px solid #D4AF37;
+        }
+        .hud-border::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; right: -1px;
+            width: 10px; height: 10px;
+            border-bottom: 2px solid #D4AF37;
+            border-right: 2px solid #D4AF37;
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+        }
+
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 8px;
+            background: #D4AF37;
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #333;
+        }
+        
+        /* Syntax Highlight specific to the Source Viewer */
+        .source-code {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #e6e6e6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    &lt;/style&gt;
+&lt;style&gt;*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.right-6{right:1.5rem}.top-32{top:8rem}.z-0{z-index:0}.z-10{z-index:10}.z-50{z-index:50}.mb-1{margin-bottom:0.25rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mt-1{margin-top:0.25rem}.flex{display:flex}.hidden{display:none}.h-24{height:6rem}.h-full{height:100%}.h-screen{height:100vh}.max-h-\[90vh\]{max-height:90vh}.w-2\/3{width:66.666667%}.w-72{width:18rem}.w-full{width:100%}.w-px{width:1px}.max-w-5xl{max-width:64rem}.flex-1{flex:1 1 0%}.scale-95{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.flex-col{flex-direction:column}.flex-col-reverse{flex-direction:column-reverse}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-y-4 &gt; :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.overflow-auto{overflow:auto}.overflow-y-auto{overflow-y:auto}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-blue-500\/50{border-color:rgb(59 130 246 / 0.5)}.border-gray-700{--tw-border-opacity:1;border-color:rgb(55 65 81 / var(--tw-border-opacity, 1))}.border-red-900{--tw-border-opacity:1;border-color:rgb(127 29 29 / var(--tw-border-opacity, 1))}.border-transparent{border-color:transparent}.border-yellow-500\/50{border-color:rgb(234 179 8 / 0.5)}.border-yellow-600{--tw-border-opacity:1;border-color:rgb(202 138 4 / var(--tw-border-opacity, 1))}.border-yellow-900{--tw-border-opacity:1;border-color:rgb(113 63 18 / var(--tw-border-opacity, 1))}.border-yellow-900\/50{border-color:rgb(113 63 18 / 0.5)}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-black\/50{background-color:rgb(0 0 0 / 0.5)}.bg-black\/95{background-color:rgb(0 0 0 / 0.95)}.bg-blue-500\/10{background-color:rgb(59 130 246 / 0.1)}.bg-gray-700{--tw-bg-opacity:1;background-color:rgb(55 65 81 / var(--tw-bg-opacity, 1))}.bg-red-900\/20{background-color:rgb(127 29 29 / 0.2)}.bg-yellow-500\/10{background-color:rgb(234 179 8 / 0.1)}.bg-yellow-900\/10{background-color:rgb(113 63 18 / 0.1)}.bg-yellow-900\/20{background-color:rgb(113 63 18 / 0.2)}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-4{padding-left:1rem;padding-right:1rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.pb-1{padding-bottom:0.25rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.uppercase{text-transform:uppercase}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-green-500{--tw-text-opacity:1;color:rgb(34 197 94 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-yellow-400{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.text-yellow-500{--tw-text-opacity:1;color:rgb(234 179 8 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.accent-yellow-500{accent-color:#eab308}.opacity-0{opacity:0}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-red-500:hover{--tw-bg-opacity:1;background-color:rgb(239 68 68 / var(--tw-bg-opacity, 1))}.hover\:bg-red-500\/20:hover{background-color:rgb(239 68 68 / 0.2)}.hover\:bg-yellow-500:hover{--tw-bg-opacity:1;background-color:rgb(234 179 8 / var(--tw-bg-opacity, 1))}.hover\:bg-yellow-500\/20:hover{background-color:rgb(234 179 8 / 0.2)}.hover\:text-black:hover{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.hover\:text-red-400:hover{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}&lt;/style&gt;&lt;/head&gt;
+&lt;body class="w-full h-screen relative"&gt;
+    
+    &lt;!-- 3D Canvas Container --&gt;
+    &lt;div class="absolute inset-0 z-0 bg-black" id="canvas-container"&gt;&lt;canvas style="display: block; width: 2965px; height: 949px; touch-action: none;" data-engine="three.js r160" width="2965" height="949"&gt;&lt;/canvas&gt;&lt;/div&gt;
+    &lt;div class="scanlines"&gt;&lt;/div&gt;
+
+    &lt;!-- HUD Overlay --&gt;
+    &lt;div class="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-6"&gt;
+        
+        &lt;!-- Top Bar --&gt;
+        &lt;header class="flex justify-between items-start pointer-events-auto"&gt;
+            &lt;div class="glass-panel p-4 hud-border flex flex-col gap-2"&gt;
+                &lt;h1 class="text-2xl font-bold tracking-widest text-yellow-500 uppercase flex items-center gap-2"&gt;
+                    &lt;span class="material-symbols-outlined"&gt;hub&lt;/span&gt;
+                    Syntonic Console
+                &lt;/h1&gt;
+                &lt;div class="text-xs font-mono text-gray-400"&gt;
+                    BACKEND: &lt;span class="text-green-500"&gt;CONNECTED&lt;/span&gt; | VERSION: 2.1
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;!-- Action Cluster --&gt;
+            &lt;div class="flex gap-4"&gt;
+                &lt;!-- Stats --&gt;
+                &lt;div class="glass-panel p-4 flex gap-6 hud-border text-center"&gt;
+                    &lt;div&gt;
+                        &lt;div class="text-[10px] text-gray-500 uppercase tracking-wider"&gt;Syntony (Φ)&lt;/div&gt;
+                        &lt;div class="text-2xl font-mono text-yellow-400 font-bold" id="syntony-display"&gt;1.000&lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class="w-px bg-gray-700"&gt;&lt;/div&gt;
+                    &lt;div&gt;
+                        &lt;div class="text-[10px] text-gray-500 uppercase tracking-wider"&gt;Entropy (ΔS)&lt;/div&gt;
+                        &lt;div class="text-2xl font-mono text-red-400 font-bold" id="entropy-display"&gt;0.000&lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+
+                &lt;!-- Source Button (The Answer to your Question) --&gt;
+                &lt;button onclick="toggleSourceModal()" class="glass-panel px-4 hover:bg-yellow-500/20 transition-colors hud-border flex flex-col items-center justify-center group cursor-pointer"&gt;
+                    &lt;span class="material-symbols-outlined text-yellow-500 group-hover:scale-110 transition-transform"&gt;code&lt;/span&gt;
+                    &lt;span class="text-[10px] font-bold text-yellow-500 mt-1"&gt;GET CODE&lt;/span&gt;
+                &lt;/button&gt;
+            &lt;/div&gt;
+        &lt;/header&gt;
+
+        &lt;!-- Right Control Panel --&gt;
+        &lt;aside class="absolute right-6 top-32 pointer-events-auto w-72 flex flex-col gap-4"&gt;
+            &lt;!-- Phase Controller --&gt;
+            &lt;div class="glass-panel p-4 hud-border"&gt;
+                &lt;div class="text-sm font-bold text-yellow-500 mb-3 border-b border-gray-700 pb-1"&gt;PHASE CONTROL&lt;/div&gt;
+                &lt;div class="flex gap-2 mb-4"&gt;
+                    &lt;button class="flex-1 py-2 text-xs font-bold border border-red-900 bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-black transition-colors" id="btn-d-phase"&gt;
+                        D-PHASE (MELT)
+                    &lt;/button&gt;
+                    &lt;button class="flex-1 py-2 text-xs font-bold border border-yellow-900 bg-yellow-900/20 text-yellow-500 hover:bg-yellow-500 hover:text-black transition-colors" id="btn-h-phase"&gt;
+                        H-PHASE (CRYSTAL)
+                    &lt;/button&gt;
+                &lt;/div&gt;
+                &lt;div class="space-y-4"&gt;
+                    &lt;div&gt;
+                        &lt;div class="flex justify-between text-xs font-mono text-gray-400 mb-1"&gt;
+                            &lt;span&gt;TEMPERATURE (NOISE)&lt;/span&gt;
+                            &lt;span id="temp-val"&gt;10%&lt;/span&gt;
+                        &lt;/div&gt;
+                        &lt;input class="w-full" id="slider-temp" max="100" min="0" type="range" value="50"&gt;
+                    &lt;/div&gt;
+                    &lt;div&gt;
+                        &lt;div class="flex justify-between text-xs font-mono text-gray-400 mb-1"&gt;
+                            &lt;span&gt;GRAVITY WELL (G)&lt;/span&gt;
+                            &lt;span id="grav-val"&gt;80%&lt;/span&gt;
+                        &lt;/div&gt;
+                        &lt;input class="w-full" id="slider-gravity" max="100" min="0" type="range" value="50"&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;!-- Visualization Toggles --&gt;
+            &lt;div class="glass-panel p-4 hud-border"&gt;
+                &lt;div class="text-sm font-bold text-blue-400 mb-3 border-b border-gray-700 pb-1"&gt;VISUAL LAYERS&lt;/div&gt;
+                &lt;div class="flex flex-col gap-2 font-mono text-xs"&gt;
+                    &lt;label class="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"&gt;
+                        &lt;input checked="" class="accent-yellow-500" id="toggle-ghost" type="checkbox"&gt;
+                        SHOW GHOST (ATTRACTOR)
+                    &lt;/label&gt;
+                    &lt;label class="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"&gt;
+                        &lt;input checked="" class="accent-yellow-500" id="toggle-tethers" type="checkbox"&gt;
+                        SHOW TETHERS (RETRO-CAUSAL)
+                    &lt;/label&gt;
+                    &lt;label class="flex items-center gap-2 cursor-pointer hover:text-white transition-colors"&gt;
+                        &lt;input checked="" class="accent-yellow-500" id="toggle-bloom" type="checkbox"&gt;
+                        ENABLE BLOOM SHADER
+                    &lt;/label&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;button class="glass-panel p-3 text-center text-xs font-bold tracking-widest hover:bg-yellow-500 hover:text-black transition-all border border-yellow-600" id="btn-audio"&gt;
+                INITIALIZE AUDIO KERNEL
+            &lt;/button&gt;
+        &lt;/aside&gt;
+
+        &lt;!-- Bottom Log --&gt;
+        &lt;footer class="pointer-events-auto w-2/3 glass-panel p-2 hud-border"&gt;
+            &lt;div class="h-24 overflow-y-auto font-mono text-[10px] flex flex-col-reverse" id="system-log"&gt;&lt;div class="text-green-500"&gt;&amp;gt; INITIATING H-PHASE: GEODESIC LOCK&lt;/div&gt;&lt;div class="text-gray-300"&gt;&amp;gt; GEOMETRY INSTANTIATED: 2048 NODES.&lt;/div&gt;&lt;div class="text-gray-300"&gt;&amp;gt; KERNEL LOADED.&lt;/div&gt;
+                &lt;div class="text-yellow-500"&gt;&amp;gt; TIP: CLICK 'GET CODE' IN TOP RIGHT TO DOWNLOAD THIS SOURCE.&lt;/div&gt;
+                &lt;div class="text-green-500"&gt;&amp;gt; SYSTEM INITIALIZED. AWAITING DATA STREAM...&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/footer&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Source Code Modal --&gt;
+    &lt;div id="source-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex-col items-center justify-center p-8 transition-opacity duration-300 opacity-0 pointer-events-none"&gt;
+        &lt;div class="w-full max-w-5xl h-full max-h-[90vh] glass-panel hud-border flex flex-col pointer-events-auto transform scale-95 transition-transform duration-300" id="source-modal-content"&gt;
+            &lt;!-- Modal Header --&gt;
+            &lt;div class="p-4 border-b border-yellow-900/50 flex justify-between items-center bg-yellow-900/10"&gt;
+                &lt;h2 class="text-xl font-bold text-yellow-500 flex items-center gap-2"&gt;
+                    &lt;span class="material-symbols-outlined"&gt;data_object&lt;/span&gt;
+                    SOURCE CODE EXPORT
+                &lt;/h2&gt;
+                &lt;div class="flex gap-4"&gt;
+                    &lt;button onclick="copySource()" class="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 hover:bg-yellow-500 text-yellow-500 hover:text-black border border-yellow-500/50 transition-all font-mono text-xs font-bold uppercase"&gt;
+                        &lt;span class="material-symbols-outlined text-sm"&gt;content_copy&lt;/span&gt; Copy
+                    &lt;/button&gt;
+                    &lt;button onclick="downloadSource()" class="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-black border border-blue-500/50 transition-all font-mono text-xs font-bold uppercase"&gt;
+                        &lt;span class="material-symbols-outlined text-sm"&gt;download&lt;/span&gt; Save .html
+                    &lt;/button&gt;
+                    &lt;button onclick="toggleSourceModal()" class="flex items-center gap-2 px-4 py-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-transparent transition-all font-mono text-xs font-bold uppercase"&gt;
+                        &lt;span class="material-symbols-outlined text-sm"&gt;close&lt;/span&gt;
+                    &lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;!-- Modal Body --&gt;
+            &lt;div class="flex-1 overflow-auto p-4 bg-black/50"&gt;
+                &lt;pre class="source-code" id="source-display"&gt;LOADING SOURCE...&lt;/pre&gt;
+            &lt;/div&gt;
+            &lt;!-- Modal Footer --&gt;
+            &lt;div class="p-2 text-center text-xs text-gray-500 font-mono border-t border-yellow-900/50 bg-black"&gt;
+                Generated by Syntonic Kernel // Save this file as index.html to run locally.
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Application Script --&gt;
+    &lt;script type="module"&gt;
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // --- Source Code Viewer Logic ---
+        window.toggleSourceModal = function() {
+            const modal = document.getElementById('source-modal');
+            const content = document.getElementById('source-modal-content');
+            const display = document.getElementById('source-display');
+            
+            if (modal.classList.contains('hidden')) {
+                // Show
+                modal.classList.remove('hidden');
+                // Small delay to allow display change before opacity transition
+                requestAnimationFrame(() =&gt; {
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    content.classList.remove('scale-95');
+                });
+                
+                // Get current HTML
+                const html = document.documentElement.outerHTML;
+                display.textContent = html;
+            } else {
+                // Hide
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('scale-95');
+                setTimeout(() =&gt; {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        };
+
+        window.copySource = function() {
+            const html = document.documentElement.outerHTML;
+            navigator.clipboard.writeText(html).then(() =&gt; {
+                log("SOURCE COPIED TO CLIPBOARD", "success");
+            }).catch(err =&gt; {
+                log("CLIPBOARD ERROR: " + err, "error");
+            });
+        };
+
+        window.downloadSource = function() {
+            const html = document.documentElement.outerHTML;
+            const blob = new Blob([html], {type: "text/html"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "syntonic_console.html";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            log("SOURCE DOWNLOAD STARTED", "success");
+        };
+
+        // --- Configuration &amp; State ---
+        const CONFIG = {
+            particleCount: 2048,
+            attractorRadius: 15,
+            baseColor: new THREE.Color('#00f0ff'),
+            syntonyColor: new THREE.Color('#D4AF37'),
+            entropyColor: new THREE.Color('#ff2a2a'),
+        };
+
+        const STATE = {
+            temperature: 0.5, // 0-1
+            gravity: 0.5,     // 0-1
+            syntony: 0.0,     // Calculated
+            phase: 'D',       // 'D' or 'H'
+            time: 0,
+        };
+
+        // --- Logger ---
+        const logEl = document.getElementById('system-log');
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.textContent = `&gt; ${msg}`;
+            if(type === 'error') div.className = 'text-red-500';
+            else if(type === 'success') div.className = 'text-green-500';
+            else div.className = 'text-gray-300';
+            logEl.prepend(div);
+            if(logEl.children.length &gt; 50) logEl.lastChild.remove();
+        }
+
+        // --- Audio System (Tone.js) ---
+        let audioEnabled = false;
+        let synth, drone, membrane;
+        
+        async function initAudio() {
+            if(audioEnabled) return;
+            await Tone.start();
+            
+            // Retro-futuristic Synth
+            synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sawtooth" },
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 1 }
+            }).toDestination();
+            synth.volume.value = -12;
+
+            // Deep Drone
+            drone = new Tone.Player("https://tonejs.github.io/audio/berklee/gong_1.mp3").toDestination();
+            drone.loop = true;
+            drone.playbackRate = 0.5;
+            drone.volume.value = -20;
+            
+            // Impact sounds
+            membrane = new Tone.MembraneSynth().toDestination();
+            membrane.volume.value = -10;
+
+            audioEnabled = true;
+            document.getElementById('btn-audio').textContent = "AUDIO ACTIVE";
+            document.getElementById('btn-audio').classList.add('bg-yellow-500', 'text-black');
+            log("AUDIO KERNEL ONLINE", 'success');
+        }
+        document.getElementById('btn-audio').addEventListener('click', initAudio);
+
+        // --- 3D Scene Setup ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(30, 20, 30);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+
+        // Post-Processing (Bloom)
+        const composer = new EffectComposer(renderer);
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0;
+        bloomPass.strength = 1.5;
+        bloomPass.radius = 0.5;
+        composer.addPass(bloomPass);
+
+        // --- Geometry Creation ---
+
+        // 1. The Ghost (Attractor) - A hidden target shape
+        const attractorGeo = new THREE.IcosahedronGeometry(CONFIG.attractorRadius, 2);
+        const attractorWireframe = new THREE.WireframeGeometry(attractorGeo);
+        const attractorMat = new THREE.LineBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.3 });
+        const ghostMesh = new THREE.LineSegments(attractorWireframe, attractorMat);
+        scene.add(ghostMesh);
+
+        // Extract target positions from the geometry
+        const targetPositions = [];
+        const posAttribute = attractorGeo.attributes.position;
+        for (let i = 0; i &lt; posAttribute.count; i++) {
+            targetPositions.push(new THREE.Vector3().fromBufferAttribute(posAttribute, i));
+        }
+        
+        const targets = [];
+        for(let i=0; i&lt;CONFIG.particleCount; i++) {
+            targets.push(targetPositions[i % targetPositions.length]);
+        }
+
+        // 2. The Crystal (State Points) - Instanced Mesh
+        const particleGeo = new THREE.DodecahedronGeometry(0.2, 0);
+        const particleMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const crystalMesh = new THREE.InstancedMesh(particleGeo, particleMat, CONFIG.particleCount);
+        crystalMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        crystalMesh.setColorAt(0, new THREE.Color()); 
+        scene.add(crystalMesh);
+
+        // Particle Data Arrays
+        const particles = [];
+        const dummy = new THREE.Object3D();
+        const color = new THREE.Color();
+
+        for(let i=0; i&lt;CONFIG.particleCount; i++) {
+            const p = {
+                position: new THREE.Vector3((Math.random()-0.5)*50, (Math.random()-0.5)*50, (Math.random()-0.5)*50),
+                velocity: new THREE.Vector3(0,0,0),
+                target: targets[i],
+                locked: false
+            };
+            particles.push(p);
+            
+            dummy.position.copy(p.position);
+            dummy.updateMatrix();
+            crystalMesh.setMatrixAt(i, dummy.matrix);
+        }
+
+        // 3. The Tether (Retrocausal Pull) - Lines
+        const tetherGeo = new THREE.BufferGeometry();
+        const tetherPos = new Float32Array(CONFIG.particleCount * 2 * 3);
+        tetherGeo.setAttribute('position', new THREE.BufferAttribute(tetherPos, 3));
+        const tetherMat = new THREE.LineBasicMaterial({ 
+            color: 0xffaa00, 
+            transparent: true, 
+            opacity: 0.15,
+            blending: THREE.AdditiveBlending 
+        });
+        const tetherMesh = new THREE.LineSegments(tetherGeo, tetherMat);
+        scene.add(tetherMesh);
+
+        // --- Physics &amp; Simulation Kernel ---
+
+        function updatePhysics() {
+            STATE.time += 0.01;
+            let totalSyntony = 0;
+            let activeLocks = 0;
+
+            const temp = STATE.temperature * 0.5; 
+            const grav = STATE.gravity * 0.1;
+
+            const positions = tetherMesh.geometry.attributes.position.array;
+
+            for(let i=0; i&lt;CONFIG.particleCount; i++) {
+                const p = particles[i];
+                const target = p.target;
+
+                const dist = p.position.distanceTo(target);
+                
+                if (STATE.phase === 'D') {
+                    // D-Phase: Chaos
+                    p.velocity.x += (Math.random() - 0.5) * temp;
+                    p.velocity.y += (Math.random() - 0.5) * temp;
+                    p.velocity.z += (Math.random() - 0.5) * temp;
+                    
+                    const centerPull = p.position.clone().multiplyScalar(-0.001);
+                    p.velocity.add(centerPull);
+
+                    p.locked = false;
+
+                } else {
+                    // H-Phase: Order
+                    const dir = new THREE.Vector3().subVectors(target, p.position).normalize();
+                    const force = dir.multiplyScalar(grav);
+                    
+                    p.velocity.add(force);
+                    p.velocity.multiplyScalar(0.90);
+
+                    if(dist &lt; 0.5 &amp;&amp; !p.locked) {
+                        p.locked = true;
+                        p.position.copy(target);
+                        p.velocity.set(0,0,0);
+                        
+                        if(audioEnabled &amp;&amp; Math.random() &gt; 0.95) {
+                            const notes = ["C5", "E5", "G5", "B5", "D6"];
+                            synth.triggerAttackRelease(notes[Math.floor(Math.random()*notes.length)], "32n");
+                        }
+                    }
+                }
+
+                if (!p.locked || STATE.phase === 'D') {
+                    p.position.add(p.velocity);
+                }
+
+                dummy.position.copy(p.position);
+                const scale = p.locked ? 1.5 : 1.0;
+                dummy.scale.set(scale, scale, scale);
+                dummy.updateMatrix();
+                crystalMesh.setMatrixAt(i, dummy.matrix);
+
+                const normalizedDist = Math.min(dist / 10, 1);
+                
+                if (p.locked) {
+                    color.set(CONFIG.syntonyColor);
+                    activeLocks++;
+                } else if (STATE.phase === 'D') {
+                    color.lerpColors(CONFIG.baseColor, CONFIG.entropyColor, Math.random());
+                } else {
+                    color.lerpColors(CONFIG.syntonyColor, CONFIG.baseColor, normalizedDist);
+                }
+                crystalMesh.setColorAt(i, color);
+
+                positions[i * 6] = p.position.x;
+                positions[i * 6 + 1] = p.position.y;
+                positions[i * 6 + 2] = p.position.z;
+                
+                positions[i * 6 + 3] = target.x;
+                positions[i * 6 + 4] = target.y;
+                positions[i * 6 + 5] = target.z;
+            }
+
+            crystalMesh.instanceMatrix.needsUpdate = true;
+            crystalMesh.instanceColor.needsUpdate = true;
+            tetherMesh.geometry.attributes.position.needsUpdate = true;
+
+            STATE.syntony = activeLocks / CONFIG.particleCount;
+            document.getElementById('syntony-display').textContent = STATE.syntony.toFixed(3);
+            document.getElementById('entropy-display').textContent = (1.0 - STATE.syntony).toFixed(3);
+        }
+
+        // --- UI Event Handlers ---
+
+        document.getElementById('btn-d-phase').addEventListener('click', () =&gt; {
+            STATE.phase = 'D';
+            STATE.temperature = 0.8;
+            STATE.gravity = 0.1;
+            updateSliders();
+            log("INITIATING D-PHASE: LATTICE MELT", "error");
+            if(audioEnabled) membrane.triggerAttackRelease("C2", "8n");
+            bloomPass.strength = 0.5;
+            bloomPass.radius = 1.0;
+        });
+
+        document.getElementById('btn-h-phase').addEventListener('click', () =&gt; {
+            STATE.phase = 'H';
+            STATE.temperature = 0.1;
+            STATE.gravity = 0.8;
+            updateSliders();
+            log("INITIATING H-PHASE: GEODESIC LOCK", "success");
+            if(audioEnabled) membrane.triggerAttackRelease("G2", "8n");
+            bloomPass.strength = 2.5;
+            bloomPass.radius = 0.2;
+        });
+
+        const sliderTemp = document.getElementById('slider-temp');
+        sliderTemp.addEventListener('input', (e) =&gt; {
+            STATE.temperature = e.target.value / 100;
+            document.getElementById('temp-val').textContent = Math.round(STATE.temperature*100) + "%";
+        });
+
+        const sliderGrav = document.getElementById('slider-gravity');
+        sliderGrav.addEventListener('input', (e) =&gt; {
+            STATE.gravity = e.target.value / 100;
+            document.getElementById('grav-val').textContent = Math.round(STATE.gravity*100) + "%";
+        });
+
+        function updateSliders() {
+            sliderTemp.value = STATE.temperature * 100;
+            sliderGrav.value = STATE.gravity * 100;
+            document.getElementById('temp-val').textContent = Math.round(STATE.temperature*100) + "%";
+            document.getElementById('grav-val').textContent = Math.round(STATE.gravity*100) + "%";
+        }
+
+        document.getElementById('toggle-ghost').addEventListener('change', (e) =&gt; ghostMesh.visible = e.target.checked);
+        document.getElementById('toggle-tethers').addEventListener('change', (e) =&gt; tetherMesh.visible = e.target.checked);
+        document.getElementById('toggle-bloom').addEventListener('change', (e) =&gt; bloomPass.enabled = e.target.checked);
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            ghostMesh.rotation.y += 0.002;
+            ghostMesh.rotation.z += 0.001;
+
+            const axis = new THREE.Vector3(0, 1, 0.5).normalize();
+            const angle = 0.005;
+            for(let p of particles) {
+                p.target.applyAxisAngle(axis, angle);
+            }
+            ghostMesh.rotateOnAxis(axis, angle);
+
+            updatePhysics();
+            controls.update();
+            composer.render();
+        }
+
+        window.addEventListener('resize', () =&gt; {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        log("KERNEL LOADED.");
+        log("GEOMETRY INSTANTIATED: 2048 NODES.");
+        animate();
+
+    &lt;/script&gt;
+
+
+&lt;/body&gt;&lt;/html&gt;</pre>
+            </div>
+            <!-- Modal Footer -->
+            <div class="p-2 text-center text-xs text-gray-500 font-mono border-t border-yellow-900/50 bg-black">
+                Generated by Syntonic Kernel // Save this file as index.html to run locally.
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // --- Source Code Viewer Logic ---
+        window.toggleSourceModal = function() {
+            const modal = document.getElementById('source-modal');
+            const content = document.getElementById('source-modal-content');
+            const display = document.getElementById('source-display');
+            
+            if (modal.classList.contains('hidden')) {
+                // Show
+                modal.classList.remove('hidden');
+                // Small delay to allow display change before opacity transition
+                requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                    content.classList.remove('scale-95');
+                });
+                
+                // Get current HTML
+                const html = document.documentElement.outerHTML;
+                display.textContent = html;
+            } else {
+                // Hide
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        };
+
+        window.copySource = function() {
+            const html = document.documentElement.outerHTML;
+            navigator.clipboard.writeText(html).then(() => {
+                log("SOURCE COPIED TO CLIPBOARD", "success");
+            }).catch(err => {
+                log("CLIPBOARD ERROR: " + err, "error");
+            });
+        };
+
+        window.downloadSource = function() {
+            const html = document.documentElement.outerHTML;
+            const blob = new Blob([html], {type: "text/html"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "syntonic_console.html";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            log("SOURCE DOWNLOAD STARTED", "success");
+        };
+
+        // --- Configuration & State ---
+        const CONFIG = {
+            particleCount: 2048,
+            attractorRadius: 15,
+            baseColor: new THREE.Color('#00f0ff'),
+            syntonyColor: new THREE.Color('#D4AF37'),
+            entropyColor: new THREE.Color('#ff2a2a'),
+        };
+
+        const STATE = {
+            temperature: 0.5, // 0-1
+            gravity: 0.5,     // 0-1
+            syntony: 0.0,     // Calculated
+            phase: 'D',       // 'D' or 'H'
+            time: 0,
+        };
+
+        // --- Logger ---
+        const logEl = document.getElementById('system-log');
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.textContent = `> ${msg}`;
+            if(type === 'error') div.className = 'text-red-500';
+            else if(type === 'success') div.className = 'text-green-500';
+            else div.className = 'text-gray-300';
+            logEl.prepend(div);
+            if(logEl.children.length > 50) logEl.lastChild.remove();
+        }
+
+        // --- Audio System (Tone.js) ---
+        let audioEnabled = false;
+        let synth, drone, membrane;
+        
+        async function initAudio() {
+            if(audioEnabled) return;
+            await Tone.start();
+            
+            // Retro-futuristic Synth
+            synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sawtooth" },
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 1 }
+            }).toDestination();
+            synth.volume.value = -12;
+
+            // Deep Drone
+            drone = new Tone.Player("https://tonejs.github.io/audio/berklee/gong_1.mp3").toDestination();
+            drone.loop = true;
+            drone.playbackRate = 0.5;
+            drone.volume.value = -20;
+            
+            // Impact sounds
+            membrane = new Tone.MembraneSynth().toDestination();
+            membrane.volume.value = -10;
+
+            audioEnabled = true;
+            document.getElementById('btn-audio').textContent = "AUDIO ACTIVE";
+            document.getElementById('btn-audio').classList.add('bg-yellow-500', 'text-black');
+            log("AUDIO KERNEL ONLINE", 'success');
+        }
+        document.getElementById('btn-audio').addEventListener('click', initAudio);
+
+        // --- 3D Scene Setup ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(30, 20, 30);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+
+        // Post-Processing (Bloom)
+        const composer = new EffectComposer(renderer);
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0;
+        bloomPass.strength = 1.5;
+        bloomPass.radius = 0.5;
+        composer.addPass(bloomPass);
+
+        // --- Geometry Creation ---
+
+        // 1. The Ghost (Attractor) - A hidden target shape
+        const attractorGeo = new THREE.IcosahedronGeometry(CONFIG.attractorRadius, 2);
+        const attractorWireframe = new THREE.WireframeGeometry(attractorGeo);
+        const attractorMat = new THREE.LineBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.3 });
+        const ghostMesh = new THREE.LineSegments(attractorWireframe, attractorMat);
+        scene.add(ghostMesh);
+
+        // Extract target positions from the geometry
+        const targetPositions = [];
+        const posAttribute = attractorGeo.attributes.position;
+        for (let i = 0; i < posAttribute.count; i++) {
+            targetPositions.push(new THREE.Vector3().fromBufferAttribute(posAttribute, i));
+        }
+        
+        const targets = [];
+        for(let i=0; i<CONFIG.particleCount; i++) {
+            targets.push(targetPositions[i % targetPositions.length]);
+        }
+
+        // 2. The Crystal (State Points) - Instanced Mesh
+        const particleGeo = new THREE.DodecahedronGeometry(0.2, 0);
+        const particleMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const crystalMesh = new THREE.InstancedMesh(particleGeo, particleMat, CONFIG.particleCount);
+        crystalMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        crystalMesh.setColorAt(0, new THREE.Color()); 
+        scene.add(crystalMesh);
+
+        // Particle Data Arrays
+        const particles = [];
+        const dummy = new THREE.Object3D();
+        const color = new THREE.Color();
+
+        for(let i=0; i<CONFIG.particleCount; i++) {
+            const p = {
+                position: new THREE.Vector3((Math.random()-0.5)*50, (Math.random()-0.5)*50, (Math.random()-0.5)*50),
+                velocity: new THREE.Vector3(0,0,0),
+                target: targets[i],
+                locked: false
+            };
+            particles.push(p);
+            
+            dummy.position.copy(p.position);
+            dummy.updateMatrix();
+            crystalMesh.setMatrixAt(i, dummy.matrix);
+        }
+
+        // 3. The Tether (Retrocausal Pull) - Lines
+        const tetherGeo = new THREE.BufferGeometry();
+        const tetherPos = new Float32Array(CONFIG.particleCount * 2 * 3);
+        tetherGeo.setAttribute('position', new THREE.BufferAttribute(tetherPos, 3));
+        const tetherMat = new THREE.LineBasicMaterial({ 
+            color: 0xffaa00, 
+            transparent: true, 
+            opacity: 0.15,
+            blending: THREE.AdditiveBlending 
+        });
+        const tetherMesh = new THREE.LineSegments(tetherGeo, tetherMat);
+        scene.add(tetherMesh);
+
+        // --- Physics & Simulation Kernel ---
+
+        function updatePhysics() {
+            STATE.time += 0.01;
+            let totalSyntony = 0;
+            let activeLocks = 0;
+
+            const temp = STATE.temperature * 0.5; 
+            const grav = STATE.gravity * 0.1;
+
+            const positions = tetherMesh.geometry.attributes.position.array;
+
+            for(let i=0; i<CONFIG.particleCount; i++) {
+                const p = particles[i];
+                const target = p.target;
+
+                const dist = p.position.distanceTo(target);
+                
+                if (STATE.phase === 'D') {
+                    // D-Phase: Chaos
+                    p.velocity.x += (Math.random() - 0.5) * temp;
+                    p.velocity.y += (Math.random() - 0.5) * temp;
+                    p.velocity.z += (Math.random() - 0.5) * temp;
+                    
+                    const centerPull = p.position.clone().multiplyScalar(-0.001);
+                    p.velocity.add(centerPull);
+
+                    p.locked = false;
+
+                } else {
+                    // H-Phase: Order
+                    const dir = new THREE.Vector3().subVectors(target, p.position).normalize();
+                    const force = dir.multiplyScalar(grav);
+                    
+                    p.velocity.add(force);
+                    p.velocity.multiplyScalar(0.90);
+
+                    if(dist < 0.5 && !p.locked) {
+                        p.locked = true;
+                        p.position.copy(target);
+                        p.velocity.set(0,0,0);
+                        
+                        if(audioEnabled && Math.random() > 0.95) {
+                            const notes = ["C5", "E5", "G5", "B5", "D6"];
+                            synth.triggerAttackRelease(notes[Math.floor(Math.random()*notes.length)], "32n");
+                        }
+                    }
+                }
+
+                if (!p.locked || STATE.phase === 'D') {
+                    p.position.add(p.velocity);
+                }
+
+                dummy.position.copy(p.position);
+                const scale = p.locked ? 1.5 : 1.0;
+                dummy.scale.set(scale, scale, scale);
+                dummy.updateMatrix();
+                crystalMesh.setMatrixAt(i, dummy.matrix);
+
+                const normalizedDist = Math.min(dist / 10, 1);
+                
+                if (p.locked) {
+                    color.set(CONFIG.syntonyColor);
+                    activeLocks++;
+                } else if (STATE.phase === 'D') {
+                    color.lerpColors(CONFIG.baseColor, CONFIG.entropyColor, Math.random());
+                } else {
+                    color.lerpColors(CONFIG.syntonyColor, CONFIG.baseColor, normalizedDist);
+                }
+                crystalMesh.setColorAt(i, color);
+
+                positions[i * 6] = p.position.x;
+                positions[i * 6 + 1] = p.position.y;
+                positions[i * 6 + 2] = p.position.z;
+                
+                positions[i * 6 + 3] = target.x;
+                positions[i * 6 + 4] = target.y;
+                positions[i * 6 + 5] = target.z;
+            }
+
+            crystalMesh.instanceMatrix.needsUpdate = true;
+            crystalMesh.instanceColor.needsUpdate = true;
+            tetherMesh.geometry.attributes.position.needsUpdate = true;
+
+            STATE.syntony = activeLocks / CONFIG.particleCount;
+            document.getElementById('syntony-display').textContent = STATE.syntony.toFixed(3);
+            document.getElementById('entropy-display').textContent = (1.0 - STATE.syntony).toFixed(3);
+        }
+
+        // --- UI Event Handlers ---
+
+        document.getElementById('btn-d-phase').addEventListener('click', () => {
+            STATE.phase = 'D';
+            STATE.temperature = 0.8;
+            STATE.gravity = 0.1;
+            updateSliders();
+            log("INITIATING D-PHASE: LATTICE MELT", "error");
+            if(audioEnabled) membrane.triggerAttackRelease("C2", "8n");
+            bloomPass.strength = 0.5;
+            bloomPass.radius = 1.0;
+        });
+
+        document.getElementById('btn-h-phase').addEventListener('click', () => {
+            STATE.phase = 'H';
+            STATE.temperature = 0.1;
+            STATE.gravity = 0.8;
+            updateSliders();
+            log("INITIATING H-PHASE: GEODESIC LOCK", "success");
+            if(audioEnabled) membrane.triggerAttackRelease("G2", "8n");
+            bloomPass.strength = 2.5;
+            bloomPass.radius = 0.2;
+        });
+
+        const sliderTemp = document.getElementById('slider-temp');
+        sliderTemp.addEventListener('input', (e) => {
+            STATE.temperature = e.target.value / 100;
+            document.getElementById('temp-val').textContent = Math.round(STATE.temperature*100) + "%";
+        });
+
+        const sliderGrav = document.getElementById('slider-gravity');
+        sliderGrav.addEventListener('input', (e) => {
+            STATE.gravity = e.target.value / 100;
+            document.getElementById('grav-val').textContent = Math.round(STATE.gravity*100) + "%";
+        });
+
+        function updateSliders() {
+            sliderTemp.value = STATE.temperature * 100;
+            sliderGrav.value = STATE.gravity * 100;
+            document.getElementById('temp-val').textContent = Math.round(STATE.temperature*100) + "%";
+            document.getElementById('grav-val').textContent = Math.round(STATE.gravity*100) + "%";
+        }
+
+        document.getElementById('toggle-ghost').addEventListener('change', (e) => ghostMesh.visible = e.target.checked);
+        document.getElementById('toggle-tethers').addEventListener('change', (e) => tetherMesh.visible = e.target.checked);
+        document.getElementById('toggle-bloom').addEventListener('change', (e) => bloomPass.enabled = e.target.checked);
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            ghostMesh.rotation.y += 0.002;
+            ghostMesh.rotation.z += 0.001;
+
+            const axis = new THREE.Vector3(0, 1, 0.5).normalize();
+            const angle = 0.005;
+            for(let p of particles) {
+                p.target.applyAxisAngle(axis, angle);
+            }
+            ghostMesh.rotateOnAxis(axis, angle);
+
+            updatePhysics();
+            controls.update();
+            composer.render();
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        log("KERNEL LOADED.");
+        log("GEOMETRY INSTANTIATED: 2048 NODES.");
+        animate();
+
+    </script>
+
+
+</body></html>

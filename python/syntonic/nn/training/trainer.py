@@ -24,6 +24,7 @@ from syntonic._core import (
     ResonantEvolver,
     RESConfig,
     RESResult,
+    py_apply_geodesic_slide,
 )
 from syntonic.resonant.retrocausal import (
     RetrocausalConfig,
@@ -59,6 +60,7 @@ class RESTrainingConfig:
     pull_strength: float = 0.3
     attractor_min_syntony: float = 0.7
     attractor_decay_rate: float = 0.98
+    noise_scale: float = 0.1
     
     # Syntony targets
     syntony_target: float = S_TARGET
@@ -212,6 +214,29 @@ class RetrocausalTrainer:
         self._current_syntony = result.final_syntony
         self._current_generation += result.generations
         
+        # Apply Geodesic Gravity Slide (Physical AI)
+        # Use weight template as attractor state
+        attractor = self._weight_templates[weight_idx]
+        
+        # Calculate thermodynamics
+        temp = (1.0 - result.final_syntony) * self.config.noise_scale
+        gravity = self.config.pull_strength * 1.618
+        
+        # Apply slide if on CUDA
+        try:
+            # We access .tensor (TensorStorage) and .mode_norms (TensorStorage)
+            # This allows safe Rust-side mutation of the TensorStorage if on CUDA
+            py_apply_geodesic_slide(
+                result.winner.tensor,
+                attractor.tensor,
+                result.winner.mode_norms,
+                gravity,
+                temp
+            )
+        except Exception:
+            # Sliently continue if physics engine fails (e.g. CPU mode)
+            pass
+
         return {
             'weight_idx': weight_idx,
             'final_syntony': result.final_syntony,

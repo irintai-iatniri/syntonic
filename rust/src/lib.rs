@@ -172,6 +172,46 @@ fn srt_correction_factor(structure_index: i32, sign: i32) -> f64 {
     srt_kernels::cpu_correction_factor(n, sign)
 }
 
+/// Apply Geodesic Gravity Slide to weights in-place (Physical AI update)
+#[pyfunction]
+fn py_apply_geodesic_slide(
+    weights: &TensorStorage,
+    attractor: &TensorStorage,
+    mode_norms: &TensorStorage,
+    gravity: f64,
+    temperature: f64,
+) -> PyResult<()> {
+    #[cfg(feature = "cuda")]
+    {
+        use tensor::storage::{CudaData, TensorData};
+        if let (
+            TensorData::Cuda { data: w_data, device: dev, .. },
+            TensorData::Cuda { data: a_data, .. },
+            TensorData::Cuda { data: m_data, .. },
+        ) = (&weights.data, &attractor.data, &mode_norms.data)
+        {
+            if let (
+                CudaData::Float64(w_slice),
+                CudaData::Float64(a_slice),
+                CudaData::Float64(m_slice),
+            ) = (w_data.as_ref(), a_data.as_ref(), m_data.as_ref())
+            {
+                let n = w_slice.len();
+                srt_kernels::apply_geodesic_gravity_f64(
+                    dev,
+                    w_slice,
+                    a_slice,
+                    m_slice,
+                    gravity,
+                    temperature,
+                    n,
+                ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e))?;
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Core module for Syntonic
 ///
 /// This module provides:
@@ -236,6 +276,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(srt_correction_factor, m)?)?;
 
     // === SRT Tensor Operations (GPU-accelerated when on CUDA) ===
+    m.add_function(wrap_pyfunction!(py_apply_geodesic_slide, m)?)?;
     m.add_function(wrap_pyfunction!(srt_scale_phi, m)?)?;
     m.add_function(wrap_pyfunction!(srt_golden_gaussian_weights, m)?)?;
     m.add_function(wrap_pyfunction!(srt_apply_correction, m)?)?;
