@@ -10,7 +10,9 @@
 #[cfg(feature = "cuda")]
 use cudarc::driver::safe::CudaContext as CudaDevice;
 #[cfg(feature = "cuda")]
-use cudarc::driver::{CudaSlice, LaunchConfig, DevicePtr, DeviceSlice};
+use cudarc::driver::{CudaSlice, LaunchConfig, DevicePtr};
+#[cfg(feature = "cuda")]
+use crate::tensor::cuda::memory_pool::CudaComplex64;
 #[cfg(feature = "cuda")]
 use cudarc::driver::PushKernelArg;
 #[cfg(feature = "cuda")]
@@ -383,7 +385,7 @@ fn get_compute_capability(device: &Arc<CudaDevice>) -> (i32, i32) {
 
 /// Ensure all SRT kernels are loaded for the given device
 #[cfg(feature = "cuda")]
-pub fn ensure_srt_kernels_loaded(device: &Arc<CudaDevice>) -> PyResult<()> {
+pub fn ensure_srt_kernels_loaded(_device: &Arc<CudaDevice>) -> PyResult<()> {
     // In cudarc 0.18.2, modules are loaded on-demand from PTX source
     // No global caching by name exists, so this function is a no-op
     Ok(())
@@ -579,7 +581,7 @@ pub fn cuda_theta_series_f64(
 #[cfg(feature = "cuda")]
 pub fn cuda_compute_syntony_c128(
     device: &Arc<CudaDevice>,
-    psi: &CudaSlice<f64>,           // Interleaved complex [re, im, ...]
+    psi: &CudaSlice<CudaComplex64>,           // Interleaved complex [re, im, ...]
     mode_norm_sq: &CudaSlice<f64>,  // |n|² for each mode
     n: usize,
 ) -> PyResult<f64> {
@@ -623,7 +625,7 @@ pub fn cuda_compute_syntony_c128(
 #[cfg(feature = "cuda")]
 pub fn cuda_dhsr_cycle_inplace_c128(
     device: &Arc<CudaDevice>,
-    psi: &mut CudaSlice<f64>,       // In/out: interleaved complex
+    psi: &mut CudaSlice<CudaComplex64>,       // In/out: interleaved complex
     mode_norm_sq: &CudaSlice<f64>,
     syntony: f64,
     n: usize,
@@ -799,9 +801,9 @@ pub fn cuda_matmul_tiled_f64(
 #[cfg(feature = "cuda")]
 pub fn cuda_matmul_c128(
     device: &Arc<CudaDevice>,
-    c: &mut CudaSlice<f64>,
-    a: &CudaSlice<f64>,
-    b: &CudaSlice<f64>,
+    c: &mut CudaSlice<CudaComplex64>,
+    a: &CudaSlice<CudaComplex64>,
+    b: &CudaSlice<CudaComplex64>,
     m: usize, n: usize, k: usize,
 ) -> PyResult<()> {
     let (major, minor) = get_compute_capability(device);
@@ -990,9 +992,9 @@ pub fn cuda_bmm_f64(
 #[cfg(feature = "cuda")]
 pub fn cuda_complex_div_c128(
     device: &Arc<CudaDevice>,
-    c: &mut CudaSlice<f64>,
-    a: &CudaSlice<f64>,
-    b: &CudaSlice<f64>,
+    c: &mut CudaSlice<CudaComplex64>,
+    a: &CudaSlice<CudaComplex64>,
+    b: &CudaSlice<CudaComplex64>,
     n: usize,
 ) -> PyResult<()> {
     let (major, minor) = get_compute_capability(device);

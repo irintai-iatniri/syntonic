@@ -203,3 +203,39 @@ extern "C" __global__ void neg_c128(double *out, const double *a, int n) {
         out[idx+1] = -a[idx+1];
     }
 }
+
+extern "C" __global__ void div_c128(double *out, const double *a, const double *b, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = i * 2;
+    if (i < n) {
+        double ar = a[idx], ai = a[idx+1];
+        double br = b[idx], bi = b[idx+1];
+        double denom = br*br + bi*bi;
+        out[idx] = (ar*br + ai*bi) / denom;
+        out[idx+1] = (ai*br - ar*bi) / denom;
+    }
+}
+
+extern "C" __global__ void abs_c128(double *out, const double *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = i * 2;
+    if (i < n) {
+        double re = a[idx];
+        double im = a[idx+1];
+        out[i] = sqrt(re*re + im*im);
+    }
+}
+
+extern "C" __global__ void exp_c128(double *out, const double *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = i * 2;
+    if (i < n) {
+        double re = a[idx];
+        double im = a[idx+1];
+        double exp_re = exp(re);
+        double cos_im, sin_im;
+        sincos(im, &sin_im, &cos_im);
+        out[idx] = exp_re * cos_im;
+        out[idx+1] = exp_re * sin_im;
+    }
+}

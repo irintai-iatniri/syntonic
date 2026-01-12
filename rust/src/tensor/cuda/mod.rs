@@ -31,7 +31,7 @@ pub use async_transfer::{AsyncTransfer, AsyncTensorTransfer};
 
 
 #[cfg(feature = "cuda")]
-pub use memory_pool::{MemoryPool, PooledSlice, PoolConfig, PoolStats};
+pub use memory_pool::{MemoryPool, PooledSlice, PoolConfig, PoolStats, CudaComplex64};
 
 #[cfg(feature = "cuda")]
 pub use multi_gpu::{peer_copy, scatter, gather, ReduceOp};

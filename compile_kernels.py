@@ -112,8 +112,15 @@ def compile_kernel_arch(kernel: str, arch: str) -> bool:
 
     print_colored(Colors.BLUE, f"  Compiling {kernel}.cu for {arch}...")
 
+    # PATCH: Downgrade target architecture for compatibility with older drivers
+    # nvcc 13.1 generates PTX incompatible with 580.x drivers for sm_86/sm_90
+    target_arch = arch
+    if arch in ["sm_86", "sm_90"]:
+        target_arch = "sm_80"
+        print_colored(Colors.YELLOW, f"    ⚠ Downgrading {arch} to {target_arch} for driver compatibility")
+
     try:
-        cmd = ["nvcc", f"-arch={arch}"] + NVCC_FLAGS + ["-o", str(ptx_file), str(cu_file)]
+        cmd = ["nvcc", f"-arch={target_arch}"] + NVCC_FLAGS + ["-o", str(ptx_file), str(cu_file)]
         result = subprocess.run(
             cmd,
             capture_output=True,

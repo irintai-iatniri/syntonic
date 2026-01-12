@@ -2,9 +2,11 @@
 //!
 //! Provides scatter/gather operations and GPU-to-GPU transfers.
 
-use cudarc::driver::{CudaSlice, DeviceSlice};
+use cudarc::driver::CudaSlice;
+use std::sync::Arc;
 
-use super::device_manager::{CudaError, get_device, DeviceManager};
+use super::device_manager::{CudaError, get_device, get_pool, DeviceManager};
+use super::memory_pool::PooledSlice;
 use crate::tensor::storage::{TensorStorage, CpuData, DeviceType, CudaData};
 
 /// Reduction operations for multi-GPU collectives
@@ -209,9 +211,12 @@ fn create_cuda_tensor_f64(
     device_idx: usize,
 ) -> Result<TensorStorage, CudaError> {
     let device = get_device(device_idx)?;
+    let pool = get_pool(device_idx)?;
+    
+    let pooled = PooledSlice::new(data, pool);
 
     Ok(TensorStorage::new_from_cuda(
-        CudaData::Float64(data),
+        CudaData::Float64(Arc::new(pooled)),
         device,
         shape.clone(),
         device_idx,

@@ -7,8 +7,6 @@
 //! 2. For each dimension, sizes must be equal or one of them must be 1
 //! 3. The tensor with size 1 is "stretched" to match the other
 
-use pyo3::prelude::*;
-
 /// Compute the broadcast shape for two shapes.
 ///
 /// Returns None if shapes are incompatible.
@@ -85,7 +83,7 @@ pub fn broadcast_index(
     source_shape: &[usize],
 ) -> usize {
     let output_indices = unravel_index(linear_idx, output_shape);
-    let output_strides = compute_strides(output_shape);
+    let _output_strides = compute_strides(output_shape);
     let source_strides = compute_strides(source_shape);
     
     let offset = output_shape.len().saturating_sub(source_shape.len());
