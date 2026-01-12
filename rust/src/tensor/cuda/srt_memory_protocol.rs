@@ -428,6 +428,26 @@ impl SRTMemoryTransferProtocol {
         Self::new(SRTMemoryConfig::default(), device)
     }
 
+    /// Take a memory block from the pool (alias for alloc_srt_pinned)
+    pub fn take(&self, size: usize) -> Result<Vec<u8>, CudaError> {
+        self.alloc_srt_pinned(size)
+    }
+
+    /// Wait for the next resonant window
+    pub fn wait_for_resonance(&self) {
+        self.scheduler.write().unwrap().wait_for_resonance();
+    }
+
+    /// Get pool statistics: (total_pinned, pooled_blocks, unique_sizes)
+    pub fn stats(&self) -> (usize, usize, usize) {
+        self.pinned_pool.read().unwrap().stats()
+    }
+
+    /// Get resonance score for a block
+    pub fn get_resonance(&self, block_id: usize) -> f64 {
+        self.resonance.read().unwrap().get_resonance(block_id)
+    }
+
     /// Perform SRT-optimized H2D (Host-to-Device) transfer for f64 with pinned memory
     pub fn srt_h2d_transfer_f64_core(
         &self,

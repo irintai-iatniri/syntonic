@@ -596,8 +596,13 @@ impl TensorStorage {
                 (&self.device, &other.device)
             {
                 if idx_a == idx_b {
-                    ensure_kernels_loaded(dev_a, *idx_a)?;
-                    return self.binary_cuda_op(a, b, dev_a, "add");
+                    let cuda_success = ensure_kernels_loaded(dev_a, *idx_a)
+                        .and_then(|_| self.binary_cuda_op(a, b, dev_a, "add"));
+
+                    if let Ok(res) = cuda_success {
+                        return Ok(res);
+                    }
+                    return self.binary_cpu_fallback(a, b, dev_a, "add");
                 }
             }
         }
@@ -657,8 +662,13 @@ impl TensorStorage {
                 (&self.device, &other.device)
             {
                 if idx_a == idx_b {
-                    ensure_kernels_loaded(dev_a, *idx_a)?;
-                    return self.binary_cuda_op(a, b, dev_a, "sub");
+                    let cuda_success = ensure_kernels_loaded(dev_a, *idx_a)
+                        .and_then(|_| self.binary_cuda_op(a, b, dev_a, "sub"));
+
+                    if let Ok(res) = cuda_success {
+                        return Ok(res);
+                    }
+                    return self.binary_cpu_fallback(a, b, dev_a, "sub");
                 }
             }
         }
@@ -717,8 +727,13 @@ impl TensorStorage {
                 (&self.device, &other.device)
             {
                 if idx_a == idx_b {
-                    ensure_kernels_loaded(dev_a, *idx_a)?;
-                    return self.binary_cuda_op(a, b, dev_a, "mul");
+                    let cuda_success = ensure_kernels_loaded(dev_a, *idx_a)
+                        .and_then(|_| self.binary_cuda_op(a, b, dev_a, "mul"));
+
+                    if let Ok(res) = cuda_success {
+                        return Ok(res);
+                    }
+                    return self.binary_cpu_fallback(a, b, dev_a, "mul");
                 }
             }
         }
@@ -777,8 +792,13 @@ impl TensorStorage {
                 (&self.device, &other.device)
             {
                 if idx_a == idx_b {
-                    ensure_kernels_loaded(dev_a, *idx_a)?;
-                    return self.binary_cuda_op(a, b, dev_a, "div");
+                    let cuda_success = ensure_kernels_loaded(dev_a, *idx_a)
+                        .and_then(|_| self.binary_cuda_op(a, b, dev_a, "div"));
+
+                    if let Ok(res) = cuda_success {
+                        return Ok(res);
+                    }
+                    return self.binary_cpu_fallback(a, b, dev_a, "div");
                 }
             }
         }
