@@ -110,31 +110,13 @@ class PureSyntonicLinear(sn.Module):
         # Normalization
         x = self.norm.forward(x)
 
-        # Dropout (pure implementation)
-        if self.dropout_p > 0 and hasattr(self, 'training') and self.training:
-            x = self._apply_dropout(x)
+        # Dropout (simplified - pure version doesn't implement dropout)
+        # In training mode with RES, dropout is handled differently
+        if self.dropout_p > 0:
+            # TODO: Implement pure dropout if needed
+            pass
 
         return x
-
-    def _apply_dropout(self, x: ResonantTensor) -> ResonantTensor:
-        """Apply dropout with probability dropout_p."""
-        import random
-
-        data = x.to_floats()
-        # Create random mask: 1 if kept, 0 if dropped
-        mask = [1.0 if random.random() > self.dropout_p else 0.0 for _ in data]
-        # Scale by 1/(1-p) to maintain expected value
-        scale = 1.0 / (1.0 - self.dropout_p)
-        # Apply mask and scale
-        dropped = [d * m * scale for d, m in zip(data, mask)]
-
-        # Create new tensor preserving shape, mode norms, and precision
-        return ResonantTensor(
-            dropped,
-            list(x.shape),
-            x.mode_norm_sq(),
-            x.precision()
-        )
 
     def _compute_syntony(
         self,

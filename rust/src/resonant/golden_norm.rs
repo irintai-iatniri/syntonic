@@ -411,85 +411,9 @@ fn cuda_golden_batch_norm_1d_dispatch(
     affine_gamma: Option<&ResonantTensor>,
     affine_beta: Option<&ResonantTensor>,
 ) -> Result<ResonantTensor, ResonantError> {
-    use crate::tensor::cuda::device_manager::get_device;
-    use crate::tensor::srt_kernels::cuda_golden_bn_1d_f64;
-    use cudarc::driver::CudaSlice;
-
-    // Only use CUDA for Golden mode (the kernel is hardcoded for golden ratio)
-    if !matches!(mode, GoldenNormMode::Golden {}) {
-        return cpu_golden_batch_norm_1d(input, mode, eps, affine_gamma, affine_beta);
-    }
-
-    // Get the device from the tensor
-    let device_idx = input.device_idx().unwrap_or(0);
-    let device = get_device(device_idx)
-        .map_err(|e| ResonantError::CudaError(format!("Failed to get CUDA device: {}", e)))?;
-
-    let batch_size = input.shape()[0] as i32;
-    let features = input.shape()[1] as i32;
-
-    // Get flux data from GPU
-    let flux = input.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
-
-    // Prepare affine parameters
-    let gpu_gamma = if let Some(gamma) = affine_gamma {
-        let gamma_data = gamma.to_floats_core();
-        Some(
-            device
-                .default_stream()
-                .clone_htod(&gamma_data)
-                .map_err(|e| ResonantError::CudaError(e.to_string()))?,
-        )
-    } else {
-        None
-    };
-
-    let gpu_beta = if let Some(beta) = affine_beta {
-        let beta_data = beta.to_floats_core();
-        Some(
-            device
-                .default_stream()
-                .clone_htod(&beta_data)
-                .map_err(|e| ResonantError::CudaError(e.to_string()))?,
-        )
-    } else {
-        None
-    };
-
-    // Allocate output buffer
-    let total_elements = (batch_size * features) as usize;
-    let mut gpu_output: CudaSlice<f64> = device
-        .default_stream()
-        .alloc_zeros(total_elements)
-        .map_err(|e| ResonantError::CudaError(e.to_string()))?;
-
-    // Run CUDA kernel
-    cuda_golden_bn_1d_f64(
-        &device,
-        &mut gpu_output,
-        flux,
-        gpu_gamma.as_ref(),
-        gpu_beta.as_ref(),
-        eps,
-        batch_size,
-        features,
-    )
-    .map_err(|e| ResonantError::CudaError(format!("CUDA golden_bn_1d failed: {}", e)))?;
-
-    // Copy result back to host
-    let mut output_host = vec![0.0f64; total_elements];
-    device
-        .default_stream()
-        .memcpy_dtoh(&gpu_output, &mut output_host)
-        .map_err(|e| ResonantError::CudaError(e.to_string()))?;
-
-    // Create output ResonantTensor
-    ResonantTensor::from_floats(
-        &output_host,
-        input.shape().to_vec(),
-        input.mode_norm_sq().to_vec(),
-        input.precision(),
-    )
+    // TODO: Implement CUDA dispatch
+    // For now, fall back to CPU
+    cpu_golden_batch_norm_1d(input, mode, eps, affine_gamma, affine_beta)
 }
 
 #[cfg(feature = "cuda")]
