@@ -27,6 +27,18 @@ Rust (TensorStorage) ─────► cudarc (CUDA bindings)
 2. **`python/syntonic/core/state.py`** - Python State class with `.cuda()` and `.cpu()` methods
 3. **`python/syntonic/core/device.py`** - Device management and CUDA availability checks
 
+### Production Kernels
+
+The library includes 14 optimized CUDA kernels (compiled to PTX for sm_75, sm_80, sm_86, sm_90):
+
+| Kernel | Description |
+|--------|-------------|
+| **Core Math** | `core_ops`, `elementwise`, `matmul`, `syntonic_softmax` |
+| **Neural Net** | `conv_ops` (Convolution), `golden_batch_norm`, `phi_residual` |
+| **SRT Physics** | `winding_ops` (T⁴ windings), `dhsr` (Differentiation-Harmonization), `resonant_d` |
+| **Geometry** | `e8_projection` (Lattice mapping), `golden_ops` (φ-scaling), `heat_kernel` |
+| **Correction** | `corrections` (q-deficit adjustments) |
+
 ## Supported Data Types on CUDA
 
 | DType | CPU Storage | CUDA Storage | Notes |
@@ -246,8 +258,7 @@ pytest tests/test_core/test_device.py -v
 
 ## Future Enhancements
 
-1. CUDA kernels for element-wise operations
-2. Async data transfers
-3. Multi-GPU support
-4. cuBLAS integration for matrix operations
-5. Memory pooling for reduced allocation overhead
+1. Async data transfers
+2. Multi-GPU support
+3. cuBLAS integration for matrix operations
+4. Memory pooling for reduced allocation overhead

@@ -31,13 +31,20 @@ mkdir -p ptx
 
 # List of kernel source files
 KERNEL_FILES=(
-    "elementwise"
+    "phi_residual"
+    "golden_batch_norm"
+    "syntonic_softmax"
     "golden_ops"
     "e8_projection"
     "heat_kernel"
     "dhsr"
     "corrections"
     "resonant_d"
+    "core_ops"
+    "elementwise"
+    "matmul"
+    "conv_ops"
+    "winding_ops"
 )
 
 # Compute capabilities to compile for
