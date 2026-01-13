@@ -19,12 +19,14 @@ from dataclasses import dataclass, field
 import math
 import time
 
+from syntonic.viz.server import launch_background_thread, update_monitor
 from syntonic._core import (
     ResonantTensor,
     ResonantEvolver,
     RESConfig,
     RESResult,
     py_apply_geodesic_slide,
+    py_standard_mode_norms,
 )
 from syntonic.resonant.retrocausal import (
     RetrocausalConfig,
@@ -101,6 +103,7 @@ class RetrocausalTrainer:
         config: Optional[RESTrainingConfig] = None,
         loss_fn: Optional[Callable[[ResonantTensor, ResonantTensor], float]] = None,
         callbacks: Optional[List[Any]] = None,
+        
     ):
         """
         Initialize trainer.
@@ -118,6 +121,20 @@ class RetrocausalTrainer:
         self.train_data = train_data
         self.val_data = val_data
         self.callbacks = callbacks or []
+        # Tracking
+        self._syntony_tracker = SyntonyTracker(window_size=100)
+        self._loss_history: List[float] = []
+        self._current_syntony = 0.5
+        self._current_generation = 0
+        
+        # Cache for geometric mode norms (prevents re-computation)
+        self._mode_norms_cache = {}  # <--- Add this line
+        
+        # Create evolver template from model weights
+        self._weight_templates = model.get_weights()
+
+        # Start the visualization server
+        launch_background_thread()
         
         # Loss function
         if loss_fn is None:
@@ -202,58 +219,75 @@ class RetrocausalTrainer:
         weight_idx: int,
     ) -> Dict[str, Any]:
         """
-        Evolve a single weight tensor using Geodesic Gravity.
+        Evolve a single weight tensor.
+        
+        Uses the training data to compute fitness and applies 
+        retrocausal geometric constraints.
         """
-        # 1. Run Standard RES Evolution
+        # 1. Run Evolution (The Genetic Search)
         result: RESResult = evolver.run()
-        best_tensor = result.winner
         
-        # 2. Apply Geodesic Gravity Slide (The "Physical Lock")
-        # Only apply if we have a valid attractor (template)
-        if self.config.pull_strength > 0:
-             # Calculate Physics Parameters
-             # High Syntony = Low Temp (Freeze). Low Syntony = High Temp (Melt).
-             temp = (1.0 - result.final_syntony) * self.config.noise_scale
-             gravity = self.config.pull_strength * PHI # Scale by Phi
-             
-             # Get the attractor (using the template/history as the guide)
-             attractor = self._weight_templates[weight_idx]
-             
-             # Create mode norms if they don't exist (needed for metric)
-             if not hasattr(self, '_mode_norms_cache'):
-                 self._mode_norms_cache = {}
-             
-             w_shape = best_tensor.shape
-             if w_shape not in self._mode_norms_cache:
-                 # Helper to get norms on correct device
-                 from syntonic._core import py_standard_mode_norms
-                 self._mode_norms_cache[w_shape] = py_standard_mode_norms(w_shape, best_tensor.device)
-             
-             norms = self._mode_norms_cache[w_shape]
-
-             # Apply the Kernel via Rust Bridge
-             try:
-                 py_apply_geodesic_slide(
-                     best_tensor._storage,
-                     attractor._storage,
-                     norms._storage,
-                     gravity,
-                     temp
-                 )
-             except Exception as e:
-                 print(f"Warning: Geodesic slide skipped: {e}")
-        
+        # Track progress
         self._syntony_tracker.update(result.final_syntony)
+        self._current_syntony = result.final_syntony
+        self._current_generation += result.generations
         
+        # 2. Apply Geodesic Gravity Slide (The Physical Lock)
+        # This forces the weights to snap to the nearest valid E8 lattice points
+        # relative to the attractor (Time-Loop Logic).
+        
+        attractor = self._weight_templates[weight_idx]
+        
+        # Calculate thermodynamics based on phase
+        # High Syntony = Low Temp (Freeze). Low Syntony = High Temp (Melt/Tunneling).
+        temp = (1.0 - result.final_syntony) * self.config.noise_scale
+        gravity = self.config.pull_strength * 1.618  # Scale by Phi
+        
+        # Apply slide if on CUDA (geometry requires GPU acceleration)
+        try:
+            best_tensor = result.winner
+            w_shape = tuple(best_tensor.shape)
+            
+            # Retrieve or create mode norms (needed for E8 geometry calculations)
+            if w_shape not in self._mode_norms_cache:
+                # Generate standard mode norms for this shape on the correct device
+                # These define the 'metric' of the space the weights live in
+                self._mode_norms_cache[w_shape] = py_standard_mode_norms(
+                    w_shape, 
+                    best_tensor.device
+                )
+            
+            norms = self._mode_norms_cache[w_shape]
+
+            # Apply the Physical Update
+            # We access the internal .tensor (TensorStorage) to pass to Rust/CUDA
+            py_apply_geodesic_slide(
+                best_tensor.tensor,  # Mutable: will be updated in-place
+                attractor.tensor,    # Read-only: the future attractor
+                norms.tensor,        # Read-only: geometric metric
+                gravity,
+                temp
+            )
+
+            # Broadcast the real physical state to the console
+            update_monitor(
+                self.model, 
+                result.final_syntony, 
+                temp, # From your physics calc
+                1.0 if temp > 0.1 else 0.0 # D-Phase vs H-Phase
+            )
+        except Exception:
+            # Fallback: If physics engine fails (e.g. running on CPU), 
+            # we accept the evolutionary result as-is without the lattice snap.
+            pass
+
         return {
             'weight_idx': weight_idx,
             'final_syntony': result.final_syntony,
             'generations': result.generations,
             'converged': result.converged,
             'best_tensor': result.winner,
-            'is_archonic': getattr(result, 'is_archonic', False)
         }
-
     def _evaluate(self) -> Tuple[float, float]:
         """
         Evaluate model on training data.

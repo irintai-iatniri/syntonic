@@ -1148,93 +1148,62 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         const tetherMesh = new THREE.LineSegments(tetherGeo, tetherMat);
         scene.add(tetherMesh);
 
-        // --- Physics & Simulation Kernel ---
+        // --- REAL-TIME BRIDGE ---
+        const socket = new WebSocket('ws://localhost:8765');
 
-        function updatePhysics() {
-            STATE.time += 0.01;
-            let totalSyntony = 0;
-            let activeLocks = 0;
+        socket.onopen = () => {
+            log("UPLINK ESTABLISHED: PORT 8765", "success");
+            // Optionally update a UI indicator if you have one
+            document.querySelector('.text-xs.font-mono .text-green-500').textContent = "ONLINE (LIVE)";
+        };
 
-            const temp = STATE.temperature * 0.5; 
-            const grav = STATE.gravity * 0.1;
-
-            const positions = tetherMesh.geometry.attributes.position.array;
-
-            for(let i=0; i<CONFIG.particleCount; i++) {
-                const p = particles[i];
-                const target = p.target;
-
-                const dist = p.position.distanceTo(target);
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            // 1. Update State Vars
+            STATE.syntony = data.syntony;
+            STATE.temperature = data.temperature;
+            STATE.phase = data.phase;
+            
+            // 2. Update UI
+            document.getElementById('syntony-display').textContent = data.syntony.toFixed(3);
+            document.getElementById('temp-val').textContent = Math.round(data.temperature * 100) + "%";
+            
+            // 3. Update Geometry (The Heavy Lift)
+            // data.weights is an array [x1, y1, z1, x2, y2, z2...]
+            if (data.weights && data.weights.length > 0) {
+                const count = Math.min(CONFIG.particleCount, data.weights.length / 3);
                 
-                if (STATE.phase === 'D') {
-                    // D-Phase: Chaos
-                    p.velocity.x += (Math.random() - 0.5) * temp;
-                    p.velocity.y += (Math.random() - 0.5) * temp;
-                    p.velocity.z += (Math.random() - 0.5) * temp;
+                for (let i = 0; i < count; i++) {
+                    const x = data.weights[i*3];
+                    const y = data.weights[i*3 + 1];
+                    const z = data.weights[i*3 + 2];
                     
-                    const centerPull = p.position.clone().multiplyScalar(-0.001);
-                    p.velocity.add(centerPull);
-
-                    p.locked = false;
-
-                } else {
-                    // H-Phase: Order
-                    const dir = new THREE.Vector3().subVectors(target, p.position).normalize();
-                    const force = dir.multiplyScalar(grav);
+                    // Move particle to real position
+                    dummy.position.set(x, y, z);
                     
-                    p.velocity.add(force);
-                    p.velocity.multiplyScalar(0.90);
-
-                    if(dist < 0.5 && !p.locked) {
-                        p.locked = true;
-                        p.position.copy(target);
-                        p.velocity.set(0,0,0);
-                        
-                        if(audioEnabled && Math.random() > 0.95) {
-                            const notes = ["C5", "E5", "G5", "B5", "D6"];
-                            synth.triggerAttackRelease(notes[Math.floor(Math.random()*notes.length)], "32n");
-                        }
-                    }
+                    // Visual flair based on Syntony
+                    const scale = 0.5 + (data.syntony * 0.5);
+                    dummy.scale.set(scale, scale, scale);
+                    
+                    dummy.updateMatrix();
+                    crystalMesh.setMatrixAt(i, dummy.matrix);
+                    
+                    // Update tether line start point
+                    // (End point remains the attractor target)
+                    const tetherPos = tetherMesh.geometry.attributes.position;
+                    tetherPos.setXYZ(i*2, x, y, z); 
                 }
-
-                if (!p.locked || STATE.phase === 'D') {
-                    p.position.add(p.velocity);
-                }
-
-                dummy.position.copy(p.position);
-                const scale = p.locked ? 1.5 : 1.0;
-                dummy.scale.set(scale, scale, scale);
-                dummy.updateMatrix();
-                crystalMesh.setMatrixAt(i, dummy.matrix);
-
-                const normalizedDist = Math.min(dist / 10, 1);
                 
-                if (p.locked) {
-                    color.set(CONFIG.syntonyColor);
-                    activeLocks++;
-                } else if (STATE.phase === 'D') {
-                    color.lerpColors(CONFIG.baseColor, CONFIG.entropyColor, Math.random());
-                } else {
-                    color.lerpColors(CONFIG.syntonyColor, CONFIG.baseColor, normalizedDist);
-                }
-                crystalMesh.setColorAt(i, color);
-
-                positions[i * 6] = p.position.x;
-                positions[i * 6 + 1] = p.position.y;
-                positions[i * 6 + 2] = p.position.z;
-                
-                positions[i * 6 + 3] = target.x;
-                positions[i * 6 + 4] = target.y;
-                positions[i * 6 + 5] = target.z;
+                crystalMesh.instanceMatrix.needsUpdate = true;
+                tetherMesh.geometry.attributes.position.needsUpdate = true;
             }
+        };
 
-            crystalMesh.instanceMatrix.needsUpdate = true;
-            crystalMesh.instanceColor.needsUpdate = true;
-            tetherMesh.geometry.attributes.position.needsUpdate = true;
-
-            STATE.syntony = activeLocks / CONFIG.particleCount;
-            document.getElementById('syntony-display').textContent = STATE.syntony.toFixed(3);
-            document.getElementById('entropy-display').textContent = (1.0 - STATE.syntony).toFixed(3);
+        // Keep the animation loop simple now
+        function updatePhysics() {
+            // Just rotate the view, data is handled by socket.onmessage
+            STATE.time += 0.01;
         }
 
         // --- UI Event Handlers ---

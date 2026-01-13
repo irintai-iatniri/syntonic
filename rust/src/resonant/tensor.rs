@@ -117,6 +117,9 @@ pub struct ResonantTensor {
     #[cfg(feature = "cuda")]
     flux: Option<CudaSlice<f64>>,
 
+    /// CPU flux representation (active during D-phase fallback or pure CPU mode)
+    cpu_flux: Option<Vec<f64>>,
+
     /// Shape of the tensor
     shape: Vec<usize>,
 
@@ -177,6 +180,7 @@ impl ResonantTensor {
             lattice,
             #[cfg(feature = "cuda")]
             flux: None,
+            cpu_flux: None,
             shape,
             syntony,
             mode_norm_sq,
@@ -1989,6 +1993,7 @@ impl Clone for ResonantTensor {
             lattice: self.lattice.clone(),
             #[cfg(feature = "cuda")]
             flux: None, // Don't clone GPU memory
+            cpu_flux: None,
             shape: self.shape.clone(),
             syntony: self.syntony,
             mode_norm_sq: self.mode_norm_sq.clone(),

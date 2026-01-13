@@ -19,13 +19,13 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 # Configuration
-KERNEL_DIR = Path("rust/kernels")
-PTX_DIR = Path("rust/kernels/ptx")
+KERNEL_DIR = (Path(__file__).parent / "rust/kernels").resolve()
+PTX_DIR = KERNEL_DIR / "ptx"
 NVCC_PATHS = ["/usr/local/cuda/bin/nvcc", "/usr/local/cuda-13.1/bin/nvcc", "/usr/local/cuda-13/bin/nvcc", "nvcc"]
 NVCC_FLAGS = ["-ptx", "--use_fast_math", "-O3", f"-I{KERNEL_DIR}"]
 
-# GPU architectures
-ARCHITECTURES = ["sm_75", "sm_80", "sm_86", "sm_90"]
+# GPU architectures (using compute capability numbers)
+ARCHITECTURES = ["75", "80", "86", "90"]
 
 # All kernels
 KERNELS = [
@@ -41,6 +41,8 @@ KERNELS = [
     "core_ops",
     "elementwise",
     "matmul",
+    "conv_ops",
+    "winding_ops",
 ]
 
 # ANSI color codes
@@ -108,23 +110,16 @@ def setup_directories():
 def compile_kernel_arch(kernel: str, arch: str, nvcc_path: str) -> bool:
     """Compile a single kernel for a single architecture"""
     cu_file = KERNEL_DIR / f"{kernel}.cu"
-    ptx_file = PTX_DIR / f"{kernel}_{arch}.ptx"
+    ptx_file = PTX_DIR / f"{kernel}_sm{arch}.ptx"
 
     if not cu_file.exists():
         print_colored(Colors.YELLOW, f"⚠ Skipping {kernel}.cu (file not found)")
         return False
 
-    print_colored(Colors.BLUE, f"  Compiling {kernel}.cu for {arch}...")
-
-    # PATCH: Downgrade target architecture for compatibility with older drivers
-    # nvcc 13.1 generates PTX incompatible with 580.x drivers for sm_86/sm_90
-    target_arch = arch
-    if arch in ["sm_86", "sm_90"]:
-        target_arch = "sm_80"
-        print_colored(Colors.YELLOW, f"    ⚠ Downgrading {arch} to {target_arch} for driver compatibility")
+    print_colored(Colors.BLUE, f"  Compiling {kernel}.cu for sm_{arch}...")
 
     try:
-        cmd = [nvcc_path, f"-arch={target_arch}"] + NVCC_FLAGS + ["-o", str(ptx_file), str(cu_file)]
+        cmd = [nvcc_path, f"-arch=compute_{arch}"] + NVCC_FLAGS + ["-o", str(ptx_file), str(cu_file)]
         result = subprocess.run(
             cmd,
             capture_output=True,
@@ -265,15 +260,15 @@ def main():
 Examples:
   python compile_kernels.py                          # Compile all kernels
   python compile_kernels.py --kernel=phi_residual    # Compile specific kernel
-  python compile_kernels.py --arch=sm_80             # Compile for specific arch
+  python compile_kernels.py --arch=80                # Compile for specific arch (sm_80)
   python compile_kernels.py --clean                  # Clean PTX files
   python compile_kernels.py --list                   # List available kernels
 
 Supported Architectures:
-  sm_75  (Turing:  RTX 20 series, T4)
-  sm_80  (Ampere:  A100, RTX 30 series)
-  sm_86  (Ampere:  RTX 30 series)
-  sm_90  (Hopper:  H100)
+  75  (Turing:  RTX 20 series, T4)
+  80  (Ampere:  A100, RTX 30 series)
+  86  (Ampere:  RTX 30 series)
+  90  (Hopper:  H100)
         """
     )
 
@@ -286,7 +281,7 @@ Supported Architectures:
         "--arch",
         type=str,
         choices=ARCHITECTURES,
-        help="Compile for specific architecture (e.g., sm_80)"
+        help="Compile for specific architecture (e.g., 80)"
     )
     parser.add_argument(
         "--clean",

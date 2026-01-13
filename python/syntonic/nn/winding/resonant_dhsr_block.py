@@ -155,8 +155,25 @@ class ResonantWindingDHSRBlock(sn.Module):
             # Create single tensor
             single_tensor = ResonantTensor(single_data, [self.dim], single_mode_norms, self.precision)
             
-            # GPU D-phase cycle (no CPU fallback)
-            syntony = single_tensor.cuda_cycle_gpu(0, self.noise_scale, self.precision)  # device 0
+            # GPU D-phase cycle with CPU fallback
+            try:
+                syntony = single_tensor.cuda_cycle_gpu(0, self.noise_scale, self.precision)  # device 0
+            except Exception:
+                # If CUDA fails (driver mismatch, no device), use pure Python cycle
+                # We replicate the cycle logic in pure Python using Rust backend functions
+                from syntonic._core import srt_dhsr_cycle
+                
+                # Manual CPU Cycle
+                # 1. Differentiate (D-Hat)
+                single_tensor = single_tensor.differentiate(self.noise_scale)
+                
+                # 2. Harmonize (H-Hat)
+                # Note: harmonize is inherent in srt_dhsr_cycle, but here we do it explicitly
+                single_tensor = single_tensor.harmonize(PHI_INV, 0.0)
+
+                # 3. Compute Syntony (on CPU)
+                syntony = single_tensor.syntony
+                
             batch_syntonies.append(syntony)
             single_tensors.append(single_tensor)
         

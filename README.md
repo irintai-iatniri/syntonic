@@ -128,7 +128,10 @@ From this **single value q**, all physical observables derive:
 
 **Why Rust Backend?**
 1. **Exact Arithmetic**: `GoldenExact` type (a + b·φ) with 100-bit precision
-2. **CUDA Integration**: Custom PTX kernels for SRT operations (golden weights, E₈ projections)
+2. **CUDA Integration**: Custom PTX kernels for all core SRT operations:
+   - **Foundational**: `elementwise`, `core_ops`, `matmul`, `syntonic_softmax`
+   - **CRT/SRT**: `golden_ops`, `e8_projection`, `dhsr`, `corrections`, `heat_kernel`
+   - **Production**: `conv_ops` (convolution), `winding_ops` (T⁴ windings), `phi_residual`, `golden_batch_norm`, `resonant_d`
 3. **Zero NumPy Dependency**: Uses `ndarray` with BLAS/LAPACK directly
 4. **Memory Safety**: Eliminates entire classes of bugs via type system
 

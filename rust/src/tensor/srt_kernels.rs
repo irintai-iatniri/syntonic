@@ -2018,7 +2018,7 @@ pub fn cuda_syntonic_softmax_provided_f64(
 #[cfg(feature = "cuda")]
 pub fn apply_geodesic_gravity_f64(
     device: &Arc<CudaDevice>,
-    weights: &CudaSlice<f64>,
+    weights: &CudaSlice<f64>, // Mutable reference in intent, but Arc shared in Python
     attractor: &CudaSlice<f64>,
     mode_norm_sq: &CudaSlice<f64>,
     gravity: f64,
@@ -2034,11 +2034,10 @@ pub fn apply_geodesic_gravity_f64(
         .load_function("apply_geodesic_gravity_f64")
         .map_err(|_| "Kernel apply_geodesic_gravity_f64 not found".to_string())?;
 
-    // We process 8 floats per thread (one E8 lattice point)
-    // The kernel handles the bounds check (offset + 7 < n)
-    // Grid size needs to cover n/8 items
+    // IMPORTANT: The kernel processes chunks of 8 (E8 unit cells)
+    // We launch threads for *blocks of 8*, not individual elements
     let num_threads = (n + 7) / 8;
-    let cfg = launch_cfg_256(num_threads);
+    let cfg = LaunchConfig::for_num_elems(num_threads as u32);
 
     unsafe {
         device
