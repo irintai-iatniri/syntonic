@@ -327,7 +327,7 @@ void conv2d_3x3_tiled_kernel(
     
     // Load input tile with halo
     int tile_w = TILE_W + 2 * HALO;
-    int tile_h = TILE_H + 2 * HALO;
+    const int tile_h = TILE_H + 2 * HALO;
     
     float sum = 0.0f;
     
@@ -345,7 +345,7 @@ void conv2d_3x3_tiled_kernel(
         __syncthreads();
         
         // Compute convolution for this channel
-        if (tx >= HALO && tx < TILE_W + HALO && ty >= HALO && ty < TILE_H + HALO) {
+        if (tx >= HALO && tx < tile_w - HALO && ty >= HALO && ty < tile_h - HALO) {
             for (int kh = 0; kh < 3; kh++) {
                 for (int kw = 0; kw < 3; kw++) {
                     int k_idx = oc * (9 * in_c) + kh * (3 * in_c) + kw * in_c + ic;
@@ -360,7 +360,7 @@ void conv2d_3x3_tiled_kernel(
     int ox = bx + tx - HALO;
     int oy = by + ty - HALO;
     
-    if (tx >= HALO && tx < TILE_W + HALO && ty >= HALO && ty < TILE_H + HALO) {
+    if (tx >= HALO && tx < tile_w - HALO && ty >= HALO && ty < tile_h - HALO) {
         if (ox >= 0 && ox < in_w && oy >= 0 && oy < in_h) {
             int out_idx = b * (in_h * in_w * out_c) + oy * (in_w * out_c) + ox * out_c + oc;
             float result = sum;

@@ -269,33 +269,49 @@ class ComprehensiveBenchmark:
             ('sin', lambda a: np.sin(a)),
             ('cos', lambda a: np.cos(a)),
             ('sqrt', lambda a: np.sqrt(np.abs(a))),
+            ('tanh', lambda a: np.tanh(a)),
+            ('relu', lambda a: np.maximum(0, a)),
         ]
 
         libraries = ['numpy']
         if HAS_TORCH:
             libraries.append('torch')
-            operations.extend([
-                ('tanh', lambda a: torch.tanh(a)),
-                ('relu', lambda a: torch.relu(a)),
-            ])
         if HAS_SYNTONIC:
             libraries.append('syntonic')
 
         for size in self.sizes:
             for dtype in self.dtypes:
+                is_complex = 'complex' in dtype
+                
                 for lib in libraries:
                     try:
                         a, _ = self.create_arrays((size, size), dtype, lib)
                         device = 'cuda' if self.use_gpu and lib in ['torch', 'syntonic'] else 'cpu'
 
                         for op_name, op_func in operations:
-                            if lib == 'torch' and op_name in ['exp', 'log', 'sin', 'cos', 'sqrt']:
-                                torch_op = getattr(torch, op_name)
-                                result = self.benchmark_operation(
-                                    f"{op_name}_{size}x{size}",
-                                    lambda: torch_op(a),
-                                    (size, size), dtype, lib, device
-                                )
+                            # Skip relu for complex types on numpy
+                            if lib == 'numpy' and op_name == 'relu' and is_complex:
+                                continue
+
+                            if lib == 'torch' and op_name in ['exp', 'log', 'sin', 'cos', 'sqrt', 'tanh', 'relu']:
+                                try:
+                                    torch_op = getattr(torch, op_name)
+                                    result = self.benchmark_operation(
+                                        f"{op_name}_{size}x{size}",
+                                        lambda: torch_op(a),
+                                        (size, size), dtype, lib, device
+                                    )
+                                except Exception as e:
+                                    result = BenchmarkResult(
+                                        operation=f"{op_name}_{size}x{size}",
+                                        library=lib,
+                                        size=(size, size),
+                                        dtype=dtype,
+                                        device=device,
+                                        time_ms=0.0,
+                                        iterations=self.iterations,
+                                        error=str(e)
+                                    )
                             elif lib == 'syntonic':
                                 # Use Syntonic's element-wise operations
                                 if hasattr(a, op_name):
@@ -306,7 +322,7 @@ class ComprehensiveBenchmark:
                                         (size, size), dtype, lib, device
                                     )
                                 else:
-                                    # Skip if operation not available
+                                    # Fallback or skip
                                     continue
                             else:
                                 result = self.benchmark_operation(
@@ -349,9 +365,9 @@ class ComprehensiveBenchmark:
                             if lib == 'syntonic':
                                 # Use syntonic's linalg operations
                                 if op_name == 'eig':
-                                    syn_op = lambda a: a.eig()
+                                    syn_op = lambda a: linalg.eig(a)
                                 elif op_name == 'svd':
-                                    syn_op = lambda a: a.svd()
+                                    syn_op = lambda a: linalg.svd(a)
                                 elif op_name == 'solve':
                                     b_vec = self.create_arrays((size,), dtype, lib)[0]
                                     syn_op = lambda a: linalg.solve(a, b_vec)
@@ -416,6 +432,8 @@ class ComprehensiveBenchmark:
                             a, _ = self.create_arrays((size, size), dtype, lib)
                             if lib == 'torch':
                                 copy_func = lambda: a.clone()
+                            elif lib == 'syntonic':
+                                copy_func = lambda: syn.state(a)
                             else:
                                 copy_func = lambda: a.copy()
 

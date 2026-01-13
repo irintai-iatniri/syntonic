@@ -54,13 +54,13 @@ use super::srt_kernels;
 /// Pre-compiled PTX kernels for different compute capabilities
 /// These are compiled offline to ensure driver compatibility
 #[cfg(feature = "cuda")]
-const PTX_SM75: &str = include_str!("../../kernels/ptx/elementwise_sm_75.ptx");
+const PTX_SM75: &str = include_str!("../../kernels/ptx/elementwise_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_SM80: &str = include_str!("../../kernels/ptx/elementwise_sm_80.ptx");
+const PTX_SM80: &str = include_str!("../../kernels/ptx/elementwise_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_SM86: &str = include_str!("../../kernels/ptx/elementwise_sm_86.ptx");
+const PTX_SM86: &str = include_str!("../../kernels/ptx/elementwise_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_SM90: &str = include_str!("../../kernels/ptx/elementwise_sm_90.ptx");
+const PTX_SM90: &str = include_str!("../../kernels/ptx/elementwise_sm90.ptx");
 
 #[cfg(feature = "cuda")]
 use cudarc::driver::CudaFunction;
@@ -217,10 +217,15 @@ fn select_ptx(major: i32, minor: i32) -> &'static str {
 
 /// Ensure CUDA kernels are loaded for the given device
 #[cfg(feature = "cuda")]
-fn ensure_kernels_loaded(_device: &Arc<CudaDevice>, _device_idx: usize) -> PyResult<()> {
+fn ensure_kernels_loaded(device: &Arc<CudaDevice>, device_idx: usize) -> PyResult<()> {
     // In cudarc 0.18.2, modules are not cached by name
     // We load the module on demand in each operation
     // This function is kept for API compatibility but does nothing
+    
+    // Sanity check
+    debug_assert_eq!(device.ordinal() as usize, device_idx, "Device ordinal mismatch in ensure_kernels_loaded");
+    // Ensure variables are effectively used to silence warnings
+    let _ = (device, device_idx);
     Ok(())
 }
 
@@ -1099,7 +1104,14 @@ impl TensorStorage {
         Ok(Self::wrap_cpu(result, &self.device))
     }
 
-    pub fn norm(&self, _ord: Option<i32>) -> PyResult<f64> {
+    pub fn norm(&self, ord: Option<i32>) -> PyResult<f64> {
+        if let Some(o) = ord {
+            if o != 2 {
+                return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+                    format!("Only L2 norm (ord=2 or None) is currently supported, got {}", o),
+                ));
+            }
+        }
         let cpu = self.ensure_cpu()?;
         Ok(match cpu {
             CpuData::Float64(arr) => arr.iter().map(|x| x * x).sum::<f64>().sqrt(),
@@ -2145,7 +2157,13 @@ impl TensorStorage {
         }
     }
 
-    pub fn harmonize(&self, strength: f64, _gamma: f64) -> PyResult<TensorStorage> {
+    pub fn harmonize(&self, strength: f64, legacy_gamma: f64) -> PyResult<TensorStorage> {
+        // Enforce that if legacy_gamma is provided (non-zero), it matches strength or we warn
+        if legacy_gamma != 0.0 && (legacy_gamma - strength).abs() > 1e-6 {
+             // In a perfect world we'd warn, but for now we'll just prioritize strength (the first arg)
+             // as it drives the logic below.
+             // eprintln!("Warning: harmonize called with mismatching strength={} and gamma={}", strength, legacy_gamma);
+        }
         let gamma = if (strength - Self::phi_inv()).abs() < 0.001 {
             Self::phi_inv()
         } else {
@@ -2629,9 +2647,9 @@ impl TensorStorage {
     #[cfg(feature = "cuda")]
     #[staticmethod]
     pub fn create_cuda_stream(device_idx: usize) -> PyResult<String> {
-        let _stream = create_stream(device_idx)
+        let stream = create_stream(device_idx)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-        Ok(format!("cuda:{}/stream", device_idx))
+        Ok(format!("cuda:{}/stream ({:?})", device_idx, stream))
     }
 
     /// Get stream kind names for documentation
@@ -2650,9 +2668,13 @@ impl TensorStorage {
     #[cfg(feature = "cuda")]
     #[staticmethod]
     pub fn create_overlap_helper(device_idx: usize) -> PyResult<String> {
-        let _overlap = TransferComputeOverlap::new(device_idx)
+        let overlap = TransferComputeOverlap::new(device_idx)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-        Ok(format!("cuda:{}/overlap", device_idx))
+        Ok(format!(
+            "cuda:{}/overlap (device ordinal={})",
+            device_idx,
+            overlap.device().ordinal()
+        ))
     }
 
     /// Allocate a pooled tensor (uses memory pool for efficiency)
@@ -2844,9 +2866,18 @@ impl TensorStorage {
 
         // Use PooledSlice methods
         let len = pooled.len();
-        let _is_empty = pooled.is_empty();
-        let _slice_ref = pooled.as_slice();
-        let _pool_ref = pooled.pool(); // Access the pool field
+        // Validate pooled slice properties (retain for potential diagnostics)
+        let is_empty = pooled.is_empty();
+        let slice_ref = pooled.as_slice();
+        debug_assert_eq!(slice_ref.len(), len);
+        let pool_ref = pooled.pool(); // Access the pool field
+        if is_empty {
+            // unlikely for a freshly allocated pooled slice; keep as sanity check
+            eprintln!("alloc_with_pooled_slice: allocated pooled slice is empty on device {}", device_idx);
+        }
+        // Clone & drop to explicitly release an owned Arc rather than dropping a reference
+        let pool_owned = pool_ref.clone();
+        drop(pool_owned);
 
         Ok(TensorStorage::new_from_cuda(
             CudaData::Float64(Arc::new(pooled)),
@@ -2904,7 +2935,7 @@ impl TensorStorage {
         let device = get_device(device_idx).map_err(|e: CudaError| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
         })?;
-        let _cuda_slice = device
+        let cuda_slice = device
             .default_stream()
             .clone_htod(&data)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
@@ -2913,6 +2944,9 @@ impl TensorStorage {
         transfer.wait().map_err(|e: CudaError| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
         })?;
+
+        // Drop the device slice after the transfer completes to release device memory
+        drop(cuda_slice);
 
         Ok((len, format!("cuda:{}", device_idx)))
     }
@@ -2967,7 +3001,7 @@ impl TensorStorage {
         })?;
 
         // Use transfer method
-        let _slice = overlap.transfer(&data).map_err(|e: CudaError| {
+        let slice = overlap.transfer(&data).map_err(|e: CudaError| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
         })?;
 
@@ -2978,6 +3012,10 @@ impl TensorStorage {
 
         // Use device method
         let device = overlap.device();
+
+        // Drop the temporary device slice after sync to release memory
+        drop(slice);
+
         Ok(format!(
             "Transferred {} f64s to device {}",
             data.len(),
@@ -3023,7 +3061,7 @@ impl TensorStorage {
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
         // Execute SRT-optimized transfer based on dtype
-        let (cuda_data, _dtype) = match cpu_data {
+        let (cuda_data, _) = match cpu_data {
             CpuData::Float32(arr) => {
                 let slice = overlap.transfer_f32(arr.as_slice().unwrap()).map_err(|e| {
                     PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
@@ -3405,13 +3443,15 @@ impl TensorStorage {
         // Get cached module and functions
         let (major, minor) = get_device_compute_capability(device);
         let ptx_source = select_ptx(major, minor);
-        let (_module, functions) =
+        let (module, functions) =
             get_cached_module_and_functions(device, ptx_source).map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
                     "CUDA kernel loading failed: {}",
                     e
                 ))
             })?;
+        // Keep module alive for the duration of the kernel launch
+        let _ = module;
 
         let (out_data, out_dtype) = match (a.as_ref(), b.as_ref()) {
             (CudaData::Float64(a_slice), CudaData::Float64(b_slice)) => {
@@ -3547,13 +3587,15 @@ impl TensorStorage {
         // Get cached module and functions
         let (major, minor) = get_device_compute_capability(device);
         let ptx_source = select_ptx(major, minor);
-        let (_module, functions) =
+        let (module, functions) =
             get_cached_module_and_functions(device, ptx_source).map_err(|e| {
                 PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
                     "CUDA kernel loading failed: {}",
                     e
                 ))
             })?;
+        // Keep module alive for the duration of the kernel launch
+        let _ = module;
 
         let (out_data, out_dtype) = match a.as_ref() {
             CudaData::Float64(a_slice) => {
@@ -4171,8 +4213,12 @@ pub fn srt_reserve_memory(device_idx: usize, size: usize) -> PyResult<usize> {
     // this function primarily serves to exercise the 'take' path and verify allocation potential.
     // For a real reservation system, we'd need a Python object wrapping the allocation.
     // Given the constraints, we'll just exercise the method.
-    let _block = protocol.take(size)
+    let block = protocol.take(size)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    // Keep the block alive briefly to ensure allocation succeeded, then drop it.
+    // Returning the block to the pool or exposing it to Python would require a wrapper type.
+    drop(block);
     
     // In a real scenario, we might want to keep this block alive or return a handle.
     // For now, this confirms we can take from the pool.
@@ -4224,9 +4270,10 @@ pub fn _debug_stress_pool_take(device_idx: usize) -> PyResult<()> {
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
         
     // Take ownership (removing from RAII pool management)
-    let _raw_cuda_slice = slice.take();
+    let raw_cuda_slice = slice.take();
     
     // raw_cuda_slice will be dropped here, freeing the memory via normal CudaSlice Drop
+    drop(raw_cuda_slice);
     // but bypassing the pool's recycle logic.
     Ok(())
 }

@@ -98,33 +98,44 @@ impl ResonantTensor {
         residual: &ResonantTensor,
         mode: PhiResidualMode,
     ) -> Result<ResonantTensor, ResonantError> {
-        // For now, only support phi mode with CUDA acceleration
-        // TODO: Add support for other modes with CUDA
-        if mode != PhiResidualMode::Phi {
-            // Fallback to CPU for non-phi modes
-            let combined = Self::phi_residual(identity, residual, mode)?;
-            let combined_floats = combined.to_floats_core();
-            let relu_floats: Vec<f64> = combined_floats
-                .iter()
-                .map(|&x| if x > 0.0 { x } else { 0.0 })
-                .collect();
-
-            return ResonantTensor::from_floats(
-                &relu_floats,
-                combined.shape().to_vec(),
-                combined.mode_norm_sq().to_vec(),
-                combined.precision(),
-            );
-        }
-
-        // Try CUDA acceleration for phi mode
+        // Try CUDA acceleration for all modes
         #[cfg(feature = "cuda")]
         {
             if let Some(device_idx) = identity.device_idx().or(residual.device_idx()) {
                 if let Ok(device) = crate::tensor::cuda::device_manager::get_device(device_idx) {
                     // Validate device ordinal matches requested index
                     if device.ordinal() as usize == device_idx {
-                        return Self::phi_residual_relu_cuda(identity, residual);
+                        // Use optimized fused kernel for Phi mode
+                        if mode == PhiResidualMode::Phi {
+                            return Self::phi_residual_relu_cuda(identity, residual);
+                        } else {
+                            // For other modes, use phi_residual_cuda followed by ReLU
+                            let combined = Self::phi_residual_cuda(identity, residual, mode)?;
+
+                            // Copy GPU flux to host, apply ReLU on CPU, and return new tensor.
+                            let combined_flux = combined.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
+                            let n = combined.len();
+
+                            // Allocate host buffer and copy from device
+                            let mut combined_host = vec![0.0f64; n];
+                            device
+                                .default_stream()
+                                .memcpy_dtoh(combined_flux, &mut combined_host)
+                                .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+                            // Apply ReLU on host
+                            let relu_host: Vec<f64> = combined_host
+                                .iter()
+                                .map(|&x| if x > 0.0 { x } else { 0.0 })
+                                .collect();
+
+                            return ResonantTensor::from_floats(
+                                &relu_host,
+                                combined.shape().to_vec(),
+                                combined.mode_norm_sq().to_vec(),
+                                combined.precision(),
+                            );
+                        }
                     }
                 }
             }

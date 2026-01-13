@@ -510,10 +510,15 @@ impl PySymExpr {
         }
     }
 
-    fn __pow__(&self, exp: i32, _modulo: Option<i32>) -> Self {
-        PySymExpr {
-            inner: self.inner.clone().pow_int(exp),
+    fn __pow__(&self, exp: i32, modulo: Option<i32>) -> PyResult<Self> {
+        if modulo.is_some() {
+            return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+                "Modulo operation not supported for symbolic expressions",
+            ));
         }
+        Ok(PySymExpr {
+            inner: self.inner.clone().pow_int(exp),
+        })
     }
 
     /// Exponential e^self

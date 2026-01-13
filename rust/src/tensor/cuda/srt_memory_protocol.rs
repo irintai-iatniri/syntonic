@@ -196,7 +196,11 @@ impl ResonantScheduler {
         // Instead of busy-waiting, check once and proceed
         // The resonant timing becomes advisory rather than blocking
         // This prevents the major bottleneck while preserving SRT mathematics
-        let _is_resonant = self.is_resonant_window();
+        let is_resonant = self.is_resonant_window();
+        // Use the flag for debug diagnostics to avoid silencing locals
+        if cfg!(debug_assertions) {
+            eprintln!("SRT: wait_for_resonance() resonant_window={}", is_resonant);
+        }
         // Note: We could use this flag for statistics or future optimizations
     }
 
@@ -319,7 +323,10 @@ impl Drop for SRTPinnedPool {
         for blocks in self.pinned_blocks.values() {
             for block in blocks {
                 unsafe {
-                    let _ = cuMemHostUnregister(block.as_ptr() as *mut _);
+                    let res = cuMemHostUnregister(block.as_ptr() as *mut _);
+                    if res != cudarc::driver::sys::CUresult::CUDA_SUCCESS {
+                        eprintln!("SRTPinnedPool: cuMemHostUnregister failed: {:?}", res);
+                    }
                 }
             }
         }
@@ -458,7 +465,10 @@ impl SRTMemoryTransferProtocol {
         let start_time = Instant::now();
 
         // Advisory resonant timing (non-blocking)
-        let _is_resonant = self.scheduler.read().unwrap().is_resonant_window();
+        let is_resonant = self.scheduler.read().unwrap().is_resonant_window();
+        if cfg!(debug_assertions) {
+            eprintln!("SRT: srt_h2d_transfer_f64_core resonant_window={}", is_resonant);
+        }
 
         // Get optimal batch size using golden ratio batching
         let data_size = std::mem::size_of_val(data);
@@ -550,7 +560,10 @@ impl SRTMemoryTransferProtocol {
         let start_time = Instant::now();
 
         // Advisory resonant timing (non-blocking)
-        let _is_resonant = self.scheduler.read().unwrap().is_resonant_window();
+        let is_resonant = self.scheduler.read().unwrap().is_resonant_window();
+        if cfg!(debug_assertions) {
+            eprintln!("SRT: srt_h2d_transfer_f32_core resonant_window={}", is_resonant);
+        }
 
         // Get optimal batch size using golden ratio batching
         let data_size = std::mem::size_of_val(data);
@@ -643,7 +656,10 @@ impl SRTMemoryTransferProtocol {
         let start_time = Instant::now();
 
         // Advisory resonant timing (non-blocking)
-        let _is_resonant = self.scheduler.read().unwrap().is_resonant_window();
+        let is_resonant = self.scheduler.read().unwrap().is_resonant_window();
+        if cfg!(debug_assertions) {
+            eprintln!("SRT: srt_d2h_transfer_f64_core resonant_window={}", is_resonant);
+        }
 
         let data_len = device_data.len();
         let data_size = data_len * std::mem::size_of::<f64>();
@@ -724,7 +740,10 @@ impl SRTMemoryTransferProtocol {
         let start_time = Instant::now();
 
         // Advisory resonant timing (non-blocking)
-        let _is_resonant = self.scheduler.read().unwrap().is_resonant_window();
+        let is_resonant = self.scheduler.read().unwrap().is_resonant_window();
+        if cfg!(debug_assertions) {
+            eprintln!("SRT: srt_d2h_transfer_f32_core resonant_window={}", is_resonant);
+        }
 
         let data_len = device_data.len();
         let data_size = data_len * std::mem::size_of::<f32>();

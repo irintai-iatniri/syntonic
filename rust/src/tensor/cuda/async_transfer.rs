@@ -11,6 +11,7 @@ use cudarc::driver::safe::CudaContext as CudaDevice;
 use cudarc::driver::CudaSlice;
 use pyo3::prelude::*;
 use std::sync::Arc;
+use std::any::Any;
 
 use super::device_manager::{get_device, get_srt_protocol, CudaError};
 use crate::tensor::storage::{CpuData, DeviceType, TensorStorage};
@@ -112,16 +113,23 @@ pub struct AsyncTensorTransfer {
     shape: Vec<usize>,
     dtype: String,
     completed: bool,
+    gpu_handle: Option<Box<dyn Any + Send + Sync>>,
 }
 
 impl AsyncTensorTransfer {
     /// Create a new async tensor transfer handle
-    pub fn new(device_idx: usize, shape: Vec<usize>, dtype: String) -> Self {
+    pub fn new(
+        device_idx: usize,
+        shape: Vec<usize>,
+        dtype: String,
+        gpu_handle: Option<Box<dyn Any + Send + Sync>>,
+    ) -> Self {
         AsyncTensorTransfer {
             device_idx,
             shape,
             dtype,
             completed: false,
+            gpu_handle,
         }
     }
 
@@ -135,6 +143,8 @@ impl AsyncTensorTransfer {
         if !self.completed {
             super::device_manager::sync_device(self.device_idx)?;
             self.completed = true;
+            // Drop the GPU handle to release device memory now that transfer is complete
+            self.gpu_handle = None;
         }
         Ok(())
     }
@@ -219,13 +229,25 @@ impl AsyncTensorOps for TensorStorage {
                 match cpu_data {
                     CpuData::Float64(arr) => {
                         let data = arr.as_slice().unwrap();
-                        // Use SRT protocol for optimized H2D transfer
-                        let _gpu_data = htod_async_srt_f64(&device, data, *idx)?;
+                        // Use SRT protocol for optimized H2D transfer and retain the device slice
+                        let gpu_data = htod_async_srt_f64(&device, data, *idx)?;
+                        return Ok(AsyncTensorTransfer::new(
+                            *idx,
+                            self.shape().clone(),
+                            self.dtype(),
+                            Some(Box::new(gpu_data)),
+                        ));
                     }
                     CpuData::Float32(arr) => {
                         let data = arr.as_slice().unwrap();
-                        // Use SRT protocol for optimized H2D transfer
-                        let _gpu_data = htod_async_srt_f32(&device, data, *idx)?;
+                        // Use SRT protocol for optimized H2D transfer and retain the device slice
+                        let gpu_data = htod_async_srt_f32(&device, data, *idx)?;
+                        return Ok(AsyncTensorTransfer::new(
+                            *idx,
+                            self.shape().clone(),
+                            self.dtype(),
+                            Some(Box::new(gpu_data)),
+                        ));
                     }
                     _ => {
                         return Err(CudaError::TransferFailed(
@@ -234,11 +256,7 @@ impl AsyncTensorOps for TensorStorage {
                     }
                 }
 
-                Ok(AsyncTensorTransfer::new(
-                    *idx,
-                    self.shape().clone(),
-                    self.dtype(),
-                ))
+                // Handled by the dtype-specific branches above which return the transfer handle
             }
         }
     }

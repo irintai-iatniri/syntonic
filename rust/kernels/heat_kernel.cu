@@ -345,7 +345,9 @@ extern "C" __global__ void modular_inversion_f32(
         // Under S-duality: Θ(1/t) = t^2 Θ(t) (for 4D projection)
         float t = t_values[i];
         float t_inv = 1.0f / t;
-        out[i] = in[i] * (t * t);  // Scale factor for inversion
+        // Use t_inv directly to compute scaling: Θ(1/t) = t^2 Θ(t)
+        // t^2 = 1 / (t_inv * t_inv)
+        out[i] = in[i] * (1.0f / (t_inv * t_inv));
     }
 }
 

@@ -241,6 +241,97 @@ extern "C" __global__ void matmul_tt_f64(
     C[row * N + col] = sum;
 }
 
+// Matrix multiplication with A transposed: C = Aᵀ × B (f32)
+extern "C" __global__ void matmul_tn_f32(
+    float *C,
+    const float *A,
+    const float *B,
+    int M, int N, int K
+) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= M || col >= N) return;
+
+    float sum = 0.0f;
+    for (int k = 0; k < K; k++) {
+        sum += A[k * M + row] * B[k * N + col];
+    }
+    C[row * N + col] = sum;
+}
+
+// Matrix multiplication with A transposed: C = Aᵀ × B (complex128, interleaved)
+extern "C" __global__ void matmul_tn_c128(
+    double *C,
+    const double *A,
+    const double *B,
+    int M, int N, int K
+) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= M || col >= N) return;
+
+    int c_idx = 2 * (row * N + col);
+    double real_sum = 0.0;
+    double imag_sum = 0.0;
+
+    for (int k = 0; k < K; k++) {
+        // A is accessed transposed: A[k * M + row]
+        int a_idx = 2 * (k * M + row);
+        int b_idx = 2 * (k * N + col);
+
+        double a_re = A[a_idx];
+        double a_im = A[a_idx + 1];
+        double b_re = B[b_idx];
+        double b_im = B[b_idx + 1];
+
+        real_sum += a_re * b_re - a_im * b_im;
+        imag_sum += a_re * b_im + a_im * b_re;
+    }
+
+    C[c_idx] = real_sum;
+    C[c_idx + 1] = imag_sum;
+}
+
+// Matrix multiplication with B transposed: C = A × Bᵀ (f32)
+extern "C" __global__ void matmul_nt_f32(
+    float *C,
+    const float *A,
+    const float *B,
+    int M, int N, int K
+) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= M || col >= N) return;
+
+    float sum = 0.0f;
+    for (int k = 0; k < K; k++) {
+        sum += A[row * K + k] * B[col * K + k];
+    }
+    C[row * N + col] = sum;
+}
+
+// Matrix multiplication with both transposed: C = Aᵀ × Bᵀ (f32)
+extern "C" __global__ void matmul_tt_f32(
+    float *C,
+    const float *A,
+    const float *B,
+    int M, int N, int K
+) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= M || col >= N) return;
+
+    float sum = 0.0f;
+    for (int k = 0; k < K; k++) {
+        sum += A[k * M + row] * B[col * K + k];
+    }
+    C[row * N + col] = sum;
+}
+
 // =============================================================================
 // Hermitian Matrix Operations (Complex Conjugate Transpose)
 // =============================================================================

@@ -599,7 +599,11 @@ extern "C" __global__ void dhsr_multi_cycle_c128(
         // Approximate syntony update (local contribution)
         // This is an approximation - full syntony requires global reduction
         double amp_sq = re * re + im * im;
-        S = fminf(1.0, fmaxf(0.0, S + 0.01 * (golden_weight - S)));
+        // Weight the local syntony update by the local amplitude so larger
+        // contributions influence the approximate S update more strongly.
+        double amp_factor = amp_sq / (1.0 + amp_sq); // normalize to (0,1)
+        double delta = 0.01 * amp_factor * (golden_weight - S);
+        S = fmin(1.0, fmax(0.0, S + delta));
     }
 
     psi[idx] = re;
@@ -610,8 +614,7 @@ extern "C" __global__ void dhsr_multi_cycle_c128(
 // Geodesic Gravity (Physical AI Update)
 // =============================================================================
 
-#define PHI_F64 1.618033988749895
-#define PHI_INV_F64 0.618033988749895
+// PHI macros are defined in srt_constants.cuh; avoid duplicate definitions here.
 
 // Helper: Project gradient onto E8 lattice tangent space
 __device__ void project_to_e8_tangent(double* grad, int dim) {

@@ -335,10 +335,13 @@ fn mm_cuda_dispatch(
 fn mm_cpu_dispatch(
     a: &TensorStorage,
     b: &TensorStorage,
-    _m: usize,
-    _k: usize,
-    _n: usize,
+    m: usize,
+    k: usize,
+    n: usize,
 ) -> Result<TensorStorage, MatmulError> {
+    debug_assert_eq!(a.shape(), vec![m, k], "A shape mismatch in cpu dispatch");
+    debug_assert_eq!(b.shape(), vec![k, n], "B shape mismatch in cpu dispatch");
+
     let a_cpu = a
         .ensure_cpu_internal()
         .map_err(|e| MatmulError::ShapeError(e.to_string()))?;
@@ -551,16 +554,49 @@ fn mm_tn_cuda_dispatch(
                 a_device_idx,
             ))
         }
-        (CudaData::Float32(_), CudaData::Float32(_)) => {
-            // Note: cuda_matmul_tn_f64 is f64 only, fallback to CPU for f32
-            // TODO: Implement valid f32 kernel or cast properly without alloc
-            let a_t = transpose_internal(a)?;
-            mm(&a_t, b)
+        (CudaData::Float32(a_slice), CudaData::Float32(b_slice)) => {
+            let mut c_slice = PooledSlice::alloc(pool, m * n)
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
+
+            crate::tensor::srt_kernels::cuda_matmul_tn_f32(
+                device,
+                c_slice.as_slice_mut(),
+                a_slice.as_slice(),
+                b_slice.as_slice(),
+                m,
+                n,
+                k,
+            )
+            .map_err(|e| MatmulError::ShapeError(format!("CUDA matmul_tn failed: {}", e)))?;
+
+            Ok(TensorStorage::new_from_cuda(
+                CudaData::Float32(Arc::new(c_slice)),
+                a_device.clone(),
+                vec![m, n],
+                a_device_idx,
+            ))
         }
-        (CudaData::Complex128(_), CudaData::Complex128(_)) => {
-            // Note: cuda_matmul_tn_f64 is f64 only, fallback to CPU for complex
-            let a_t = transpose_internal(a)?;
-            mm(&a_t, b)
+        (CudaData::Complex128(a_slice), CudaData::Complex128(b_slice)) => {
+            let mut c_slice = PooledSlice::alloc(pool, m * n)
+                .map_err(|e| MatmulError::ShapeError(format!("CUDA alloc failed: {}", e)))?;
+
+            crate::tensor::srt_kernels::cuda_matmul_tn_c128(
+                device,
+                c_slice.as_slice_mut(),
+                a_slice.as_slice(),
+                b_slice.as_slice(),
+                m,
+                n,
+                k,
+            )
+            .map_err(|e| MatmulError::ShapeError(format!("CUDA matmul_tn failed: {}", e)))?;
+
+            Ok(TensorStorage::new_from_cuda(
+                CudaData::Complex128(Arc::new(c_slice)),
+                a_device.clone(),
+                vec![m, n],
+                a_device_idx,
+            ))
         }
         _ => Err(MatmulError::UnsupportedDtype(
             "CUDA matmul_tn: dtype mismatch or unsupported".to_string(),

@@ -90,8 +90,9 @@ extern "C" __global__ void golden_bn_1d_normalize_f64(
     if (idx < total_size) {
         int batch_idx = idx / num_features;
         int feat_idx = idx % num_features;
+        int full_idx = batch_idx * num_features + feat_idx;
 
-        double val = input[idx];
+        double val = input[full_idx];
         double m = mean[feat_idx];
         double v = variance[feat_idx];
 
@@ -107,7 +108,7 @@ extern "C" __global__ void golden_bn_1d_normalize_f64(
         double g = (gamma != NULL) ? gamma[feat_idx] : 1.0;
         double b = (beta != NULL) ? beta[feat_idx] : 0.0;
 
-        out[idx] = g * scaled + b;
+        out[full_idx] = g * scaled + b;
     }
 }
 
@@ -129,8 +130,9 @@ extern "C" __global__ void golden_bn_1d_normalize_f32(
     if (idx < total_size) {
         int batch_idx = idx / num_features;
         int feat_idx = idx % num_features;
+        int full_idx = batch_idx * num_features + feat_idx;
 
-        float val = input[idx];
+        float val = input[full_idx];
         float m = mean[feat_idx];
         float v = variance[feat_idx];
 
@@ -143,7 +145,7 @@ extern "C" __global__ void golden_bn_1d_normalize_f32(
         float g = (gamma != NULL) ? gamma[feat_idx] : 1.0f;
         float b = (beta != NULL) ? beta[feat_idx] : 0.0f;
 
-        out[idx] = g * scaled + b;
+        out[full_idx] = g * scaled + b;
     }
 }
 
@@ -252,8 +254,11 @@ extern "C" __global__ void golden_bn_2d_normalize_f64(
         int batch_idx = idx / channel_spatial_size;
         int remainder = idx % channel_spatial_size;
         int chan_idx = remainder / spatial_size;
+        int spatial_offset = remainder % spatial_size;
+        int base = (batch_idx * channels + chan_idx) * spatial_size;
+        int full_idx = base + spatial_offset;
 
-        double val = input[idx];
+        double val = input[full_idx];
         double m = mean[chan_idx];
         double v = variance[chan_idx];
 
@@ -269,7 +274,7 @@ extern "C" __global__ void golden_bn_2d_normalize_f64(
         double g = (gamma != NULL) ? gamma[chan_idx] : 1.0;
         double b = (beta != NULL) ? beta[chan_idx] : 0.0;
 
-        out[idx] = g * scaled + b;
+        out[full_idx] = g * scaled + b;
     }
 }
 
@@ -297,8 +302,11 @@ extern "C" __global__ void golden_bn_2d_normalize_f32(
         int batch_idx = idx / channel_spatial_size;
         int remainder = idx % channel_spatial_size;
         int chan_idx = remainder / spatial_size;
+        int spatial_offset = remainder % spatial_size;
+        int base = (batch_idx * channels + chan_idx) * spatial_size;
+        int full_idx = base + spatial_offset;
 
-        float val = input[idx];
+        float val = input[full_idx];
         float m = mean[chan_idx];
         float v = variance[chan_idx];
 
@@ -311,7 +319,7 @@ extern "C" __global__ void golden_bn_2d_normalize_f32(
         float g = (gamma != NULL) ? gamma[chan_idx] : 1.0f;
         float b = (beta != NULL) ? beta[chan_idx] : 0.0f;
 
-        out[idx] = g * scaled + b;
+        out[full_idx] = g * scaled + b;
     }
 }
 

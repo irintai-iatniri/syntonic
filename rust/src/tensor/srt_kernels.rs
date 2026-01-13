@@ -27,95 +27,95 @@ use std::sync::Arc;
 // =============================================================================
 
 #[cfg(feature = "cuda")]
-const PTX_GOLDEN_SM75: &str = include_str!("../../kernels/ptx/golden_ops_sm_75.ptx");
+const PTX_GOLDEN_SM75: &str = include_str!("../../kernels/ptx/golden_ops_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_GOLDEN_SM80: &str = include_str!("../../kernels/ptx/golden_ops_sm_80.ptx");
+const PTX_GOLDEN_SM80: &str = include_str!("../../kernels/ptx/golden_ops_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_GOLDEN_SM86: &str = include_str!("../../kernels/ptx/golden_ops_sm_86.ptx");
+const PTX_GOLDEN_SM86: &str = include_str!("../../kernels/ptx/golden_ops_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_GOLDEN_SM90: &str = include_str!("../../kernels/ptx/golden_ops_sm_90.ptx");
+const PTX_GOLDEN_SM90: &str = include_str!("../../kernels/ptx/golden_ops_sm90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_E8_SM75: &str = include_str!("../../kernels/ptx/e8_projection_sm_75.ptx");
+const PTX_E8_SM75: &str = include_str!("../../kernels/ptx/e8_projection_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_E8_SM80: &str = include_str!("../../kernels/ptx/e8_projection_sm_80.ptx");
+const PTX_E8_SM80: &str = include_str!("../../kernels/ptx/e8_projection_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_E8_SM86: &str = include_str!("../../kernels/ptx/e8_projection_sm_86.ptx");
+const PTX_E8_SM86: &str = include_str!("../../kernels/ptx/e8_projection_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_E8_SM90: &str = include_str!("../../kernels/ptx/e8_projection_sm_90.ptx");
+const PTX_E8_SM90: &str = include_str!("../../kernels/ptx/e8_projection_sm90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_HEAT_SM75: &str = include_str!("../../kernels/ptx/heat_kernel_sm_75.ptx");
+const PTX_HEAT_SM75: &str = include_str!("../../kernels/ptx/heat_kernel_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_HEAT_SM80: &str = include_str!("../../kernels/ptx/heat_kernel_sm_80.ptx");
+const PTX_HEAT_SM80: &str = include_str!("../../kernels/ptx/heat_kernel_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_HEAT_SM86: &str = include_str!("../../kernels/ptx/heat_kernel_sm_86.ptx");
+const PTX_HEAT_SM86: &str = include_str!("../../kernels/ptx/heat_kernel_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_HEAT_SM90: &str = include_str!("../../kernels/ptx/heat_kernel_sm_90.ptx");
+const PTX_HEAT_SM90: &str = include_str!("../../kernels/ptx/heat_kernel_sm90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_DHSR_SM75: &str = include_str!("../../kernels/ptx/dhsr_sm_75.ptx");
+const PTX_DHSR_SM75: &str = include_str!("../../kernels/ptx/dhsr_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_DHSR_SM80: &str = include_str!("../../kernels/ptx/dhsr_sm_80.ptx");
+const PTX_DHSR_SM80: &str = include_str!("../../kernels/ptx/dhsr_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_DHSR_SM86: &str = include_str!("../../kernels/ptx/dhsr_sm_86.ptx");
+const PTX_DHSR_SM86: &str = include_str!("../../kernels/ptx/dhsr_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_DHSR_SM90: &str = include_str!("../../kernels/ptx/dhsr_sm_90.ptx");
+const PTX_DHSR_SM90: &str = include_str!("../../kernels/ptx/dhsr_sm90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_CORR_SM75: &str = include_str!("../../kernels/ptx/corrections_sm_75.ptx");
+const PTX_CORR_SM75: &str = include_str!("../../kernels/ptx/corrections_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_CORR_SM80: &str = include_str!("../../kernels/ptx/corrections_sm_80.ptx");
+const PTX_CORR_SM80: &str = include_str!("../../kernels/ptx/corrections_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_CORR_SM86: &str = include_str!("../../kernels/ptx/corrections_sm_86.ptx");
+const PTX_CORR_SM86: &str = include_str!("../../kernels/ptx/corrections_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_CORR_SM90: &str = include_str!("../../kernels/ptx/corrections_sm_90.ptx");
+const PTX_CORR_SM90: &str = include_str!("../../kernels/ptx/corrections_sm90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_RESONANT_SM75: &str = include_str!("../../kernels/ptx/resonant_d_sm_75.ptx");
+const PTX_RESONANT_SM75: &str = include_str!("../../kernels/ptx/resonant_d_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_RESONANT_SM80: &str = include_str!("../../kernels/ptx/resonant_d_sm_80.ptx");
+const PTX_RESONANT_SM80: &str = include_str!("../../kernels/ptx/resonant_d_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_RESONANT_SM86: &str = include_str!("../../kernels/ptx/resonant_d_sm_86.ptx");
+const PTX_RESONANT_SM86: &str = include_str!("../../kernels/ptx/resonant_d_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_RESONANT_SM90: &str = include_str!("../../kernels/ptx/resonant_d_sm_90.ptx");
+const PTX_RESONANT_SM90: &str = include_str!("../../kernels/ptx/resonant_d_sm90.ptx");
 
 #[cfg(feature = "cuda")]
-const PTX_PHI_RESIDUAL_SM75: &str = include_str!("../../kernels/ptx/phi_residual_sm_75.ptx");
+const PTX_PHI_RESIDUAL_SM75: &str = include_str!("../../kernels/ptx/phi_residual_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_PHI_RESIDUAL_SM80: &str = include_str!("../../kernels/ptx/phi_residual_sm_80.ptx");
+const PTX_PHI_RESIDUAL_SM80: &str = include_str!("../../kernels/ptx/phi_residual_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_PHI_RESIDUAL_SM86: &str = include_str!("../../kernels/ptx/phi_residual_sm_86.ptx");
+const PTX_PHI_RESIDUAL_SM86: &str = include_str!("../../kernels/ptx/phi_residual_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_PHI_RESIDUAL_SM90: &str = include_str!("../../kernels/ptx/phi_residual_sm_90.ptx");
+const PTX_PHI_RESIDUAL_SM90: &str = include_str!("../../kernels/ptx/phi_residual_sm90.ptx");
 
 // Matmul PTX (4 compute capabilities)
 #[cfg(feature = "cuda")]
-const PTX_MATMUL_SM75: &str = include_str!("../../kernels/ptx/matmul_sm_75.ptx");
+const PTX_MATMUL_SM75: &str = include_str!("../../kernels/ptx/matmul_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_MATMUL_SM80: &str = include_str!("../../kernels/ptx/matmul_sm_80.ptx");
+const PTX_MATMUL_SM80: &str = include_str!("../../kernels/ptx/matmul_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_MATMUL_SM86: &str = include_str!("../../kernels/ptx/matmul_sm_86.ptx");
+const PTX_MATMUL_SM86: &str = include_str!("../../kernels/ptx/matmul_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_MATMUL_SM90: &str = include_str!("../../kernels/ptx/matmul_sm_90.ptx");
+const PTX_MATMUL_SM90: &str = include_str!("../../kernels/ptx/matmul_sm90.ptx");
 
 #[cfg(feature = "cuda")]
 const PTX_GOLDEN_BATCH_NORM_SM90: &str =
-    include_str!("../../kernels/ptx/golden_batch_norm_sm_90.ptx");
+    include_str!("../../kernels/ptx/golden_batch_norm_sm90.ptx");
 
 // Syntonic Softmax PTX (4 compute capabilities)
 #[cfg(feature = "cuda")]
 const PTX_SYNTONIC_SOFTMAX_SM75: &str =
-    include_str!("../../kernels/ptx/syntonic_softmax_sm_75.ptx");
+    include_str!("../../kernels/ptx/syntonic_softmax_sm75.ptx");
 #[cfg(feature = "cuda")]
 const PTX_SYNTONIC_SOFTMAX_SM80: &str =
-    include_str!("../../kernels/ptx/syntonic_softmax_sm_80.ptx");
+    include_str!("../../kernels/ptx/syntonic_softmax_sm80.ptx");
 #[cfg(feature = "cuda")]
 const PTX_SYNTONIC_SOFTMAX_SM86: &str =
-    include_str!("../../kernels/ptx/syntonic_softmax_sm_86.ptx");
+    include_str!("../../kernels/ptx/syntonic_softmax_sm86.ptx");
 #[cfg(feature = "cuda")]
 const PTX_SYNTONIC_SOFTMAX_SM90: &str =
-    include_str!("../../kernels/ptx/syntonic_softmax_sm_90.ptx");
+    include_str!("../../kernels/ptx/syntonic_softmax_sm90.ptx");
 
 // =============================================================================
 // Kernel Function Lists
@@ -308,8 +308,12 @@ const MATMUL_FUNCS: &[&str] = &[
     "matmul_tiled_f32",
     // Transposed variants
     "matmul_tn_f64",
+    "matmul_tn_f32",
+    "matmul_tn_c128",
     "matmul_nt_f64",
+    "matmul_nt_f32",
     "matmul_tt_f64",
+    "matmul_tt_f32",
     // Hermitian variants (complex)
     "matmul_hn_c128",
     "matmul_nh_c128",
@@ -435,7 +439,11 @@ fn select_phi_residual_ptx(major: i32, minor: i32) -> &'static str {
 }
 
 #[cfg(feature = "cuda")]
-fn select_golden_batch_norm_ptx(_major: i32, _minor: i32) -> &'static str {
+fn select_golden_batch_norm_ptx(major: i32, minor: i32) -> &'static str {
+    // Currently only SM90 is optimized/compiled for golden batch norm
+    if major < 9 {
+         eprintln!("WARNING: Golden Batch Norm PTX optimized for SM90+, running on {}.{}", major, minor);
+    }
     PTX_GOLDEN_BATCH_NORM_SM90
 }
 
@@ -499,9 +507,11 @@ fn get_compute_capability(device: &Arc<CudaDevice>) -> (i32, i32) {
 
 /// Ensure all SRT kernels are loaded for the given device
 #[cfg(feature = "cuda")]
-pub fn ensure_srt_kernels_loaded(_device: &Arc<CudaDevice>) -> PyResult<()> {
+pub fn ensure_srt_kernels_loaded(device: &Arc<CudaDevice>) -> PyResult<()> {
     // In cudarc 0.18.2, modules are loaded on-demand from PTX source
     // No global caching by name exists, so this function is a no-op
+    // We just access the device ordinal to ensure the reference is valid
+    let _ = device.ordinal();
     Ok(())
 }
 
@@ -1187,7 +1197,7 @@ pub fn cuda_matmul_c128(
     Ok(())
 }
 
-/// Transposed matrix multiplication: C = Aᵀ × B
+/// Transposed matrix multiplication: C = Aᵀ × B (f64)
 #[cfg(feature = "cuda")]
 pub fn cuda_matmul_tn_f64(
     device: &Arc<CudaDevice>,
@@ -1212,6 +1222,108 @@ pub fn cuda_matmul_tn_f64(
 
     let func = module
         .load_function("matmul_tn_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(c)
+            .arg(a)
+            .arg(b)
+            .arg(&(m as i32))
+            .arg(&(n as i32))
+            .arg(&(k as i32))
+            .launch(LaunchConfig {
+                block_dim,
+                grid_dim,
+                shared_mem_bytes: 0,
+            })
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Transposed matrix multiplication: C = Aᵀ × B (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_matmul_tn_f32(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f32>,
+    a: &CudaSlice<f32>,
+    b: &CudaSlice<f32>,
+    m: usize,
+    n: usize,
+    k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load matmul kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("matmul_tn_f32")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(c)
+            .arg(a)
+            .arg(b)
+            .arg(&(m as i32))
+            .arg(&(n as i32))
+            .arg(&(k as i32))
+            .launch(LaunchConfig {
+                block_dim,
+                grid_dim,
+                shared_mem_bytes: 0,
+            })
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Transposed matrix multiplication: C = Aᵀ × B (complex128)
+#[cfg(feature = "cuda")]
+pub fn cuda_matmul_tn_c128(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<CudaComplex64>,
+    a: &CudaSlice<CudaComplex64>,
+    b: &CudaSlice<CudaComplex64>,
+    m: usize,
+    n: usize,
+    k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load matmul kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("matmul_tn_c128")
         .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     let block_dim = (16, 16, 1);
@@ -1865,6 +1977,54 @@ pub fn cuda_resonant_box_muller_f64(
 // Golden Batch Normalization CUDA Kernels
 // =============================================================================
 
+/// Golden batch normalization for 1D tensors (batch, features)
+#[cfg(feature = "cuda")]
+pub fn cuda_golden_bn_1d_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    gamma: Option<&CudaSlice<f64>>,
+    beta: Option<&CudaSlice<f64>>,
+    eps: f64,
+    batch_size: i32,
+    features: i32,
+) -> Result<(), String> {
+    let n = (batch_size * features) as usize;
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_golden_batch_norm_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load golden_batch_norm kernels: {}", e))?;
+
+    let func = module
+        .load_function("golden_bn_1d_fused_f64")
+        .map_err(|_| "Kernel not found".to_string())?;
+
+    let gamma_ptr = gamma
+        .map(|g| g.device_ptr(&device.default_stream()).0)
+        .unwrap_or(0);
+    let beta_ptr = beta
+        .map(|b| b.device_ptr(&device.default_stream()).0)
+        .unwrap_or(0);
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(input)
+            .arg(&gamma_ptr)
+            .arg(&beta_ptr)
+            .arg(&eps)
+            .arg(&batch_size)
+            .arg(&features)
+            .launch(launch_cfg_256(n))
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
 #[cfg(feature = "cuda")]
 pub fn cuda_golden_bn_2d_f64(
     device: &Arc<CudaDevice>,
@@ -2037,7 +2197,7 @@ pub fn apply_geodesic_gravity_f64(
     // IMPORTANT: The kernel processes chunks of 8 (E8 unit cells)
     // We launch threads for *blocks of 8*, not individual elements
     let num_threads = (n + 7) / 8;
-    let cfg = LaunchConfig::for_num_elems(num_threads as u32);
+    let cfg = launch_cfg_e8(num_threads);
 
     unsafe {
         device

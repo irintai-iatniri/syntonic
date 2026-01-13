@@ -83,7 +83,8 @@ pub fn unravel_index(linear_idx: usize, shape: &[usize]) -> Vec<usize> {
 /// handling broadcasting (size-1 dimensions map to index 0).
 pub fn broadcast_index(linear_idx: usize, output_shape: &[usize], source_shape: &[usize]) -> usize {
     let output_indices = unravel_index(linear_idx, output_shape);
-    let _output_strides = compute_strides(output_shape);
+    let output_strides = compute_strides(output_shape);
+    debug_assert_eq!(output_indices.len(), output_strides.len());
     let source_strides = compute_strides(source_shape);
 
     let offset = output_shape.len().saturating_sub(source_shape.len());

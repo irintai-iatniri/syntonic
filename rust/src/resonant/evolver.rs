@@ -759,8 +759,8 @@ impl ResonantEvolver {
         };
 
         // Step 5: Select winner and update attractors
-        if let Some((winner, _score)) = self.select_winner_with_score(&evaluated) {
-            let winner_syntony = winner.syntony();
+        if let Some((winner, score)) = self.select_winner_with_score(&evaluated) {
+            let winner_syntony = score; // Use the returned score directly
 
             // Store high-syntony candidates as attractors
             if self.config.enable_retrocausal {

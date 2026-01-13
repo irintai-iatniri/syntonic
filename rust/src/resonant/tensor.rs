@@ -262,6 +262,9 @@ impl ResonantTensor {
         // Project exact lattice to f64
         let floats: Vec<f64> = self.lattice.iter().map(|g| g.to_f64()).collect();
 
+        // Store CPU-side flux shadow for later CPU D-phase operations
+        self.cpu_flux = Some(floats.clone());
+
         self.phase = ResonantPhase::Flux;
         Ok(floats)
     }
@@ -1607,11 +1610,18 @@ impl ResonantTensor {
 
     /// Convert to list of floats.
     fn to_list(&self) -> Vec<f64> {
-        self.to_floats_core()
+        self.to_floats()
     }
 
     /// Alias for to_list()
     fn to_floats(&self) -> Vec<f64> {
+        // If a CPU-side flux shadow exists and we're in Flux phase, prefer it
+        if self.phase == ResonantPhase::Flux {
+            if let Some(ref cpu) = self.cpu_flux {
+                return cpu.clone();
+            }
+        }
+
         self.to_floats_core()
     }
 
