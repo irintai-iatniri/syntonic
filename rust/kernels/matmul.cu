@@ -241,6 +241,63 @@ extern "C" __global__ void matmul_tt_f64(
     C[row * N + col] = sum;
 }
 
+// Matrix multiplication with A transposed: C = Aᵀ × B (f32)
+extern "C" __global__ void matmul_tn_f32(
+    float *C,
+    const float *A,
+    const float *B,
+    int M, int N, int K
+) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= M || col >= N) return;
+
+    float sum = 0.0f;
+    for (int k = 0; k < K; k++) {
+        sum += A[k * M + row] * B[k * N + col];
+    }
+    C[row * N + col] = sum;
+}
+
+// Matrix multiplication with B transposed: C = A × Bᵀ (f32)
+extern "C" __global__ void matmul_nt_f32(
+    float *C,
+    const float *A,
+    const float *B,
+    int M, int N, int K
+) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= M || col >= N) return;
+
+    float sum = 0.0f;
+    for (int k = 0; k < K; k++) {
+        sum += A[row * K + k] * B[col * K + k];
+    }
+    C[row * N + col] = sum;
+}
+
+// Matrix multiplication with both transposed: C = Aᵀ × Bᵀ (f32)
+extern "C" __global__ void matmul_tt_f32(
+    float *C,
+    const float *A,
+    const float *B,
+    int M, int N, int K
+) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= M || col >= N) return;
+
+    float sum = 0.0f;
+    for (int k = 0; k < K; k++) {
+        sum += A[k * M + row] * B[col * K + k];
+    }
+    C[row * N + col] = sum;
+}
+
 // =============================================================================
 // Hermitian Matrix Operations (Complex Conjugate Transpose)
 // =============================================================================

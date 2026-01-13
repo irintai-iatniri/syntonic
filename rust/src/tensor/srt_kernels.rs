@@ -308,8 +308,11 @@ const MATMUL_FUNCS: &[&str] = &[
     "matmul_tiled_f32",
     // Transposed variants
     "matmul_tn_f64",
+    "matmul_tn_f32",
     "matmul_nt_f64",
+    "matmul_nt_f32",
     "matmul_tt_f64",
+    "matmul_tt_f32",
     // Hermitian variants (complex)
     "matmul_hn_c128",
     "matmul_nh_c128",
@@ -1187,7 +1190,7 @@ pub fn cuda_matmul_c128(
     Ok(())
 }
 
-/// Transposed matrix multiplication: C = Aᵀ × B
+/// Transposed matrix multiplication: C = Aᵀ × B (f64)
 #[cfg(feature = "cuda")]
 pub fn cuda_matmul_tn_f64(
     device: &Arc<CudaDevice>,
@@ -1212,6 +1215,57 @@ pub fn cuda_matmul_tn_f64(
 
     let func = module
         .load_function("matmul_tn_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(c)
+            .arg(a)
+            .arg(b)
+            .arg(&(m as i32))
+            .arg(&(n as i32))
+            .arg(&(k as i32))
+            .launch(LaunchConfig {
+                block_dim,
+                grid_dim,
+                shared_mem_bytes: 0,
+            })
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Transposed matrix multiplication: C = Aᵀ × B (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_matmul_tn_f32(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f32>,
+    a: &CudaSlice<f32>,
+    b: &CudaSlice<f32>,
+    m: usize,
+    n: usize,
+    k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load matmul kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("matmul_tn_f32")
         .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
 
     let block_dim = (16, 16, 1);
@@ -1864,6 +1918,54 @@ pub fn cuda_resonant_box_muller_f64(
 // =============================================================================
 // Golden Batch Normalization CUDA Kernels
 // =============================================================================
+
+/// Golden batch normalization for 1D tensors (batch, features)
+#[cfg(feature = "cuda")]
+pub fn cuda_golden_bn_1d_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    gamma: Option<&CudaSlice<f64>>,
+    beta: Option<&CudaSlice<f64>>,
+    eps: f64,
+    batch_size: i32,
+    features: i32,
+) -> Result<(), String> {
+    let n = (batch_size * features) as usize;
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_golden_batch_norm_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load golden_batch_norm kernels: {}", e))?;
+
+    let func = module
+        .load_function("golden_bn_1d_fused_f64")
+        .map_err(|_| "Kernel not found".to_string())?;
+
+    let gamma_ptr = gamma
+        .map(|g| g.device_ptr(&device.default_stream()).0)
+        .unwrap_or(0);
+    let beta_ptr = beta
+        .map(|b| b.device_ptr(&device.default_stream()).0)
+        .unwrap_or(0);
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(input)
+            .arg(&gamma_ptr)
+            .arg(&beta_ptr)
+            .arg(&eps)
+            .arg(&batch_size)
+            .arg(&features)
+            .launch(launch_cfg_256(n))
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
 
 #[cfg(feature = "cuda")]
 pub fn cuda_golden_bn_2d_f64(
