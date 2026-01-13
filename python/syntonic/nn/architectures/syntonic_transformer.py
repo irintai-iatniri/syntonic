@@ -22,12 +22,12 @@ from syntonic.nn.layers import (
     RecursionBlock,
     SyntonicNorm,
 )
-from syntonic.nn.architectures.syntonic_attention import (
-    MultiHeadSyntonicAttention,
+from syntonic.nn.architectures.syntonic_attention_pure import (
+    PureMultiHeadSyntonicAttention as MultiHeadSyntonicAttention,
 )
-from syntonic.nn.architectures.embeddings import (
-    SyntonicEmbedding,
-    PositionalEncoding,
+from syntonic.nn.architectures.embeddings_pure import (
+    PureSyntonicEmbedding as SyntonicEmbedding,
+    PurePositionalEncoding as PositionalEncoding,
 )
 
 PHI = (1 + math.sqrt(5)) / 2

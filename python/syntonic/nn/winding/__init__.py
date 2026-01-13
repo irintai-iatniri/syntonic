@@ -26,11 +26,11 @@ Example:
 
 from syntonic.nn.winding.embedding import WindingStateEmbedding
 from syntonic.nn.winding.fibonacci_hierarchy import FibonacciHierarchy
-from syntonic.nn.winding.prime_selection import PrimeSelectionLayer
-from syntonic.nn.winding.syntony import WindingSyntonyComputer
+from syntonic.nn.winding.prime_selection_pure import PurePrimeSelectionLayer as PrimeSelectionLayer
+from syntonic.nn.winding.syntony_pure import PureWindingSyntonyComputer as WindingSyntonyComputer
 from syntonic.nn.winding.dhsr_block import WindingDHSRBlock
 from syntonic.nn.winding.resonant_dhsr_block import ResonantWindingDHSRBlock
-from syntonic.nn.winding.winding_net import WindingNet
+from syntonic.nn.winding.winding_net_pure import PureWindingNet as WindingNet
 
 # Pure (PyTorch-free) versions
 from syntonic.nn.winding.prime_selection_pure import PurePrimeSelectionLayer

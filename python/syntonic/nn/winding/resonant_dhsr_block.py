@@ -153,7 +153,7 @@ class ResonantWindingDHSRBlock(sn.Module):
             single_mode_norms = mode_norms_full[start:end]
             
             # Create single tensor
-            single_tensor = ResonantTensor(single_data, [self.dim], single_mode_norms, self.precision)
+            single_tensor = ResonantTensor(single_data, [1, self.dim], single_mode_norms, self.precision)
             
             # GPU D-phase cycle with CPU fallback
             try:

@@ -13,7 +13,7 @@ def run_demo():
     # Create a model large enough to have >2048 parameters for a good visualization
     # 20 dims * 20 dims is small.
     # WindingNet has embeddings and blocks.
-    model = PureWindingNet(max_winding=10, base_dim=32, num_blocks=3, output_dim=1)
+    model = PureWindingNet(max_winding=10, base_dim=32, num_blocks=6, output_dim=1)
     
     # Count parameters
     params = sum(len(p.to_list()) for p in model.parameters())
@@ -30,14 +30,26 @@ def run_demo():
         
         # Target must be ResonantTensor
         target_val = 1.0 if (n7 + n8) % 2 == 0 else 0.0
-        target = state([target_val]) # Using synthetic factory 'state' which maps to ResonantTensor
+        target = ResonantTensor([target_val], [1, 1], [0.0], 100)  # Shape [1, 1] to match output
         
         # Input must be List[WindingState] as expected by PureWindingNet.forward
         train_data.append(([w], target)) 
 
+    print("Testing forward pass...")
+    test_input = [WindingState(1, 2, 0, 0)]
+    try:
+        test_output = model(test_input)
+        print(f"Test output shape: {test_output.shape}")
+        print(f"Test output data: {test_output.to_floats()}")
+    except Exception as e:
+        print(f"Test forward failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return 
+
     print("Configuring Retrocausal Trainer...")
     config = RESTrainingConfig(
-        max_generations=1000, # Run long enough to watch
+        max_generations=100000, # Run long enough to watch
         population_size=8,   # Keep it fast
         pull_strength=0.1,
         log_interval=5,      # Update fast

@@ -7,38 +7,39 @@ Pre-built architectures that embed the DHSR cycle throughout:
 - CRTTransformer: Transformer with syntonic attention
 """
 
-from syntonic.nn.architectures.syntonic_mlp import (
-    SyntonicMLP,
-    SyntonicLinear,
+from syntonic.nn.architectures.syntonic_mlp_pure import (
+    PureSyntonicMLP as SyntonicMLP,
+    PureSyntonicLinear as SyntonicLinear,
 )
 from syntonic.nn.architectures.syntonic_mlp_pure import (
     PureSyntonicMLP,
     PureSyntonicLinear,
     PureDeepSyntonicMLP,
 )
-from syntonic.nn.architectures.syntonic_cnn import (
-    SyntonicConv2d,
-    RecursionConvBlock,
-    SyntonicCNN,
+from syntonic.nn.architectures.syntonic_cnn_pure import (
+    PureSyntonicConv2d as SyntonicConv2d,
+    PureSyntonicCNN1d as RecursionConvBlock,
+    PureSyntonicCNN1d as SyntonicCNN,
 )
 from syntonic.nn.architectures.syntonic_cnn_pure import (
     PureSyntonicConv1d,
+    PureSyntonicConv2d,
     PureSyntonicCNN1d,
 )
-from syntonic.nn.architectures.embeddings import (
-    SyntonicEmbedding,
-    WindingEmbedding,
-    PositionalEncoding,
+from syntonic.nn.architectures.embeddings_pure import (
+    PureSyntonicEmbedding as SyntonicEmbedding,
+    PureWindingEmbedding as WindingEmbedding,
+    PurePositionalEncoding as PositionalEncoding,
 )
 from syntonic.nn.architectures.embeddings_pure import (
     PureSyntonicEmbedding,
     PureWindingEmbedding,
     PurePositionalEncoding,
 )
-from syntonic.nn.architectures.syntonic_attention import (
-    SyntonicAttention,
-    GnosisAttention,
-    MultiHeadSyntonicAttention,
+from syntonic.nn.architectures.syntonic_attention_pure import (
+    PureSyntonicAttention as SyntonicAttention,
+    PureSyntonicAttention as GnosisAttention,
+    PureMultiHeadSyntonicAttention as MultiHeadSyntonicAttention,
 )
 from syntonic.nn.architectures.syntonic_attention_pure import (
     PureSyntonicAttention,

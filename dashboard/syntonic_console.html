@@ -137,49 +137,60 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
             white-space: pre-wrap;
             word-break: break-all;
         }
+        /* Ensure the three.js canvas fills the container */
+        #canvas-container canvas {
+            position: absolute;
+            inset: 0;
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+            touch-action: none;
+        }
     </style>
 <style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.right-6{right:1.5rem}.top-32{top:8rem}.z-0{z-index:0}.z-10{z-index:10}.z-50{z-index:50}.mb-1{margin-bottom:0.25rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mt-1{margin-top:0.25rem}.flex{display:flex}.hidden{display:none}.h-24{height:6rem}.h-full{height:100%}.h-screen{height:100vh}.max-h-\[90vh\]{max-height:90vh}.w-2\/3{width:66.666667%}.w-72{width:18rem}.w-full{width:100%}.w-px{width:1px}.max-w-5xl{max-width:64rem}.flex-1{flex:1 1 0%}.scale-95{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.flex-col{flex-direction:column}.flex-col-reverse{flex-direction:column-reverse}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.overflow-auto{overflow:auto}.overflow-y-auto{overflow-y:auto}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-blue-500\/50{border-color:rgb(59 130 246 / 0.5)}.border-gray-700{--tw-border-opacity:1;border-color:rgb(55 65 81 / var(--tw-border-opacity, 1))}.border-red-900{--tw-border-opacity:1;border-color:rgb(127 29 29 / var(--tw-border-opacity, 1))}.border-transparent{border-color:transparent}.border-yellow-500\/50{border-color:rgb(234 179 8 / 0.5)}.border-yellow-600{--tw-border-opacity:1;border-color:rgb(202 138 4 / var(--tw-border-opacity, 1))}.border-yellow-900{--tw-border-opacity:1;border-color:rgb(113 63 18 / var(--tw-border-opacity, 1))}.border-yellow-900\/50{border-color:rgb(113 63 18 / 0.5)}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-black\/50{background-color:rgb(0 0 0 / 0.5)}.bg-black\/95{background-color:rgb(0 0 0 / 0.95)}.bg-blue-500\/10{background-color:rgb(59 130 246 / 0.1)}.bg-gray-700{--tw-bg-opacity:1;background-color:rgb(55 65 81 / var(--tw-bg-opacity, 1))}.bg-red-900\/20{background-color:rgb(127 29 29 / 0.2)}.bg-yellow-500\/10{background-color:rgb(234 179 8 / 0.1)}.bg-yellow-900\/10{background-color:rgb(113 63 18 / 0.1)}.bg-yellow-900\/20{background-color:rgb(113 63 18 / 0.2)}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-4{padding-left:1rem;padding-right:1rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.pb-1{padding-bottom:0.25rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.uppercase{text-transform:uppercase}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-green-500{--tw-text-opacity:1;color:rgb(34 197 94 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-yellow-400{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.text-yellow-500{--tw-text-opacity:1;color:rgb(234 179 8 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.accent-yellow-500{accent-color:#eab308}.opacity-0{opacity:0}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-red-500:hover{--tw-bg-opacity:1;background-color:rgb(239 68 68 / var(--tw-bg-opacity, 1))}.hover\:bg-red-500\/20:hover{background-color:rgb(239 68 68 / 0.2)}.hover\:bg-yellow-500:hover{--tw-bg-opacity:1;background-color:rgb(234 179 8 / var(--tw-bg-opacity, 1))}.hover\:bg-yellow-500\/20:hover{background-color:rgb(234 179 8 / 0.2)}.hover\:text-black:hover{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.hover\:text-red-400:hover{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}</style></head>
 <body class="w-full h-screen relative">
     
     <!-- 3D Canvas Container -->
-    <div class="absolute inset-0 z-0 bg-black" id="canvas-container"><canvas style="display: block; width: 2965px; height: 949px; touch-action: none;" data-engine="three.js r160" width="2965" height="949"></canvas></div>
+    <div class="absolute inset-0 z-0 bg-black" id="canvas-container"></div>
     <div class="scanlines"></div>
 
     <!-- HUD Overlay -->
-    <div class="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-6">
+    <div class="absolute inset-0 z-10 pointer-events-none">
         
         <!-- Top Bar -->
-        <header class="flex justify-between items-start pointer-events-auto">
-            <div class="glass-panel p-4 hud-border flex flex-col gap-2">
-                <h1 class="text-2xl font-bold tracking-widest text-yellow-500 uppercase flex items-center gap-2">
-                    <span class="material-symbols-outlined">hub</span>
-                    Syntonic Console
-                </h1>
-                <div class="text-xs font-mono text-gray-400">
-                    BACKEND: <span class="text-green-500">CONNECTED</span> | VERSION: 2.1
-                </div>
-            </div>
-
-            <!-- Action Cluster -->
-            <div class="flex gap-4">
-                <!-- Stats -->
-                <div class="glass-panel p-4 flex gap-6 hud-border text-center">
-                    <div>
-                        <div class="text-[10px] text-gray-500 uppercase tracking-wider">Syntony (Φ)</div>
-                        <div class="text-2xl font-mono text-yellow-400 font-bold" id="syntony-display">1.000</div>
-                    </div>
-                    <div class="w-px bg-gray-700"></div>
-                    <div>
-                        <div class="text-[10px] text-gray-500 uppercase tracking-wider">Entropy (ΔS)</div>
-                        <div class="text-2xl font-mono text-red-400 font-bold" id="entropy-display">0.000</div>
+        <header class="absolute top-0 left-0 right-0 p-6 pointer-events-auto">
+            <div class="flex justify-between items-start">
+                <div class="glass-panel p-4 hud-border flex flex-col gap-2">
+                    <h1 class="text-2xl font-bold tracking-widest text-yellow-500 uppercase flex items-center gap-2">
+                        <span class="material-symbols-outlined">hub</span>
+                        Syntonic Console
+                    </h1>
+                    <div class="text-xs font-mono text-gray-400">
+                        BACKEND: <span class="text-green-500">CONNECTED</span> | VERSION: 2.1
                     </div>
                 </div>
 
-                <!-- Source Button (The Answer to your Question) -->
-                <button onclick="toggleSourceModal()" class="glass-panel px-4 hover:bg-yellow-500/20 transition-colors hud-border flex flex-col items-center justify-center group cursor-pointer">
-                    <span class="material-symbols-outlined text-yellow-500 group-hover:scale-110 transition-transform">code</span>
-                    <span class="text-[10px] font-bold text-yellow-500 mt-1">GET CODE</span>
-                </button>
+                <!-- Action Cluster -->
+                <div class="flex gap-4">
+                    <!-- Stats -->
+                    <div class="glass-panel p-4 flex gap-6 hud-border text-center">
+                        <div>
+                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Syntony (Φ)</div>
+                            <div class="text-2xl font-mono text-yellow-400 font-bold" id="syntony-display">1.000</div>
+                        </div>
+                        <div class="w-px bg-gray-700"></div>
+                        <div>
+                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Entropy (ΔS)</div>
+                            <div class="text-2xl font-mono text-red-400 font-bold" id="entropy-display">0.000</div>
+                        </div>
+                    </div>
+
+                    <!-- Source Button (The Answer to your Question) -->
+                    <button onclick="toggleSourceModal()" class="glass-panel px-4 hover:bg-yellow-500/20 transition-colors hud-border flex flex-col items-center justify-center group cursor-pointer">
+                        <span class="material-symbols-outlined text-yellow-500 group-hover:scale-110 transition-transform">code</span>
+                        <span class="text-[10px] font-bold text-yellow-500 mt-1">GET CODE</span>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -239,10 +250,12 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         </aside>
 
         <!-- Bottom Log -->
-        <footer class="pointer-events-auto w-2/3 glass-panel p-2 hud-border">
-            <div class="h-24 overflow-y-auto font-mono text-[10px] flex flex-col-reverse" id="system-log"><div class="text-green-500">&gt; INITIATING H-PHASE: GEODESIC LOCK</div><div class="text-gray-300">&gt; GEOMETRY INSTANTIATED: 2048 NODES.</div><div class="text-gray-300">&gt; KERNEL LOADED.</div>
-                <div class="text-yellow-500">&gt; TIP: CLICK 'GET CODE' IN TOP RIGHT TO DOWNLOAD THIS SOURCE.</div>
-                <div class="text-green-500">&gt; SYSTEM INITIALIZED. AWAITING DATA STREAM...</div>
+        <footer class="absolute bottom-0 left-0 right-0 p-6 pointer-events-auto">
+            <div class="w-2/3 glass-panel p-2 hud-border">
+                <div class="h-24 overflow-y-auto font-mono text-[10px] flex flex-col-reverse" id="system-log"><div class="text-green-500">&gt; INITIATING H-PHASE: GEODESIC LOCK</div><div class="text-gray-300">&gt; GEOMETRY INSTANTIATED: 2048 NODES.</div><div class="text-gray-300">&gt; KERNEL LOADED.</div>
+                    <div class="text-yellow-500">&gt; TIP: CLICK 'GET CODE' IN TOP RIGHT TO DOWNLOAD THIS SOURCE.</div>
+                    <div class="text-green-500">&gt; SYSTEM INITIALIZED. AWAITING DATA STREAM...</div>
+                </div>
             </div>
         </footer>
     </div>
@@ -680,9 +693,13 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         camera.position.set(30, 20, 30);
 
         const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        const cw = container.clientWidth || window.innerWidth;
+        const ch = container.clientHeight || window.innerHeight;
+        camera.aspect = cw / ch;
+        camera.updateProjectionMatrix();
+        renderer.setSize(cw, ch);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        container.appendChild(renderer.domElement);
+        container.replaceChildren(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
@@ -694,7 +711,7 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         const renderPass = new RenderPass(scene, camera);
         composer.addPass(renderPass);
 
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(cw, ch), 1.5, 0.4, 0.85);
         bloomPass.threshold = 0;
         bloomPass.strength = 1.5;
         bloomPass.radius = 0.5;
@@ -916,10 +933,12 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         }
 
         window.addEventListener('resize', () =&gt; {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            const cw = container.clientWidth || window.innerWidth;
+            const ch = container.clientHeight || window.innerHeight;
+            camera.aspect = cw / ch;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(cw, ch);
+            composer.setSize(cw, ch);
         });
 
         log("KERNEL LOADED.");
@@ -1067,9 +1086,13 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         camera.position.set(30, 20, 30);
 
         const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        const cw = container.clientWidth || window.innerWidth;
+        const ch = container.clientHeight || window.innerHeight;
+        camera.aspect = cw / ch;
+        camera.updateProjectionMatrix();
+        renderer.setSize(cw, ch);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        container.appendChild(renderer.domElement);
+        container.replaceChildren(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
@@ -1081,7 +1104,7 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         const renderPass = new RenderPass(scene, camera);
         composer.addPass(renderPass);
 
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(cw, ch), 1.5, 0.4, 0.85);
         bloomPass.threshold = 0;
         bloomPass.strength = 1.5;
         bloomPass.radius = 0.5;
@@ -1272,10 +1295,12 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         }
 
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            const cw = container.clientWidth || window.innerWidth;
+            const ch = container.clientHeight || window.innerHeight;
+            camera.aspect = cw / ch;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(cw, ch);
+            composer.setSize(cw, ch);
         });
 
         log("KERNEL LOADED.");

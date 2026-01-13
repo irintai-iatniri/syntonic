@@ -45,28 +45,44 @@ def update_monitor(model, syntony, temp, phase):
     # Support both PyTorch (detach().cpu()) and Pure Syntonic (to_list())
     flat_weights = []
     
-    # Check if model has standard parameters() method
-    if not hasattr(model, 'parameters'):
-         return
+    # Allow models that expose either `parameters()` (torch-like) OR
+    # `get_weights()` (pure syntonic models returning ResonantTensors).
+    sources = None
+    if hasattr(model, 'parameters'):
+        sources = model.parameters()
+    elif hasattr(model, 'get_weights'):
+        sources = model.get_weights()
+    else:
+        # Nothing we can introspect
+        return
 
-    for p in model.parameters():
+    for p in sources:
         w_data = None
-        
-        # Handle Pure Syntonic Parameter
-        if hasattr(p, 'to_list'): 
-            w_data = np.array(p.to_list())
-            
-        # Handle Pure Syntonic Parameter (alternative access)
-        elif hasattr(p, 'tensor') and hasattr(p.tensor, 'to_floats'):
-             w_data = np.array(p.tensor.to_floats())
-             
-        # Handle PyTorch Tensor
-        elif hasattr(p, 'detach'):
-            w_data = p.detach().cpu().numpy().flatten()
-            
-        if w_data is not None:
+
+        # Handle Pure Syntonic Parameter objects / ResonantTensor
+        if hasattr(p, 'to_list'):
+            try:
+                w_data = np.array(p.to_list())
+            except Exception:
+                pass
+
+        # Handle objects with `.tensor.to_floats()` access
+        if w_data is None and hasattr(p, 'tensor') and hasattr(p.tensor, 'to_floats'):
+            try:
+                w_data = np.array(p.tensor.to_floats())
+            except Exception:
+                pass
+
+        # Handle PyTorch Tensor-like objects
+        if w_data is None and hasattr(p, 'detach'):
+            try:
+                w_data = p.detach().cpu().numpy().flatten()
+            except Exception:
+                pass
+
+        if w_data is not None and w_data.size > 0:
             flat_weights.append(w_data)
-        
+
         # Limit the size to avoid heavy serialization
         current_len = sum(len(w) for w in flat_weights)
         if current_len > 6144: # 2048 * 3
