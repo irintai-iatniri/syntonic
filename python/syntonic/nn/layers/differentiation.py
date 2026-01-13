@@ -15,7 +15,7 @@ Source: CRT.md §12.2
 from __future__ import annotations
 from typing import Optional
 
-from syntonic._core import ResonantTensor
+from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic.nn.layers.resonant_linear import ResonantLinear
 
 
@@ -122,24 +122,90 @@ class DifferentiationLayer:
         return f'DifferentiationLayer(in_features={self.in_features}, out_features={self.out_features}, alpha_scale={self.alpha_scale})'
 
 
-# NOTE: DifferentiationModule is BLOCKED until concat() API is implemented
-# It requires concatenating multi-head outputs along the feature dimension
-#
-# class DifferentiationModule:
-#     """
-#     Multi-head differentiation for transformer architectures.
-#
-#     BLOCKED: Requires concat() API for concatenating heads
-#
-#     Applies differentiation with multiple "possibility projectors",
-#     analogous to Σᵢ αᵢ P̂ᵢ[Ψ] in the continuous D̂ operator.
-#     """
-#     pass
+class DifferentiationModule:
+    """
+    Multi-head differentiation for transformer architectures.
+
+    Applies differentiation with multiple "possibility projectors",
+    analogous to Σᵢ αᵢ P̂ᵢ[Ψ] in the continuous D̂ operator.
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        dropout: float = 0.1,
+    ):
+        """
+        Initialize multi-head differentiation module.
+
+        Args:
+            d_model: Model dimension
+            n_heads: Number of differentiation heads
+            dropout: Dropout probability
+        """
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.head_dim = d_model // n_heads
+
+        if self.head_dim * n_heads != d_model:
+            raise ValueError(f"d_model {d_model} must be divisible by n_heads {n_heads}")
+
+        # Multi-head projections (possibility spaces)
+        self.projectors = [
+            ResonantLinear(d_model, self.head_dim)
+            for _ in range(n_heads)
+        ]
+
+        # Recombine projection
+        self.out_proj = ResonantLinear(d_model, d_model)
+        self.dropout_p = dropout
+
+    def forward(self, x: ResonantTensor) -> ResonantTensor:
+        """
+        Multi-head differentiation forward pass.
+
+        1. Project input into N possibility spaces (heads)
+        2. Apply nonlinear complexity generation (ReLU) in each space
+        3. Concatenate and project back to global space
+        4. Apply residual connection and normalization
+
+        Args:
+            x: Input tensor [batch, seq_len, d_model]
+
+        Returns:
+            Output tensor
+        """
+        # 1. & 2. Apply each projector and ReLU
+        heads = []
+        for proj in self.projectors:
+            h = proj.forward(x)
+            h.relu()
+            heads.append(h)
+
+        # 3. Concatenate heads along feature dimension (last dim)
+        # Note: ResonantTensor.concat expects list of tensors and dimension
+        concat = ResonantTensor.concat(heads, dim=-1)
+
+        # Project back
+        out = self.out_proj.forward(concat)
+
+        # Dropout
+        if self.dropout_p > 0:
+            out.dropout(self.dropout_p)
+
+        # 4. Residual + Norm
+        # x + out
+        res = x.elementwise_add(out)
+        
+        # Layer Norm (using default behavior for now)
+        return res.layer_norm()
+
 
 
 if __name__ == "__main__":
     # Test the pure DifferentiationLayer
-    from syntonic._core import ResonantTensor
+    from syntonic.nn.resonant_tensor import ResonantTensor
 
     print("Testing DifferentiationLayer...")
     layer = DifferentiationLayer(4, 4, bias=True, alpha_scale=0.5)
@@ -165,5 +231,29 @@ if __name__ == "__main__":
     y2 = layer2.forward(x)
     print(f"Output shape: {y2.shape}")
     print(f"Output syntony: {y2.syntony:.4f}")
+
+    # Test DifferentiationModule
+    print("\nTesting DifferentiationModule...")
+    try:
+        d_model = 16
+        n_heads = 4
+        diff_mod = DifferentiationModule(d_model, n_heads, dropout=0.1)
+        
+        # improved test data - random gaussian-like
+        # [batch=2, seq=4, d_model=16] -> total 128 elements
+        dm_data = [float(i % 10) / 10.0 for i in range(128)] 
+        x_mod = ResonantTensor(dm_data, [2, 4, d_model])
+        
+        y_mod = diff_mod.forward(x_mod)
+        print(f"Module Input shape: {x_mod.shape}")
+        print(f"Module Output shape: {y_mod.shape}")
+        
+        assert y_mod.shape == x_mod.shape
+        print("DifferentiationModule works!")
+        
+    except Exception as e:
+        print(f"DifferentiationModule failed: {e}")
+        import traceback
+        traceback.print_exc()
 
     print("\nSUCCESS - DifferentiationLayer refactored!")

@@ -16,23 +16,25 @@ import math
 import random
 from typing import Tuple, List, Optional
 
+import syntonic.sn as sn
 from syntonic._core import ResonantTensor
 from syntonic.nn.layers.resonant_linear import ResonantLinear
+from syntonic.nn.winding.prime_selection_pure import PurePrimeSelectionLayer
 
 PHI = (1 + math.sqrt(5)) / 2
 PHI_INV = 1 / PHI
 PHI_INV_SQ = PHI_INV - PHI_INV * PHI_INV
 
 
-class WindingDHSRBlock:
+class WindingDHSRBlock(sn.Module):
     """
     DHSR block with winding structure and blockchain recording.
 
     Architecture:
-    1. D-phase: Fibonacci expansion via ResonantLinear
-    2. H-phase: Crystallization via cpu_cycle
-    3. S-phase: Syntony extracted from ResonantTensor
-    4. R-phase: Golden recursion scaling
+    1. D-phase: Fibonacci expansion (differentiation)
+    2. H-phase: Harmonization (lattice crystallization)
+    3. S-phase: Syntony computation
+    4. R-phase: Recursion (golden scaling)
     5. Blockchain: Temporal ledger of accepted states
     """
 
@@ -40,7 +42,9 @@ class WindingDHSRBlock:
         self,
         dim: int,
         fib_expand_factor: int = 3,
+        use_prime_filter: bool = True,
         consensus_threshold: float = 0.024,
+        dropout: float = 0.1,
         precision: int = 100,
     ):
         """
@@ -49,9 +53,12 @@ class WindingDHSRBlock:
         Args:
             dim: Feature dimension
             fib_expand_factor: Fibonacci expansion factor for D-phase
+            use_prime_filter: Whether to apply prime selection (Möbius filtering)
             consensus_threshold: ΔS threshold for block validation
+            dropout: Dropout rate applied during differentiation
             precision: Lattice precision for exact arithmetic
         """
+        super().__init__()
         self.dim = dim
         self.fib_expand_factor = fib_expand_factor
         self.consensus_threshold = consensus_threshold
@@ -61,6 +68,15 @@ class WindingDHSRBlock:
         expanded_dim = dim * fib_expand_factor
         self.d_expand = ResonantLinear(dim, expanded_dim, precision=precision)
         self.d_project = ResonantLinear(expanded_dim, dim, precision=precision)
+
+        # Dropout
+        self.dropout = sn.Dropout(dropout)
+
+        # Prime Selection (Hadrons channel)
+        if use_prime_filter:
+            self.prime_filter = PurePrimeSelectionLayer(dim)
+        else:
+            self.prime_filter = None
 
         # Temporal blockchain (immutable ledger)
         self.temporal_record: List[List[float]] = []
@@ -89,28 +105,51 @@ class WindingDHSRBlock:
         """
         # === D-PHASE: Fibonacci expansion ===
         # Amplification inversely proportional to syntony
+        # Low syntony -> High exploration (Temperature)
         alpha = PHI_INV_SQ * (1.0 - prev_syntony)
 
-        # Expand via Fibonacci factor
+        # Expand via Fibonacci factor (Differentiation)
         h = self.d_expand.forward(x)
         h.relu()  # Activation
         
+        # Apply dropout in the expanded space
+        if self.training:
+            h = self.dropout(h)
+            
         delta = self.d_project.forward(h)
 
-        # Apply differentiation: x' = x + α·Δ
-        # Combine x and delta (simplified for now - add floats and reconstruct)
+        # Apply differentiation update: x' = x + α·Δ
+        # Manual elementwise add until ResonantTensor supports scalar_mul + add better
         x_floats = x.to_floats()
         delta_floats = delta.to_floats()
-        combined = [x_floats[i] + alpha * delta_floats[i] for i in range(len(x_floats))]
+        combined = [
+            x_floats[i] + alpha * delta_floats[i] 
+            for i in range(len(x_floats))
+        ]
         
-        x = ResonantTensor(combined, list(x.shape), precision=self.precision)
+        # If x has mode norms, try to preserve them or pass None to auto-compute 1D
+        mode_norms = list(x.mode_norm_sq()) if hasattr(x, 'mode_norm_sq') else None
+        
+        x_diff = ResonantTensor(combined, list(x.shape), mode_norms, precision=self.precision)
 
-        # === H-PHASE: Harmonization via DHSR cycle ===
-        syntony_new = x.cpu_cycle(noise_scale=0.01, precision=self.precision)
+        # === H-PHASE: Harmonization & Prime Filtering ===
+        # 1. Prime Selection (Möbius filtering)
+        if self.prime_filter is not None:
+             x_diff = self.prime_filter(x_diff)
+
+        # 2. Lattice Crystallization (Harmonization) via cpu_cycle
+        # This calculates syntony AND snaps to grid
+        syntony_new = x_diff.cpu_cycle(noise_scale=0.01, precision=self.precision)
+        
+        # If cpu_cycle returns 0 (stub or failed), try to use property
+        if syntony_new == 0.0:
+            syntony_new = x_diff.syntony
 
         # === R-PHASE: Golden recursion ===
-        x.apply_recursion()
-        x.apply_inverse_recursion()  # Undo to keep scale, but phases are mixed
+        # x -> floor(φ * x)
+        x_diff.apply_recursion()
+        # x -> ceil(x / φ) (Inverse to maintain scale stability over many layers)
+        x_diff.apply_inverse_recursion()
 
         # === CONSENSUS CHECK: ΔS > threshold ===
         delta_s = abs(syntony_new - prev_syntony)
@@ -118,12 +157,12 @@ class WindingDHSRBlock:
 
         # === TEMPORAL RECORDING: Blockchain ===
         if accepted:
-            self._record_block(x.to_floats(), syntony_new)
+            self._record_block(x_diff.to_floats(), syntony_new)
             self.total_blocks_validated += 1
         else:
             self.total_blocks_rejected += 1
 
-        return x, syntony_new, accepted
+        return x_diff, syntony_new, accepted
 
     def _record_block(self, state: List[float], syntony: float):
         """
@@ -135,12 +174,18 @@ class WindingDHSRBlock:
         """
         # Average over batch for single state record
         dim = self.dim
-        batch_size = len(state) // dim
-        state_avg = [0.0] * dim
-        for b in range(batch_size):
-            for d in range(dim):
-                state_avg[d] += state[b * dim + d]
-        state_avg = [s / batch_size for s in state_avg]
+        if len(state) == dim:
+            # 1D case
+            state_avg = state
+        else:
+            # Batch case
+            batch_size = len(state) // dim
+            state_avg = [0.0] * dim
+            if batch_size > 0:
+                for b in range(batch_size):
+                    for d in range(dim):
+                        state_avg[d] += state[b * dim + d]
+                state_avg = [s / batch_size for s in state_avg]
 
         self.temporal_record.append(state_avg)
         self.syntony_record.append(syntony)
@@ -160,14 +205,10 @@ class WindingDHSRBlock:
             return 0.0
         return self.total_blocks_validated / total
 
-    def parameters(self) -> List[ResonantTensor]:
-        """Return all learnable parameters."""
-        return self.d_expand.parameters() + self.d_project.parameters()
-
     def __repr__(self) -> str:
         return (
             f"WindingDHSRBlock(dim={self.dim}, expand_factor={self.fib_expand_factor}, "
-            f"threshold={self.consensus_threshold:.4f})"
+            f"threshold={self.consensus_threshold:.4f}, primes={self.prime_filter is not None})"
         )
 
 

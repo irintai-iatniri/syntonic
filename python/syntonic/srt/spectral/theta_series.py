@@ -23,6 +23,7 @@ from typing import Tuple, Optional, Iterator, List
 import math
 
 from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
+from syntonic.srt.lattice import NULL_VECTORS, QuadraticForm
 from syntonic.srt.geometry.winding import WindingState, winding_state, enumerate_windings_by_norm
 from syntonic.core import (
     theta_series_evaluate as _theta_series_evaluate,
@@ -74,6 +75,7 @@ class ThetaSeries:
         """
         self._phi_exact = PHI  # Store exact golden ratio
         self._phi = phi if phi is not None else PHI.eval()
+        self._q_form = QuadraticForm(self._phi)
         self._max_norm = max_norm
         # Use Rust enumerator for ~50x speedup
         by_norm = enumerate_windings_by_norm(max_norm)
@@ -97,6 +99,52 @@ class ThetaSeries:
     def golden_weight(self, n: WindingState) -> float:
         """Compute golden measure w(n) = exp(-|n|²/φ)."""
         return math.exp(-n.norm_squared / self._phi)
+
+    def vigneras_rho(self, v: Tuple[float, ...], t: float) -> float:
+        """
+        Compute Vignéras rank-4 harmonic Maass kernel weight ρ(λ, τ).
+
+        The kernel acts as a completion term for the indefinite theta series:
+            Θ_4(t) = Σ ρ(λ, i/t) exp(-π Q(λ)/t)
+
+        It involves a product of error functions associated with the
+        four null vectors defining the Golden Cone.
+
+        Args:
+            v: 8-dimensional lattice vector λ
+            t: Time parameter (y = 1/t)
+
+        Returns:
+            Kernel value ρ(λ, i/t)
+        """
+        if len(v) != 8:
+            raise ValueError("Vector must be 8-dimensional")
+
+        # Q(lambda) metric
+        Q = self._q_form.evaluate(v)
+
+        # Avoid division by zero for null vectors
+        if abs(Q) < 1e-12:
+            return 1.0
+
+        y = 1.0 / t
+        sqrt_y = math.sqrt(y)
+        sqrt_abs_Q = math.sqrt(abs(Q))
+        sqrt_pi = math.sqrt(math.pi)
+
+        product = 1.0
+        for c_vector in NULL_VECTORS:
+            # B_a(lambda) = v . c_a (Euclidean dot product in embedding)
+            b_val = sum(x * c for x, c in zip(v, c_vector))
+
+            # Argument for error function: B_a * sqrt(y) / sqrt(|Q|)
+            arg = (b_val * sqrt_y) / sqrt_abs_Q
+
+            # E(t) = erf(sqrt(pi) * t)
+            term = math.erf(sqrt_pi * arg)
+            product *= term
+
+        return product
 
     def evaluate(self, t: float) -> float:
         """

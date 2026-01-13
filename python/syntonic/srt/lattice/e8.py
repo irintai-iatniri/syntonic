@@ -367,25 +367,84 @@ class E8Lattice:
 
     def dynkin_labels(self, root: E8Root) -> List[int]:
         """
-        Compute Dynkin labels for a root.
+        Compute coefficients of the root in the basis of simple roots.
 
-        Expresses root as linear combination of simple roots.
+        Expresses root as linear combination of simple roots coefficients 
+        c_i such that root = sum(c_i * alpha_i).
+        
+        Note: While the method name suggests Dynkin labels (weights basis),
+        the description and logic implement the decomposition into simple roots
+        (root basis), which requires solving the linear system involving the
+        Cartan matrix.
 
         Args:
             root: An E8 root
 
         Returns:
-            List of 8 integer Dynkin labels
+            List of 8 integer coefficients
         """
-        # For roots, we can use the Cartan matrix inverse
-        # This is a simplified version - full implementation would
-        # solve the linear system
+        # We need to solve the linear system:
+        # root = sum(c_i * alpha_i)
+        # Taking inner product with alpha_j^v (coroots):
+        # <root, alpha_j^v> = sum_i c_i <alpha_i, alpha_j^v>
+        #                   = sum_i c_i * A_ji (Cartan matrix transpose)
+        # (Since E8 is simply laced, A is symmetric, so A_ji = A_ij)
+        
+        # 1. Compute RHS vector b_j = <root, alpha_j^v>
+        # For simply laced E8, <x, y^v> = 2<x,y>/<y,y> = 2<x,y>/2 = <x,y>
+        # But we use the generic formula for correctness.
         simple = self.simple_roots()
-        labels = []
+        rhs = []
         for alpha in simple:
-            coeff = 2 * root.inner_product(alpha) / alpha.norm_squared
-            labels.append(int(coeff))
-        return labels
+            val = 2 * root.inner_product(alpha) / alpha.norm_squared
+            rhs.append(val)
+
+        # 2. Get Cartan Matrix A
+        A = self.cartan_matrix()
+        
+        # 3. Solve A * c = rhs using Gaussian elimination with generic Fractions 
+        # to ensure exact integer results. A is 8x8.
+        n = len(rhs)
+        
+        # Create augmented matrix [A | rhs]
+        M = [[Fraction(A[row][col]) for col in range(n)] + [Fraction(rhs[row])] 
+             for row in range(n)]
+        
+        # Gaussian elimination
+        for i in range(n):
+            # Pivot
+            pivot = M[i][i]
+            if pivot == 0:
+                # Find a non-zero pivot in lower rows
+                for k in range(i + 1, n):
+                    if M[k][i] != 0:
+                        M[i], M[k] = M[k], M[i]
+                        pivot = M[i][i]
+                        break
+            
+            # Normalize pivot row
+            inv_pivot = Fraction(1, 1) / pivot
+            for j in range(i, n + 1):
+                M[i][j] *= inv_pivot
+            
+            # Eliminate other rows
+            for k in range(n):
+                if k != i:
+                    factor = M[k][i]
+                    for j in range(i, n + 1):
+                        M[k][j] -= factor * M[i][j]
+        
+        # Extract solution (should be integers for lattice roots)
+        solution = []
+        for i in range(n):
+            val = M[i][n]
+            # Verify it's an integer (it must be for roots)
+            if val.denominator != 1:
+                # Should not happen for valid E8 roots
+                raise ValueError(f"Root coordinates not integers: {val}")
+            solution.append(int(val.numerator))
+            
+        return solution
 
     def __len__(self) -> int:
         """Number of roots."""

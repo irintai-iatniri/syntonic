@@ -20,6 +20,7 @@ import math
 import time
 
 from syntonic.viz.server import launch_background_thread, update_monitor
+from syntonic.viz import server as viz_server
 from syntonic._core import (
     ResonantTensor,
     ResonantEvolver,
@@ -135,6 +136,48 @@ class RetrocausalTrainer:
 
         # Start the visualization server
         launch_background_thread()
+        # Send an initial monitor snapshot so the dashboard has immediate data
+        try:
+            update_monitor(self.model, self._current_syntony, 0.0, 1.0)
+        except Exception:
+            # If viz server isn't available yet or model introspection fails,
+            # we silently continue; the monitor will be updated during training.
+            pass
+
+        # Start a background monitor thread to push frequent updates and
+        # to observe control state set by the dashboard client.
+        def _monitor_loop():
+            import time
+            while True:
+                try:
+                    # Pull control hints from viz server (phase/temperature)
+                    ctrl = getattr(viz_server, 'CONTROL_STATE', None)
+                    if ctrl is not None:
+                        # Apply simple controls to trainer config
+                        ph = ctrl.get('phase')
+                        if ph == 'D':
+                            self._current_phase = 'D'
+                        elif ph == 'H':
+                            self._current_phase = 'H'
+                        # temperature may be used by physics calculations
+                        tval = float(ctrl.get('temperature', 0.0))
+                    else:
+                        tval = 0.0
+
+                    # Push a monitor snapshot (so dashboard animates)
+                    try:
+                        update_monitor(self.model, self._current_syntony, tval, 1.0 if getattr(self, '_current_phase', 'D') == 'D' else 0.0)
+                    except Exception:
+                        pass
+
+                    time.sleep(0.1)
+                except Exception:
+                    # If trainer is being torn down, exit
+                    break
+
+        import threading
+        t = threading.Thread(target=_monitor_loop, daemon=True)
+        t.start()
         
         # Loss function
         if loss_fn is None:
@@ -191,6 +234,28 @@ class RetrocausalTrainer:
             result = self._evolve_weight(evolver, i)
             all_results.append(result)
             evolved_weights.append(result['best_tensor'])
+
+            # Apply intermediate weight snapshot so the visualization
+            # can observe per-weight progress in real-time. We construct
+            # a full-weight list where weights up to the current index
+            # use the evolved tensors and the remaining weights use the
+            # existing templates (or current model weights).
+            try:
+                snapshot = []
+                for j in range(len(self._weight_templates)):
+                    if j <= i:
+                        snapshot.append(evolved_weights[j])
+                    else:
+                        snapshot.append(self._weight_templates[j])
+                # Apply the partial snapshot to the model so update_monitor
+                # will pick up the changed weights when called.
+                try:
+                    self.model.set_weights(snapshot)
+                except Exception:
+                    # If the model doesn't accept partial updates, ignore.
+                    pass
+            except Exception:
+                pass
             
             if i % self.config.log_interval == 0:
                 self._log_progress(i, len(self._weight_templates), result)

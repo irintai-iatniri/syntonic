@@ -27,7 +27,6 @@ from syntonic._core import (
     ResonantEvolver,
     cuda_is_available,
     cuda_device_count,
-    # SRT Tensor Operations (GPU-accelerated when on CUDA)
     srt_scale_phi,
     srt_golden_gaussian_weights,
     srt_apply_correction,
@@ -181,7 +180,7 @@ __all__ = [
     'device',
     # Rust backend
     'TensorStorage',
-    # SRT Tensor Operations (GPU-accelerated when on CUDA)
+    # SRT Tensor Operations
     'srt_scale_phi',
     'srt_golden_gaussian_weights',
     'srt_apply_correction',

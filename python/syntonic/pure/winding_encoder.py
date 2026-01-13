@@ -65,31 +65,16 @@ class PureWindingEncoder:
         Returns:
             ResonantTensor of shape [batch, embed_dim]
         """
-        batch_size = len(winding_states)
-        result_lattice = []
-        result_norms = []
-        
-        # Access original lattice for "lookup"
-        # Since we don't have native slice/index yet, we do it in Python
-        # (This is okay for the encoder as it's usually at the boundary)
-        source_lattice = self.weight.to_lattice_list()
+        indices = []
         
         for w in winding_states:
             idx = self.winding_to_idx.get(self._key(w))
             if idx is None:
                 raise ValueError(f"Winding {w} out of range (max_n={self.max_n})")
-                
-            start = idx * self.embed_dim
-            end = (idx + 1) * self.embed_dim
-            result_lattice.extend(source_lattice[start:end])
-            
-            # Winding norm is the same for the entire embedding vector
-            norm = float(w.norm_squared)
-            result_norms.extend([norm] * self.embed_dim)
-            
-        return ResonantTensor.from_golden_exact(
-            result_lattice, [batch_size, self.embed_dim], result_norms
-        )
+            indices.append(idx)
+        
+        # Use native index_select (now available in backend)
+        return self.weight.index_select(indices, 0)
 
     def __repr__(self):
         return f"PureWindingEncoder(max_n={self.max_n}, num_windings={self.num_windings}, embed_dim={self.embed_dim})"

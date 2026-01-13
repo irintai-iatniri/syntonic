@@ -22,6 +22,7 @@ use crate::exact::{GoldenExact, Rational};
 #[cfg(feature = "cuda")]
 use crate::tensor::srt_kernels::{
     cuda_resonant_compute_syntony_f64, cuda_resonant_d_phase_f64, ensure_srt_kernels_loaded,
+    cuda_matmul_nt_f64, cuda_bmm_nt_f64,
 };
 #[cfg(feature = "cuda")]
 use cudarc::driver::safe::CudaContext as CudaDevice;
@@ -204,6 +205,32 @@ impl ResonantTensor {
         let mut tensor = Self::from_lattice(lattice, shape, mode_norm_sq)?;
         tensor.precision = precision;
         Ok(tensor)
+    }
+
+    /// Create a tensor of zeros with exact GoldenExact values.
+    ///
+    /// Initializes a Crystallized tensor with zero-valued lattice points.
+    pub fn zeros(shape: Vec<usize>, precision: i64) -> Self {
+        let size: usize = shape.iter().product();
+        let lattice = vec![GoldenExact::zero(); size];
+        // Mode norms for zero tensor are zero (0^2 + ... = 0)
+        let mode_norm_sq = vec![0.0; size];
+        
+        ResonantTensor {
+            lattice,
+            #[cfg(feature = "cuda")]
+            flux: None,
+            cpu_flux: None,
+            shape,
+            syntony: 0.0,
+            mode_norm_sq,
+            phase: ResonantPhase::Crystallized,
+            #[cfg(feature = "cuda")]
+            device: None,
+            device_idx: 0,
+            last_d_duration_ns: 0,
+            precision,
+        }
     }
 
     /// Create with default mode norms (|n|² = index²).
@@ -668,55 +695,233 @@ impl ResonantTensor {
         self.crystallize_cpu(&values, precision)
     }
 
-    /// Native matrix-vector multiplication for GoldenExact lattice.
+    /// Native matrix-vector multiplication for GoldenExact lattice with BMM support.
     ///
-    /// Performs Y = XW^T where self is X (batch, in_features)
-    /// and weights is W (out_features, in_features).
+    /// Performs Y = XW^T.
+    /// Supports broadcasting and BMM (Batched Matrix Multiplication).
+    ///
+    /// Dispatch Logic:
+    /// - Rank 2 x Rank 2 ([M, K], [N, K]): Standard MatMul (A @ B^T)
+    /// - Rank 3+ x Rank 2: Broadcast B against A's batch dimensions.
+    /// - Rank 3+ x Rank 3+: True Batched MatMul (BMM), requires matching batch dimensions.
+    ///   e.g. [B, M, K] @ [B, N, K] -> [B, M, N]
     ///
     /// Resulting tensor is in Crystallized phase.
     pub fn matmul_core(&self, weights: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
-        if self.shape.len() != 2 || weights.shape.len() != 2 {
-            return Err(ResonantError::ShapeMismatch(
-                "matmul currently requires 2D tensors [batch, in] and [out, in]".to_string(),
-            ));
+        if self.shape.is_empty() {
+             return Err(ResonantError::ShapeMismatch("Input tensor cannot be empty".to_string()));
         }
-
-        let batch_size = self.shape[0];
-        let in_features = self.shape[1];
-        let out_features = weights.shape[0];
-
-        if weights.shape[1] != in_features {
-            return Err(ResonantError::ShapeMismatch(format!(
-                "DIM mismatch: self.in={} vs weights.in={}",
-                in_features, weights.shape[1]
+        
+        // --- 1. Shape Analysis & Dispatch Strategy ---
+        let rank_a = self.shape.len();
+        let rank_b = weights.shape.len();
+        
+        let k_a = *self.shape.last().unwrap();
+        // Weights is arguably [Out, In] (Rank 2) or [Batch, ..., Out, In] (Rank > 2)
+        // If weights is Rank < 2, fail.
+        if rank_b < 2 {
+             return Err(ResonantError::ShapeMismatch(format!(
+                "Weights must be at least 2D, got {:?}", weights.shape
             )));
         }
+        let k_b = weights.shape[rank_b - 1]; // In_features is last dim?
+        // Wait, standard convention in this codebase seems to be:
+        // weights is [out_features, in_features] for Linear.
+        // So K is dimension 1.
+        // But for BMM (A @ B^T), if B is [Batch, N, K], then K is last.
+        // matmul normally is A @ B.
+        // This function explicitly says "Performs Y = XW^T".
+        // If W is [N, K], then W^T is [K, N].
+        // So A=[M, K] @ [K, N] -> [M, N].
+        // Match dim is K.
+        // So for W, the matching dimension is index 1 (last).
+        
+        if k_a != k_b {
+              return Err(ResonantError::ShapeMismatch(format!(
+                "Inner dimension mismatch: input ...{} vs weights ...{}",
+                k_a, k_b
+            )));
+        }
+        
+        let batch_dims_a = &self.shape[0..rank_a-2];
+        let batch_dims_b = &weights.shape[0..rank_b-2];
+        
+        // Check for BMM vs Broadcast
+        let is_bmm = rank_b > 2;
+        
+        // --- 2. BMM Execution (Rank 3+ x Rank 3+) ---
+        if is_bmm && rank_a >= 3 {
+            // simplified BMM: Requires exactly matching batch dimensions for now
+            // or standard broadcasting rules.
+            // Let's implement strict BMM first: [Batch, M, K] @ [Batch, N, K] -> [Batch, M, N]
+            
+            // Flatten generic batch dims to single batch dim
+            let batch_size_a: usize = batch_dims_a.iter().product();
+            let batch_size_b: usize = batch_dims_b.iter().product();
+            
+            if batch_size_a != batch_size_b {
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Batch size mismatch for BMM: {} vs {}",
+                    batch_size_a, batch_size_b
+                )));
+            }
+            
+            let m = self.shape[rank_a - 2]; // Valid for rank >= 2
+            let n = weights.shape[rank_b - 2];
+            let k = k_a;
+            
+            // Check full batch shape strict equality for now
+            if batch_dims_a != batch_dims_b {
+                 // Warning or Error? Let's error for safety until generic broadcast BMM is added
+                 return Err(ResonantError::ShapeMismatch(format!(
+                    "Strict BMM requires matching batch shapes. Got {:?} vs {:?}",
+                    batch_dims_a, batch_dims_b
+                )));
+            }
+            
+            // Handle CUDA path for BMM
+            #[cfg(feature = "cuda")]
+            if self.phase == ResonantPhase::Flux || weights.phase == ResonantPhase::Flux {
+                // Ensure device availability
+                 if let Some(device) = self.device.clone().or_else(|| weights.device.clone()) {
+                     let a_slice = if let Some(flux) = &self.flux {
+                         flux.clone()
+                     } else {
+                         device.default_stream().clone_htod(&self.to_floats_core()).map_err(|e| ResonantError::CudaError(e.to_string()))?
+                     };
+                     
+                     let b_slice = if let Some(flux) = &weights.flux {
+                         flux.clone()
+                     } else {
+                         device.default_stream().clone_htod(&weights.to_floats_core()).map_err(|e| ResonantError::CudaError(e.to_string()))?
+                     };
+                     
+                     let mut c_slice = device.default_stream().alloc_zeros::<f64>(batch_size_a * m * n).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+                     
+                     // BMM Kernel: [Batch, M, K] @ [Batch, N, K]^T -> [Batch, M, N]
+                     cuda_bmm_nt_f64(&device, &mut c_slice, &a_slice, &b_slice, batch_size_a, m, n, k)
+                        .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+                        
+                     let mut host_data = vec![0.0f64; batch_size_a * m * n];
+                     device.default_stream().memcpy_dtoh(&c_slice, &mut host_data).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+                     
+                     let mut result_shape = self.shape.clone();
+                     *result_shape.last_mut().unwrap() = n;
+                     
+                     let mode_norms: Vec<f64> = (0..host_data.len()).map(|i| ((i % n) as f64).powi(2)).collect();
+                     return Self::from_floats(&host_data, result_shape, mode_norms, self.precision);
+                 }
+            }
+            
+            // Fallback BMM CPU - Perform exact Q(φ) multiplication and addition
+            // Just loop over batch
+            let mut result_lattice = Vec::with_capacity(batch_size_a * m * n);
+             for b in 0..batch_size_a {
+                 let offset_a = b * m * k;
+                 let offset_b = b * n * k;
+                 
+                 for i in 0..m {
+                     for j in 0..n {
+                        let mut sum = GoldenExact::zero();
+                        for l in 0..k {
+                             let val_a = self.lattice[offset_a + i * k + l];
+                             // B is [Batch, N, K]
+                             // We act as if we are doing A @ B^T.
+                             // B^T would have shape [Batch, K, N].
+                             // (B^T)[k, j] = B[j, k].
+                             // So we access B at [Batch, row=j, col=l]
+                             let val_b = weights.lattice[offset_b + j * k + l];
+                             sum = sum + (val_a * val_b);
+                        }
+                        result_lattice.push(sum);
+                     }
+                 }
+             }
+             
+             let mut result_shape = self.shape.clone();
+             *result_shape.last_mut().unwrap() = n;
+             let mode_norms = (0..result_lattice.len()).map(|i| ((i % n) as f64).powi(2)).collect();
+             
+             return Self::from_lattice(result_lattice, result_shape, mode_norms);
+        }
+        
+        // --- 3. Standard Broadcast Matmul (Rank 3+ x Rank 2) or (Rank 2 x Rank 2) ---
 
-        let mut result_lattice = Vec::with_capacity(batch_size * out_features);
+        // Calculate flattened batch dimension (M_total) of A
+        // A is [Batch..., M_local, K]
+        // Flatten [Batch..., M_local] -> M_total
+        let m_total: usize = self.shape.iter().take(rank_a - 1).product();
+        let k = k_a;
+        let n = weights.shape[rank_b - 2]; // weights is [N, K]
+        
+        // Handle Empty
+        if m_total == 0 {
+             let mut result_shape = self.shape.clone();
+             *result_shape.last_mut().unwrap() = n;
+             return Ok(Self::zeros(result_shape, self.precision));
+        }
+
+        // CUDA Path (Standard or Broadcast)
+        #[cfg(feature = "cuda")]
+        if self.phase == ResonantPhase::Flux || weights.phase == ResonantPhase::Flux {
+             if let Some(device) = self.device.clone().or_else(|| weights.device.clone()) {
+                 let a_slice = if let Some(flux) = &self.flux {
+                     flux.clone()
+                 } else {
+                     device.default_stream().clone_htod(&self.to_floats_core()).map_err(|e| ResonantError::CudaError(e.to_string()))?
+                 };
+                 
+                 let b_slice = if let Some(flux) = &weights.flux {
+                     flux.clone()
+                 } else {
+                     device.default_stream().clone_htod(&weights.to_floats_core()).map_err(|e| ResonantError::CudaError(e.to_string()))?
+                 };
+
+                 let mut c_slice = device.default_stream().alloc_zeros::<f64>(m_total * n).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+                 // Perform [M_total, K] @ [N, K]^T -> [M_total, N]
+                 // This handles Rank 2x2 and Broadcast Rank Nx2 equivalently
+                 cuda_matmul_nt_f64(&device, &mut c_slice, &a_slice, &b_slice, m_total, n, k).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+
+                 let mut host_data = vec![0.0f64; m_total * n];
+                 device.default_stream().memcpy_dtoh(&c_slice, &mut host_data).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+                 
+                 let mut result_shape = self.shape.clone();
+                 *result_shape.last_mut().unwrap() = n;
+                 
+                 let mode_norms: Vec<f64> = (0..m_total*n).map(|i| ((i % n) as f64).powi(2)).collect();
+                 
+                 return Self::from_floats(&host_data, result_shape, mode_norms, self.precision);
+             }
+        }
+
+        // CPU Path (Standard or Broadcast - GoldenExact)
+        let mut result_lattice = Vec::with_capacity(m_total * n);
 
         // Perform exact Q(φ) multiplication and addition
-        for b in 0..batch_size {
-            for o in 0..out_features {
+        for m_idx in 0..m_total {
+            for n_idx in 0..n {
                 let mut sum = GoldenExact::zero();
-                for i in 0..in_features {
-                    let x_val = self.lattice[b * in_features + i];
-                    let w_val = weights.lattice[o * in_features + i];
+                for k_idx in 0..k {
+                    let x_val = self.lattice[m_idx * k + k_idx];
+                    let w_val = weights.lattice[n_idx * k + k_idx]; 
                     sum = sum + (x_val * w_val);
                 }
                 result_lattice.push(sum);
             }
         }
 
-        // New mode norms for output (simple index-based for now)
-        let result_len = batch_size * out_features;
-        let mut result_norms = Vec::with_capacity(result_len);
-        for _ in 0..batch_size {
-            for o in 0..out_features {
-                result_norms.push((o as f64).powi(2));
+        let mut result_norms = Vec::with_capacity(m_total * n);
+        for _ in 0..m_total {
+            for n_idx in 0..n {
+                result_norms.push((n_idx as f64).powi(2));
             }
         }
+        
+        let mut result_shape = self.shape.clone();
+        *result_shape.last_mut().unwrap() = n;
 
-        Self::from_lattice(result_lattice, vec![batch_size, out_features], result_norms)
+        Self::from_lattice(result_lattice, result_shape, result_norms)
     }
 
     /// Native bias addition for GoldenExact lattice.
@@ -1305,6 +1510,214 @@ impl ResonantTensor {
         Self::from_lattice(result_lattice, result_shape, result_norms)
     }
 
+    /// View/Reshape tensor.
+    ///
+    /// Preserves exact Q(φ) lattice values. Data is not copied if possible, but
+    /// ResonantTensor currently owns its data, so this effectively creates a new
+    /// tensor sharing nothing but values (cloned).
+    ///
+    /// # Arguments
+    /// * `shape` - New shape
+    pub fn view_core(&self, shape: Vec<usize>) -> Result<ResonantTensor, ResonantError> {
+        let current_size: usize = self.len();
+        let new_size: usize = shape.iter().product();
+        if current_size != new_size {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Cannot view tensor of size {} as {:?}",
+                current_size, shape
+            )));
+        }
+
+        // Mode norms are flat and element-wise, so they are preserved
+        let lattice = self.lattice.clone();
+        let mode_norm_sq = self.mode_norm_sq.clone();
+
+        ResonantTensor::from_lattice(lattice, shape, mode_norm_sq)
+    }
+
+    /// Transpose tensor dimensions.
+    ///
+    /// Preserves exact Q(φ) lattice values.
+    ///
+    /// # Arguments
+    /// * `dim0` - First dimension
+    /// * `dim1` - Second dimension
+    pub fn transpose_core(&self, dim0: usize, dim1: usize) -> Result<ResonantTensor, ResonantError> {
+        let ndim = self.shape.len();
+        if dim0 >= ndim || dim1 >= ndim {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Dimension out of bounds: {} or {} >= {}",
+                dim0, dim1, ndim
+            )));
+        }
+
+        if dim0 == dim1 {
+            return self.view_core(self.shape.clone());
+        }
+
+        let mut permutation: Vec<usize> = (0..ndim).collect();
+        permutation.swap(dim0, dim1);
+        
+        self.permute_core(&permutation)
+    }
+
+    /// Permute tensor dimensions.
+    ///
+    /// # Arguments
+    /// * `dims` - New order of dimensions
+    pub fn permute_core(&self, dims: &[usize]) -> Result<ResonantTensor, ResonantError> {
+        let ndim = self.shape.len();
+        if dims.len() != ndim {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Permutation length {} does not match tensor dimension {}",
+                dims.len(), ndim
+            )));
+        }
+
+        // Validate permutation
+        let mut sorted_dims = dims.to_vec();
+        sorted_dims.sort();
+        if sorted_dims != (0..ndim).collect::<Vec<_>>() {
+             return Err(ResonantError::ShapeMismatch(
+                "Invalid permutation indices".to_string()
+            ));
+        }
+
+        // Compute new shape
+        let new_shape: Vec<usize> = dims.iter().map(|&d| self.shape[d]).collect();
+        
+        // Compute strides for the original tensor
+        let mut strides = vec![1; ndim];
+        for i in (0..ndim-1).rev() {
+            strides[i] = strides[i+1] * self.shape[i+1];
+        }
+
+        // Permute
+        // We iterate over the *new* tensor layout sequentially
+        // and map back to the *old* tensor index.
+        
+        let len = self.len();
+        let mut result_lattice = Vec::with_capacity(len);
+        let mut result_norms = Vec::with_capacity(len);
+        
+        // Strides for the new tensor
+        let mut new_strides = vec![1; ndim];
+        for i in (0..ndim-1).rev() {
+            new_strides[i] = new_strides[i+1] * new_shape[i+1];
+        }
+
+        for i in 0..len {
+            // Convert flat index 'i' (in new layout) to coords in new layout
+            let mut new_coords = vec![0; ndim];
+            let mut temp = i;
+            for d in 0..ndim {
+                new_coords[d] = temp / new_strides[d];
+                temp %= new_strides[d];
+            }
+            
+            // Map to old coords
+            // new_coords[k] is the coordinate for dimension k in new tensor.
+            // dimension k in new tensor corresponds to dimension dims[k] in old tensor.
+            // So old_coords[dims[k]] = new_coords[k].
+            
+            // Calculating flat index in old tensor:
+            // index = sum(old_coords[d] * strides[d])
+            let mut old_idx = 0;
+            for (k, &dim_idx) in dims.iter().enumerate() {
+                old_idx += new_coords[k] * strides[dim_idx];
+            }
+
+            result_lattice.push(self.lattice[old_idx]);
+            result_norms.push(self.mode_norm_sq[old_idx]);
+        }
+
+        ResonantTensor::from_lattice(result_lattice, new_shape, result_norms)
+    }
+
+    /// Lattice-aware dropout.
+    ///
+    /// Sets coefficients to zero with probability p.
+    /// Scales remaining coefficients by 1/(1-p) to maintain magnitude expectation.
+    /// scaling uses Rational approximation if necessary, keeping values in Q(phi).
+    pub fn dropout_core(&mut self, p: f64) {
+        use rand::Rng;
+        if p <= 0.0 { return; }
+        if p >= 1.0 {
+            for v in self.lattice.iter_mut() { *v = GoldenExact::zero(); }
+            self.recompute_syntony();
+            return;
+        }
+
+        let scale = 1.0 / (1.0 - p);
+        // Find nearest GoldenExact for scale
+        let scale_golden = GoldenExact::find_nearest(scale, self.precision);
+        
+        let mut rng = rand::thread_rng();
+        
+        for v in self.lattice.iter_mut() {
+            if rng.gen::<f64>() < p {
+                *v = GoldenExact::zero();
+            } else {
+                *v = *v * scale_golden;
+            }
+        }
+        self.recompute_syntony();
+    }
+
+    /// Index select (gather) along a dimension.
+    ///
+    /// Preserves exact Q(φ) lattice values.
+    ///
+    /// # Arguments
+    /// * `indices` - Indices to select
+    /// * `dim` - Dimension to select along
+    pub fn index_select_core(
+        &self,
+        indices: &[usize],
+        dim: usize,
+    ) -> Result<ResonantTensor, ResonantError> {
+        let ndim = self.shape.len();
+        if dim >= ndim {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Dimension {} out of bounds for {}-dimensional tensor",
+                dim,
+                ndim
+            )));
+        }
+
+        let mut result_shape = self.shape.clone();
+        result_shape[dim] = indices.len();
+
+        let outer: usize = self.shape[..dim].iter().product::<usize>().max(1);
+        let inner: usize = self.shape[dim + 1..].iter().product::<usize>().max(1);
+        let axis_len = self.shape[dim];
+        let total = result_shape.iter().product();
+
+        let mut result_lattice = Vec::with_capacity(total);
+        let mut result_norms = Vec::with_capacity(total);
+
+        for outer_idx in 0..outer {
+            for &idx in indices {
+                if idx >= axis_len {
+                    return Err(ResonantError::ShapeMismatch(format!(
+                        "Index {} out of bounds for dim {} size {}",
+                        idx,
+                        dim,
+                        axis_len
+                    )));
+                }
+
+                let start = outer_idx * axis_len * inner + idx * inner;
+                let end = start + inner;
+
+                result_lattice.extend_from_slice(&self.lattice[start..end]);
+                result_norms.extend_from_slice(&self.mode_norm_sq[start..end]);
+            }
+        }
+
+        Self::from_lattice(result_lattice, result_shape, result_norms)
+    }
+
     /// Layer normalization with optional golden target variance.
     ///
     /// Normalizes across the last dimension (features).
@@ -1537,6 +1950,13 @@ impl ResonantTensor {
         let mode_norms = mode_norm_sq
             .unwrap_or_else(|| (0..lattice.len()).map(|i| (i as f64).powi(2)).collect());
         Self::from_lattice(lattice, shape, mode_norms).map_err(|e| e.into())
+    }
+
+    /// Create a zero-initialized tensor (using exact GoldenExact::zero).
+    #[staticmethod]
+    #[pyo3(name = "zeros", signature = (shape, precision=100))]
+    fn py_zeros(shape: Vec<usize>, precision: i64) -> Self {
+        Self::zeros(shape, precision)
     }
 
     /// Matrix multiplication: self @ weights.
@@ -1886,6 +2306,57 @@ impl ResonantTensor {
         };
 
         Self::concat_core(&tensor_refs, actual_dim).map_err(|e| e.into())
+    }
+
+    /// Select slices along a dimension.
+    ///
+    /// Args:
+    ///     indices: List of indices to selected
+    ///     dim: Dimension to select along (default: 0)
+    ///
+    /// Returns:
+    ///     New ResonantTensor with selected slices
+    #[pyo3(signature = (indices, dim=0))]
+    fn index_select(&self, indices: Vec<usize>, dim: i32) -> PyResult<Self> {
+        let ndim = self.shape.len() as i32;
+        let actual_dim = if dim < 0 {
+            (ndim + dim) as usize
+        } else {
+            dim as usize
+        };
+
+        self.index_select_core(&indices, actual_dim)
+            .map_err(|e| e.into())
+    }
+
+    /// View/Reshape tensor.
+    #[pyo3(signature = (shape))]
+    fn view(&self, shape: Vec<usize>) -> PyResult<Self> {
+        self.view_core(shape).map_err(|e| e.into())
+    }
+
+    /// Alias for view.
+    #[pyo3(signature = (shape))]
+    fn reshape(&self, shape: Vec<usize>) -> PyResult<Self> {
+        self.view_core(shape).map_err(|e| e.into())
+    }
+
+    /// Transpose dimensions.
+    #[pyo3(signature = (dim0, dim1))]
+    fn transpose(&self, dim0: usize, dim1: usize) -> PyResult<Self> {
+        self.transpose_core(dim0, dim1).map_err(|e| e.into())
+    }
+
+    /// Permute dimensions.
+    #[pyo3(signature = (dims))]
+    fn permute(&self, dims: Vec<usize>) -> PyResult<Self> {
+        self.permute_core(&dims).map_err(|e| e.into())
+    }
+
+    /// Apply dropout.
+    #[pyo3(signature = (p))]
+    fn dropout(&mut self, p: f64) {
+        self.dropout_core(p);
     }
 
     /// Layer normalization with optional golden target variance.

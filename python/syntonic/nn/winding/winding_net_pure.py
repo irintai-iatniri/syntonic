@@ -190,15 +190,16 @@ class PureWindingNet(sn.Module):
     def get_weights(self) -> List[ResonantTensor]:
         """Get all learnable weights (PureModel protocol)."""
         weights = []
-        # Gather weights from all submodules
-        # Note: In a full implementation, we'd recursively gather self.parameters()
-        # For now, we manually collect from known layers for this specific architecture
+        
+        # 0. Embeddings
+        weights.append(self.winding_embed.weight)
         
         # 1. Transitions
         for i in range(len(self.transitions)):
             layer = self.transitions[i]
             # Check for linear layer parameters
             if hasattr(layer.linear, 'weight'):
+                # ResonantLinear wraps weight in Parameter, so get tensor
                 weights.append(layer.linear.weight.tensor)
             if hasattr(layer.linear, 'bias') and layer.linear.bias is not None:
                 weights.append(layer.linear.bias.tensor)
@@ -214,6 +215,10 @@ class PureWindingNet(sn.Module):
     def set_weights(self, weights: List[ResonantTensor]) -> None:
         """Set weights (PureModel protocol)."""
         idx = 0
+        
+        # 0. Embeddings
+        self.winding_embed.weight = weights[idx]
+        idx += 1
         
         # 1. Transitions
         for i in range(len(self.transitions)):

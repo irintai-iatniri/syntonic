@@ -24,6 +24,7 @@ Functions:
 
 Constants:
     K_D4 - Kissing number of D4 (24)
+    NULL_VECTORS - The 4 null vectors defining the Golden Cone
 """
 
 from syntonic.srt.lattice.d4 import (
@@ -43,6 +44,7 @@ from syntonic.srt.lattice.quadratic_form import (
     QuadraticForm,
     quadratic_form,
     compute_Q,
+    NULL_VECTORS,
 )
 
 from syntonic.srt.lattice.golden_cone import (
@@ -67,4 +69,5 @@ __all__ = [
     'QuadraticForm',
     'quadratic_form',
     'compute_Q',
+    'NULL_VECTORS',
 ]

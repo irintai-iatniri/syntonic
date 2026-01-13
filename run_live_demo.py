@@ -19,21 +19,37 @@ def run_demo():
     params = sum(len(p.to_list()) for p in model.parameters())
     print(f"Model has {params} parameters.")
 
-    print("Generating Synthetic Winding Data...")
+    # Try to load a CSV dataset if present, otherwise fall back to synthetic generation
     train_data = []
-    # Generate some simple patterns
-    # If winding sum is even -> target 1.0, else 0.0
-    for _ in range(10):
-        n7 = random.randint(0, 5)
-        n8 = random.randint(0, 5)
-        w = WindingState(n7, n8, 0, 0)
-        
-        # Target must be ResonantTensor
-        target_val = 1.0 if (n7 + n8) % 2 == 0 else 0.0
-        target = ResonantTensor([target_val], [1, 1], [0.0], 100)  # Shape [1, 1] to match output
-        
-        # Input must be List[WindingState] as expected by PureWindingNet.forward
-        train_data.append(([w], target)) 
+    dataset_path = "data/winding_dataset.csv"
+    try:
+        import csv
+        with open(dataset_path, newline='') as csvfile:
+            reader = csv.DictReader(filter(lambda row: row[0] != '#', csvfile))
+            for row in reader:
+                try:
+                    n7 = int(row.get('n7', 0))
+                    n8 = int(row.get('n8', 0))
+                    target_val = float(row.get('target', (n7 + n8) % 2 == 0 and 1.0 or 0.0))
+                    w = WindingState(n7, n8, 0, 0)
+                    target = ResonantTensor([target_val], [1, 1], [0.0], 100)
+                    train_data.append(([w], target))
+                except Exception:
+                    continue
+        if not train_data:
+            raise FileNotFoundError
+        print(f"Loaded dataset from {dataset_path} with {len(train_data)} samples.")
+    except Exception:
+        print("Generating Synthetic Winding Data...")
+        # Generate some simple patterns
+        # If winding sum is even -> target 1.0, else 0.0
+        for _ in range(200):
+            n7 = random.randint(0, 5)
+            n8 = random.randint(0, 5)
+            w = WindingState(n7, n8, 0, 0)
+            target_val = 1.0 if (n7 + n8) % 2 == 0 else 0.0
+            target = ResonantTensor([target_val], [1, 1], [0.0], 100)  # Shape [1, 1] to match output
+            train_data.append(([w], target))
 
     print("Testing forward pass...")
     test_input = [WindingState(1, 2, 0, 0)]

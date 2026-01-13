@@ -13,7 +13,7 @@ import math
 import random
 from typing import Optional, List
 
-from syntonic._core import ResonantTensor
+from syntonic.nn.resonant_tensor import ResonantTensor
 import syntonic.sn as sn
 
 PHI = (1 + math.sqrt(5)) / 2
@@ -76,20 +76,34 @@ class ResonantLinear(sn.Module):
         Forward pass using native Q(φ) matrix multiplication.
         
         Args:
-            x: Input tensor of shape [batch, in_features]
+            x: Input tensor of shape [..., in_features]
             
         Returns:
-            Output tensor of shape [batch, out_features]
+            Output tensor of shape [..., out_features]
         """
-        # Y = X @ W^T
-        # Access the underlying tensor from the Parameter wrapper
-        out = x.matmul(self.weight.tensor)
-        
-        # Add bias if present
-        if self.bias is not None:
-            out.add_bias(self.bias.tensor)
-        
-        return out
+        # Handle arbitrary input dimensions by flattening
+        original_shape = x.shape
+        if len(original_shape) > 2:
+            # Flatten: [batch, seq, features] -> [batch*seq, features]
+            # Use -1 to infer batch*seq size
+            x_flat = x.view([-1, original_shape[-1]])
+            
+            # Y = X_flat @ W^T
+            out = x_flat.matmul(self.weight.tensor)
+            
+            # Add bias
+            if self.bias is not None:
+                out.add_bias(self.bias.tensor)
+                
+            # Restoring shape: [batch*seq, out_features] -> [batch, seq, out_features]
+            new_shape = list(original_shape[:-1]) + [self.out_features]
+            return out.view(new_shape)
+        else:
+            # Standard 2D case
+            out = x.matmul(self.weight.tensor)
+            if self.bias is not None:
+                out.add_bias(self.bias.tensor)
+            return out
 
     def extra_repr(self) -> str:
         return f"in_features={self.in_features}, out_features={self.out_features}, bias={self.bias_enabled}"

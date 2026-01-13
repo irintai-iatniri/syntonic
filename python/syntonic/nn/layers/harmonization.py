@@ -15,6 +15,7 @@ Source: CRT.md §12.2
 from __future__ import annotations
 from typing import Optional
 
+import syntonic.sn as sn
 from syntonic._core import ResonantTensor
 from syntonic.nn.layers.resonant_linear import ResonantLinear
 
@@ -142,19 +143,86 @@ class HarmonizationLayer:
         return f'HarmonizationLayer(in_features={self.in_features}, out_features={self.out_features}, beta={self.beta_scale}, gamma={self.gamma_scale})'
 
 
-# NOTE: HarmonizationModule is BLOCKED until concat() API is implemented
-# It requires concatenating multi-head damping outputs
-#
-# class HarmonizationModule:
-#     """
-#     Multi-component harmonization for transformer architectures.
-#
-#     BLOCKED: Requires concat() API for concatenating damping heads
-#
-#     Combines multiple harmonization pathways analogous to
-#     Σᵢ βᵢ Q̂ᵢ[Ψ] + γ Ŝ_op[Ψ] in continuous Ĥ.
-#     """
-#     pass
+class HarmonizationModule(sn.Module):
+    """
+    Multi-component harmonization for transformer architectures.
+
+    Combines multiple harmonization pathways analogous to
+    Σᵢ βᵢ Q̂ᵢ[Ψ] + γ Ŝ_op[Ψ] in continuous Ĥ.
+
+    Architecture:
+    1. Multi-path Damping (Multiple β heads)
+    2. Shared Syntony Projection (Single γ path)
+    3. Output Projection
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        dropout: float = 0.1,
+    ):
+        """
+        Initialize Harmonization Module.
+
+        Args:
+            d_model: Model dimension
+            n_heads: Number of damping heads
+            dropout: Dropout probability
+        """
+        super().__init__()
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.head_dim = d_model // n_heads
+
+        # Multi-path Damping: -βᵢ · σ(W_H,i · x)
+        # We implement this as n_heads independent linear projections
+        # similar to attention heads
+        self.damping_heads = sn.ModuleList([
+            ResonantLinear(d_model, self.head_dim)
+            for _ in range(n_heads)
+        ])
+
+        # Shared Syntony Projection: +γ · tanh(W_S · x)
+        self.syntony_proj = ResonantLinear(d_model, d_model)
+
+        # Output mixing
+        self.output_proj = ResonantLinear(d_model, d_model)
+        self.dropout = sn.Dropout(dropout)
+
+    def forward(self, x: ResonantTensor) -> ResonantTensor:
+        """
+        Apply Multi-component Harmonization.
+        """
+        # 1. Multi-path Damping
+        damping_outputs = []
+        for head in self.damping_heads:
+            h = head.forward(x)
+            h.sigmoid(precision=100) # Damping activation
+            damping_outputs.append(h)
+
+        # Concatenate heads [batch, n_heads * head_dim] -> [batch, d_model]
+        damping_combined = ResonantTensor.concat(damping_outputs, dim=-1)
+
+        # 2. Shared Syntony Projection
+        syntony = self.syntony_proj.forward(x)
+        syntony.tanh(precision=100) # Syntony activation
+
+        # 3. Combine: x - Damping + Syntony
+        # Note: We subtract damping (reduction of dissonance) and add syntony (increase of coherence)
+        
+        # -Damping
+        neg_damping = damping_combined.negate()
+        
+        # Combine
+        combined = x.elementwise_add(neg_damping)
+        combined = combined.elementwise_add(syntony)
+
+        # 4. Output Projection and Dropout
+        output = self.output_proj.forward(combined)
+        output = self.dropout(output)
+
+        return output
 
 
 if __name__ == "__main__":

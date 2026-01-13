@@ -45,51 +45,67 @@ class GoldenConeAttention:
 
     def _init_cone_projections(self):
         """Initialize the 36 cone projection vectors."""
-        self.projections = []
+        # 1. Input projection matrix (K) [num_heads, embed_dim]
+        # X @ K^T -> Scores
+        k_data = []
+        
+        # 2. Output projection matrix (V) [embed_dim, num_heads]
+        # Scores @ V^T -> Output (if V is [embed, heads], V^T is [heads, embed])
+        # Wait, ResonantTensor matmul is X @ W^T.
+        # We want Scores [batch, heads] @ P [heads, embed].
+        # So we need W such that W^T = P. => W = P^T.
+        # W shape should be [embed_dim, num_heads].
+        v_data_transposed = [0.0] * (self.embed_dim * self.num_heads)
+
         for h in range(self.num_heads):
             # Use Fibonacci-based initialization for each head
             # Weight = e^(-h²/φ) (Golden Measure decay)
             w = math.exp(-(h ** 2) / PHI)
-            proj_data = [w * math.cos(2 * math.pi * h * i / self.embed_dim)
-                         for i in range(self.embed_dim)]
-            proj_tensor = ResonantTensor(proj_data, [self.embed_dim],
-                                          precision=self.precision)
-            self.projections.append(proj_tensor)
+            
+            # Generate vector for head h
+            head_vector = [w * math.cos(2 * math.pi * h * i / self.embed_dim)
+                           for i in range(self.embed_dim)]
+            
+            # Add to K (rows are heads)
+            k_data.extend(head_vector)
+            
+            # Add to V (transposed: rows are embedding dims)
+            for i in range(self.embed_dim):
+                v_data_transposed[i * self.num_heads + h] = head_vector[i]
+
+        self.cone_k = ResonantTensor(k_data, [self.num_heads, self.embed_dim],
+                                     precision=self.precision)
+        
+        self.cone_v = ResonantTensor(v_data_transposed, [self.embed_dim, self.num_heads],
+                                     precision=self.precision)
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
         Apply Golden Cone Attention to input tensor.
 
         Args:
-            x: Input tensor of shape [batch, seq_len, embed_dim].
+            x: Input tensor of shape [batch, embed_dim].
 
         Returns:
-            Output tensor with attended values.
+            Output tensor with attended values [batch, embed_dim].
         """
-        # For simplicity, we compute attention as:
-        # out = sum_h (proj_h @ x^T) * x  (scaled dot-product with cone roots)
-        # This is a simplified version; full implementation would use proper
-        # batch matmul.
+        # 1. Compute Alignment Scores: A = X @ K^T
+        # Shape: [batch, num_heads]
+        scores = x.matmul(self.cone_k)
 
-        x_floats = x.to_floats()
-        batch_size = x.shape[0] if len(x.shape) > 1 else 1
-        out_dim = self.embed_dim
+        # 2. Scale by Golden Ratio (Syntonic regularization)
+        scores = scores.scalar_mul(1.0 / PHI)
 
-        # Aggregate attention from all heads
-        out_data = [0.0] * (batch_size * out_dim)
-        for h, proj in enumerate(self.projections):
-            proj_floats = proj.to_floats()
-            # Simple dot-product attention per batch
-            for b in range(batch_size):
-                offset = b * out_dim
-                score = sum(x_floats[offset + i] * proj_floats[i]
-                            for i in range(out_dim))
-                # Softmax approximation using syntony-based scaling
-                weight = 1.0 / (1.0 + math.exp(-score / PHI))
-                for i in range(out_dim):
-                    out_data[offset + i] += weight * x_floats[offset + i] / self.num_heads
+        # 3. Softmax activation (Golden measure weighting)
+        # Shape: [batch, num_heads]
+        scores.softmax(self.precision)
 
-        return ResonantTensor(out_data, x.shape, precision=self.precision)
+        # 4. Reconstruct: Out = Scores @ V (Scores @ cone_v^T)
+        # Shape: [batch, embed_dim]
+        # Note: cone_v is [embed, heads], so cone_v^T is [heads, embed]
+        out = scores.matmul(self.cone_v)
+
+        return out
 
 
 class RecursiveLayer:

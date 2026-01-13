@@ -15,66 +15,10 @@ from typing import Optional, Tuple, List
 import math
 
 import syntonic.sn as sn
-from syntonic._core import ResonantTensor, py_softmax
+from syntonic.nn.resonant_tensor import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 PHI_INV = 1 / PHI
-
-
-def _matmul_rt(a: ResonantTensor, b: ResonantTensor) -> ResonantTensor:
-    """Matrix multiply two ResonantTensors."""
-    # Get shapes
-    a_shape = a.shape
-    b_shape = b.shape
-    
-    # For 2D: (M, K) x (K, N) -> (M, N)
-    M = a_shape[0]
-    K = a_shape[1] if len(a_shape) > 1 else 1
-    N = b_shape[1] if len(b_shape) > 1 else b_shape[0]
-    
-    a_data = a.to_floats()
-    b_data = b.to_floats()
-    
-    result = []
-    for i in range(M):
-        for j in range(N):
-            val = 0.0
-            for k in range(K):
-                a_idx = i * K + k
-                b_idx = k * N + j
-                if a_idx < len(a_data) and b_idx < len(b_data):
-                    val += a_data[a_idx] * b_data[b_idx]
-            result.append(val)
-    
-    mode_norms = [float(i * i) for i in range(len(result))]
-    return ResonantTensor(result, [M, N], mode_norms, 100)
-
-
-def _transpose_rt(x: ResonantTensor) -> ResonantTensor:
-    """Transpose a 2D ResonantTensor."""
-    shape = x.shape
-    if len(shape) != 2:
-        return x
-    
-    data = x.to_floats()
-    rows, cols = shape
-    
-    result = []
-    for j in range(cols):
-        for i in range(rows):
-            result.append(data[i * cols + j])
-    
-    mode_norms = [float(i * i) for i in range(len(result))]
-    return ResonantTensor(result, [cols, rows], mode_norms, 100)
-
-
-def _softmax_rt(x: ResonantTensor) -> ResonantTensor:
-    """Apply softmax to last dimension using Rust backend."""
-    data = x.to_floats()
-    result = py_softmax(data)
-    shape = x.shape
-    mode_norms = [float(i * i) for i in range(len(result))]
-    return ResonantTensor(result, shape, mode_norms, 100)
 
 
 class PureSyntonicAttention(sn.Module):
@@ -130,35 +74,33 @@ class PureSyntonicAttention(sn.Module):
             (output, attention_syntony)
         """
         # Attention scores: Q @ K^T / sqrt(d)
-        key_T = _transpose_rt(key)
-        scores = _matmul_rt(query, key_T)
+        # ResonantTensor.matmul(B) computes A @ B^T
+        # query: [..., S, D], key: [..., S, D]
+        # query.matmul(key) -> query @ key^T -> [..., S, S]
+        scores = query.matmul(key)
         
         # Scale
-        scores_data = scores.to_floats()
-        scores_scaled = [s / self.scale for s in scores_data]
-        scores_shape = scores.shape
-        mode_norms = [float(i * i) for i in range(len(scores_scaled))]
-        scores = ResonantTensor(scores_scaled, scores_shape, mode_norms, self.precision)
+        scores = scores.scalar_mul(1.0 / self.scale)
 
         # Softmax attention (per row)
-        seq_q, seq_k = scores_shape
-        attention_data = []
-        for i in range(seq_q):
-            row = scores_scaled[i * seq_k : (i + 1) * seq_k]
-            row_softmax = py_softmax(row)
-            attention_data.extend(row_softmax)
-        
-        attention = ResonantTensor(
-            attention_data, scores_shape, 
-            [float(i * i) for i in range(len(attention_data))], 
-            self.precision
-        )
+        # Using Rust-backed softmax
+        scores.softmax(precision=self.precision)
+        attention = scores
 
         # Compute attention syntony (lower entropy = higher syntony)
+        # We need values for entropy calculation.
+        attention_data = attention.to_floats()
+        seq_q = attention.shape[-2]
+        seq_k = attention.shape[-1]
+        
         self._attention_syntony = self._compute_attention_syntony(attention_data, seq_q, seq_k)
 
         # Apply attention to values: Attn @ V
-        output = _matmul_rt(attention, value)
+        # attention: [..., S, S], value: [..., S, D]
+        # We want result [..., S, D]
+        # attention.matmul(X) -> attention @ X^T
+        # So we need X^T = value => X = value^T
+        output = attention.matmul(value.transpose(-2, -1))
 
         return output, self._attention_syntony
 
@@ -229,6 +171,7 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         self.precision = precision
 
         # Projections as Parameters
+        # Uses sn.Parameter which wraps ResonantTensor
         self.q_proj = sn.Parameter([d_model, d_model], init='kaiming')
         self.k_proj = sn.Parameter([d_model, d_model], init='kaiming')
         self.v_proj = sn.Parameter([d_model, d_model], init='kaiming')
@@ -255,44 +198,85 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         Returns:
             Output tensor (seq_q, d_model)
         """
+        batch_size = query.shape[0] if len(query.shape) > 2 else 1
+        seq_q = query.shape[0] if len(query.shape) == 2 else query.shape[1]
+        seq_k = key.shape[0] if len(key.shape) == 2 else key.shape[1]
+        
         # Project Q, K, V
-        q = _matmul_rt(query, self.q_proj.tensor)
-        k = _matmul_rt(key, self.k_proj.tensor)
-        v = _matmul_rt(value, self.v_proj.tensor)
+        # If input is 3D [Batch, Seq, Dim], we need to handle it.
+        # ResonantTensor matmul: X @ W^T
+        # query: [..., Dim], W_q: [Dim, Dim] (parameter kept as [Out, In])
         
-        # Split into heads and compute attention per head
-        seq_q = query.shape[0]
-        seq_k = key.shape[0]
+        q = query.matmul(self.q_proj.tensor)
+        k = key.matmul(self.k_proj.tensor)
+        v = value.matmul(self.v_proj.tensor)
         
-        # For simplicity, compute full attention then reshape
-        # (In practice, would split Q/K/V into heads)
-        k_T = _transpose_rt(k)
-        scores = _matmul_rt(q, k_T)
+        # Reshape for heads: [Batch, Seq, Heads, HeadDim]
+        # Since we use 2D/3D flattening often, let's assume we reshape to split last dim
         
-        # Scale
-        scores_data = scores.to_floats()
-        scores_scaled = [s / self.scale for s in scores_data]
+        # New shape: [Batch, Seq, Heads, HeadDim]
+        # Or if 2D: [Seq, Heads, HeadDim]
+        base_shape = q.shape[:-1]
+        new_shape = list(base_shape) + [self.n_heads, self.d_head]
         
-        # Softmax per row
-        attention_data = []
-        for i in range(seq_q):
-            row = scores_scaled[i * seq_k : (i + 1) * seq_k]
-            row_softmax = py_softmax(row)
-            attention_data.extend(row_softmax)
+        q = q.view(new_shape)
+        k = k.view(new_shape)
+        v = v.view(new_shape)
         
-        attention = ResonantTensor(
-            attention_data, [seq_q, seq_k],
-            [float(i * i) for i in range(len(attention_data))],
-            self.precision
-        )
+        # Transpose for attention: [Batch, Heads, Seq, HeadDim]
+        # Permute: (0, 2, 1, 3) for 4D
+        is_batched = (len(new_shape) == 4)
         
-        # Apply attention to values
-        output = _matmul_rt(attention, v)
+        if is_batched:
+            q = q.permute([0, 2, 1, 3])
+            k = k.permute([0, 2, 1, 3])
+            v = v.permute([0, 2, 1, 3])
+            # Shape: [Batch, Heads, Seq, HeadDim]
+        else:
+            # 3D case: [Seq, Heads, HeadDim] -> [Heads, Seq, HeadDim]
+            q = q.permute([1, 0, 2])
+            k = k.permute([1, 0, 2])
+            v = v.permute([1, 0, 2])
+            # Shape: [Heads, Seq, HeadDim]
+
+        # Process heads using BMM (Rust-backend accelerated)
+        # Q, K, V are permuted to [Batch, Heads, Seq, HeadDim] (or 3D equivalent)
         
-        # Output projection
-        output = _matmul_rt(output, self.out_proj.tensor)
+        # 1. Attention Scores: Q @ K^T
+        # ResonantTensor.matmul(B) computes A @ B^T
+        # So q.matmul(k) computes per-head, per-batch attention scores
+        # Shape: [..., Heads, Seq, Seq]
+        scores = q.matmul(k)
         
-        # Track syntony
+        scores = scores.scalar_mul(1.0 / self.scale)
+        scores.softmax(precision=self.precision)
+        attn = scores
+        
+        # 2. Output Projection: Attn @ V
+        # We need Result = Attn @ V
+        # matmul(B) does A @ B^T
+        # So providing B = V^T results in A @ (V^T)^T = A @ V
+        output_heads = attn.matmul(v.transpose(-2, -1))
+        
+        # Shape is now [..., Heads, Seq, HeadDim]
+
+        # Permute back to [..., Seq, Heads, HeadDim]
+        if is_batched:
+            output_heads = output_heads.permute([0, 2, 1, 3])
+        else:
+            output_heads = output_heads.permute([1, 0, 2])
+
+        # Contiguous/Reshape back to [..., d_model]
+        # output_heads is now [..., Seq, Heads, HeadDim]
+        # view -> [..., Seq, Heads*HeadDim] = [..., Seq, d_model]
+        
+        final_shape = list(base_shape) + [self.d_model]
+        output = output_heads.view(final_shape)
+        
+        # Final projection
+        output = output.matmul(self.out_proj.tensor)
+        
+        # Syntony tracking
         self._head_syntonies = [output.syntony]
         
         return output
@@ -316,9 +300,9 @@ if __name__ == "__main__":
     seq_len = 8
     
     # Create random input
+    # Shape [seq_len, d_model]
     data = [random.gauss(0, 0.5) for _ in range(seq_len * d_model)]
-    mode_norms = [float(i * i) for i in range(len(data))]
-    x = ResonantTensor(data, [seq_len, d_model], mode_norms, 100)
+    x = ResonantTensor(data, [seq_len, d_model])
     
     print(f"\nInput shape: {x.shape}")
     print(f"Input syntony: {x.syntony:.4f}")
@@ -338,7 +322,17 @@ if __name__ == "__main__":
     print(f"\nMulti-head attention:")
     print(f"  Output shape: {output.shape}")
     print(f"  Syntony: {mha.syntony:.4f}")
+
+    # Test Slicing (New Feature)
+    print("\nTesting Slicing:")
+    print(f"  x[0] shape: {x[0].shape}")
+    print(f"  x[0:2] shape: {x[0:2].shape}")
+    
+    # Verify slicing integrity
+    x_slice = x[0:2]
+    assert x_slice.shape == [2, d_model]
+    print("  Slicing verification passed")
     
     print("\n" + "=" * 70)
-    print("✓ Pure Syntonic Attention verified!")
+    print("✓ Pure Syntonic Attention and Tensor Features verified!")
     print("=" * 70)

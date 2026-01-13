@@ -20,11 +20,12 @@ Basic Usage:
 from syntonic._version import __version__, __version_info__
 
 # Core classes and functions
+from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic.core import (
     # State class
     State,
     state,
-    ResonantTensor,
+    # ResonantTensor,  # Use Python wrapper from syntonic.nn instead
     RESConfig,
     RESResult,
     ResonantEvolver,

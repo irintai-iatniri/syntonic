@@ -15,7 +15,7 @@ from typing import List, Dict, Iterator, Optional, Any, Callable
 import math
 import random
 
-from syntonic._core import ResonantTensor
+from syntonic.nn.resonant_tensor import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 

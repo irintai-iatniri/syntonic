@@ -20,9 +20,13 @@ task performance AND representational coherence.
 Source: CRT.md §12.2
 """
 
-# Layers (still torch-based for backwards compatibility)
+# Core Tensor (Python wrapper around Rust ResonantTensor)
+from syntonic.nn.resonant_tensor import ResonantTensor
+
+# Layers (Pure Rust-backed)
 from syntonic.nn.layers import (
     DifferentiationLayer,
+    DifferentiationModule,
     HarmonizationLayer,
     SyntonicGate,
     AdaptiveGate,
@@ -30,6 +34,7 @@ from syntonic.nn.layers import (
     DeepRecursionNet,
     SyntonicNorm,
     GoldenNorm,
+    ResonantLinear,
 )
 
 # Pure Loss Functions (ResonantTensor-based)
@@ -83,8 +88,12 @@ Q_DEFICIT = 0.027395146920
 S_TARGET = PHI - Q_DEFICIT
 
 __all__ = [
+    # Core Tensor
+    'ResonantTensor',
+
     # Layers
     'DifferentiationLayer',
+    'DifferentiationModule',
     'HarmonizationLayer',
     'SyntonicGate',
     'AdaptiveGate',
@@ -92,6 +101,7 @@ __all__ = [
     'DeepRecursionNet',
     'SyntonicNorm',
     'GoldenNorm',
+    'ResonantLinear',
 
     # Pure Loss
     'SyntonicLoss',

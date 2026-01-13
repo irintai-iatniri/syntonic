@@ -33,6 +33,7 @@ function g(a){a=a===void 0?document.body:a;a.querySelectorAll(l).forEach(functio
 "attributes"&&e.attributeName==="class"){var k=e.target;e.target.nodeType===Node.ELEMENT_NODE&&k.matches(l)&&d.add(k)}else e.type==="characterData"&&e.target.parentNode&&(e=e.target.parentNode,e.nodeType===Node.ELEMENT_NODE&&e.matches(l)&&d.add(e));d.size>0&&setTimeout(function(){d.forEach(function(p){c(p)})},500)})).observe(document.body,{childList:!0,subtree:!0,attributes:!0,attributeFilter:["class"],characterData:!0})})}).catch(function(a){console.error("IconChecker: Font loading error. Scanning icons anyway.",
 a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons","material-symbols-outlined","material-symbols-rounded","material-symbols-sharp"].map(function(a){return"."+a}).join(","),m=null,f=null;document.readyState==="loading"?document.addEventListener("DOMContentLoaded",function(){h()}):h()})();}).call(this);
 
+
 </script>
 
     <meta charset="utf-8">
@@ -132,44 +133,38 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
 <body class="w-full h-screen relative">
     
     <!-- 3D Canvas Container -->
-    <div class="absolute inset-0 z-0 bg-black" id="canvas-container"></div>
+    <div class="absolute inset-0 z-0 bg-black" id="canvas-container"><canvas style="display: block; width: 2965px; height: 949px; touch-action: none;" data-engine="three.js r160" width="2965" height="949"></canvas></div>
     <div class="scanlines"></div>
 
     <!-- HUD Overlay -->
     <div class="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-6">
-
+        
         <!-- Top Bar -->
         <header class="flex justify-between items-start pointer-events-auto">
-            <div class="flex justify-between items-start">
-                <div class="glass-panel p-4 hud-border flex flex-col gap-2">
-                    <h1 class="text-2xl font-bold tracking-widest text-yellow-500 uppercase flex items-center gap-2">
-                        <span class="material-symbols-outlined">hub</span>
-                        Syntonic Console
-                    </h1>
-                    <div class="text-xs font-mono text-gray-400">
-                        MODE: <span id="mode-indicator" class="text-red-400">OFFLINE</span> |
-                        VERSION: 2.1 |
-                        FPS: <span id="fps-display">--</span>
-                    </div>
-                </div>
-
-                <!-- Action Cluster -->
-                <div class="flex gap-4">
-                    <!-- Stats -->
-                    <div class="glass-panel p-4 flex gap-6 hud-border text-center">
-                        <div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Syntony (Φ)</div>
-                            <div class="text-2xl font-mono text-yellow-400 font-bold" id="syntony-display">0.000</div>
-                        </div>
-                        <div class="w-px bg-gray-700"></div>
-                        <div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Entropy (ΔS)</div>
-                            <div class="text-2xl font-mono text-red-400 font-bold" id="entropy-display">1.000</div>
-                        </div>
-                    </div>
+            <div class="glass-panel p-4 hud-border flex flex-col gap-2">
+                <h1 class="text-2xl font-bold tracking-widest text-yellow-500 uppercase flex items-center gap-2">
+                    <span class="material-symbols-outlined">hub</span>
+                    Syntonic Console
+                </h1>
+                <div class="text-xs font-mono text-gray-400">
+                    BACKEND: <span class="text-green-500">CONNECTED</span> | VERSION: 2.1
                 </div>
             </div>
-        </header>
+
+            <!-- Action Cluster -->
+            <div class="flex gap-4">
+                <!-- Stats -->
+                <div class="glass-panel p-4 flex gap-6 hud-border text-center">
+                    <div>
+                        <div class="text-[10px] text-gray-500 uppercase tracking-wider">Syntony (Φ)</div>
+                        <div class="text-2xl font-mono text-yellow-400 font-bold" id="syntony-display">0.000</div>
+                    </div>
+                    <div class="w-px bg-gray-700"></div>
+                    <div>
+                        <div class="text-[10px] text-gray-500 uppercase tracking-wider">Entropy (ΔS)</div>
+                        <div class="text-2xl font-mono text-red-400 font-bold" id="entropy-display">1.000</div>
+                    </div>
+                </div>
 
         <!-- Right Control Panel -->
         <aside class="absolute right-6 top-32 pointer-events-auto w-72 flex flex-col gap-4">
@@ -226,42 +221,9 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
             </button>
         </aside>
 
-        <!-- Performance Stats Panel (Toggle with 'P') -->
-        <div class="fixed top-6 right-6 glass-panel p-3 hud-border text-xs font-mono pointer-events-auto hidden" id="stats-panel" style="z-index: 100; width: 200px;">
-            <div class="text-sm font-bold text-blue-400 mb-2 border-b border-gray-700 pb-1 flex justify-between">
-                <span>PERFORMANCE</span>
-                <span class="text-gray-500 cursor-pointer hover:text-white" onclick="document.getElementById('stats-panel').classList.add('hidden')">×</span>
-            </div>
-            <div class="space-y-1 text-gray-300">
-                <div class="flex justify-between">
-                    <span>FPS:</span>
-                    <span id="stats-fps" class="text-yellow-400">--</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Frame Time:</span>
-                    <span id="stats-frametime" class="text-yellow-400">-- ms</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Mode:</span>
-                    <span id="stats-mode" class="text-yellow-400">--</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Particles:</span>
-                    <span id="stats-particles" class="text-yellow-400">2048</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Memory:</span>
-                    <span id="stats-memory" class="text-yellow-400">-- MB</span>
-                </div>
-            </div>
-            <div class="mt-2 pt-2 border-t border-gray-700 text-gray-500 text-center">
-                Press 'P' to toggle
-            </div>
-        </div>
-
         <!-- Bottom Log -->
         <footer class="pointer-events-auto w-2/3 glass-panel p-2 hud-border">
-            <div class="h-24 overflow-y-auto font-mono text-[10px] flex flex-col-reverse" id="system-log"><div class="text-green-500">&gt; INITIATING H-PHASE: GEODESIC LOCK</div><div class="text-gray-300">&gt; GEOMETRY INSTANTIATED: 2048 NODES.</div><div class="text-gray-300">&gt; KERNEL LOADED.</div>
+            <div class="h-24 overflow-y-auto font-mono text-[10px] flex flex-col-reverse" id="system-log"><div class="text-green-500">&gt; SOURCE COPIED TO CLIPBOARD</div><div class="text-gray-300">&gt; GEOMETRY INSTANTIATED: 2048 NODES.</div><div class="text-gray-300">&gt; KERNEL LOADED.</div>
                 <div class="text-green-500">&gt; SYSTEM INITIALIZED. AWAITING DATA STREAM...</div>
             </div>
         </footer>
@@ -288,19 +250,9 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
             temperature: 0.5, // 0-1
             gravity: 0.5,     // 0-1
             syntony: 0.0,     // Calculated
-            phase: 'H',       // 'D' or 'H' (start in H-phase)
+            phase: 'D',       // 'D' or 'H'
             time: 0,
         };
-
-        // --- Mode Management ---
-        const MODE = {
-            LIVE: 'live',      // Backend connected, streaming data
-            DEMO: 'demo',      // Local physics simulation
-            OFFLINE: 'offline' // WebSocket not available
-        };
-
-        let currentMode = MODE.OFFLINE;
-        let socket = null;
 
         // --- Logger ---
         const logEl = document.getElementById('system-log');
@@ -436,163 +388,14 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         const tetherMesh = new THREE.LineSegments(tetherGeo, tetherMat);
         scene.add(tetherMesh);
 
-        // --- Mode Management Functions ---
-        function setMode(mode) {
-            currentMode = mode;
-            const indicator = document.getElementById('mode-indicator');
+        // --- Physics & Simulation Kernel ---
 
-            switch(mode) {
-                case MODE.LIVE:
-                    indicator.textContent = "LIVE";
-                    indicator.className = "text-green-500";
-                    log("SWITCHED TO LIVE MODE: Backend streaming", "success");
-                    break;
-                case MODE.DEMO:
-                    indicator.textContent = "DEMO";
-                    indicator.className = "text-yellow-400";
-                    log("SWITCHED TO DEMO MODE: Local simulation", "info");
-                    break;
-                case MODE.OFFLINE:
-                    indicator.textContent = "OFFLINE";
-                    indicator.className = "text-red-400";
-                    break;
-            }
-        }
-
-        // --- REAL-TIME BRIDGE WITH RECONNECTION ---
-        let reconnectAttempts = 0;
-        let reconnectTimeout = null;
-        const MAX_RECONNECT_DELAY = 30000; // 30 seconds
-        const BASE_RECONNECT_DELAY = 1000; // 1 second
-
-        function scheduleReconnect() {
-            if (reconnectTimeout) {
-                clearTimeout(reconnectTimeout);
-            }
-
-            reconnectAttempts++;
-            const delay = Math.min(
-                BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttempts - 1),
-                MAX_RECONNECT_DELAY
-            );
-
-            log(`Reconnecting in ${(delay/1000).toFixed(1)}s (attempt ${reconnectAttempts})...`, "info");
-
-            reconnectTimeout = setTimeout(() => {
-                connectWebSocket();
-            }, delay);
-        }
-
-        function connectWebSocket() {
-            if (reconnectTimeout) {
-                clearTimeout(reconnectTimeout);
-                reconnectTimeout = null;
-            }
-
-            try {
-                // Close existing socket if any
-                if (socket && socket.readyState !== WebSocket.CLOSED) {
-                    socket.close();
-                }
-
-                socket = new WebSocket('ws://localhost:8765');
-
-                socket.onopen = () => {
-                    reconnectAttempts = 0; // Reset on successful connection
-                    setMode(MODE.LIVE);
-                };
-
-                socket.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-
-                        // 1. Update State Vars
-                        STATE.syntony = data.syntony;
-                        STATE.temperature = data.temperature;
-                        STATE.phase = data.phase;
-
-                        // 2. Update UI
-                        document.getElementById('syntony-display').textContent = data.syntony.toFixed(3);
-                        document.getElementById('entropy-display').textContent = (1.0 - data.syntony).toFixed(3);
-                        document.getElementById('temp-val').textContent = Math.round(data.temperature * 100) + "%";
-
-                        // 3. Update Geometry (The Heavy Lift)
-                        // data.weights is an array [x1, y1, z1, x2, y2, z2...]
-                        if (data.weights && data.weights.length > 0) {
-                            const count = Math.min(CONFIG.particleCount, data.weights.length / 3);
-
-                            for (let i = 0; i < count; i++) {
-                                const x = data.weights[i*3];
-                                const y = data.weights[i*3 + 1];
-                                const z = data.weights[i*3 + 2];
-
-                                // Move particle to real position
-                                dummy.position.set(x, y, z);
-
-                                // Visual flair based on Syntony
-                                const scale = 0.5 + (data.syntony * 0.5);
-                                dummy.scale.set(scale, scale, scale);
-
-                                dummy.updateMatrix();
-                                crystalMesh.setMatrixAt(i, dummy.matrix);
-
-                                // Update tether lines
-                                const positions = tetherMesh.geometry.attributes.position.array;
-                                positions[i * 6] = x;
-                                positions[i * 6 + 1] = y;
-                                positions[i * 6 + 2] = z;
-
-                                positions[i * 6 + 3] = particles[i].target.x;
-                                positions[i * 6 + 4] = particles[i].target.y;
-                                positions[i * 6 + 5] = particles[i].target.z;
-
-                                // Update color
-                                color.lerpColors(CONFIG.syntonyColor, CONFIG.baseColor, 1.0 - data.syntony);
-                                crystalMesh.setColorAt(i, color);
-                            }
-
-                            crystalMesh.instanceMatrix.needsUpdate = true;
-                            crystalMesh.instanceColor.needsUpdate = true;
-                            tetherMesh.geometry.attributes.position.needsUpdate = true;
-                        }
-                    } catch (e) {
-                        log("ERROR parsing WebSocket data: " + e.message, "error");
-                    }
-                };
-
-                socket.onerror = (error) => {
-                    if (currentMode === MODE.LIVE) {
-                        log("WebSocket error - falling back to DEMO mode", "error");
-                    }
-                    setMode(MODE.DEMO);
-                };
-
-                socket.onclose = () => {
-                    if (currentMode === MODE.LIVE) {
-                        log("WebSocket closed", "error");
-                    }
-                    setMode(MODE.DEMO);
-                    scheduleReconnect(); // Auto-reconnect
-                };
-
-            } catch (error) {
-                log("Failed to initialize WebSocket: " + error.message, "error");
-                setMode(MODE.DEMO);
-                scheduleReconnect(); // Try to reconnect
-            }
-        }
-
-        // Initialize connection
-        setMode(MODE.DEMO);  // Start in DEMO mode
-        connectWebSocket();  // Try to connect
-
-        // --- Physics & Simulation Kernel (for DEMO mode) ---
         function updatePhysics() {
             STATE.time += 0.01;
             let totalSyntony = 0;
             let activeLocks = 0;
 
-            const temp = STATE.temperature * 0.5;
+            const temp = STATE.temperature * 0.5; 
             const grav = STATE.gravity * 0.1;
 
             const positions = tetherMesh.geometry.attributes.position.array;
@@ -602,13 +405,13 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
                 const target = p.target;
 
                 const dist = p.position.distanceTo(target);
-
+                
                 if (STATE.phase === 'D') {
                     // D-Phase: Chaos
                     p.velocity.x += (Math.random() - 0.5) * temp;
                     p.velocity.y += (Math.random() - 0.5) * temp;
                     p.velocity.z += (Math.random() - 0.5) * temp;
-
+                    
                     const centerPull = p.position.clone().multiplyScalar(-0.001);
                     p.velocity.add(centerPull);
 
@@ -618,7 +421,7 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
                     // H-Phase: Order
                     const dir = new THREE.Vector3().subVectors(target, p.position).normalize();
                     const force = dir.multiplyScalar(grav);
-
+                    
                     p.velocity.add(force);
                     p.velocity.multiplyScalar(0.90);
 
@@ -626,7 +429,7 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
                         p.locked = true;
                         p.position.copy(target);
                         p.velocity.set(0,0,0);
-
+                        
                         if(audioEnabled && Math.random() > 0.95) {
                             const notes = ["C5", "E5", "G5", "B5", "D6"];
                             synth.triggerAttackRelease(notes[Math.floor(Math.random()*notes.length)], "32n");
@@ -645,7 +448,7 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
                 crystalMesh.setMatrixAt(i, dummy.matrix);
 
                 const normalizedDist = Math.min(dist / 10, 1);
-
+                
                 if (p.locked) {
                     color.set(CONFIG.syntonyColor);
                     activeLocks++;
@@ -659,7 +462,7 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
                 positions[i * 6] = p.position.x;
                 positions[i * 6 + 1] = p.position.y;
                 positions[i * 6 + 2] = p.position.z;
-
+                
                 positions[i * 6 + 3] = target.x;
                 positions[i * 6 + 4] = target.y;
                 positions[i * 6 + 5] = target.z;
@@ -674,20 +477,6 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
             document.getElementById('entropy-display').textContent = (1.0 - STATE.syntony).toFixed(3);
         }
 
-        // --- Command Sending (Bidirectional Sync) ---
-        function sendCommand(command) {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                try {
-                    socket.send(JSON.stringify(command));
-                    return true;
-                } catch (e) {
-                    log("ERROR sending command: " + e.message, "error");
-                    return false;
-                }
-            }
-            return false;
-        }
-
         // --- UI Event Handlers ---
 
         document.getElementById('btn-d-phase').addEventListener('click', () => {
@@ -699,10 +488,6 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
             if(audioEnabled) membrane.triggerAttackRelease("C2", "8n");
             bloomPass.strength = 0.5;
             bloomPass.radius = 1.0;
-
-            // Send command to backend
-            sendCommand({cmd: "set_phase", phase: "D"});
-            sendCommand({cmd: "set_temperature", temperature: 0.8});
         });
 
         document.getElementById('btn-h-phase').addEventListener('click', () => {
@@ -714,27 +499,18 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
             if(audioEnabled) membrane.triggerAttackRelease("G2", "8n");
             bloomPass.strength = 2.5;
             bloomPass.radius = 0.2;
-
-            // Send command to backend
-            sendCommand({cmd: "set_phase", phase: "H"});
-            sendCommand({cmd: "set_temperature", temperature: 0.1});
         });
 
         const sliderTemp = document.getElementById('slider-temp');
         sliderTemp.addEventListener('input', (e) => {
             STATE.temperature = e.target.value / 100;
             document.getElementById('temp-val').textContent = Math.round(STATE.temperature*100) + "%";
-
-            // Send command to backend (debounced naturally by input event)
-            sendCommand({cmd: "set_temperature", temperature: STATE.temperature});
         });
 
         const sliderGrav = document.getElementById('slider-gravity');
         sliderGrav.addEventListener('input', (e) => {
             STATE.gravity = e.target.value / 100;
             document.getElementById('grav-val').textContent = Math.round(STATE.gravity*100) + "%";
-
-            // Note: Backend doesn't have a gravity command, this affects local DEMO mode only
         });
 
         function updateSliders() {
@@ -749,43 +525,8 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
         document.getElementById('toggle-bloom').addEventListener('change', (e) => bloomPass.enabled = e.target.checked);
 
         // --- Animation Loop ---
-        let lastFrameTime = performance.now();
-        let frameCount = 0;
-        let fps = 0;
-        let frameTime = 0;
-        let lastRenderTime = performance.now();
-
         function animate() {
             requestAnimationFrame(animate);
-
-            // FPS calculation and frame time
-            const now = performance.now();
-            frameTime = now - lastRenderTime;
-            lastRenderTime = now;
-
-            frameCount++;
-            if (now - lastFrameTime >= 1000) {
-                fps = frameCount;
-                document.getElementById('fps-display').textContent = fps;
-
-                // Update stats panel if visible
-                document.getElementById('stats-fps').textContent = fps;
-                document.getElementById('stats-frametime').textContent = frameTime.toFixed(1) + ' ms';
-                document.getElementById('stats-mode').textContent = currentMode.toUpperCase();
-
-                // Memory usage (if available)
-                if (performance.memory) {
-                    const memMB = (performance.memory.usedJSHeapSize / 1048576).toFixed(1);
-                    document.getElementById('stats-memory').textContent = memMB + ' MB';
-                } else {
-                    document.getElementById('stats-memory').textContent = 'N/A';
-                }
-
-                frameCount = 0;
-                lastFrameTime = now;
-            }
-
-            // Rotate ghost attractor
             ghostMesh.rotation.y += 0.002;
             ghostMesh.rotation.z += 0.001;
 
@@ -796,12 +537,7 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
             }
             ghostMesh.rotateOnAxis(axis, angle);
 
-            // Run local physics only in DEMO mode
-            // In LIVE mode, WebSocket updates handle everything
-            if (currentMode === MODE.DEMO) {
-                updatePhysics();
-            }
-
+            updatePhysics();
             controls.update();
             composer.render();
         }
@@ -811,18 +547,6 @@ a);requestAnimationFrame(function(){g(document.body)})})}var l=["material-icons"
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             composer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // --- Keyboard Shortcuts ---
-        window.addEventListener('keydown', (e) => {
-            // Toggle performance stats with 'P' key
-            if (e.key === 'p' || e.key === 'P') {
-                const statsPanel = document.getElementById('stats-panel');
-                statsPanel.classList.toggle('hidden');
-                if (!statsPanel.classList.contains('hidden')) {
-                    log("Performance stats panel opened (Press P to close)", "info");
-                }
-            }
         });
 
         log("KERNEL LOADED.");

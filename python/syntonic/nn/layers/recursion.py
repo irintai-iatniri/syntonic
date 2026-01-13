@@ -16,6 +16,7 @@ from typing import Optional, Tuple, List, Union
 from syntonic._core import ResonantTensor
 from syntonic.nn.layers.differentiation import DifferentiationLayer
 from syntonic.nn.layers.harmonization import HarmonizationLayer
+from syntonic.nn.layers.syntonic_gate import SyntonicGate
 
 
 class RecursionBlock:
@@ -27,16 +28,13 @@ class RecursionBlock:
     Implements one full cycle of:
     1. Differentiation (expand complexity)
     2. Harmonization (build coherence)
-    3. Optional cpu_cycle for DHSR resonance
+    3. Optional Syntonic Gating (adaptive mixing)
 
     This is the fundamental building block of syntonic networks.
 
-    NOTE: Syntonic gating (use_gate=True) is BLOCKED until concat() API is implemented.
-    For now, only use_gate=False is supported.
-
     Example:
         >>> from syntonic._core import ResonantTensor
-        >>> block = RecursionBlock(256)
+        >>> block = RecursionBlock(256, use_gate=True)
         >>> data = [0.1] * 256 * 32
         >>> x = ResonantTensor(data, [32, 256])
         >>> y, syntony = block.forward(x, return_syntony=True)
@@ -48,7 +46,7 @@ class RecursionBlock:
         in_features: int,
         hidden_features: Optional[int] = None,
         out_features: Optional[int] = None,
-        use_gate: bool = False,  # BLOCKED: Only False supported
+        use_gate: bool = False,
         alpha_scale: float = 1.0,
         beta_scale: float = 1.0,
         gamma_scale: float = 1.0,
@@ -60,19 +58,13 @@ class RecursionBlock:
             in_features: Input dimension
             hidden_features: Hidden dimension for D/H layers
             out_features: Output dimension
-            use_gate: BLOCKED - Only False supported (concat API needed)
+            use_gate: Whether to use syntonic gating (adaptive mixing)
             alpha_scale: Differentiation strength
             beta_scale: Damping strength
             gamma_scale: Syntony projection strength
         """
         hidden_features = hidden_features or in_features
         out_features = out_features or in_features
-
-        if use_gate:
-            raise NotImplementedError(
-                "use_gate=True is BLOCKED until concat() API is implemented. "
-                "SyntonicGate requires concatenating [x, x_processed]."
-            )
 
         # D̂ operator
         self.differentiate = DifferentiationLayer(
@@ -86,6 +78,8 @@ class RecursionBlock:
         )
 
         self.use_gate = use_gate
+        if use_gate:
+            self.gate = SyntonicGate(out_features, hidden_dim=hidden_features)
 
         # Track syntony for this block
         self._last_syntony = None
@@ -111,8 +105,11 @@ class RecursionBlock:
         # Ĥ: Harmonize (build coherence)
         x_harm = self.harmonize.forward(x_diff)
 
-        # No gating for now (blocked)
-        x_out = x_harm
+        # Gate or direct pass through
+        if self.use_gate:
+            x_out = self.gate.forward(x, x_harm)
+        else:
+            x_out = x_harm
 
         # Compute syntony if requested
         syntony = None
@@ -202,7 +199,7 @@ class DeepRecursionNet:
         input_dim: int,
         hidden_dims: List[int],
         output_dim: int,
-        use_gates: bool = False,  # BLOCKED
+        use_gates: bool = False,
     ):
         """
         Initialize deep recursion network.
@@ -211,14 +208,11 @@ class DeepRecursionNet:
             input_dim: Input dimension
             hidden_dims: List of hidden dimensions
             output_dim: Output dimension
-            use_gates: BLOCKED - Only False supported
+            use_gates: Whether to use syntonic gating
         """
-        if use_gates:
-            raise NotImplementedError("use_gates=True is BLOCKED (concat API needed)")
-
         dims = [input_dim] + hidden_dims + [output_dim]
         self.blocks: List[RecursionBlock] = [
-            RecursionBlock(dims[i], dims[i+1], dims[i+1], use_gate=False)
+            RecursionBlock(dims[i], dims[i+1], dims[i+1], use_gate=use_gates)
             for i in range(len(dims) - 1)
         ]
 

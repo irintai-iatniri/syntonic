@@ -7,9 +7,13 @@ This module provides the fundamental building blocks for syntonic neural network
 - RecursionBlock: Complete R̂ = Ĥ ∘ D̂ cycle
 - SyntonicGate: Adaptive mixing based on syntony
 - SyntonicNorm: Golden-ratio aware normalization
+- ResonantLinear: Linear layer in Q(φ)
 """
 
-from syntonic.nn.layers.differentiation import DifferentiationLayer
+from syntonic.nn.layers.differentiation import (
+    DifferentiationLayer,
+    DifferentiationModule,
+)
 from syntonic.nn.layers.harmonization import HarmonizationLayer
 from syntonic.nn.layers.syntonic_gate import (
     SyntonicGate,
@@ -23,12 +27,12 @@ from syntonic.nn.layers.normalization import (
     SyntonicNorm,
     GoldenNorm,
 )
+from syntonic.nn.layers.resonant_linear import ResonantLinear
 
-# NOTE: DifferentiationModule and HarmonizationModule remain BLOCKED
-# (multi-head architectures require additional API development)
 
 __all__ = [
     'DifferentiationLayer',
+    'DifferentiationModule',
     'HarmonizationLayer',
     'SyntonicGate',
     'AdaptiveGate',
@@ -36,4 +40,5 @@ __all__ = [
     'DeepRecursionNet',
     'SyntonicNorm',
     'GoldenNorm',
+    'ResonantLinear',
 ]

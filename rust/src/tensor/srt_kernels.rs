@@ -325,6 +325,7 @@ const MATMUL_FUNCS: &[&str] = &[
     // Batched operations
     "bmm_f64",
     "bmm_c128",
+    "bmm_nt_f64",
     // SRT-specific operations
     "matmul_phi_scaled_f64",
     "golden_commutator_f64",
@@ -1350,6 +1351,57 @@ pub fn cuda_matmul_tn_c128(
     Ok(())
 }
 
+/// Transposed matrix multiplication: C = A × Bᵀ (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_matmul_nt_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    m: usize,
+    n: usize,
+    k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load matmul kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("matmul_nt_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (((n + 15) / 16) as u32, ((m + 15) / 16) as u32, 1);
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(c)
+            .arg(a)
+            .arg(b)
+            .arg(&(m as i32))
+            .arg(&(n as i32))
+            .arg(&(k as i32))
+            .launch(LaunchConfig {
+                block_dim,
+                grid_dim,
+                shared_mem_bytes: 0,
+            })
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
 /// Golden commutator: [A, B]_φ = AB - φ⁻¹BA
 #[cfg(feature = "cuda")]
 pub fn cuda_golden_commutator_f64(
@@ -1538,6 +1590,63 @@ pub fn cuda_bmm_f64(
         ((n + 7) / 8) as u32,
         ((m + 7) / 8) as u32,
         ((batch_size + 7) / 8) as u32,
+    );
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(c)
+            .arg(a)
+            .arg(b)
+            .arg(&(batch_size as i32))
+            .arg(&(m as i32))
+            .arg(&(n as i32))
+            .arg(&(k as i32))
+            .launch(LaunchConfig {
+                block_dim,
+                grid_dim,
+                shared_mem_bytes: 0,
+            })
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Batched matrix multiplication with Transposed B: C[i] = A[i] × B[i]ᵀ
+#[cfg(feature = "cuda")]
+pub fn cuda_bmm_nt_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    batch_size: usize,
+    m: usize,
+    n: usize,
+    k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_matmul_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load matmul kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("bmm_nt_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    let block_dim = (16, 16, 1);
+    let grid_dim = (
+        ((n + 15) / 16) as u32,
+        ((m + 15) / 16) as u32,
+        batch_size as u32,
     );
 
     unsafe {

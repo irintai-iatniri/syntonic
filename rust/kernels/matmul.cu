@@ -522,6 +522,47 @@ extern "C" __global__ void bmm_f64(
     C[c_offset + row * N + col] = sum;
 }
 
+// Batched matrix multiplication with B transposed: C[i] = A[i] × B[i]ᵀ
+extern "C" __global__ void bmm_nt_f64(
+    double *C,
+    const double *A,
+    const double *B,
+    int batch_size, int M, int N, int K
+) {
+    int batch = blockIdx.z;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (batch >= batch_size || row >= M || col >= N) return;
+
+    int a_offset = batch * M * K;
+    int b_offset = batch * K * N; // Note: B is [K, N] logically if not transposed, 
+                                // but here B is actually [N, K] physically for (B^T). 
+                                // So B memory layout is [N, K] rows.
+                                // Access B[col, k] which is B[col * K + k].
+    
+    // Correct logic for BMM_NT:
+    // A input is [Batch, M, K]
+    // B input is [Batch, N, K]
+    // C output is [Batch, M, N]
+    
+    // Offsets
+    int a_batch_offset = batch * M * K;
+    int b_batch_offset = batch * N * K;
+    int c_batch_offset = batch * M * N;
+    
+    double sum = 0.0;
+    for (int k = 0; k < K; k++) {
+        // A[row, k]
+        double a_val = A[a_batch_offset + row * K + k];
+        // B[col, k] (since we want B^T[k, col] which is B[col, k])
+        double b_val = B[b_batch_offset + col * K + k];
+        sum += a_val * b_val;
+    }
+    
+    C[c_batch_offset + row * N + col] = sum;
+}
+
 extern "C" __global__ void bmm_c128(
     double *C,
     const double *A,
