@@ -117,6 +117,10 @@ pub struct ResonantTensor {
     /// GPU flux representation (active during D-phase only)
     #[cfg(feature = "cuda")]
     flux: Option<CudaSlice<f64>>,
+    
+    /// GPU flux representation in f32 (experimental/performance)
+    #[cfg(feature = "cuda")]
+    flux_f32: Option<CudaSlice<f32>>,
 
     /// CPU flux representation (active during D-phase fallback or pure CPU mode)
     cpu_flux: Option<Vec<f64>>,
@@ -181,6 +185,8 @@ impl ResonantTensor {
             lattice,
             #[cfg(feature = "cuda")]
             flux: None,
+            #[cfg(feature = "cuda")]
+            flux_f32: None,
             cpu_flux: None,
             shape,
             syntony,
@@ -207,6 +213,22 @@ impl ResonantTensor {
         Ok(tensor)
     }
 
+    /// Create from f32 data by snapping to nearest golden lattice points.
+    /// Converts f32 to f64 internally for lattice representation.
+    pub fn from_floats_f32(
+        data: &[f32],
+        shape: Vec<usize>,
+        mode_norm_sq: Vec<f32>,
+        precision: i64,
+    ) -> Result<Self, ResonantError> {
+        // Convert f32 to f64 for lattice snapping
+        let data_f64: Vec<f64> = data.iter().map(|&v| v as f64).collect();
+        let mode_norm_sq_f64: Vec<f64> = mode_norm_sq.iter().map(|&v| v as f64).collect();
+        let lattice = snap_to_lattice(&data_f64, precision);
+        let mut tensor = Self::from_lattice(lattice, shape, mode_norm_sq_f64)?;
+        tensor.precision = precision;
+        Ok(tensor)
+    }
     /// Create a tensor of zeros with exact GoldenExact values.
     ///
     /// Initializes a Crystallized tensor with zero-valued lattice points.
@@ -220,6 +242,8 @@ impl ResonantTensor {
             lattice,
             #[cfg(feature = "cuda")]
             flux: None,
+            #[cfg(feature = "cuda")]
+            flux_f32: None,
             cpu_flux: None,
             shape,
             syntony: 0.0,
@@ -425,6 +449,7 @@ impl ResonantTensor {
         #[cfg(feature = "cuda")]
         {
             self.flux = None;
+            self.flux_f32 = None;
         }
         if self.phase == ResonantPhase::Flux {
             self.phase = ResonantPhase::Crystallized;
@@ -638,6 +663,21 @@ impl ResonantTensor {
     #[cfg(feature = "cuda")]
     pub fn set_flux(&mut self, flux: cudarc::driver::CudaSlice<f64>) {
         self.flux = Some(flux);
+        self.flux_f32 = None;
+        self.phase = ResonantPhase::Flux;
+    }
+
+    /// Access the f32 flux (GPU buffer) if present.
+    #[cfg(feature = "cuda")]
+    pub fn flux_f32_ref(&self) -> Option<&cudarc::driver::CudaSlice<f32>> {
+        self.flux_f32.as_ref()
+    }
+
+    /// Set the f32 flux (GPU buffer) and update phase.
+    #[cfg(feature = "cuda")]
+    pub fn set_flux_f32(&mut self, flux: cudarc::driver::CudaSlice<f32>) {
+        self.flux = None;
+        self.flux_f32 = Some(flux);
         self.phase = ResonantPhase::Flux;
     }
 
@@ -1241,34 +1281,43 @@ impl ResonantTensor {
             for inner in 0..inner_size {
                 let base_idx = outer * jump + inner;
                 
-                // 1. Find max for numerical stability
-                let mut max_val = f64::NEG_INFINITY;
-                for i in 0..dim_size {
-                    let idx = base_idx + i * stride;
-                    let val = floats[idx];
-                    if val > max_val { max_val = val; }
-                }
-                
-                // 2. Compute exp and sum
-                let mut sum = 0.0;
-                // We'll store exp values in the result buffer temporarily to avoid allocation
-                // But we need to be careful not to overwrite what we need?
-                // `floats` is source, `result_floats` is dest. We can read `floats` safely.
-                
-                let mut exps = Vec::with_capacity(dim_size);
-                
-                for i in 0..dim_size {
-                    let idx = base_idx + i * stride;
-                    let val = (floats[idx] - max_val).exp();
-                    exps.push(val);
-                    sum += val;
-                }
-                
-                // 3. Normalize
-                let inv_sum = 1.0 / sum;
-                for i in 0..dim_size {
-                   let idx = base_idx + i * stride;
-                   result_floats[idx] = exps[i] * inv_sum;
+                // For contiguous case (inner_size == 1), we can use the optimized helper
+                if inner_size == 1 {
+                    // Extract contiguous slice for this softmax group
+                    let start = base_idx;
+                    let end = start + dim_size;
+                    let slice = &floats[start..end];
+                    let softmax_result = self.softmax_1d(slice, dim_size);
+                    for (i, &val) in softmax_result.iter().enumerate() {
+                        result_floats[start + i] = val;
+                    }
+                } else {
+                    // Strided case: elements are not contiguous
+                    // 1. Find max for numerical stability
+                    let mut max_val = f64::NEG_INFINITY;
+                    for i in 0..dim_size {
+                        let idx = base_idx + i * stride;
+                        let val = floats[idx];
+                        if val > max_val { max_val = val; }
+                    }
+                    
+                    // 2. Compute exp and sum
+                    let mut sum = 0.0;
+                    let mut exps = Vec::with_capacity(dim_size);
+                    
+                    for i in 0..dim_size {
+                        let idx = base_idx + i * stride;
+                        let val = (floats[idx] - max_val).exp();
+                        exps.push(val);
+                        sum += val;
+                    }
+                    
+                    // 3. Normalize
+                    let inv_sum = 1.0 / sum;
+                    for i in 0..dim_size {
+                       let idx = base_idx + i * stride;
+                       result_floats[idx] = exps[i] * inv_sum;
+                    }
                 }
             }
         }
@@ -1282,7 +1331,17 @@ impl ResonantTensor {
     }
 
     /// Helper: Softmax for 1D slice (numerically stable).
-    fn softmax_1d(&self, x: &[f64], n: usize) -> Vec<f64> {
+    ///
+    /// This is a utility function for computing softmax on a slice of floats.
+    /// Uses the max-subtraction trick for numerical stability.
+    ///
+    /// # Arguments
+    /// * `x` - Input slice of f64 values
+    /// * `n` - Number of elements to process (uses first n elements of x)
+    ///
+    /// # Returns
+    /// Vector of softmax probabilities that sum to 1.0
+    pub fn softmax_1d(&self, x: &[f64], n: usize) -> Vec<f64> {
         if n == 0 {
             return Vec::new();
         }
@@ -2517,6 +2576,7 @@ impl Clone for ResonantTensor {
             lattice: self.lattice.clone(),
             #[cfg(feature = "cuda")]
             flux: None, // Don't clone GPU memory
+            flux_f32: None,
             cpu_flux: None,
             shape: self.shape.clone(),
             syntony: self.syntony,

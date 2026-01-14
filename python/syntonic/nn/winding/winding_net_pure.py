@@ -25,6 +25,7 @@ from syntonic.nn.winding.resonant_embedding_pure import PureResonantWindingEmbed
 from syntonic.nn.winding.fibonacci_hierarchy import FibonacciHierarchy
 from syntonic.nn.winding.resonant_dhsr_block import ResonantWindingDHSRBlock
 from syntonic.nn.architectures.syntonic_mlp_pure import PureSyntonicLinear
+from syntonic.nn.layers.syntonic_gate import SyntonicGate
 
 PHI = (1 + math.sqrt(5)) / 2
 Q_DEFICIT = 0.027395146920
@@ -108,7 +109,15 @@ class PureWindingNet(sn.Module):
         final_dim = layer_dims[num_blocks - 1]
         self.output_proj = PureSyntonicLinear(final_dim, output_dim)
 
-        # 6. Mode norms per layer (precomputed lists)
+        # 6. SyntonicGate for geometric folding (non-linearity)
+        # Creates the decision boundaries needed for non-linear problems like XOR
+        self.gates = sn.ModuleList()
+        for i in range(num_blocks):
+            self.gates.append(SyntonicGate(layer_dims[i]))
+        # Final gate before output projection
+        self.final_gate = SyntonicGate(layer_dims[num_blocks - 1])
+
+        # 7. Mode norms per layer (precomputed lists)
         self.mode_norms = [
             [float(j * j) for j in range(dim)]
             for dim in layer_dims
@@ -135,16 +144,22 @@ class PureWindingNet(sn.Module):
         syntony = 0.5
         syntonies = []
 
-        # 2. Pass through DHSR blocks
+        # 2. Pass through DHSR blocks with SyntonicGate activations
         for i in range(len(self.blocks)):
             block = self.blocks[i]
+            gate = self.gates[i]
 
             # DHSR cycle
+            x_prev = x  # Save for gating
             x, syntony_new, accepted = block(
                 x,
                 self.mode_norms[i],
                 syntony,
             )
+
+            # Apply SyntonicGate (geometric folding)
+            # Gate adaptively mixes original and processed based on syntony
+            x = gate.forward(x_prev, x)
 
             syntonies.append(syntony_new)
             syntony = syntony_new
@@ -153,14 +168,17 @@ class PureWindingNet(sn.Module):
             if i < len(self.transitions):
                 transition = self.transitions[i]
                 x = transition(x)
-                # Apply ReLU (in-place operation)
-                x.relu()
 
         # 3. Final metrics
         self.network_syntony = sum(syntonies) / len(syntonies) if syntonies else 0.5
         self.layer_syntonies = syntonies
 
-        # 4. Output projection
+        # 4. Apply final SyntonicGate before output projection
+        # Critical for solving non-linear problems like XOR
+        x_before_gate = x
+        x = self.final_gate.forward(x_before_gate, x)
+
+        # 5. Output projection
         return self.output_proj(x)
 
     def get_blockchain_stats(self) -> Dict[str, float]:

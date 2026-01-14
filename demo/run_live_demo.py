@@ -1,7 +1,6 @@
 import time
 import random
 import asyncio
-import numpy as np
 from syntonic.nn.training.trainer import RetrocausalTrainer, RESTrainingConfig
 from syntonic.nn.winding.winding_net_pure import PureWindingNet
 from syntonic._core import ResonantTensor, WindingState

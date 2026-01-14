@@ -28,7 +28,72 @@ from syntonic.experiments.datasets.winding_datasets import (
     train_test_split,
 )
 from syntonic.experiments.runner import ExperimentRunner
-from syntonic.experiments.metrics import ComparisonMetrics
+from syntonic.experiments.metrics import ComparisonMetrics, MetricsTracker
+
+
+def _average_fold_comparisons(comparisons: List[ComparisonMetrics]) -> ComparisonMetrics:
+    """
+    Average metrics across multiple cross-validation folds.
+    
+    Creates a new ComparisonMetrics with averaged results for each variant.
+    
+    Args:
+        comparisons: List of ComparisonMetrics, one per fold
+        
+    Returns:
+        ComparisonMetrics with averaged results
+    """
+    if not comparisons:
+        return ComparisonMetrics()
+    
+    # Get all variant names from first comparison
+    variant_names = list(comparisons[0].variants.keys())
+    
+    # Create result comparison
+    result = ComparisonMetrics()
+    
+    for variant_name in variant_names:
+        # Collect all trackers for this variant across folds
+        trackers = []
+        for comparison in comparisons:
+            if variant_name in comparison.variants:
+                trackers.append(comparison.variants[variant_name])
+        
+        if not trackers:
+            continue
+        
+        # Create averaged tracker
+        avg_tracker = MetricsTracker()
+        
+        # Average the key metrics across folds
+        avg_best_accuracy = sum(t.best_accuracy for t in trackers) / len(trackers)
+        avg_best_gen = sum(t.best_generation for t in trackers) / len(trackers)
+        
+        # Create synthetic history entries for averaging
+        # Use the final accuracy from each fold as a data point
+        for i, tracker in enumerate(trackers):
+            summary = tracker.get_summary()
+            final_acc = summary["final_accuracy"]
+            
+            # Add to averaged tracker's history
+            avg_tracker.update(
+                generation=i,  # Use fold index as "generation"
+                accuracy=final_acc,
+                syntony_dict={
+                    "network": summary.get("syntony_correlation_network", 0.0),
+                    "layers": [],
+                    "softmax": summary.get("syntony_correlation_softmax", 0.0)
+                }
+            )
+        
+        # Override with averaged values
+        avg_tracker.best_accuracy = avg_best_accuracy
+        avg_tracker.best_generation = int(avg_best_gen)
+        
+        result.add_variant(variant_name, avg_tracker)
+    
+    return result
+
 
 
 def run_experiment_xor(
@@ -124,11 +189,12 @@ def run_experiment_particles(
         all_comparisons.append(comparison)
 
     # Average results across folds
-    # TODO: Implement fold averaging
-    print("\nLeave-one-out results:")
-    print("(Individual fold results shown above)")
+    avg_comparison = _average_fold_comparisons(all_comparisons)
+    
+    print("\nLeave-one-out results (averaged across folds):")
+    avg_comparison.print_comparison_table()
 
-    return all_comparisons[0]  # Return first fold for now
+    return avg_comparison
 
 
 def run_experiment_csv(
