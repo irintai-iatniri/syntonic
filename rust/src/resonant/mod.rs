@@ -59,6 +59,7 @@ mod retrocausal;
 pub mod syntonic_softmax;
 pub mod syntony;
 mod tensor;
+pub mod e8_lattice;
 
 pub use evolver::{RESConfig, RESResult, ResonantEvolver};
 pub use golden_norm::GoldenNormMode;

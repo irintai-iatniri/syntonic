@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Optional, List
 import math
 
-from syntonic._core import ResonantTensor
+from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic.nn.layers import HarmonizationLayer, SyntonicNorm
 from syntonic.nn.layers.resonant_linear import ResonantLinear
 from syntonic.nn.layers.resonant_parameter import ResonantParameter
@@ -35,7 +35,7 @@ class PurePositionalEncoding:
     PE(pos, 2i+1) = cos(pos / φ^(2i/d))
 
     Example:
-        >>> from syntonic._core import ResonantTensor
+        >>> from syntonic.nn.resonant_tensor import ResonantTensor
         >>> pe = PurePositionalEncoding(d_model=512, max_len=5000)
         >>> x = ResonantTensor([0.1] * 512 * 100, [1, 100, 512])
         >>> x_with_pe = pe.forward(x)
@@ -148,7 +148,7 @@ class PureWindingEmbedding:
     Where w_i are coprime winding numbers.
 
     Example:
-        >>> from syntonic._core import ResonantTensor
+        >>> from syntonic.nn.resonant_tensor import ResonantTensor
         >>> embed = PureWindingEmbedding(num_embeddings=100, embedding_dim=64)
         >>> # Simulate token indices (would come from data)
         >>> tokens = [5, 10, 15, 20]  # Token indices
@@ -354,7 +354,7 @@ class PureSyntonicEmbedding:
 
 if __name__ == "__main__":
     # Test the pure embeddings
-    from syntonic._core import ResonantTensor
+    from syntonic.nn.resonant_tensor import ResonantTensor
 
     print("="*70)
     print("Testing PurePositionalEncoding...")

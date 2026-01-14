@@ -157,7 +157,7 @@ class ResonantWindingDHSRBlock(sn.Module):
             
             # GPU D-phase cycle with CPU fallback
             try:
-                syntony = single_tensor.cuda_cycle_gpu(0, self.noise_scale, self.precision)  # device 0
+                syntony = single_tensor.cuda_cycle_gpu(noise_scale=self.noise_scale, precision=self.precision, device_idx=0)
             except Exception:
                 # If CUDA fails (driver mismatch, no device), use pure Python cycle
                 # We replicate the cycle logic in pure Python using Rust backend functions

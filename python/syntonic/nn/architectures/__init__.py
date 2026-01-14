@@ -45,12 +45,6 @@ from syntonic.nn.architectures.syntonic_attention_pure import (
     PureSyntonicAttention,
     PureMultiHeadSyntonicAttention,
 )
-from syntonic.nn.architectures.syntonic_transformer import (
-    CRTTransformer,
-    DHTransformerLayer,
-    SyntonicTransformerEncoder,
-    SyntonicTransformerDecoder,
-)
 from syntonic.nn.architectures.syntonic_transformer_pure import (
     PureDHTransformerLayer,
     PureSyntonicTransformerEncoder,
@@ -83,11 +77,7 @@ __all__ = [
     'MultiHeadSyntonicAttention',
     'PureSyntonicAttention',
     'PureMultiHeadSyntonicAttention',
-    # Transformer
-    'CRTTransformer',
-    'DHTransformerLayer',
-    'SyntonicTransformerEncoder',
-    'SyntonicTransformerDecoder',
+    # Transformer (Pure only - PyTorch version removed)
     'PureDHTransformerLayer',
     'PureSyntonicTransformerEncoder',
     'PureSyntonicTransformer',

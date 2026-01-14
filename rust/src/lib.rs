@@ -254,6 +254,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<resonant::SyntonicSoftmaxMode>()?;
     m.add_class::<resonant::SyntonicSoftmaxState>()?;
     m.add_function(wrap_pyfunction!(resonant::syntonic_softmax_py, m)?)?;
+    m.add_function(wrap_pyfunction!(resonant::compute_syntonic_weights_py, m)?)?;
 
     // === Core Tensor Operations ===
     m.add_class::<TensorStorage>()?;

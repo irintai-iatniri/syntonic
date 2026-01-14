@@ -16,7 +16,7 @@ from typing import Optional, List, Tuple
 import math
 
 import syntonic.sn as sn
-from syntonic._core import ResonantTensor
+from syntonic.nn.resonant_tensor import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 
@@ -365,8 +365,7 @@ class PureSyntonicCNN1d(sn.Module):
         )
         
         # Classifier
-        from syntonic.nn.architectures.syntonic_attention_pure import _matmul_rt
-        logits = _matmul_rt(pooled_rt, self.classifier.tensor)
+        logits = pooled_rt.matmul(self.classifier.tensor)
         
         return logits
 

@@ -433,13 +433,14 @@ class ResonantTensor:
         """
         self._inner.gelu(precision)
 
-    def softmax(self, precision: int = 32) -> None:
+    def softmax(self, dim: Optional[int] = None, precision: int = 32) -> None:
         """
-        Apply softmax along last dimension in-place.
+        Apply softmax along a dimension in-place.
 
         Uses numerically stable computation: softmax(x) = exp(x - max(x)) / sum(exp(x - max(x)))
-
+        
         Args:
+            dim: Dimension to apply softmax along. If None, defaults to -1 (last dimension).
             precision: Lattice precision
 
         Examples:
@@ -449,7 +450,7 @@ class ResonantTensor:
             >>> probs = logits.to_floats()
             >>> assert abs(sum(probs) - 1.0) < 0.01
         """
-        self._inner.softmax(precision)
+        self._inner.softmax(dim, precision)
 
     def dropout(self, p: float = 0.5) -> None:
         """

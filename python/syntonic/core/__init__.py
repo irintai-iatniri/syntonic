@@ -25,6 +25,10 @@ from syntonic._core import (
     RESConfig,
     RESResult,
     ResonantEvolver,
+    # Syntonic Softmax
+    SyntonicSoftmaxMode,
+    SyntonicSoftmaxState,
+    syntonic_softmax,
     cuda_is_available,
     cuda_device_count,
     srt_scale_phi,
@@ -160,6 +164,10 @@ __all__ = [
     'RESConfig',
     'RESResult',
     'ResonantEvolver',
+    # Syntonic Softmax
+    'SyntonicSoftmaxMode',
+    'SyntonicSoftmaxState',
+    'syntonic_softmax',
     # DTypes
     'DType',
     'float32',

@@ -1171,7 +1171,16 @@ impl ResonantTensor {
     /// Converts to floats, applies ln, snaps back to Q(φ) lattice.
     pub fn log_core(&self, precision: i64) -> Result<ResonantTensor, ResonantError> {
         let floats = self.to_floats_core();
-        let result_floats: Vec<f64> = floats.iter().map(|&x| x.ln()).collect();
+        let result_floats: Vec<f64> = floats.iter().map(|&x| {
+            let val = x.ln();
+            // Handle ln(0) = -inf by clamping to a large negative number
+            // This prevents snap_to_lattice from seeing -inf (which it improperly snaps to 0)
+            if val.is_infinite() && val.is_sign_negative() {
+                -1000.0 // Sufficiently large negative number relative to expected log norms
+            } else {
+                val
+            }
+        }).collect();
         let result_lattice = snap_to_lattice(&result_floats, precision);
         let result_norms = self.mode_norm_sq.clone();
 
@@ -1190,43 +1199,79 @@ impl ResonantTensor {
         Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
     }
 
-    /// Softmax activation along the last dimension.
+    /// Softmax activation along a specified dimension.
     ///
-    /// Computes softmax(x_i) = exp(x_i) / sum(exp(x_j)) for all j in the last dimension.
-    /// Uses numerically stable version: softmax(x_i) = exp(x_i - max(x)) / sum(exp(x_j - max(x)))
+    /// Computes softmax(x_i) = exp(x_i) / sum(exp(x_j)) for all j in that dimension.
     ///
-    /// For 2D tensors [batch, features], applies softmax independently to each batch.
-    /// For 1D tensors, applies softmax to the entire vector.
-    pub fn softmax_core(&mut self, precision: i64) -> Result<(), ResonantError> {
-        let floats = self.to_floats();
-
-        let result_floats = match self.shape.len() {
-            1 => {
-                // 1D: Apply softmax to entire vector
-                let n = floats.len();
-                self.softmax_1d(&floats, n)
-            }
-            2 => {
-                // 2D: Apply softmax to each row (batch) independently
-                let (batch_size, feature_dim) = (self.shape[0], self.shape[1]);
-                let mut result = Vec::with_capacity(floats.len());
-
-                for b in 0..batch_size {
-                    let start = b * feature_dim;
-                    let end = start + feature_dim;
-                    let row = &floats[start..end];
-                    let softmax_row = self.softmax_1d(row, feature_dim);
-                    result.extend(softmax_row);
-                }
-                result
-            }
-            _ => {
-                return Err(ResonantError::ShapeMismatch(format!(
-                    "Softmax only supports 1D and 2D tensors, got shape {:?}",
-                    self.shape
-                )));
-            }
+    /// # Arguments
+    /// * `dim` - Dimension to apply softmax along. Defaults to last dimension (-1).
+    /// * `precision` - Lattice precision for snapping back to Q(φ).
+    pub fn softmax_core(&mut self, dim: Option<isize>, precision: i64) -> Result<(), ResonantError> {
+        let ndim = self.shape.len();
+        if ndim == 0 {
+             return Err(ResonantError::ShapeMismatch("Cannot softmax scalar/empty tensor".to_string()));
+        }
+        
+        // Resolve dimension
+        let dim_val = dim.unwrap_or(-1);
+        let dim_idx = if dim_val < 0 {
+             ndim as isize + dim_val
+        } else {
+             dim_val
         };
+        
+        if dim_idx < 0 || dim_idx >= ndim as isize {
+             return Err(ResonantError::ShapeMismatch(format!(
+                "Dimension {} out of bounds for {}-D tensor", dim_val, ndim
+            )));
+        }
+        let dim_idx = dim_idx as usize;
+        
+        let floats = self.to_floats();
+        let mut result_floats = floats.clone(); // Clone to use as output buffer
+        
+        // Generalized strided softmax
+        let dim_size = self.shape[dim_idx];
+        let outer_size: usize = self.shape[..dim_idx].iter().product();
+        let inner_size: usize = self.shape[dim_idx+1..].iter().product();
+        let stride = inner_size; // indices along dim are separated by stride
+        let jump = dim_size * inner_size; // moving to next outer index jumps this much
+
+        for outer in 0..outer_size {
+            for inner in 0..inner_size {
+                let base_idx = outer * jump + inner;
+                
+                // 1. Find max for numerical stability
+                let mut max_val = f64::NEG_INFINITY;
+                for i in 0..dim_size {
+                    let idx = base_idx + i * stride;
+                    let val = floats[idx];
+                    if val > max_val { max_val = val; }
+                }
+                
+                // 2. Compute exp and sum
+                let mut sum = 0.0;
+                // We'll store exp values in the result buffer temporarily to avoid allocation
+                // But we need to be careful not to overwrite what we need?
+                // `floats` is source, `result_floats` is dest. We can read `floats` safely.
+                
+                let mut exps = Vec::with_capacity(dim_size);
+                
+                for i in 0..dim_size {
+                    let idx = base_idx + i * stride;
+                    let val = (floats[idx] - max_val).exp();
+                    exps.push(val);
+                    sum += val;
+                }
+                
+                // 3. Normalize
+                let inv_sum = 1.0 / sum;
+                for i in 0..dim_size {
+                   let idx = base_idx + i * stride;
+                   result_floats[idx] = exps[i] * inv_sum;
+                }
+            }
+        }
 
         // Snap back to Q(φ) lattice
         self.lattice = snap_to_lattice(&result_floats, precision);
@@ -2240,15 +2285,13 @@ impl ResonantTensor {
         self.exp_core(prec).map_err(|e| e.into())
     }
 
-    /// Applies softmax normalization along the last dimension.
-    ///
-    /// For 1D tensors: softmax(x_i) = exp(x_i) / sum(exp(x_j) for all j)
-    /// For 2D tensors: applies softmax independently to each row
+    /// Applies softmax normalization along a specified dimension.
     ///
     /// Uses numerically stable computation: exp(x_i - max(x)) / sum(exp(x_j - max(x)))
     /// Snaps result back to Q(φ) lattice with specified precision.
     ///
     /// Args:
+    ///     dim: Dimension to apply softmax along (default: -1, last dimension)
     ///     precision: Precision for lattice snapping (default: 32)
     ///
     /// Returns:
@@ -2259,9 +2302,9 @@ impl ResonantTensor {
     ///     >>> x.softmax()
     ///     >>> x.to_floats()
     ///     [0.09003057, 0.24472847, 0.66524096]
-    #[pyo3(signature = (precision=32))]
-    fn softmax(&mut self, precision: i64) -> PyResult<()> {
-        self.softmax_core(precision).map_err(|e| e.into())
+    #[pyo3(signature = (dim=None, precision=32))]
+    fn softmax(&mut self, dim: Option<isize>, precision: i64) -> PyResult<()> {
+        self.softmax_core(dim, precision).map_err(|e| e.into())
     }
 
     /// Concatenate tensors along a specified dimension.

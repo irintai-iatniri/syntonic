@@ -12,7 +12,7 @@ import math
 import random
 from typing import List, Optional
 
-from syntonic.nn.resonant_tensor import ResonantTensor
+from syntonic._core import ResonantTensor
 from syntonic._core import GoldenExact
 
 PHI = (1 + math.sqrt(5)) / 2

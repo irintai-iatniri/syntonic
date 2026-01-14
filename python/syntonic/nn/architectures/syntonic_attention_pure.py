@@ -247,9 +247,22 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         # So q.matmul(k) computes per-head, per-batch attention scores
         # Shape: [..., Heads, Seq, Seq]
         scores = q.matmul(k)
-        
+
         scores = scores.scalar_mul(1.0 / self.scale)
-        scores.softmax(precision=self.precision)
+
+        # Softmax: reshape to 2D, apply, reshape back
+        # scores is [Heads, Seq_q, Seq_k] - need to flatten first two dims
+        orig_shape = scores.shape
+        if len(orig_shape) == 3:
+            # [Heads, Seq_q, Seq_k] -> [Heads*Seq_q, Seq_k]
+            n_heads, seq_q, seq_k = orig_shape
+            scores = scores.view([n_heads * seq_q, seq_k])
+            scores.softmax(precision=self.precision)
+            # Reshape back
+            scores = scores.view(orig_shape)
+        else:
+            scores.softmax(precision=self.precision)
+
         attn = scores
         
         # 2. Output Projection: Attn @ V

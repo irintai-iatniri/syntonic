@@ -15,7 +15,7 @@ Source: CRT.md §12.2
 from __future__ import annotations
 from typing import Optional
 
-from syntonic.nn.resonant_tensor import ResonantTensor
+from syntonic._core import ResonantTensor
 from syntonic.nn.layers.resonant_linear import ResonantLinear
 
 
@@ -205,7 +205,7 @@ class DifferentiationModule:
 
 if __name__ == "__main__":
     # Test the pure DifferentiationLayer
-    from syntonic.nn.resonant_tensor import ResonantTensor
+    from syntonic._core import ResonantTensor
 
     print("Testing DifferentiationLayer...")
     layer = DifferentiationLayer(4, 4, bias=True, alpha_scale=0.5)

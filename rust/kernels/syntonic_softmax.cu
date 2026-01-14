@@ -217,3 +217,103 @@ extern "C" __global__ void syntonic_softmax_provided_f64(
         y[i] = exp(x[i] + log_weight - max_val) / sum;
     }
 }
+
+// =============================================================================
+// Syntonic Softmax: Strided Kernels (Complex / Arbitrary Dimension)
+// =============================================================================
+
+extern "C" __global__ void syntonic_softmax_learned_strided_f64(
+    double *out,
+    const double *logits,
+    const double *mode_norms,
+    double syntony_scale,
+    int outer_size,
+    int dim_size,
+    int inner_size
+) {
+    // Total number of parallel rows to process = outer_size * inner_size
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int count = outer_size * inner_size;
+    
+    if (idx >= count) return;
+
+    // Map linear index to (outer, inner) coordinates
+    int inner = idx % inner_size;
+    int outer = idx / inner_size;
+    
+    // Base offset for this particular softmax row
+    // logits[outer, 0, inner]
+    int offset = outer * dim_size * inner_size + inner;
+    int stride = inner_size;
+
+    // 1. Find max (numerical stability)
+    double local_max = -DBL_MAX;
+    for (int i = 0; i < dim_size; ++i) {
+        double val = logits[offset + i * stride];
+        // mode_norms corresponds to dimension index i
+        double log_weight = -mode_norms[i] * PHI_INV_F64 * syntony_scale;
+        local_max = fmax(local_max, val + log_weight);
+    }
+    
+    // 2. Sum exponentials
+    double sum = 0.0;
+    for (int i = 0; i < dim_size; ++i) {
+        double val = logits[offset + i * stride];
+        double log_weight = -mode_norms[i] * PHI_INV_F64 * syntony_scale;
+        sum += exp(val + log_weight - local_max);
+    }
+    
+    // 3. Normalize and Write
+    for (int i = 0; i < dim_size; ++i) {
+        double val = logits[offset + i * stride];
+        double log_weight = -mode_norms[i] * PHI_INV_F64 * syntony_scale;
+        out[offset + i * stride] = exp(val + log_weight - local_max) / sum;
+    }
+}
+
+extern "C" __global__ void syntonic_softmax_provided_strided_f64(
+    double *out,
+    const double *logits,
+    const double *syntony,
+    double syntony_scale,
+    int outer_size,
+    int dim_size,
+    int inner_size
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int count = outer_size * inner_size;
+    
+    if (idx >= count) return;
+
+    int inner = idx % inner_size;
+    int outer = idx / inner_size;
+    
+    int offset = outer * dim_size * inner_size + inner;
+    int stride = inner_size;
+
+    // 1. Find max
+    double local_max = -DBL_MAX;
+    for (int i = 0; i < dim_size; ++i) {
+        double val = logits[offset + i * stride];
+        double w = syntony[offset + i * stride];
+        double log_weight = log(fmax(w, 1e-10)) * syntony_scale;
+        local_max = fmax(local_max, val + log_weight);
+    }
+    
+    // 2. Sum
+    double sum = 0.0;
+    for (int i = 0; i < dim_size; ++i) {
+        double val = logits[offset + i * stride];
+        double w = syntony[offset + i * stride];
+        double log_weight = log(fmax(w, 1e-10)) * syntony_scale;
+        sum += exp(val + log_weight - local_max);
+    }
+    
+    // 3. Normalize
+    for (int i = 0; i < dim_size; ++i) {
+        double val = logits[offset + i * stride];
+        double w = syntony[offset + i * stride];
+        double log_weight = log(fmax(w, 1e-10)) * syntony_scale;
+        out[offset + i * stride] = exp(val + log_weight - local_max) / sum;
+    }
+}

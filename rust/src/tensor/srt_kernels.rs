@@ -295,6 +295,8 @@ const SYNTONIC_SOFTMAX_FUNCS: &[&str] = &[
     "syntonic_softmax_learned_f64",
     "syntonic_softmax_learned_f32",
     "syntonic_softmax_provided_f64",
+    "syntonic_softmax_learned_strided_f64",
+    "syntonic_softmax_provided_strided_f64",
 ];
 
 /// Matmul kernel functions
@@ -2274,6 +2276,86 @@ pub fn cuda_syntonic_softmax_provided_f64(
             .arg(&batch_size)
             .arg(&num_classes)
             .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+#[cfg(feature = "cuda")]
+pub fn cuda_syntonic_softmax_learned_strided_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    logits: &CudaSlice<f64>,
+    mode_norms: &CudaSlice<f64>,
+    syntony_scale: f64,
+    outer_size: i32,
+    dim_size: i32,
+    inner_size: i32,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_syntonic_softmax_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
+
+    let func = module
+        .load_function("syntonic_softmax_learned_strided_f64")
+        .map_err(|_| "Kernel not found".to_string())?;
+
+    let count = (outer_size * inner_size) as usize;
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(logits)
+            .arg(mode_norms)
+            .arg(&syntony_scale)
+            .arg(&outer_size)
+            .arg(&dim_size)
+            .arg(&inner_size)
+            .launch(launch_cfg_256(count))
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+#[cfg(feature = "cuda")]
+pub fn cuda_syntonic_softmax_provided_strided_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    logits: &CudaSlice<f64>,
+    syntony: &CudaSlice<f64>,
+    syntony_scale: f64,
+    outer_size: i32,
+    dim_size: i32,
+    inner_size: i32,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_syntonic_softmax_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
+
+    let func = module
+        .load_function("syntonic_softmax_provided_strided_f64")
+        .map_err(|_| "Kernel not found".to_string())?;
+
+    let count = (outer_size * inner_size) as usize;
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(logits)
+            .arg(syntony)
+            .arg(&syntony_scale)
+            .arg(&outer_size)
+            .arg(&dim_size)
+            .arg(&inner_size)
+            .launch(launch_cfg_256(count))
     }
     .map(|_| ())
     .map_err(|e| e.to_string())

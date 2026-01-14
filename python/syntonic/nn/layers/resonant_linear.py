@@ -13,7 +13,7 @@ import math
 import random
 from typing import Optional, List
 
-from syntonic.nn.resonant_tensor import ResonantTensor
+from syntonic._core import ResonantTensor
 import syntonic.sn as sn
 
 PHI = (1 + math.sqrt(5)) / 2
@@ -74,10 +74,10 @@ class ResonantLinear(sn.Module):
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
         Forward pass using native Q(φ) matrix multiplication.
-        
+
         Args:
             x: Input tensor of shape [..., in_features]
-            
+
         Returns:
             Output tensor of shape [..., out_features]
         """
@@ -87,19 +87,19 @@ class ResonantLinear(sn.Module):
             # Flatten: [batch, seq, features] -> [batch*seq, features]
             # Use -1 to infer batch*seq size
             x_flat = x.view([-1, original_shape[-1]])
-            
-            # Y = X_flat @ W^T
+
+            # Y = X_flat @ W^T using matmul method
             out = x_flat.matmul(self.weight.tensor)
-            
+
             # Add bias
             if self.bias is not None:
                 out.add_bias(self.bias.tensor)
-                
+
             # Restoring shape: [batch*seq, out_features] -> [batch, seq, out_features]
             new_shape = list(original_shape[:-1]) + [self.out_features]
             return out.view(new_shape)
         else:
-            # Standard 2D case
+            # Standard 2D case using matmul method
             out = x.matmul(self.weight.tensor)
             if self.bias is not None:
                 out.add_bias(self.bias.tensor)

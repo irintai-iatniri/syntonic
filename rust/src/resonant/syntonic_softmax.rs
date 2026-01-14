@@ -5,15 +5,18 @@
 //!
 //! where w(n) = exp(-|n|²/φ) is the golden measure weight.
 
-use super::PHI;
-use crate::resonant::{ResonantPhase, ResonantTensor};
+use crate::resonant::{
+    ResonantTensor, ResonantPhase, 
+    e8_lattice::{E8Lattice, GoldenProjector, compute_8d_weight},
+    PHI,
+};
 use pyo3::prelude::*;
 
 /// Syntonic softmax modes
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[pyclass]
 pub enum SyntonicSoftmaxMode {
-    /// Learn mode norms per feature (recommended)
+    /// Learn mode norms (8D E8 roots)
     Learned,
     /// Accept pre-computed syntony values
     Provided,
@@ -49,7 +52,7 @@ impl SyntonicSoftmaxMode {
 #[pyclass]
 #[derive(Clone, Debug)]
 pub struct SyntonicSoftmaxState {
-    /// Mode norms |n|² for each feature [num_features]
+    /// Mode norms |n|² for each feature OR 8D E8 vectors [num_features, 8]
     pub mode_norms: Option<ResonantTensor>,
 
     /// Syntony weighting scale
@@ -84,16 +87,40 @@ impl SyntonicSoftmaxState {
         // Initialize mode norms if learned
         let mode_norms = if mode == SyntonicSoftmaxMode::Learned {
             let n = num_features.unwrap();
-            // Initialize to 1.0 (will be learned)
-            Some(
-                ResonantTensor::from_floats_default_modes(&vec![1.0; n], vec![n], 100)
-                    .map_err(|e| PyErr::from(e))?,
-            )
+            
+            // Generate E8 roots
+            let roots = E8Lattice::generate_roots();
+            let projector = GoldenProjector::new();
+
+            // Filter to Golden Cone using 4 null vectors: ⟨c_a, α⟩ > 0 for all a
+            // This selects exactly 36 roots = Φ⁺(E₆)
+            let cone_roots: Vec<Vec<f64>> = roots.into_iter()
+                .filter(|root| {
+                    let weight = compute_8d_weight(root, &projector);
+                    weight > 1e-8 // Reject 1e-9 (outside cone) but accept valid exp(-x/φ)
+                })
+                .collect();
+            
+            if cone_roots.is_empty() {
+                 return Err(pyo3::exceptions::PyValueError::new_err("No E8 roots found in Golden Cone"));
+            }
+
+            // Cycle through cone roots to fill num_features
+            let mut data = Vec::with_capacity(n * 8);
+            for i in 0..n {
+                let root = &cone_roots[i % cone_roots.len()];
+                data.extend_from_slice(root);
+            }
+            
+            // Create [n, 8] tensor
+            // We use from_floats_default_modes which calculates trivial mode norms for data values
+            Some(ResonantTensor::from_floats_default_modes(&data, vec![n, 8], 100)
+                 .map_err(|e| PyErr::from(e))?)
         } else {
             None
         };
 
-        Ok(Self {
+        Ok(SyntonicSoftmaxState {
             mode_norms,
             syntony_scale: syntony_scale.unwrap_or(1.0),
             dim: dim.unwrap_or(-1),
@@ -101,6 +128,7 @@ impl SyntonicSoftmaxState {
             num_features,
         })
     }
+
 
     /// Forward pass: apply syntony-weighted softmax
     pub fn forward(
@@ -112,7 +140,9 @@ impl SyntonicSoftmaxState {
             SyntonicSoftmaxMode::Identity => {
                 // Standard softmax (no syntony weighting)
                 let mut output = x.clone();
-                output.softmax_core(32).map_err(|e| PyErr::from(e))?;
+                output
+                    .softmax_core(Some(self.dim), 1000)
+                    .map_err(|e| PyErr::from(e))?;
                 Ok(output)
             }
             SyntonicSoftmaxMode::Learned => {
@@ -121,7 +151,7 @@ impl SyntonicSoftmaxState {
                 let weights = self.compute_golden_weights(mode_norms)?;
 
                 // weighted_logits = logits + scale * log(weights)
-                let log_weights = weights.log_core(32)?;
+                let log_weights = weights.log_core(1000)?;
                 let scaled_log_weights = log_weights
                     .scalar_mul_core(self.syntony_scale)
                     .map_err(|e| PyErr::from(e))?;
@@ -134,11 +164,48 @@ impl SyntonicSoftmaxState {
                     }
                 }
 
+                let final_weights = if x.shape().len() > 1 && scaled_log_weights.shape().len() == 1 {
+                    let w_shape = scaled_log_weights.shape();
+                    let x_shape = x.shape();
+                    let last_dim = x_shape[x_shape.len() - 1];
+                    let weight_dim = w_shape[0];
+
+                    if weight_dim != last_dim {
+                        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                            "Shape mismatch in Syntonic Softmax: x shape {:?} incompatible with weights shape {:?}",
+                            x_shape,
+                            w_shape
+                        )));
+                    }
+
+                    // Replicate lattice for broadcasting
+                    let total_elements: usize = x_shape.iter().product();
+                    let num_repeats = total_elements / weight_dim;
+
+                    let w_lattice = scaled_log_weights.lattice();
+                    let w_norms = scaled_log_weights.mode_norm_sq();
+
+                    let mut new_lattice = Vec::with_capacity(total_elements);
+                    let mut new_norms = Vec::with_capacity(total_elements);
+
+                    for _ in 0..num_repeats {
+                        new_lattice.extend_from_slice(w_lattice);
+                        new_norms.extend_from_slice(w_norms);
+                    }
+
+                    ResonantTensor::from_lattice(new_lattice, x_shape.to_vec(), new_norms)
+                        .map_err(|e| PyErr::from(e))?
+                } else {
+                    scaled_log_weights
+                };
+
                 let weighted_logits = x
-                    .elementwise_add_core(&scaled_log_weights)
+                    .elementwise_add_core(&final_weights)
                     .map_err(|e| PyErr::from(e))?;
                 let mut output = weighted_logits.clone();
-                output.softmax_core(32).map_err(|e| PyErr::from(e))?;
+                output
+                    .softmax_core(Some(self.dim), 1000)
+                    .map_err(|e| PyErr::from(e))?;
                 Ok(output)
             }
             SyntonicSoftmaxMode::Provided => {
@@ -167,7 +234,7 @@ impl SyntonicSoftmaxState {
                 }
 
                 // weighted_logits = logits + scale * log(syntony)
-                let log_syntony = syntony.log_core(32)?;
+                let log_syntony = syntony.log_core(1000)?;
                 let scaled_log_syntony = log_syntony
                     .scalar_mul_core(self.syntony_scale)
                     .map_err(|e| PyErr::from(e))?;
@@ -176,7 +243,9 @@ impl SyntonicSoftmaxState {
                     .map_err(|e| PyErr::from(e))?;
 
                 let mut output = weighted_logits.clone();
-                output.softmax_core(32).map_err(|e| PyErr::from(e))?;
+                output
+                    .softmax_core(Some(self.dim), 1000)
+                    .map_err(|e| PyErr::from(e))?;
                 Ok(output)
             }
         }
@@ -191,6 +260,7 @@ impl SyntonicSoftmaxState {
     ) -> PyResult<ResonantTensor> {
         use crate::tensor::srt_kernels::{
             cuda_syntonic_softmax_learned_f64, cuda_syntonic_softmax_provided_f64,
+            cuda_syntonic_softmax_learned_strided_f64, cuda_syntonic_softmax_provided_strided_f64,
         };
 
         let device_idx = x.device_idx().ok_or_else(|| {
@@ -201,11 +271,33 @@ impl SyntonicSoftmaxState {
             .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
 
         let shape = x.shape();
-        let batch_size = shape[0];
-        let num_classes = if shape.len() > 1 {
-            shape[1..].iter().product()
+        let ndim = shape.len();
+        
+        // Handle negative dim
+        let dim_idx = if self.dim < 0 {
+            if (ndim as isize + self.dim) < 0 {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Dimension out of range: dim={} for ndim={}", self.dim, ndim
+                )));
+            }
+            (ndim as isize + self.dim) as usize
         } else {
-            1
+            if self.dim as usize >= ndim {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Dimension out of range: dim={} for ndim={}", self.dim, ndim
+                )));
+            }
+            self.dim as usize
+        };
+
+        // Determine dims
+        let num_classes = shape[dim_idx]; // dim_size
+        let is_last_dim = dim_idx == ndim - 1;
+        
+        let batch_size = if is_last_dim {
+             x.len() / num_classes
+        } else {
+             0 // unused in strided
         };
 
         // Allocate output
@@ -218,6 +310,11 @@ impl SyntonicSoftmaxState {
             pyo3::exceptions::PyRuntimeError::new_err("Flux missing for CUDA operation")
         })?;
 
+        // Strided parameters calculation
+        let outer_size: usize = shape[..dim_idx].iter().product();
+        let inner_size: usize = shape[dim_idx+1..].iter().product();
+        let dim_size = num_classes;
+
         match self.mode {
             SyntonicSoftmaxMode::Learned => {
                 let mode_norms = self.mode_norms.as_ref().unwrap();
@@ -227,16 +324,32 @@ impl SyntonicSoftmaxState {
                     )
                 })?;
 
-                cuda_syntonic_softmax_learned_f64(
-                    &device,
-                    &mut out_flux,
-                    x_flux,
-                    norms_flux,
-                    self.syntony_scale,
-                    batch_size as i32,
-                    num_classes as i32,
-                )
-                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                if is_last_dim {
+                    // Optimized contiguous reduction
+                    cuda_syntonic_softmax_learned_f64(
+                        &device,
+                        &mut out_flux,
+                        x_flux,
+                        norms_flux,
+                        self.syntony_scale,
+                        batch_size as i32,
+                        num_classes as i32,
+                    )
+                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                } else {
+                    // Strided
+                    cuda_syntonic_softmax_learned_strided_f64(
+                        &device,
+                        &mut out_flux,
+                        x_flux,
+                        norms_flux,
+                        self.syntony_scale,
+                        outer_size as i32,
+                        dim_size as i32,
+                        inner_size as i32,
+                    )
+                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                }
             }
             SyntonicSoftmaxMode::Provided => {
                 let w = weights.unwrap();
@@ -246,20 +359,36 @@ impl SyntonicSoftmaxState {
                     )
                 })?;
 
-                cuda_syntonic_softmax_provided_f64(
-                    &device,
-                    &mut out_flux,
-                    x_flux,
-                    w_flux,
-                    self.syntony_scale,
-                    batch_size as i32,
-                    num_classes as i32,
-                )
-                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                if is_last_dim {
+                    cuda_syntonic_softmax_provided_f64(
+                        &device,
+                        &mut out_flux,
+                        x_flux,
+                        w_flux,
+                        self.syntony_scale,
+                        batch_size as i32,
+                        num_classes as i32,
+                    )
+                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                } else {
+                    cuda_syntonic_softmax_provided_strided_f64(
+                        &device,
+                        &mut out_flux,
+                        x_flux,
+                        w_flux,
+                        self.syntony_scale,
+                        outer_size as i32,
+                        dim_size as i32,
+                        inner_size as i32,
+                    )
+                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                }
             }
             SyntonicSoftmaxMode::Identity => {
                 let mut out = x.clone();
-                out.softmax_core(32).map_err(|e| PyErr::from(e))?;
+
+                out.softmax_core(Some(self.dim), 1000)
+                    .map_err(|e| PyErr::from(e))?;
                 return Ok(out);
             }
         }
@@ -277,13 +406,42 @@ impl SyntonicSoftmaxState {
 
 impl SyntonicSoftmaxState {
     /// Compute golden measure weights: w(n) = exp(-|n|²/φ)
+    ///
+    /// If mode_norms is [N, 8], computes Golden Cone weights.
+    /// If mode_norms is [N], assumes inputs are already squared norms (legacy/simple).
     fn compute_golden_weights(&self, mode_norms: &ResonantTensor) -> PyResult<ResonantTensor> {
-        // w = exp(-mode_norms / φ)
-        let neg_inv_phi = -1.0 / PHI;
-        let scaled_norms = mode_norms
-            .scalar_mul_core(neg_inv_phi)
-            .map_err(|e| PyErr::from(e))?;
-        Ok(scaled_norms.exp_core(32).map_err(|e| PyErr::from(e))?)
+        let shape = mode_norms.shape();
+        
+        if shape.len() == 2 && shape[1] == 8 {
+            // 8D E8 Lattice weights
+            let data = mode_norms.lattice(); // Returns &Vec<GoldenExact>
+            let n = shape[0];
+            let projector = GoldenProjector::new();
+            let mut weights = Vec::with_capacity(n);
+            
+            for chunk in data.chunks(8) {
+                if chunk.len() == 8 {
+                    // Convert slice to Vec<f64> for compute_8d_weight
+                    let vec: Vec<f64> = chunk.iter().map(|g| g.to_f64()).collect();
+                    // Weight w = exp(-|P_parallel|^2 / phi)
+                    // Note: compute_8d_weight returns the weight directly
+                    let w = compute_8d_weight(&vec, &projector);
+                    weights.push(w);
+                }
+            }
+            
+            // Return as 1D tensor [N]
+            ResonantTensor::from_floats_default_modes(&weights, vec![n], 100)
+                .map_err(|e| PyErr::from(e))
+        } else {
+            // Fallback for scalar/1D norms (legacy)
+            // w = exp(-mode_norms / φ)
+            let neg_inv_phi = -1.0 / PHI;
+            let scaled_norms = mode_norms
+                .scalar_mul_core(neg_inv_phi)
+                .map_err(|e| PyErr::from(e))?;
+            Ok(scaled_norms.exp_core(32).map_err(|e| PyErr::from(e))?)
+        }
     }
 }
 
@@ -293,19 +451,88 @@ impl SyntonicSoftmaxState {
 pub fn syntonic_softmax_py(
     x: &ResonantTensor,
     dim: Option<isize>,
+    mode: Option<&str>,
     mode_norms: Option<&ResonantTensor>,
+    syntony: Option<&ResonantTensor>,
     syntony_scale: Option<f64>,
 ) -> PyResult<ResonantTensor> {
-    let state = if let Some(norms) = mode_norms {
-        SyntonicSoftmaxState::new(
-            SyntonicSoftmaxMode::Learned,
-            dim,
-            Some(norms.shape()[0]),
-            syntony_scale,
-        )?
-    } else {
-        SyntonicSoftmaxState::new(SyntonicSoftmaxMode::Identity, dim, None, syntony_scale)?
+    // Parse mode string
+    let mode_enum = match mode {
+        Some(s) => match s {
+            "learned" => SyntonicSoftmaxMode::Learned,
+            "provided" => SyntonicSoftmaxMode::Provided,
+            "identity" => SyntonicSoftmaxMode::Identity,
+            _ => {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Unknown mode: {}. Use 'learned', 'provided' or 'identity'",
+                    s
+                )))
+            }
+        },
+        None => {
+            // Default: learned if mode_norms supplied, else identity
+            if mode_norms.is_some() {
+                SyntonicSoftmaxMode::Learned
+            } else {
+                SyntonicSoftmaxMode::Identity
+            }
+        }
     };
 
-    state.forward(x, None)
+    let num_features = if let Some(norms) = mode_norms {
+        Some(norms.shape()[0])
+    } else {
+        None
+    };
+
+    let mut state = SyntonicSoftmaxState::new(mode_enum, dim, num_features, syntony_scale)?;
+
+    // If mode_norms provided for learned mode, attach them
+    if mode_enum == SyntonicSoftmaxMode::Learned {
+        if let Some(norms) = mode_norms {
+            state.mode_norms = Some(norms.clone());
+        }
+    }
+
+    // For provided mode, require syntony
+    if mode_enum == SyntonicSoftmaxMode::Provided && syntony.is_none() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "syntony tensor required for 'provided' mode",
+        ));
+    }
+
+    state.forward(x, syntony)
+}
+
+
+/// Compute per-feature syntonic weights from mode_norms (1D norms or 2D [N,8] E8 vectors).
+#[pyfunction]
+#[pyo3(name = "compute_syntonic_weights")]
+pub fn compute_syntonic_weights_py(mode_norms: &ResonantTensor) -> PyResult<ResonantTensor> {
+    let shape = mode_norms.shape();
+    // 2D [N,8] case
+    if shape.len() == 2 && shape[1] == 8 {
+        let data = mode_norms.lattice();
+        let n = shape[0];
+        let projector = GoldenProjector::new();
+        let mut weights: Vec<f64> = Vec::with_capacity(n);
+
+        for chunk in data.chunks(8) {
+            if chunk.len() == 8 {
+                let vec: Vec<f64> = chunk.iter().map(|g| g.to_f64()).collect();
+                let w = compute_8d_weight(&vec, &projector);
+                weights.push(w);
+            }
+        }
+rm -rf ~/.local/share/Antigravity ~/.cache/Antigravity ~/.local/state/Antigravity ~/.config/Antigravity
+        ResonantTensor::from_floats_default_modes(&weights, vec![n], 100)
+            .map_err(|e| PyErr::from(e))
+    } else {
+        // Fallback: assume mode_norms are scalar norms and compute w = exp(-norm / phi)
+        let neg_inv_phi = -1.0 / PHI;
+        let scaled = mode_norms
+            .scalar_mul_core(neg_inv_phi)
+            .map_err(|e| PyErr::from(e))?;
+        Ok(scaled.exp_core(32).map_err(|e| PyErr::from(e))?)
+    }
 }

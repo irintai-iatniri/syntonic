@@ -6,6 +6,35 @@ NO PYTORCH DEPENDENCIES - uses sn.Module and ResonantTensor.
 Includes:
 - PureDHTransformerLayer: Single transformer layer using D→H cycle
 - PureSyntonicTransformerEncoder: Encoder-only transformer stack
+- PureSyntonicTransformer: Generic encoder (for pre-embedded inputs)
+- PureSyntonicTransformerLM: Language model with vocab embedding + positional encoding
+
+Architecture Notes:
+- Uses SyntonicNorm (golden-ratio normalization) instead of standard LayerNorm
+- Residual connections scaled by 1/φ for harmonic structure
+- Pre-norm architecture (normalize before sublayer, better gradient flow)
+- GELU activation in FFN
+- Multi-head attention with ResonantTensor exact arithmetic
+
+Usage Examples:
+
+    # Encoder-only (when embeddings provided externally)
+    >>> from syntonic.nn.architectures.syntonic_transformer_pure import PureSyntonicTransformer
+    >>> from syntonic.nn.resonant_tensor import ResonantTensor
+    >>> encoder = PureSyntonicTransformer(d_model=64, n_layers=3, output_dim=10)
+    >>> x = ResonantTensor([0.1] * 64 * 10, [10, 64])  # Shape: (seq, d_model)
+    >>> output = encoder(x)  # Shape: (1, output_dim) - average pooled
+
+    # Language model (with built-in embeddings)
+    >>> from syntonic.nn.architectures.syntonic_transformer_pure import PureSyntonicTransformerLM
+    >>> lm = PureSyntonicTransformerLM(vocab_size=1000, d_model=64, n_layers=3)
+    >>> tokens = [1, 5, 10, 15]
+    >>> logits = lm(tokens)  # Shape: (4, 1000) - per-token logits
+
+Embedding Types:
+- 'winding': Deterministic winding embeddings (memory efficient, rich structure)
+- 'syntonic': Learned embeddings with harmonization (trainable, syntony-aware)
+- 'learned': Standard learned embeddings (trainable, conventional)
 
 Source: CRT.md §12.2
 """
@@ -16,34 +45,15 @@ import math
 import random
 
 import syntonic.sn as sn
-from syntonic._core import ResonantTensor, py_softmax
+from syntonic.nn.resonant_tensor import ResonantTensor
+from syntonic.nn.layers import SyntonicNorm
 
 from syntonic.nn.architectures.syntonic_attention_pure import (
     PureMultiHeadSyntonicAttention,
-    _matmul_rt,
 )
 
 PHI = (1 + math.sqrt(5)) / 2
 PHI_INV = 1 / PHI
-
-
-def _add_rt(a: ResonantTensor, b: ResonantTensor) -> ResonantTensor:
-    """Add two ResonantTensors element-wise."""
-    a_data = a.to_floats()
-    b_data = b.to_floats()
-    result = [x + y for x, y in zip(a_data, b_data)]
-    shape = a.shape
-    mode_norms = [float(i * i) for i in range(len(result))]
-    return ResonantTensor(result, shape, mode_norms, 100)
-
-
-def _scale_rt(x: ResonantTensor, scale: float) -> ResonantTensor:
-    """Scale a ResonantTensor."""
-    data = x.to_floats()
-    result = [v * scale for v in data]
-    shape = x.shape
-    mode_norms = [float(i * i) for i in range(len(result))]
-    return ResonantTensor(result, shape, mode_norms, 100)
 
 
 def _gelu_rt(x: ResonantTensor) -> ResonantTensor:
@@ -57,32 +67,6 @@ def _gelu_rt(x: ResonantTensor) -> ResonantTensor:
         gelu = 0.5 * v * (1.0 + math.tanh(inner))
         result.append(gelu)
     shape = x.shape
-    mode_norms = [float(i * i) for i in range(len(result))]
-    return ResonantTensor(result, shape, mode_norms, 100)
-
-
-def _layer_norm_rt(x: ResonantTensor, eps: float = 1e-5) -> ResonantTensor:
-    """Apply layer normalization."""
-    data = x.to_floats()
-    shape = x.shape
-    
-    if len(shape) == 2:
-        # Normalize each row
-        rows, cols = shape
-        result = []
-        for i in range(rows):
-            row = data[i * cols : (i + 1) * cols]
-            mean = sum(row) / len(row)
-            var = sum((v - mean) ** 2 for v in row) / len(row)
-            std = math.sqrt(var + eps)
-            normalized = [(v - mean) / std for v in row]
-            result.extend(normalized)
-    else:
-        mean = sum(data) / len(data)
-        var = sum((v - mean) ** 2 for v in data) / len(data)
-        std = math.sqrt(var + eps)
-        result = [(v - mean) / std for v in data]
-    
     mode_norms = [float(i * i) for i in range(len(result))]
     return ResonantTensor(result, shape, mode_norms, 100)
 
@@ -132,9 +116,13 @@ class PureDHTransformerLayer(sn.Module):
             d_model, n_heads, dropout, precision
         )
 
-        # FFN weights
-        self.ffn_w1 = sn.Parameter([d_model, d_ff], init='kaiming')
-        self.ffn_w2 = sn.Parameter([d_ff, d_model], init='kaiming')
+        # FFN weights (shape [out, in] for matmul which does A @ W^T)
+        self.ffn_w1 = sn.Parameter([d_ff, d_model], init='kaiming')
+        self.ffn_w2 = sn.Parameter([d_model, d_ff], init='kaiming')
+
+        # Normalization layers (golden-ratio aware)
+        self.norm1 = SyntonicNorm(d_model)
+        self.norm2 = SyntonicNorm(d_model)
 
         self.dropout = sn.Dropout(dropout)
 
@@ -153,30 +141,30 @@ class PureDHTransformerLayer(sn.Module):
         """
         # === Attention sublayer ===
         # Pre-norm
-        x_norm = _layer_norm_rt(x)
+        x_norm = self.norm1.forward(x)
 
         # Attention
         attn_out = self.self_attn(x_norm, x_norm, x_norm)
         self._attn_syntony = self.self_attn.syntony
 
         # Residual (golden scaled)
-        attn_scaled = _scale_rt(attn_out, 1.0 / PHI)
-        x = _add_rt(x, attn_scaled)
+        attn_scaled = attn_out.scalar_mul(1.0 / PHI)
+        x = x.elementwise_add(attn_scaled)
 
         # === FFN sublayer ===
         # Pre-norm
-        x_norm = _layer_norm_rt(x)
+        x_norm = self.norm2.forward(x)
 
         # FFN: W2(GELU(W1(x)))
-        ffn_hidden = _matmul_rt(x_norm, self.ffn_w1.tensor)
+        ffn_hidden = x_norm.matmul(self.ffn_w1.tensor)
         ffn_hidden = _gelu_rt(ffn_hidden)
-        ffn_out = _matmul_rt(ffn_hidden, self.ffn_w2.tensor)
-        
+        ffn_out = ffn_hidden.matmul(self.ffn_w2.tensor)
+
         self._ffn_syntony = ffn_out.syntony
 
         # Residual
-        ffn_scaled = _scale_rt(ffn_out, 1.0 / PHI)
-        x = _add_rt(x, ffn_scaled)
+        ffn_scaled = ffn_out.scalar_mul(1.0 / PHI)
+        x = x.elementwise_add(ffn_scaled)
 
         return x
 
@@ -228,13 +216,16 @@ class PureSyntonicTransformerEncoder(sn.Module):
         ])
         self.n_layers = n_layers
 
+        # Final normalization
+        self.final_norm = SyntonicNorm(d_model)
+
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """Forward through encoder stack."""
         for layer in self.layers:
             x = layer(x)
 
         # Final layer norm
-        x = _layer_norm_rt(x)
+        x = self.final_norm.forward(x)
         return x
 
     @property
@@ -288,8 +279,8 @@ class PureSyntonicTransformer(sn.Module):
             d_model, n_heads, n_layers, d_ff, dropout, precision
         )
 
-        # Output projection
-        self.output_proj = sn.Parameter([d_model, output_dim], init='kaiming')
+        # Output projection (shape [out, in] for matmul which does A @ W^T)
+        self.output_proj = sn.Parameter([output_dim, d_model], init='kaiming')
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
@@ -321,8 +312,8 @@ class PureSyntonicTransformer(sn.Module):
         )
 
         # Project to output
-        output = _matmul_rt(pooled_rt, self.output_proj.tensor)
-        
+        output = pooled_rt.matmul(self.output_proj.tensor)
+
         return output
 
     @property
@@ -331,50 +322,252 @@ class PureSyntonicTransformer(sn.Module):
         return self.encoder.syntony
 
 
+class PureSyntonicTransformerLM(sn.Module):
+    """
+    Language model with vocabulary embedding and positional encoding.
+
+    Complete transformer for text generation and classification:
+    1. Token embedding (vocab_size -> d_model)
+    2. Positional encoding (golden ratio frequencies)
+    3. Transformer encoder
+    4. Output projection (d_model -> vocab_size)
+
+    Example:
+        >>> lm = PureSyntonicTransformerLM(
+        ...     vocab_size=1000,
+        ...     d_model=64,
+        ...     n_layers=3,
+        ...     embedding_type='winding'
+        ... )
+        >>> tokens = [5, 10, 15, 20]
+        >>> logits = lm(tokens)  # Shape: [4, 1000]
+    """
+
+    def __init__(
+        self,
+        vocab_size: int,
+        d_model: int = 64,
+        n_heads: int = 4,
+        n_layers: int = 3,
+        d_ff: int = 256,
+        max_seq_len: int = 512,
+        dropout: float = 0.1,
+        precision: int = 100,
+        embedding_type: str = 'winding',  # 'winding', 'learned', 'syntonic'
+        use_golden_pe: bool = True,
+    ):
+        """
+        Initialize language model.
+
+        Args:
+            vocab_size: Vocabulary size
+            d_model: Model dimension
+            n_heads: Number of attention heads
+            n_layers: Number of encoder layers
+            d_ff: Feed-forward hidden dimension
+            max_seq_len: Maximum sequence length
+            dropout: Dropout probability
+            precision: ResonantTensor precision
+            embedding_type: Type of token embedding
+                - 'winding': Deterministic winding embeddings (recommended)
+                - 'syntonic': Learned with harmonization
+                - 'learned': Standard learned embeddings
+            use_golden_pe: Use golden ratio frequencies for positional encoding
+        """
+        super().__init__()
+
+        self.vocab_size = vocab_size
+        self.d_model = d_model
+        self.precision = precision
+
+        # Import embedding classes
+        from syntonic.nn.architectures.embeddings_pure import (
+            PureWindingEmbedding,
+            PureSyntonicEmbedding,
+            PurePositionalEncoding,
+        )
+
+        # Token embedding
+        if embedding_type == 'winding':
+            self.token_embedding = PureWindingEmbedding(
+                num_embeddings=vocab_size,
+                embedding_dim=d_model,
+                num_windings=8,
+            )
+        elif embedding_type == 'syntonic':
+            self.token_embedding = PureSyntonicEmbedding(
+                num_embeddings=vocab_size,
+                embedding_dim=d_model,
+                harmonize=True,
+                scale_by_sqrt_dim=True,
+            )
+        else:  # 'learned'
+            self.token_embedding = PureSyntonicEmbedding(
+                num_embeddings=vocab_size,
+                embedding_dim=d_model,
+                harmonize=False,
+                scale_by_sqrt_dim=True,
+            )
+
+        # Positional encoding
+        self.pos_encoding = PurePositionalEncoding(
+            d_model=d_model,
+            max_len=max_seq_len,
+            dropout=dropout,
+            use_golden=use_golden_pe,
+        )
+
+        # Transformer encoder
+        self.encoder = PureSyntonicTransformerEncoder(
+            d_model=d_model,
+            n_heads=n_heads,
+            n_layers=n_layers,
+            d_ff=d_ff,
+            dropout=dropout,
+            precision=precision,
+        )
+
+        # Output projection to vocabulary (shape [out, in] for matmul)
+        self.output_proj = sn.Parameter([vocab_size, d_model], init='kaiming')
+
+    def forward(self, token_indices: List[int]) -> ResonantTensor:
+        """
+        Forward pass.
+
+        Args:
+            token_indices: List of token indices [seq_len]
+
+        Returns:
+            Logits (seq_len, vocab_size)
+        """
+        # Embed tokens: [seq_len, d_model]
+        embeddings = self.token_embedding.forward(token_indices)
+
+        # Add positional encoding: [seq_len, d_model]
+        embeddings = self.pos_encoding.forward(embeddings)
+
+        # Encode: [seq_len, d_model]
+        encoded = self.encoder(embeddings)
+
+        # Project to vocabulary: [seq_len, vocab_size]
+        # encoded @ output_proj^T
+        logits = encoded.matmul(self.output_proj.tensor)
+
+        return logits
+
+    @property
+    def syntony(self) -> float:
+        """Get model syntony from encoder."""
+        return self.encoder.syntony
+
+
 if __name__ == "__main__":
     print("=" * 70)
-    print("Pure Syntonic Transformer Test")
+    print("Pure Syntonic Transformer Test Suite")
     print("=" * 70)
-    
+
     d_model = 32
     seq_len = 8
-    
+
     # Create random input
     data = [random.gauss(0, 0.5) for _ in range(seq_len * d_model)]
     mode_norms = [float(i * i) for i in range(len(data))]
     x = ResonantTensor(data, [seq_len, d_model], mode_norms, 100)
-    
+
     print(f"\nInput shape: {x.shape}")
     print(f"Input syntony: {x.syntony:.4f}")
-    
-    # Test single layer
+
+    # Test 1: Single Layer
+    print("\n" + "=" * 70)
+    print("Test 1: PureDHTransformerLayer")
+    print("=" * 70)
     layer = PureDHTransformerLayer(d_model=d_model, n_heads=4, d_ff=64)
     y = layer(x)
-    
-    print(f"\nSingle layer:")
-    print(f"  Output shape: {y.shape}")
+
+    print(f"  Input:  {x.shape}")
+    print(f"  Output: {y.shape}")
     print(f"  Layer syntony: {layer.syntony:.4f}")
-    
-    # Test encoder
+    assert y.shape == x.shape, "Shape should be preserved"
+    print("  ✓ Pass")
+
+    # Test 2: Encoder Stack
+    print("\n" + "=" * 70)
+    print("Test 2: PureSyntonicTransformerEncoder (2 layers)")
+    print("=" * 70)
     encoder = PureSyntonicTransformerEncoder(
         d_model=d_model, n_heads=4, n_layers=2, d_ff=64
     )
     encoded = encoder(x)
-    
-    print(f"\nEncoder (2 layers):")
-    print(f"  Output shape: {encoded.shape}")
+
+    print(f"  Input:  {x.shape}")
+    print(f"  Output: {encoded.shape}")
     print(f"  Encoder syntony: {encoder.syntony:.4f}")
-    
-    # Test full model
+    assert encoded.shape == x.shape, "Shape should be preserved"
+    print("  ✓ Pass")
+
+    # Test 3: Generic Encoder (embeddings provided)
+    print("\n" + "=" * 70)
+    print("Test 3: PureSyntonicTransformer (encoder-only, for embeddings)")
+    print("=" * 70)
     model = PureSyntonicTransformer(
         d_model=d_model, n_heads=4, n_layers=2, d_ff=64, output_dim=10
     )
     logits = model(x)
-    
-    print(f"\nFull model:")
-    print(f"  Logits shape: {logits.shape}")
+
+    print(f"  Input:  {x.shape}")
+    print(f"  Output: {logits.shape}")
     print(f"  Model syntony: {model.syntony:.4f}")
-    
+    print(f"  Note: Output is average-pooled over sequence dimension")
+    print("  ✓ Pass")
+
+    # Test 4: Language Model (with winding embeddings)
     print("\n" + "=" * 70)
-    print("✓ Pure Syntonic Transformer verified!")
+    print("Test 4: PureSyntonicTransformerLM (winding embeddings)")
+    print("=" * 70)
+    lm = PureSyntonicTransformerLM(
+        vocab_size=100,
+        d_model=d_model,
+        n_heads=4,
+        n_layers=2,
+        d_ff=64,
+        max_seq_len=128,
+        embedding_type='winding',
+    )
+
+    # Test with token indices
+    tokens = [5, 10, 15, 20, 25, 30, 35, 40]
+    lm_logits = lm(tokens)
+
+    print(f"  Input tokens: {tokens}")
+    print(f"  Output shape: {lm_logits.shape}")
+    print(f"  Expected:     [{len(tokens)}, {lm.vocab_size}]")
+    print(f"  Model syntony: {lm.syntony:.4f}")
+    assert lm_logits.shape == [len(tokens), lm.vocab_size], "Shape mismatch"
+    print("  ✓ Pass")
+
+    # Test 5: Language Model (with syntonic embeddings)
+    print("\n" + "=" * 70)
+    print("Test 5: PureSyntonicTransformerLM (syntonic embeddings)")
+    print("=" * 70)
+    lm2 = PureSyntonicTransformerLM(
+        vocab_size=50,
+        d_model=16,
+        n_heads=2,
+        n_layers=1,
+        d_ff=32,
+        embedding_type='syntonic',
+    )
+
+    tokens2 = [1, 5, 10]
+    lm2_logits = lm2(tokens2)
+
+    print(f"  Input tokens: {tokens2}")
+    print(f"  Output shape: {lm2_logits.shape}")
+    print(f"  Expected:     [{len(tokens2)}, {lm2.vocab_size}]")
+    print(f"  Model syntony: {lm2.syntony:.4f}")
+    assert lm2_logits.shape == [len(tokens2), lm2.vocab_size], "Shape mismatch"
+    print("  ✓ Pass")
+
+    print("\n" + "=" * 70)
+    print("✓ All tests passed! Pure Syntonic Transformer verified!")
     print("=" * 70)
