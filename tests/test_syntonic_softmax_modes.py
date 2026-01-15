@@ -9,12 +9,12 @@ def test_learned_mode():
     # Use simple values where we can predict behavior
     x_data = [1.0, 1.0, 1.0, 1.0, 1.0,  # Row 1
               2.0, 2.0, 2.0, 2.0, 2.0]  # Row 2 (shift shouldn't affect softmax much)
-    x = ResonantTensor.from_floats(x_data, [2, 5], 100)
+    x = ResonantTensor(x_data, [2, 5])
     
     # Mode norms: |n|² values
     # Let's say indices 0..4 have norms 0, 1, 4, 9, 16
     norms_data = [0.0, 1.0, 4.0, 9.0, 16.0]
-    mode_norms = ResonantTensor.from_floats(norms_data, [5], 100)
+    mode_norms = ResonantTensor(norms_data, [5])
     
     # Run softmax
     # w(n) = exp(-|n|²/φ)
@@ -45,7 +45,7 @@ def test_provided_mode():
     """Test 'provided' mode with pre-computed syntony weights."""
     batch = 2
     features = 3
-    x = ResonantTensor.from_floats([1.0]*6, [batch, features], 100)
+    x = ResonantTensor([1.0]*6, [batch, features])
     
     # Precomputed weights (syntony)
     # Make feature 1 have high syntony -> high weight
@@ -53,7 +53,7 @@ def test_provided_mode():
         0.1, 0.9, 0.1,  # Row 1
         0.5, 0.5, 0.5   # Row 2
     ]
-    syntony = ResonantTensor.from_floats(weights_data, [batch, features], 100)
+    syntony = ResonantTensor(weights_data, [batch, features])
     
     out = syntonic_softmax(x, mode='provided', syntony=syntony)
     
@@ -73,20 +73,23 @@ def test_provided_mode():
 
 def test_identity_mode():
     """Test 'identity' mode (standard softmax behavior)."""
-    x = ResonantTensor.from_floats([0.0, 0.0], [1, 2], 100)
+    x = ResonantTensor([0.0, 0.0], [1, 2])
     
     out = syntonic_softmax(x, mode='identity')
     
     probs = out.to_floats()
     # exp(0)/2*exp(0) = 0.5
-    assert abs(probs[0] - 0.5) < 1e-4
-    assert abs(probs[1] - 0.5) < 1e-4
+    # Allow some tolerance due to lattice snapping
+    assert abs(probs[0] - 0.5) < 1e-3
+    assert abs(probs[1] - 0.5) < 1e-3
+    # Sum should be close to 1
+    assert abs(sum(probs) - 1.0) < 1e-3
     
     print("\n✓ Identity mode passed")
 
 def test_error_handling():
     """Verify error messages for invalid inputs."""
-    x = ResonantTensor.zeros([1, 5], 100)
+    x = ResonantTensor.zeros([1, 5])
     
     # 1. Invalid mode string
     with pytest.raises(ValueError, match="Unknown mode"):

@@ -8,7 +8,7 @@
 // Syntonic Softmax: learned mode (exp(-mode_norms/φ) weighting)
 // =============================================================================
 
-extern "C" __global__ void syntonic_softmax_learned_f64(
+extern "C" __global__ void cuda_syntonic_softmax_learned_f64(
     double *out,                  // Output probabilities [batch, num_classes]
     const double *logits,         // Input logits [batch, num_classes]
     const double *mode_norms,     // Mode norms |n|² [num_classes]
@@ -80,7 +80,7 @@ extern "C" __global__ void syntonic_softmax_learned_f64(
     }
 }
 
-extern "C" __global__ void syntonic_softmax_learned_f32(
+extern "C" __global__ void cuda_syntonic_softmax_learned_f32(
     float *out,
     const float *logits,
     const float *mode_norms,
@@ -154,7 +154,7 @@ extern "C" __global__ void syntonic_softmax_learned_f32(
 // Syntonic Softmax: provided mode (direct syntony weights)
 // =============================================================================
 
-extern "C" __global__ void syntonic_softmax_provided_f64(
+extern "C" __global__ void cuda_syntonic_softmax_provided_f64(
     double *out,
     const double *logits,
     const double *syntony,       // Pre-computed syntony weights (same shape as logits)
@@ -222,7 +222,7 @@ extern "C" __global__ void syntonic_softmax_provided_f64(
 // Syntonic Softmax: Strided Kernels (Complex / Arbitrary Dimension)
 // =============================================================================
 
-extern "C" __global__ void syntonic_softmax_learned_strided_f64(
+extern "C" __global__ void cuda_syntonic_softmax_learned_strided_f64(
     double *out,
     const double *logits,
     const double *mode_norms,
@@ -271,7 +271,7 @@ extern "C" __global__ void syntonic_softmax_learned_strided_f64(
     }
 }
 
-extern "C" __global__ void syntonic_softmax_provided_strided_f64(
+extern "C" __global__ void cuda_syntonic_softmax_provided_strided_f64(
     double *out,
     const double *logits,
     const double *syntony,
@@ -322,7 +322,7 @@ extern "C" __global__ void syntonic_softmax_provided_strided_f64(
 // F32 Variants: Provided and Strided Kernels
 // =============================================================================
 
-extern "C" __global__ void syntonic_softmax_provided_f32(
+extern "C" __global__ void cuda_syntonic_softmax_provided_f32(
     float *out,
     const float *logits,
     const float *syntony,
@@ -386,7 +386,7 @@ extern "C" __global__ void syntonic_softmax_provided_f32(
     }
 }
 
-extern "C" __global__ void syntonic_softmax_learned_strided_f32(
+extern "C" __global__ void cuda_syntonic_softmax_learned_strided_f32(
     float *out,
     const float *logits,
     const float *mode_norms,
@@ -430,7 +430,7 @@ extern "C" __global__ void syntonic_softmax_learned_strided_f32(
     }
 }
 
-extern "C" __global__ void syntonic_softmax_provided_strided_f32(
+extern "C" __global__ void cuda_syntonic_softmax_provided_strided_f32(
     float *out,
     const float *logits,
     const float *syntony,
@@ -481,15 +481,14 @@ extern "C" __global__ void syntonic_softmax_provided_strided_f32(
 // Identity Mode: Standard Softmax (No Golden Weighting) - GPU Accelerated
 // =============================================================================
 
-extern "C" __global__ void softmax_identity_f64(
+extern "C" __global__ void cuda_softmax_identity_f64(
     double *out,
     const double *logits,
     int batch_size,
     int num_classes
 ) {
-    extern __shared__ double shared_id[];
-    double *s_max = shared_id;
-    double *s_sum = shared_id + blockDim.x;
+    __shared__ double s_max[256];
+    __shared__ double s_sum[256];
 
     int batch_idx = blockIdx.x;
     int tid = threadIdx.x;
@@ -543,15 +542,14 @@ extern "C" __global__ void softmax_identity_f64(
     }
 }
 
-extern "C" __global__ void softmax_identity_f32(
+extern "C" __global__ void cuda_softmax_identity_f32(
     float *out,
     const float *logits,
     int batch_size,
     int num_classes
 ) {
-    extern __shared__ float shared_idf[];
-    float *s_max = shared_idf;
-    float *s_sum = shared_idf + blockDim.x;
+    __shared__ float s_max[256];
+    __shared__ double s_sum[256];
 
     int batch_idx = blockIdx.x;
     int tid = threadIdx.x;
@@ -580,10 +578,11 @@ extern "C" __global__ void softmax_identity_f32(
     float max_val = s_max[0];
     __syncthreads();
 
-    // Step 2: Sum
-    float local_sum = 0.0f;
+    // Step 2: Sum (use double precision for everything)
+    double local_sum = 0.0;
     for (int i = tid; i < num_classes; i += blockDim.x) {
-        local_sum += __expf(x[i] - max_val);
+        double val = (double)x[i];
+        local_sum += exp(val - (double)max_val);
     }
 
     s_sum[tid] = local_sum;
@@ -596,12 +595,13 @@ extern "C" __global__ void softmax_identity_f32(
         __syncthreads();
     }
 
-    float sum = s_sum[0];
+    double sum = s_sum[0];
     __syncthreads();
 
     // Step 3: Normalize
     for (int i = tid; i < num_classes; i += blockDim.x) {
-        y[i] = __expf(x[i] - max_val) / sum;
+        double val = (double)x[i];
+        y[i] = (float)(exp(val - (double)max_val) / sum);
     }
 }
 
@@ -609,7 +609,7 @@ extern "C" __global__ void softmax_identity_f32(
 // Identity Mode: Strided Variants
 // =============================================================================
 
-extern "C" __global__ void softmax_identity_strided_f64(
+extern "C" __global__ void cuda_softmax_identity_strided_f64(
     double *out,
     const double *logits,
     int outer_size,
@@ -648,7 +648,7 @@ extern "C" __global__ void softmax_identity_strided_f64(
     }
 }
 
-extern "C" __global__ void softmax_identity_strided_f32(
+extern "C" __global__ void cuda_softmax_identity_strided_f32(
     float *out,
     const float *logits,
     int outer_size,

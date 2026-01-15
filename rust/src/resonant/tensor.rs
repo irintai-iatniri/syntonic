@@ -647,6 +647,26 @@ impl ResonantTensor {
             if let Some(ref cpu) = self.cpu_flux {
                 return cpu.clone();
             }
+            
+            // Download from GPU flux if available
+            #[cfg(feature = "cuda")]
+            if let Some(device) = &self.device {
+                // Check f32 flux
+                if let Some(flux_f32) = &self.flux_f32 {
+                    let mut host_data = vec![0.0f32; self.len()];
+                    if device.default_stream().memcpy_dtoh(flux_f32, &mut host_data).is_ok() {
+                        return host_data.into_iter().map(|v| v as f64).collect();
+                    }
+                }
+                
+                // Check f64 flux
+                if let Some(flux) = &self.flux {
+                    let mut host_data = vec![0.0f64; self.len()];
+                    if device.default_stream().memcpy_dtoh(flux, &mut host_data).is_ok() {
+                        return host_data;
+                    }
+                }
+            }
         }
 
         self.to_floats_core()
@@ -691,6 +711,12 @@ impl ResonantTensor {
         self.flux = None;
         self.flux_f32 = Some(flux);
         self.phase = ResonantPhase::Flux;
+    }
+
+    /// Set the CUDA device reference.
+    #[cfg(feature = "cuda")]
+    pub fn set_device(&mut self, device: Arc<CudaDevice>) {
+        self.device = Some(device);
     }
 
     /// Recompute syntony from current lattice state.
@@ -2585,7 +2611,8 @@ impl ResonantTensor {
     /// Creates a new tensor on the specified GPU.
     /// If the current tensor has active flux (is on another GPU), it is downloaded first.
     #[cfg(feature = "cuda")]
-    fn to_device(&self, device_idx: usize) -> PyResult<Self> {
+    #[pyo3(signature = (device_idx))]
+    pub fn to_device(&self, device_idx: usize) -> PyResult<Self> {
         // 1. Resolve current values (download if on GPU)
         let values = self.resolve_values_core()?;
 
@@ -2597,12 +2624,22 @@ impl ResonantTensor {
             self.precision
         ).map_err(|e| PyErr::from(e))?;
 
-        // 3. Move to target device
+        // 3. Move to target device (use F32 for GPU operations)
         let device = crate::tensor::cuda::device_manager::get_device(device_idx).map_err(|e| {
             pyo3::exceptions::PyRuntimeError::new_err(format!("cuda device error: {}", e))
         })?;
         
-        new_tensor.wake_flux(device).map_err(|e| PyErr::from(e))?;
+        // Create F32 flux for GPU operations
+        let floats_f32: Vec<f32> = values.iter().map(|&v| v as f32).collect();
+        let gpu_slice = device
+            .default_stream()
+            .clone_htod(&floats_f32)
+            .map_err(|e| ResonantError::CudaError(e.to_string()))?;
+        
+        new_tensor.flux = None;
+        new_tensor.flux_f32 = Some(gpu_slice);
+        new_tensor.device = Some(device);
+        new_tensor.phase = ResonantPhase::Flux;
         new_tensor.set_device_idx(device_idx);
         
         Ok(new_tensor)
@@ -2612,7 +2649,8 @@ impl ResonantTensor {
     ///
     /// If the tensor is on GPU (Flux phase), downloads the values.
     /// Returns a new tensor on CPU (Crystallized phase).
-    fn to_cpu(&self) -> PyResult<Self> {
+    #[pyo3(signature = ())]
+    pub fn to_cpu(&self) -> PyResult<Self> {
         // 1. Resolve current values
         let values = self.resolve_values_core()?;
 

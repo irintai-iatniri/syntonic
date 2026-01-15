@@ -100,6 +100,15 @@ const PTX_MATMUL_SM86: &str = include_str!("../../kernels/ptx/matmul_sm86.ptx");
 const PTX_MATMUL_SM90: &str = include_str!("../../kernels/ptx/matmul_sm90.ptx");
 
 #[cfg(feature = "cuda")]
+const PTX_GOLDEN_BATCH_NORM_SM75: &str =
+    include_str!("../../kernels/ptx/golden_batch_norm_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_GOLDEN_BATCH_NORM_SM80: &str =
+    include_str!("../../kernels/ptx/golden_batch_norm_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_GOLDEN_BATCH_NORM_SM86: &str =
+    include_str!("../../kernels/ptx/golden_batch_norm_sm86.ptx");
+#[cfg(feature = "cuda")]
 const PTX_GOLDEN_BATCH_NORM_SM90: &str =
     include_str!("../../kernels/ptx/golden_batch_norm_sm90.ptx");
 
@@ -293,20 +302,20 @@ const GOLDEN_BATCH_NORM_FUNCS: &[&str] = &[
 #[cfg(feature = "cuda")]
 const SYNTONIC_SOFTMAX_FUNCS: &[&str] = &[
     // Learned mode
-    "syntonic_softmax_learned_f64",
-    "syntonic_softmax_learned_f32",
-    "syntonic_softmax_learned_strided_f64",
-    "syntonic_softmax_learned_strided_f32",
+    "cuda_syntonic_softmax_learned_f64",
+    "cuda_syntonic_softmax_learned_f32",
+    "cuda_syntonic_softmax_learned_strided_f64",
+    "cuda_syntonic_softmax_learned_strided_f32",
     // Provided mode
-    "syntonic_softmax_provided_f64",
-    "syntonic_softmax_provided_f32",
-    "syntonic_softmax_provided_strided_f64",
-    "syntonic_softmax_provided_strided_f32",
+    "cuda_syntonic_softmax_provided_f64",
+    "cuda_syntonic_softmax_provided_f32",
+    "cuda_syntonic_softmax_provided_strided_f64",
+    "cuda_syntonic_softmax_provided_strided_f32",
     // Identity mode (standard softmax)
-    "softmax_identity_f64",
-    "softmax_identity_f32",
-    "softmax_identity_strided_f64",
-    "softmax_identity_strided_f32",
+    "cuda_softmax_identity_f64",
+    "cuda_softmax_identity_f32",
+    "cuda_softmax_identity_strided_f64",
+    "cuda_softmax_identity_strided_f32",
 ];
 
 /// Matmul kernel functions
@@ -453,11 +462,16 @@ fn select_phi_residual_ptx(major: i32, minor: i32) -> &'static str {
 
 #[cfg(feature = "cuda")]
 fn select_golden_batch_norm_ptx(major: i32, minor: i32) -> &'static str {
-    // Currently only SM90 is optimized/compiled for golden batch norm
-    if major < 9 {
-         eprintln!("WARNING: Golden Batch Norm PTX optimized for SM90+, running on {}.{}", major, minor);
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_GOLDEN_BATCH_NORM_SM90
+    } else if cc >= 86 {
+        PTX_GOLDEN_BATCH_NORM_SM86
+    } else if cc >= 80 {
+        PTX_GOLDEN_BATCH_NORM_SM80
+    } else {
+        PTX_GOLDEN_BATCH_NORM_SM75
     }
-    PTX_GOLDEN_BATCH_NORM_SM90
 }
 
 #[cfg(feature = "cuda")]
@@ -2223,7 +2237,7 @@ pub fn cuda_syntonic_softmax_learned_f64(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("syntonic_softmax_learned_f64")
+        .load_function("cuda_syntonic_softmax_learned_f64")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = LaunchConfig {
@@ -2266,7 +2280,7 @@ pub fn cuda_syntonic_softmax_provided_f64(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("syntonic_softmax_provided_f64")
+        .load_function("cuda_syntonic_softmax_provided_f64")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = LaunchConfig {
@@ -2310,7 +2324,7 @@ pub fn cuda_syntonic_softmax_learned_strided_f64(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("syntonic_softmax_learned_strided_f64")
+        .load_function("cuda_syntonic_softmax_learned_strided_f64")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let count = (outer_size * inner_size) as usize;
@@ -2350,7 +2364,7 @@ pub fn cuda_syntonic_softmax_provided_strided_f64(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("syntonic_softmax_provided_strided_f64")
+        .load_function("cuda_syntonic_softmax_provided_strided_f64")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let count = (outer_size * inner_size) as usize;
@@ -2393,7 +2407,7 @@ pub fn cuda_syntonic_softmax_learned_f32(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("syntonic_softmax_learned_f32")
+        .load_function("cuda_syntonic_softmax_learned_f32")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = LaunchConfig {
@@ -2436,7 +2450,7 @@ pub fn cuda_syntonic_softmax_provided_f32(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("syntonic_softmax_provided_f32")
+        .load_function("cuda_syntonic_softmax_provided_f32")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = LaunchConfig {
@@ -2480,7 +2494,7 @@ pub fn cuda_syntonic_softmax_learned_strided_f32(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("syntonic_softmax_learned_strided_f32")
+        .load_function("cuda_syntonic_softmax_learned_strided_f32")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let count = (outer_size * inner_size) as usize;
@@ -2520,7 +2534,7 @@ pub fn cuda_syntonic_softmax_provided_strided_f32(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("syntonic_softmax_provided_strided_f32")
+        .load_function("cuda_syntonic_softmax_provided_strided_f32")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let count = (outer_size * inner_size) as usize;
@@ -2561,13 +2575,13 @@ pub fn cuda_softmax_identity_f64(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("softmax_identity_f64")
+        .load_function("cuda_softmax_identity_f64")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = LaunchConfig {
         grid_dim: (batch_size as u32, 1, 1),
         block_dim: (256, 1, 1),
-        shared_mem_bytes: 256 * 2 * std::mem::size_of::<f64>() as u32,
+        shared_mem_bytes: 0,
     };
 
     unsafe {
@@ -2600,13 +2614,13 @@ pub fn cuda_softmax_identity_f32(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("softmax_identity_f32")
+        .load_function("cuda_softmax_identity_f32")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let cfg = LaunchConfig {
         grid_dim: (batch_size as u32, 1, 1),
         block_dim: (256, 1, 1),
-        shared_mem_bytes: 256 * 2 * std::mem::size_of::<f32>() as u32,
+        shared_mem_bytes: 0,
     };
 
     unsafe {
@@ -2640,7 +2654,7 @@ pub fn cuda_softmax_identity_strided_f64(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("softmax_identity_strided_f64")
+        .load_function("cuda_softmax_identity_strided_f64")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let count = (outer_size * inner_size) as usize;
@@ -2676,7 +2690,7 @@ pub fn cuda_softmax_identity_strided_f32(
         .map_err(|e| format!("Failed to load syntonic_softmax kernels: {}", e))?;
 
     let func = module
-        .load_function("softmax_identity_strided_f32")
+        .load_function("cuda_softmax_identity_strided_f32")
         .map_err(|_| "Kernel not found".to_string())?;
 
     let count = (outer_size * inner_size) as usize;

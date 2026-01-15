@@ -14,7 +14,7 @@ Phase 2 Implementation Status:
 - Task 2.3: Python API completeness (already done)
 """
 
-import pytest
+import pytest  # type: ignore
 import numpy as np
 import time
 
@@ -165,6 +165,9 @@ class TestF32Support:
             1.0
         )
 
+        # Transfer state to GPU
+        state.to_device(0)
+
         y = state.forward(x, None)
 
         # Result should still be on GPU
@@ -285,9 +288,8 @@ class TestStridedKernels:
 
         print(f"Strided identity dim=0 works, column sums all ~1.0")
 
-    @pytest.mark.xfail(reason="Strided learned mode for non-last dim requires GPU - CPU path has broadcasting limitation")
     def test_strided_learned_dim0(self):
-        """Test strided learned mode along dimension 0."""
+        """Test strided learned mode along dimension 0 (Phase 3 fix)."""
         # Shape [3, 4] - softmax along dim 0 (3 features)
         data = [0.0] * 12
         x = ResonantTensor(data, [3, 4])

@@ -8,6 +8,7 @@
 use crate::resonant::{
     ResonantTensor, ResonantPhase, 
     e8_lattice::{E8Lattice, GoldenProjector, compute_8d_weight},
+    crystallize::snap_to_lattice,
     PHI,
 };
 use pyo3::prelude::*;
@@ -391,6 +392,8 @@ impl SyntonicSoftmaxState {
 
                 let mut output = x.clone();
                 output.set_flux_f32(out_flux);
+                output.set_device(device.clone());
+                output.set_device_idx(device_idx);
                 return Ok(output);
             } else {
                 // F64 identity mode
@@ -425,7 +428,15 @@ impl SyntonicSoftmaxState {
 
                 let mut output = x.clone();
                 output.set_flux(out_flux);
-                return Ok(output);
+                
+                // Download results and create new tensor for immediate access
+                let mut host_data = vec![0.0f64; output.len()];
+                device.default_stream().memcpy_dtoh(output.flux_ref().unwrap(), &mut host_data).map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to download GPU results: {}", e)))?;
+                
+                // Create new tensor from downloaded data
+                let result_lattice = snap_to_lattice(&host_data, x.precision());
+                let result_norms = x.mode_norm_sq().to_vec();
+                return ResonantTensor::from_lattice(result_lattice, x.shape().to_vec(), result_norms).map_err(|e| PyErr::from(e));
             }
         }
 
@@ -443,6 +454,7 @@ impl SyntonicSoftmaxState {
             match self.mode {
                 SyntonicSoftmaxMode::Learned => {
                     let mode_norms = self.mode_norms.as_ref().unwrap();
+                    
                     let norms_flux = mode_norms.flux_f32_ref().ok_or_else(|| {
                         pyo3::exceptions::PyRuntimeError::new_err(
                             "mode_norms must be on GPU (F32) for CUDA softmax",
@@ -512,6 +524,8 @@ impl SyntonicSoftmaxState {
 
             let mut output = x.clone();
             output.set_flux_f32(out_flux);
+            output.set_device(device.clone());
+            output.set_device_idx(device_idx);
             Ok(output)
         } else {
             // F64 path (original implementation)
@@ -526,6 +540,7 @@ impl SyntonicSoftmaxState {
             match self.mode {
                 SyntonicSoftmaxMode::Learned => {
                     let mode_norms = self.mode_norms.as_ref().unwrap();
+                    
                     let norms_flux = mode_norms.flux_ref().ok_or_else(|| {
                         pyo3::exceptions::PyRuntimeError::new_err(
                             "mode_norms must be on GPU for CUDA softmax",
@@ -595,6 +610,8 @@ impl SyntonicSoftmaxState {
 
             let mut output = x.clone();
             output.set_flux(out_flux);
+            output.set_device(device.clone());
+            output.set_device_idx(device_idx);
             Ok(output)
         }
     }
@@ -602,6 +619,22 @@ impl SyntonicSoftmaxState {
     /// Get current mode norms (for learned mode)
     fn get_mode_norms(&self) -> PyResult<Option<ResonantTensor>> {
         Ok(self.mode_norms.clone())
+    }
+
+    /// Transfer state to GPU device
+    #[pyo3(signature = (device))]
+    fn to_device(&mut self, device: usize) -> PyResult<()> {
+        self.to_device_inner(device)
+    }
+
+    /// Transfer state to GPU device
+    pub fn to_device_inner(&mut self, device: usize) -> PyResult<()> {
+        if let Some(ref mut mode_norms) = self.mode_norms {
+            if mode_norms.phase() != ResonantPhase::Flux || mode_norms.device_idx() != Some(device) {
+                *mode_norms = mode_norms.to_device(device)?;
+            }
+        }
+        Ok(())
     }
 }
 
@@ -680,6 +713,7 @@ pub fn syntonic_softmax_py(
         }
     };
 
+
     // Input validation
     let x_shape = x.shape();
     let ndim = x_shape.len();
@@ -712,16 +746,7 @@ pub fn syntonic_softmax_py(
             return Err(pyo3::exceptions::PyValueError::new_err(format!(
                 "2D mode_norms must have shape [N, 8], got [{}, {}]",
                 norms.shape()[0], norms.shape()[1]
-=======
-    if let Some(norms) = mode_norms {
-        let n_dims = norms.shape().len();
-        let shape = norms.shape();
-        // Allow 1D norms or 2D [N, 8] E8 roots
-        let valid_shape = n_dims == 1 || (n_dims == 2 && shape[1] == 8);
-        if !valid_shape {
-            return Err(pyo3::exceptions::PyValueError::new_err(
-                "mode_norms must be 1D tensor of norms OR [N, 8] tensor of E8 roots"
-            ));
+            )));
         }
     }
 
