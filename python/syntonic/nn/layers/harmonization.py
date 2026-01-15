@@ -52,6 +52,7 @@ class HarmonizationLayer:
         bias: bool = True,
         beta_scale: float = 1.0,
         gamma_scale: float = 1.0,
+        device: str = 'cpu',
     ):
         """
         Initialize harmonization layer.
@@ -62,18 +63,20 @@ class HarmonizationLayer:
             bias: Include bias terms
             beta_scale: Damping strength (β in Ĥ formula)
             gamma_scale: Syntony projection strength (γ)
+            device: Device placement
         """
         out_features = out_features or in_features
 
         self.in_features = in_features
         self.out_features = out_features
+        self.device = device
 
         # Damping pathway: -β·σ(W_H·x + b_H)
-        self.damping = ResonantLinear(in_features, out_features, bias=bias)
+        self.damping = ResonantLinear(in_features, out_features, bias=bias, device=device)
         self.beta_scale = beta_scale
 
         # Syntony projection: +γ·tanh(W_S·x + b_S)
-        self.syntony_proj = ResonantLinear(in_features, out_features, bias=bias)
+        self.syntony_proj = ResonantLinear(in_features, out_features, bias=bias, device=device)
         self.gamma_scale = gamma_scale
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
@@ -140,7 +143,7 @@ class HarmonizationLayer:
         return (x_var - h_var) / (x_var + 1e-8)
 
     def __repr__(self) -> str:
-        return f'HarmonizationLayer(in_features={self.in_features}, out_features={self.out_features}, beta={self.beta_scale}, gamma={self.gamma_scale})'
+        return f'HarmonizationLayer(in_features={self.in_features}, out_features={self.out_features}, beta={self.beta_scale}, gamma={self.gamma_scale}, device={self.device})'
 
 
 class HarmonizationModule(sn.Module):
@@ -161,6 +164,7 @@ class HarmonizationModule(sn.Module):
         d_model: int,
         n_heads: int,
         dropout: float = 0.1,
+        device: str = 'cpu',
     ):
         """
         Initialize Harmonization Module.
@@ -169,25 +173,28 @@ class HarmonizationModule(sn.Module):
             d_model: Model dimension
             n_heads: Number of damping heads
             dropout: Dropout probability
+            device: Device placement
         """
         super().__init__()
         self.d_model = d_model
         self.n_heads = n_heads
         self.head_dim = d_model // n_heads
+        self.device = device
+        self._device = device # sn.Module support
 
         # Multi-path Damping: -βᵢ · σ(W_H,i · x)
         # We implement this as n_heads independent linear projections
         # similar to attention heads
         self.damping_heads = sn.ModuleList([
-            ResonantLinear(d_model, self.head_dim)
+            ResonantLinear(d_model, self.head_dim, device=device)
             for _ in range(n_heads)
         ])
 
         # Shared Syntony Projection: +γ · tanh(W_S · x)
-        self.syntony_proj = ResonantLinear(d_model, d_model)
+        self.syntony_proj = ResonantLinear(d_model, d_model, device=device)
 
         # Output mixing
-        self.output_proj = ResonantLinear(d_model, d_model)
+        self.output_proj = ResonantLinear(d_model, d_model, device=device)
         self.dropout = sn.Dropout(dropout)
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:

@@ -150,6 +150,7 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         n_heads: int = 8,
         dropout: float = 0.1,
         precision: int = 100,
+        device: str = 'cpu',
     ):
         """
         Initialize multi-head syntonic attention.
@@ -159,6 +160,7 @@ class PureMultiHeadSyntonicAttention(sn.Module):
             n_heads: Number of attention heads
             dropout: Dropout probability
             precision: ResonantTensor precision
+            device: Device placement
         """
         super().__init__()
 
@@ -169,13 +171,14 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         self.d_head = d_model // n_heads
         self.scale = math.sqrt(self.d_head)
         self.precision = precision
+        self.device = device
 
         # Projections as Parameters
         # Uses sn.Parameter which wraps ResonantTensor
-        self.q_proj = sn.Parameter([d_model, d_model], init='kaiming')
-        self.k_proj = sn.Parameter([d_model, d_model], init='kaiming')
-        self.v_proj = sn.Parameter([d_model, d_model], init='kaiming')
-        self.out_proj = sn.Parameter([d_model, d_model], init='kaiming')
+        self.q_proj = sn.Parameter([d_model, d_model], init='kaiming', device=device)
+        self.k_proj = sn.Parameter([d_model, d_model], init='kaiming', device=device)
+        self.v_proj = sn.Parameter([d_model, d_model], init='kaiming', device=device)
+        self.out_proj = sn.Parameter([d_model, d_model], init='kaiming', device=device)
 
         self.dropout = sn.Dropout(dropout)
         

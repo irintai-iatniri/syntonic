@@ -11,7 +11,7 @@ dual representations:
 """
 
 from __future__ import annotations
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 from syntonic._core import ResonantTensor as _RustResonantTensor, GoldenExact
 
 
@@ -26,7 +26,9 @@ class ResonantTensor:
         syntony: Current syntony value S ∈ [0, 1]
         phase: Current phase ("crystallized" or "flux")
         shape: Tensor shape as list of dimensions
+        shape: Tensor shape as list of dimensions
         precision: Lattice precision for crystallization
+        device: Device location ('cpu' or 'cuda:N')
 
     Examples:
         >>> # Create from floats with default mode norms
@@ -52,7 +54,8 @@ class ResonantTensor:
         data: List[float],
         shape: List[int],
         mode_norm_sq: Optional[List[float]] = None,
-        precision: int = 100
+        precision: int = 100,
+        device: str = 'cpu'
     ):
         """
         Create a ResonantTensor from floating-point data.
@@ -71,7 +74,21 @@ class ResonantTensor:
             >>> norms = [0.0, 1.0, 4.0, 9.0]  # Custom mode structure
             >>> tensor = ResonantTensor([1.0, 2.0, 3.0, 4.0], shape=[2, 2], mode_norm_sq=norms)
         """
-        self._inner = _RustResonantTensor(data, shape, mode_norm_sq, precision)
+        if device.startswith('cuda'):
+            # Parse device index
+            if ':' in device:
+                idx = int(device.split(':')[1])
+            else:
+                idx = 0
+                
+            # Create on CPU first then move
+            # TODO: Direct GPU creation if supported by Rust
+            self._inner = _RustResonantTensor(data, shape, mode_norm_sq, precision)
+            self._inner = self._inner.to_device(idx)
+        else:
+            self._inner = _RustResonantTensor(data, shape, mode_norm_sq, precision)
+            
+        self._device_str = device
 
     # =========================================================================
     # Properties
@@ -97,6 +114,11 @@ class ResonantTensor:
         """Get the precision used for last crystallization."""
         return self._inner.precision
 
+    @property
+    def device(self) -> str:
+        """Get the device string (e.g. 'cpu', 'cuda:0')."""
+        return self._device_str
+
     # =========================================================================
     # Factory Methods
     # =========================================================================
@@ -119,7 +141,7 @@ class ResonantTensor:
         Returns:
             New ResonantTensor
         """
-        return cls(data, shape, precision=precision)
+        return cls(data, shape, precision=precision, device=device)
 
     @classmethod
     def from_golden_exact(
@@ -149,7 +171,7 @@ class ResonantTensor:
         return instance
 
     @classmethod
-    def zeros(cls, shape: List[int], precision: int = 100) -> "ResonantTensor":
+    def zeros(cls, shape: List[int], precision: int = 100, device: str = 'cpu') -> "ResonantTensor":
         """
         Create a zero-initialized tensor.
 
@@ -166,10 +188,12 @@ class ResonantTensor:
         """
         instance = cls.__new__(cls)
         instance._inner = _RustResonantTensor.zeros(shape, precision)
+        if device != 'cpu':
+            instance._inner = instance._inner.to_device(device)
         return instance
 
     @classmethod
-    def ones(cls, shape: List[int], precision: int = 100) -> "ResonantTensor":
+    def ones(cls, shape: List[int], precision: int = 100, device: str = 'cpu') -> "ResonantTensor":
         """
         Create a ones-initialized tensor.
 
@@ -187,7 +211,7 @@ class ResonantTensor:
         size = 1
         for dim in shape:
             size *= dim
-        return cls([1.0] * size, shape, precision=precision)
+        return cls([1.0] * size, shape, precision=precision, device=device)
 
     @classmethod
     def randn(
@@ -221,7 +245,7 @@ class ResonantTensor:
         for dim in shape:
             size *= dim
         data = [random.gauss(mean, std) for _ in range(size)]
-        return cls(data, shape, precision=precision)
+        return cls(data, shape, precision=precision, device=device)
 
     # =========================================================================
     # Conversion Methods
@@ -273,6 +297,44 @@ class ResonantTensor:
         """
         return self._inner.get_mode_norm_sq()
 
+    def to(self, device: str) -> "ResonantTensor":
+        """
+        Move tensor to device.
+        
+        Args:
+            device: Target device ('cpu', 'cuda:0', etc.)
+            
+        Returns:
+            New tensor on target device (or self if already there)
+        """
+        # Optimized: check if already on device
+        if self.device == device:
+            return self
+
+        # Call Rust backend
+        if device == 'cpu':
+            new_inner = self._inner.to_cpu()
+        elif device.startswith('cuda'):
+            if ':' in device:
+                idx = int(device.split(':')[1])
+            else:
+                idx = 0
+            new_inner = self._inner.to_device(idx)
+        else:
+            raise ValueError(f"Unsupported device: {device}")
+            
+        new_tensor = ResonantTensor._wrap(new_inner)
+        new_tensor._device_str = device
+        return new_tensor
+
+    def cuda(self, device_id: int = 0) -> "ResonantTensor":
+        """Move to CUDA."""
+        return self.to(f'cuda:{device_id}')
+
+    def cpu(self) -> "ResonantTensor":
+        """Move to CPU."""
+        return self.to('cpu')
+
     # =========================================================================
     # Phase Transitions (DHSR Cycle)
     # =========================================================================
@@ -291,7 +353,14 @@ class ResonantTensor:
         """
         return self._inner.wake_flux_values()
 
-    def crystallize(self, values: List[float], precision: int) -> float:
+    # Internal wrapper
+    @classmethod
+    def _wrap(cls, inner: _RustResonantTensor, device: str = 'cpu') -> "ResonantTensor":
+        """Wrap a Rust tensor without triggering __init__."""
+        instance = cls.__new__(cls)
+        instance._inner = inner
+        instance._device_str = device
+        return instance
         """
         Enter H-phase: snap flux → lattice.
 
@@ -376,7 +445,7 @@ class ResonantTensor:
             >>> y = x.matmul(w)  # [4, 20]
         """
         result = self._inner.matmul(weights._inner)
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=self.device)
 
     def add_bias(self, bias: "ResonantTensor") -> None:
         """
@@ -504,7 +573,7 @@ class ResonantTensor:
             >>> c = a.elementwise_add(b)  # [4.0, 6.0]
         """
         result = self._inner.elementwise_add(other._inner)
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=self.device)
 
     def elementwise_mul(self, other: "ResonantTensor") -> "ResonantTensor":
         """
@@ -522,7 +591,7 @@ class ResonantTensor:
             >>> c = a.elementwise_mul(b)  # [8.0, 15.0]
         """
         result = self._inner.elementwise_mul(other._inner)
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=self.device)
 
     def scalar_mul(self, scalar: float) -> "ResonantTensor":
         """
@@ -539,7 +608,7 @@ class ResonantTensor:
             >>> y = x.scalar_mul(2.0)  # [2.0, 4.0, 6.0]
         """
         result = self._inner.scalar_mul(scalar)
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=self.device)
 
     def scalar_add(self, scalar: float) -> "ResonantTensor":
         """
@@ -556,7 +625,7 @@ class ResonantTensor:
             >>> y = x.scalar_add(10.0)  # [11.0, 12.0, 13.0]
         """
         result = self._inner.scalar_add(scalar)
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=self.device)
 
     def negate(self) -> "ResonantTensor":
         """
@@ -570,7 +639,7 @@ class ResonantTensor:
             >>> y = x.negate()  # [-1.0, 2.0, -3.0]
         """
         result = self._inner.negate()
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=self.device)
 
     def one_minus(self) -> "ResonantTensor":
         """
@@ -586,7 +655,7 @@ class ResonantTensor:
             >>> y = x.one_minus()  # [0.8, 0.5, 0.2]
         """
         result = self._inner.one_minus()
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=self.device)
 
     # =========================================================================
     # Math Functions
@@ -607,7 +676,7 @@ class ResonantTensor:
             >>> y = x.log()  # [0.0, 1.0, 2.0]
         """
         result = self._inner.log(precision)
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=self.device)
 
     def exp(self, precision: Optional[int] = None) -> "ResonantTensor":
         """
@@ -624,7 +693,7 @@ class ResonantTensor:
             >>> y = x.exp()  # [1.0, 2.718, 7.389]
         """
         result = self._inner.exp(precision)
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=self.device)
 
     # =========================================================================
     # Advanced Operations
@@ -670,7 +739,7 @@ class ResonantTensor:
         # Call the static method with Python context
         # Fixed: correct arguments (tensors, dim) without module context
         result = _RT.concat(inner_list, dim)
-        return ResonantTensor._wrap(result)
+        return ResonantTensor._wrap(result, device=tensors[0].device if tensors else 'cpu')
 
     def index_select(self, indices: List[int], dim: int = 0) -> "ResonantTensor":
         """
@@ -693,7 +762,7 @@ class ResonantTensor:
 
         try:
             result = self._inner.index_select(indices, dim)
-            return ResonantTensor._wrap(result)
+            return ResonantTensor._wrap(result, device=self.device)
         except AttributeError:
             # Fallback for when backend doesn't implement index_select
             import itertools

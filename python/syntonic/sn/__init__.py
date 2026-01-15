@@ -11,7 +11,7 @@ This module provides:
 """
 
 from __future__ import annotations
-from typing import List, Dict, Iterator, Optional, Any, Callable
+from typing import List, Dict, Iterator, Optional, Any, Callable, Union
 import math
 import random
 
@@ -48,6 +48,7 @@ class Parameter:
         init: str = 'uniform',
         init_scale: Optional[float] = None,
         requires_grad: bool = True,
+        device: Optional[str] = None,
         precision: int = 100,
     ):
         """
@@ -62,6 +63,7 @@ class Parameter:
         """
         self.shape = list(shape)
         self.requires_grad = requires_grad
+        self.device = device or 'cpu'
         self.precision = precision
         
         # Compute size
@@ -74,6 +76,8 @@ class Parameter:
         mode_norms = [float(i * i) for i in range(size)]
         
         self.tensor = ResonantTensor(data, shape, mode_norms, precision)
+        if self.device != 'cpu':
+            self.tensor = self.tensor.to(self.device)
     
     def _initialize(self, size: int, method: str, scale: Optional[float]) -> List[float]:
         """Initialize parameter data."""
@@ -116,8 +120,22 @@ class Parameter:
         """Get parameter data as list."""
         return self.tensor.to_floats()
     
+    def to(self, device: str) -> 'Parameter':
+        """Move parameter to device."""
+        self.device = device
+        self.tensor = self.tensor.to(device)
+        return self
+
+    def cuda(self, device_id: int = 0) -> 'Parameter':
+        """Move parameter to CUDA."""
+        return self.to(f'cuda:{device_id}')
+
+    def cpu(self) -> 'Parameter':
+        """Move parameter to CPU."""
+        return self.to('cpu')
+
     def __repr__(self) -> str:
-        return f"Parameter(shape={self.shape}, requires_grad={self.requires_grad})"
+        return f"Parameter(shape={self.shape}, device={self.device}, requires_grad={self.requires_grad})"
 
 
 class Module:
@@ -132,12 +150,27 @@ class Module:
         self._parameters: Dict[str, Parameter] = {}
         self._modules: Dict[str, 'Module'] = {}
         self._buffers: Dict[str, Any] = {}
+        self._device: str = 'cpu'
         self.training = True
+
+    @property
+    def device(self) -> str:
+        return self._device
+
+    @device.setter
+    def device(self, value: str):
+        self._device = value
     
     def __setattr__(self, name: str, value: Any):
         if isinstance(value, Parameter):
+            # Auto-move parameter to module's device
+            if hasattr(self, '_device') and self._device != 'cpu' and value.device != self._device:
+                value.to(self._device)
             self._parameters[name] = value
         elif isinstance(value, Module):
+            # Auto-move submodule to module's device
+            if hasattr(self, '_device') and self._device != 'cpu':
+                value.to(self._device)
             self._modules[name] = value
         object.__setattr__(self, name, value)
     
@@ -194,6 +227,30 @@ class Module:
     def eval(self) -> 'Module':
         """Set evaluation mode."""
         return self.train(False)
+
+    def to(self, device: str) -> 'Module':
+        """Move module and all parameters to device."""
+        self._device = device
+        
+        for param in self._parameters.values():
+            param.to(device)
+            
+        for module in self._modules.values():
+            module.to(device)
+            
+        for name, buf in self._buffers.items():
+            if hasattr(buf, 'to'):
+                self._buffers[name] = buf.to(device)
+                
+        return self
+
+    def cuda(self, device_id: int = 0) -> 'Module':
+        """Move module to CUDA."""
+        return self.to(f'cuda:{device_id}')
+
+    def cpu(self) -> 'Module':
+        """Move module to CPU."""
+        return self.to('cpu')
     
     def extra_repr(self) -> str:
         """Extra info for repr - override in subclasses."""
@@ -276,7 +333,7 @@ class Dropout(Module):
         mask = [1.0 if random.random() > self.p else 0.0 for _ in data]
         scale = 1.0 / (1.0 - self.p)
         dropped = [d * m * scale for d, m in zip(data, mask)]
-        return ResonantTensor(dropped, list(x.shape), [float(i*i) for i in range(len(dropped))], 100)
+        return ResonantTensor(dropped, list(x.shape), [float(i*i) for i in range(len(dropped))], 100, device=x.device)
     
     def extra_repr(self) -> str:
         return f"p={self.p}"

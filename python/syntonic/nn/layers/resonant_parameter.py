@@ -32,6 +32,7 @@ class ResonantParameter:
         shape: List[int],
         mode_norm_sq: Optional[List[float]] = None,
         precision: int = 100,
+        device: str = 'cpu'
     ):
         """
         Initialize ResonantParameter.
@@ -41,8 +42,10 @@ class ResonantParameter:
             shape: Shape of the parameter tensor
             mode_norm_sq: Mode norms |n|² for each element
             precision: Exact arithmetic precision
+            device: Device to store parameter on
         """
         self.precision = precision
+        self.device = device
         self._shape = shape
         
         if mode_norm_sq is None:
@@ -52,7 +55,8 @@ class ResonantParameter:
             data=data,
             shape=shape,
             mode_norm_sq=mode_norm_sq,
-            precision=precision
+            precision=precision,
+            device=device
         )
 
     @classmethod
@@ -62,6 +66,7 @@ class ResonantParameter:
         param._tensor = tensor
         param._shape = list(tensor.shape)
         param.precision = tensor.precision
+        param.device = tensor.device
         return param
 
     @property
@@ -109,7 +114,7 @@ class ResonantParameter:
         
         self._tensor = ResonantTensor.from_golden_exact(
             new_lattice, self._shape
-        )
+        ).to(self.device)
 
     def clone(self) -> "ResonantParameter":
         """Create a copy of this parameter."""
@@ -117,15 +122,32 @@ class ResonantParameter:
             ResonantTensor.from_golden_exact(
                 self._tensor.to_lattice(),
                 self._shape
-            )
+            ).to(self.device)
         )
 
     def cpu_cycle(self, noise_scale: float = 0.01):
         """Run a full DHSR cycle on the parameter."""
         self._tensor.cpu_cycle(noise_scale, self.precision)
 
+    def to(self, device: str) -> "ResonantParameter":
+        """Move parameter to device."""
+        if self.device == device:
+            return self
+        
+        self.device = device
+        self._tensor = self._tensor.to(device)
+        return self
+
+    def cuda(self, device_id: int = 0) -> "ResonantParameter":
+        """Move to CUDA."""
+        return self.to(f'cuda:{device_id}')
+
+    def cpu(self) -> "ResonantParameter":
+        """Move to CPU."""
+        return self.to('cpu')
+
     def __repr__(self):
-        return f"ResonantParameter(shape={self._shape}, syntony={self.syntony:.4f})"
+        return f"ResonantParameter(shape={self._shape}, device={self.device}, syntony={self.syntony:.4f})"
 
 
 if __name__ == "__main__":

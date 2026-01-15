@@ -47,6 +47,7 @@ class SyntonicNorm:
         eps: float = 1e-5,
         elementwise_affine: bool = True,
         golden_target: bool = True,
+        device: str = 'cpu',
     ):
         """
         Initialize syntonic normalization.
@@ -56,20 +57,22 @@ class SyntonicNorm:
             eps: Epsilon for numerical stability
             elementwise_affine: Learn affine parameters (gamma/beta)
             golden_target: Use golden-ratio based target variance (1/φ)
+            device: Device placement
         """
         self.normalized_shape = normalized_shape
         self.eps = eps
         self.elementwise_affine = elementwise_affine
         self.golden_target = golden_target
+        self.device = device
 
         if elementwise_affine:
             # Initialize gamma (weight) to 1.0
             gamma_data = [1.0] * normalized_shape
-            self.weight = ResonantParameter(gamma_data, [normalized_shape])
+            self.weight = ResonantParameter(gamma_data, [normalized_shape], device=device)
 
             # Initialize beta (bias) to 0.0
             beta_data = [0.0] * normalized_shape
-            self.bias = ResonantParameter(beta_data, [normalized_shape])
+            self.bias = ResonantParameter(beta_data, [normalized_shape], device=device)
         else:
             self.weight = None
             self.bias = None
@@ -125,6 +128,7 @@ class GoldenNorm:
         eps: float = 1e-5,
         affine: bool = True,
         track_running_stats: bool = True,
+        device: str = 'cpu',
     ):
         """
         Initialize golden normalization.
@@ -135,6 +139,7 @@ class GoldenNorm:
             eps: Epsilon for stability
             affine: Learn affine parameters
             track_running_stats: Track running mean/var
+            device: Device placement
         """
         self.num_features = num_features
         self.momentum = momentum
@@ -142,6 +147,7 @@ class GoldenNorm:
         self.affine = affine
         self.track_running_stats = track_running_stats
         self.training = True  # Track training mode
+        self.device = device
 
         # Target variance is 1/φ
         self.target_var = PHI_INV
@@ -149,11 +155,11 @@ class GoldenNorm:
         if affine:
             # Initialize weight to sqrt(1/φ) for target variance
             weight_data = [math.sqrt(self.target_var)] * num_features
-            self.weight = ResonantParameter(weight_data, [num_features])
+            self.weight = ResonantParameter(weight_data, [num_features], device=device)
 
             # Initialize bias to 0
             bias_data = [0.0] * num_features
-            self.bias = ResonantParameter(bias_data, [num_features])
+            self.bias = ResonantParameter(bias_data, [num_features], device=device)
         else:
             self.weight = None
             self.bias = None
@@ -280,6 +286,7 @@ class RecursionLayerNorm:
         num_features: int,
         n_recursions: int = 4,
         eps: float = 1e-5,
+        device: str = 'cpu',
     ):
         """
         Initialize recursion-aware layer norm.
@@ -288,10 +295,12 @@ class RecursionLayerNorm:
             num_features: Number of features
             n_recursions: Number of recursion depths to track
             eps: Epsilon for stability
+            device: Device placement
         """
         self.num_features = num_features
         self.n_recursions = n_recursions
         self.eps = eps
+        self.device = device
 
         # Separate parameters for each recursion depth (stored in dict)
         self.weights: Dict[int, ResonantParameter] = {}
@@ -300,11 +309,11 @@ class RecursionLayerNorm:
         for i in range(n_recursions):
             # Initialize weights to 1.0
             weight_data = [1.0] * num_features
-            self.weights[i] = ResonantParameter(weight_data, [num_features])
+            self.weights[i] = ResonantParameter(weight_data, [num_features], device=device)
 
             # Initialize biases to 0.0
             bias_data = [0.0] * num_features
-            self.biases[i] = ResonantParameter(bias_data, [num_features])
+            self.biases[i] = ResonantParameter(bias_data, [num_features], device=device)
 
         # Golden decay factors for each depth: φ^(-i)
         self.decay_factors = [PHI ** (-i) for i in range(n_recursions)]

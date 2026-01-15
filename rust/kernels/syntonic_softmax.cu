@@ -88,9 +88,9 @@ extern "C" __global__ void cuda_syntonic_softmax_learned_f32(
     int batch_size,
     int num_classes
 ) {
-    extern __shared__ float shared_f[];
-    float *s_max = shared_f;
-    float *s_sum = shared_f + blockDim.x;
+    extern __shared__ double shared_f[];
+    float *s_max = (float*)shared_f;
+    float *s_sum = (float*)shared_f + 256;
 
     int batch_idx = blockIdx.x;
     int tid = threadIdx.x;
@@ -330,9 +330,9 @@ extern "C" __global__ void cuda_syntonic_softmax_provided_f32(
     int batch_size,
     int num_classes
 ) {
-    extern __shared__ float shared_pf[];
-    float *s_max = shared_pf;
-    float *s_sum = shared_pf + blockDim.x;
+    extern __shared__ double shared_pf[];
+    float *s_max = (float*)shared_pf;
+    float *s_sum = (float*)shared_pf + 256;
 
     int batch_idx = blockIdx.x;
     int tid = threadIdx.x;
@@ -487,8 +487,9 @@ extern "C" __global__ void cuda_softmax_identity_f64(
     int batch_size,
     int num_classes
 ) {
-    __shared__ double s_max[256];
-    __shared__ double s_sum[256];
+    extern __shared__ double shared[];
+    double *s_max = shared;
+    double *s_sum = shared + 256;
 
     int batch_idx = blockIdx.x;
     int tid = threadIdx.x;
@@ -548,8 +549,9 @@ extern "C" __global__ void cuda_softmax_identity_f32(
     int batch_size,
     int num_classes
 ) {
-    __shared__ float s_max[256];
-    __shared__ double s_sum[256];
+    extern __shared__ double shared[];
+    double *s_max = shared;
+    double *s_sum = shared + 256;
 
     int batch_idx = blockIdx.x;
     int tid = threadIdx.x;
@@ -559,10 +561,10 @@ extern "C" __global__ void cuda_softmax_identity_f32(
     const float *x = logits + batch_idx * num_classes;
     float *y = out + batch_idx * num_classes;
 
-    // Step 1: Find max
-    float local_max = -FLT_MAX;
+    // Step 1: Find max for numerical stability (use double precision)
+    double local_max = -FLT_MAX;
     for (int i = tid; i < num_classes; i += blockDim.x) {
-        local_max = fmaxf(local_max, x[i]);
+        local_max = fmax(local_max, (double)x[i]);
     }
 
     s_max[tid] = local_max;
@@ -570,24 +572,25 @@ extern "C" __global__ void cuda_softmax_identity_f32(
 
     for (int s = blockDim.x / 2; s > 0; s >>= 1) {
         if (tid < s) {
-            s_max[tid] = fmaxf(s_max[tid], s_max[tid + s]);
+            s_max[tid] = fmax(s_max[tid], s_max[tid + s]);
         }
         __syncthreads();
     }
 
-    float max_val = s_max[0];
+    double max_val = s_max[0];
     __syncthreads();
 
-    // Step 2: Sum (use double precision for everything)
+    // Step 2: Compute exp(x - max) in double precision and sum
     double local_sum = 0.0;
     for (int i = tid; i < num_classes; i += blockDim.x) {
         double val = (double)x[i];
-        local_sum += exp(val - (double)max_val);
+        local_sum += exp(val - max_val);
     }
 
     s_sum[tid] = local_sum;
     __syncthreads();
 
+    // Parallel reduction for sum
     for (int s = blockDim.x / 2; s > 0; s >>= 1) {
         if (tid < s) {
             s_sum[tid] += s_sum[tid + s];
@@ -598,10 +601,11 @@ extern "C" __global__ void cuda_softmax_identity_f32(
     double sum = s_sum[0];
     __syncthreads();
 
-    // Step 3: Normalize
+    // Step 3: Normalize and store as float
     for (int i = tid; i < num_classes; i += blockDim.x) {
         double val = (double)x[i];
-        y[i] = (float)(exp(val - (double)max_val) / sum);
+        double exp_val = exp(val - max_val);
+        y[i] = (float)(exp_val / sum);
     }
 }
 

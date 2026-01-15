@@ -130,7 +130,7 @@ class PurePositionalEncoding:
                     # Add PE to input
                     output_data.append(x_floats[idx] + self.pe_cache[s][d])
 
-        return ResonantTensor(output_data, x.shape)
+        return ResonantTensor(output_data, x.shape, device=x.device)
 
     def __repr__(self) -> str:
         return f'PurePositionalEncoding(d_model={self.d_model}, max_len={self.max_len}, golden={self.use_golden})'
@@ -161,6 +161,7 @@ class PureWindingEmbedding:
         embedding_dim: int,
         num_windings: int = 8,
         learnable: bool = False,  # Not supported in pure version
+        device: str = 'cpu',
     ):
         """
         Initialize winding embedding.
@@ -170,18 +171,20 @@ class PureWindingEmbedding:
             embedding_dim: Output embedding dimension
             num_windings: Number of winding frequencies
             learnable: Make winding numbers learnable (not supported)
+            device: Device placement
         """
         self.num_embeddings = num_embeddings
         self.embedding_dim = embedding_dim
         self.num_windings = num_windings
+        self.device = device
 
         # Generate coprime winding numbers
         self.windings = self._generate_coprimes(num_windings)
 
         # Project winding features to embedding dim
         winding_dim = 2 * num_windings  # cos and sin for each
-        self.projection = ResonantLinear(winding_dim, embedding_dim)
-        self.norm = SyntonicNorm(embedding_dim)
+        self.projection = ResonantLinear(winding_dim, embedding_dim, device=device)
+        self.norm = SyntonicNorm(embedding_dim, device=device)
 
     def _generate_coprimes(self, n: int) -> List[int]:
         """Generate n coprime numbers using Fibonacci-like sequence."""
@@ -233,7 +236,7 @@ class PureWindingEmbedding:
 
         # Shape: (batch * seq_len, 2 * num_windings)
         winding_dim = 2 * self.num_windings
-        winding_tensor = ResonantTensor(all_features, [len(flat_indices), winding_dim])
+        winding_tensor = ResonantTensor(all_features, [len(flat_indices), winding_dim], device=self.device)
 
         # Project to embedding dimension
         embeddings = self.projection.forward(winding_tensor)
@@ -275,6 +278,7 @@ class PureSyntonicEmbedding:
         padding_idx: Optional[int] = None,
         harmonize: bool = True,
         scale_by_sqrt_dim: bool = True,
+        device: str = 'cpu',
     ):
         """
         Initialize syntonic embedding.
@@ -285,12 +289,14 @@ class PureSyntonicEmbedding:
             padding_idx: Padding token index
             harmonize: Apply harmonization to embeddings
             scale_by_sqrt_dim: Scale embeddings by sqrt(dim)
+            device: Device placement
         """
         self.num_embeddings = num_embeddings
         self.embedding_dim = embedding_dim
         self.padding_idx = padding_idx
         self.harmonize_enabled = harmonize
         self.scale_by_sqrt_dim = scale_by_sqrt_dim
+        self.device = device
 
         # Initialize embedding table with golden-scaled variance
         std = PHI_INV / math.sqrt(embedding_dim)
@@ -303,12 +309,13 @@ class PureSyntonicEmbedding:
 
         self.embedding_table = ResonantParameter(
             embedding_data,
-            [num_embeddings, embedding_dim]
+            [num_embeddings, embedding_dim],
+            device=device
         )
 
         if harmonize:
-            self.harm = HarmonizationLayer(embedding_dim, embedding_dim)
-            self.norm = SyntonicNorm(embedding_dim)
+            self.harm = HarmonizationLayer(embedding_dim, embedding_dim, device=device)
+            self.norm = SyntonicNorm(embedding_dim, device=device)
 
     def forward(self, token_indices: List[int]) -> ResonantTensor:
         """
@@ -334,7 +341,7 @@ class PureSyntonicEmbedding:
                 end = start + self.embedding_dim
                 embedding_data.extend(table_floats[start:end])
 
-        embeddings = ResonantTensor(embedding_data, [len(token_indices), self.embedding_dim])
+        embeddings = ResonantTensor(embedding_data, [len(token_indices), self.embedding_dim], device=self.device)
 
         # Scale by sqrt(dim) for stable attention
         if self.scale_by_sqrt_dim:

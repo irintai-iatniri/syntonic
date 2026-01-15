@@ -17,9 +17,10 @@ from syntonic._core import ResonantTensor
 from syntonic.nn.layers.differentiation import DifferentiationLayer
 from syntonic.nn.layers.harmonization import HarmonizationLayer
 from syntonic.nn.layers.syntonic_gate import SyntonicGate
+import syntonic.sn as sn
 
 
-class RecursionBlock:
+class RecursionBlock(sn.Module):
     """
     Complete DHSR recursion block.
 
@@ -50,6 +51,7 @@ class RecursionBlock:
         alpha_scale: float = 1.0,
         beta_scale: float = 1.0,
         gamma_scale: float = 1.0,
+        device: str = 'cpu',
     ):
         """
         Initialize recursion block.
@@ -62,27 +64,30 @@ class RecursionBlock:
             alpha_scale: Differentiation strength
             beta_scale: Damping strength
             gamma_scale: Syntony projection strength
+            device: Device placement
         """
+        super().__init__()
         hidden_features = hidden_features or in_features
         out_features = out_features or in_features
 
         # D̂ operator
         self.differentiate = DifferentiationLayer(
-            in_features, hidden_features, alpha_scale=alpha_scale
+            in_features, hidden_features, alpha_scale=alpha_scale, device=device
         )
 
         # Ĥ operator
         self.harmonize = HarmonizationLayer(
             hidden_features, out_features,
-            beta_scale=beta_scale, gamma_scale=gamma_scale
+            beta_scale=beta_scale, gamma_scale=gamma_scale, device=device
         )
 
         self.use_gate = use_gate
         if use_gate:
-            self.gate = SyntonicGate(out_features, hidden_dim=hidden_features)
+            self.gate = SyntonicGate(out_features, hidden_dim=hidden_features, device=device)
 
         # Track syntony for this block
         self._last_syntony = None
+        self.device = device
 
     def forward(
         self,
@@ -176,10 +181,10 @@ class RecursionBlock:
         return self._last_syntony
 
     def __repr__(self) -> str:
-        return f'RecursionBlock(in={self.differentiate.in_features}, out={self.harmonize.out_features})'
+        return f'RecursionBlock(in={self.differentiate.in_features}, out={self.harmonize.out_features}, device={self.device})'
 
 
-class DeepRecursionNet:
+class DeepRecursionNet(sn.Module):
     """
     Deep network built from stacked RecursionBlocks.
 
@@ -200,6 +205,7 @@ class DeepRecursionNet:
         hidden_dims: List[int],
         output_dim: int,
         use_gates: bool = False,
+        device: str = 'cpu',
     ):
         """
         Initialize deep recursion network.
@@ -209,14 +215,17 @@ class DeepRecursionNet:
             hidden_dims: List of hidden dimensions
             output_dim: Output dimension
             use_gates: Whether to use syntonic gating
+            device: Device placement
         """
+        super().__init__()
         dims = [input_dim] + hidden_dims + [output_dim]
-        self.blocks: List[RecursionBlock] = [
-            RecursionBlock(dims[i], dims[i+1], dims[i+1], use_gate=use_gates)
+        self.blocks = sn.ModuleList([
+            RecursionBlock(dims[i], dims[i+1], dims[i+1], use_gate=use_gates, device=device)
             for i in range(len(dims) - 1)
-        ]
+        ])
 
         self._layer_syntonies = []
+        self.device = device
 
     def forward(
         self,

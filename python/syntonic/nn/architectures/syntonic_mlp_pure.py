@@ -53,6 +53,7 @@ class PureSyntonicLinear(sn.Module):
         use_recursion: bool = True,
         dropout: float = 0.0,
         bias: bool = True,
+        device: str = 'cpu',
     ):
         """
         Initialize syntonic linear layer.
@@ -63,24 +64,26 @@ class PureSyntonicLinear(sn.Module):
             use_recursion: Use full recursion block
             dropout: Dropout probability (not implemented in pure version)
             bias: Include bias terms
+            device: Device placement
         """
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.use_recursion = use_recursion
         self.dropout_p = dropout
+        self.device = device
 
         # Main linear transformation
-        self.linear = ResonantLinear(in_features, out_features, bias=bias)
+        self.linear = ResonantLinear(in_features, out_features, bias=bias, device=device)
 
         # DHSR structure
         if use_recursion:
-            self.recursion = RecursionBlock(out_features)
+            self.recursion = RecursionBlock(out_features, device=device)
         else:
-            self.diff = DifferentiationLayer(out_features, out_features)
-            self.harm = HarmonizationLayer(out_features, out_features)
+            self.diff = DifferentiationLayer(out_features, out_features, device=device)
+            self.harm = HarmonizationLayer(out_features, out_features, device=device)
 
-        self.norm = SyntonicNorm(out_features)
+        self.norm = SyntonicNorm(out_features, device=device)
 
         self._syntony: Optional[float] = None
 
@@ -189,6 +192,7 @@ class PureSyntonicMLP(sn.Module):
         dropout: float = 0.1,
         use_recursion: bool = True,
         output_activation: Optional[str] = None,
+        device: str = 'cpu',
     ):
         """
         Initialize syntonic MLP.
@@ -200,12 +204,14 @@ class PureSyntonicMLP(sn.Module):
             dropout: Dropout probability
             use_recursion: Use RecursionBlocks in hidden layers
             output_activation: Final activation ('sigmoid', None)
+            device: Device placement
         """
         super().__init__()
         self.input_dim = input_dim
         self.hidden_dims = hidden_dims
         self.output_dim = output_dim
         self.output_activation = output_activation
+        self.device = device
 
         # Build layers
         self.hidden_layers = sn.ModuleList()
@@ -217,12 +223,13 @@ class PureSyntonicMLP(sn.Module):
                 hidden_dim,
                 use_recursion=use_recursion,
                 dropout=dropout,
+                device=device,
             )
             self.hidden_layers.append(layer)
             prev_dim = hidden_dim
 
         # Output layer (no recursion - just linear)
-        self.output_layer = ResonantLinear(prev_dim, output_dim)
+        self.output_layer = ResonantLinear(prev_dim, output_dim, device=device)
 
         # Track syntony history
         self._layer_syntonies: List[float] = []
@@ -318,6 +325,7 @@ class PureDeepSyntonicMLP:
         output_dim: int,
         depth: int = 6,
         dropout: float = 0.1,
+        device: str = 'cpu',
     ):
         """
         Initialize deep syntonic MLP.
@@ -328,23 +336,25 @@ class PureDeepSyntonicMLP:
             output_dim: Output dimension
             depth: Number of hidden layers
             dropout: Dropout probability
+            device: Device placement
         """
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
         self.depth = depth
+        self.device = device
 
-        self.input_proj = ResonantLinear(input_dim, hidden_dim)
+        self.input_proj = ResonantLinear(input_dim, hidden_dim, device=device)
 
         # Stack of recursion blocks with residuals
         # Note: Pure RecursionBlock doesn't support dropout parameter
         self.blocks = [
-            RecursionBlock(hidden_dim)
+            RecursionBlock(hidden_dim, device=device)
             for _ in range(depth)
         ]
 
-        self.output_proj = ResonantLinear(hidden_dim, output_dim)
-        self.norm = SyntonicNorm(hidden_dim)
+        self.output_proj = ResonantLinear(hidden_dim, output_dim, device=device)
+        self.norm = SyntonicNorm(hidden_dim, device=device)
 
         # Golden scaling for residuals
         self._residual_scale = 1.0 / PHI

@@ -2581,7 +2581,7 @@ pub fn cuda_softmax_identity_f64(
     let cfg = LaunchConfig {
         grid_dim: (batch_size as u32, 1, 1),
         block_dim: (256, 1, 1),
-        shared_mem_bytes: 0,
+        shared_mem_bytes: 256 * 8 + 256 * 8, // s_max (double) + s_sum (double)
     };
 
     unsafe {
@@ -2620,7 +2620,7 @@ pub fn cuda_softmax_identity_f32(
     let cfg = LaunchConfig {
         grid_dim: (batch_size as u32, 1, 1),
         block_dim: (256, 1, 1),
-        shared_mem_bytes: 0,
+        shared_mem_bytes: 256 * 8 * 2, // s_max and s_sum (double) - parallel reduction for better precision
     };
 
     unsafe {

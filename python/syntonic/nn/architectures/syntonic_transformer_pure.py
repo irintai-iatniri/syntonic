@@ -68,7 +68,7 @@ def _gelu_rt(x: ResonantTensor) -> ResonantTensor:
         result.append(gelu)
     shape = x.shape
     mode_norms = [float(i * i) for i in range(len(result))]
-    return ResonantTensor(result, shape, mode_norms, 100)
+    return ResonantTensor(result, shape, mode_norms, 100, device=x.device)
 
 
 class PureDHTransformerLayer(sn.Module):
@@ -94,6 +94,7 @@ class PureDHTransformerLayer(sn.Module):
         d_ff: int = 256,
         dropout: float = 0.1,
         precision: int = 100,
+        device: str = 'cpu',
     ):
         """
         Initialize DH transformer layer.
@@ -104,25 +105,27 @@ class PureDHTransformerLayer(sn.Module):
             d_ff: Feed-forward hidden dimension
             dropout: Dropout probability
             precision: ResonantTensor precision
+            device: Device placement
         """
         super().__init__()
 
         self.d_model = d_model
         self.d_ff = d_ff
         self.precision = precision
+        self.device = device
 
         # Self-attention
         self.self_attn = PureMultiHeadSyntonicAttention(
-            d_model, n_heads, dropout, precision
+            d_model, n_heads, dropout, precision, device=device
         )
 
         # FFN weights (shape [out, in] for matmul which does A @ W^T)
-        self.ffn_w1 = sn.Parameter([d_ff, d_model], init='kaiming')
-        self.ffn_w2 = sn.Parameter([d_model, d_ff], init='kaiming')
+        self.ffn_w1 = sn.Parameter([d_ff, d_model], init='kaiming', device=device)
+        self.ffn_w2 = sn.Parameter([d_model, d_ff], init='kaiming', device=device)
 
         # Normalization layers (golden-ratio aware)
-        self.norm1 = SyntonicNorm(d_model)
-        self.norm2 = SyntonicNorm(d_model)
+        self.norm1 = SyntonicNorm(d_model, device=device)
+        self.norm2 = SyntonicNorm(d_model, device=device)
 
         self.dropout = sn.Dropout(dropout)
 
@@ -196,6 +199,7 @@ class PureSyntonicTransformerEncoder(sn.Module):
         d_ff: int = 256,
         dropout: float = 0.1,
         precision: int = 100,
+        device: str = 'cpu',
     ):
         """
         Initialize encoder stack.
@@ -207,17 +211,19 @@ class PureSyntonicTransformerEncoder(sn.Module):
             d_ff: Feed-forward dimension
             dropout: Dropout probability
             precision: ResonantTensor precision
+            device: Device placement
         """
         super().__init__()
 
         self.layers = sn.ModuleList([
-            PureDHTransformerLayer(d_model, n_heads, d_ff, dropout, precision)
+            PureDHTransformerLayer(d_model, n_heads, d_ff, dropout, precision, device=device)
             for _ in range(n_layers)
         ])
         self.n_layers = n_layers
+        self.device = device
 
         # Final normalization
-        self.final_norm = SyntonicNorm(d_model)
+        self.final_norm = SyntonicNorm(d_model, device=device)
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """Forward through encoder stack."""
@@ -256,6 +262,7 @@ class PureSyntonicTransformer(sn.Module):
         output_dim: int = 10,
         dropout: float = 0.1,
         precision: int = 100,
+        device: str = 'cpu',
     ):
         """
         Initialize syntonic transformer.
@@ -268,19 +275,21 @@ class PureSyntonicTransformer(sn.Module):
             output_dim: Output dimension (num classes)
             dropout: Dropout probability
             precision: ResonantTensor precision
+            device: Device placement
         """
         super().__init__()
 
         self.d_model = d_model
         self.precision = precision
+        self.device = device
 
         # Encoder
         self.encoder = PureSyntonicTransformerEncoder(
-            d_model, n_heads, n_layers, d_ff, dropout, precision
+            d_model, n_heads, n_layers, d_ff, dropout, precision, device=device
         )
 
         # Output projection (shape [out, in] for matmul which does A @ W^T)
-        self.output_proj = sn.Parameter([output_dim, d_model], init='kaiming')
+        self.output_proj = sn.Parameter([output_dim, d_model], init='kaiming', device=device)
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
@@ -355,6 +364,7 @@ class PureSyntonicTransformerLM(sn.Module):
         precision: int = 100,
         embedding_type: str = 'winding',  # 'winding', 'learned', 'syntonic'
         use_golden_pe: bool = True,
+        device: str = 'cpu',
     ):
         """
         Initialize language model.
@@ -373,12 +383,14 @@ class PureSyntonicTransformerLM(sn.Module):
                 - 'syntonic': Learned with harmonization
                 - 'learned': Standard learned embeddings
             use_golden_pe: Use golden ratio frequencies for positional encoding
+            device: Device placement
         """
         super().__init__()
 
         self.vocab_size = vocab_size
         self.d_model = d_model
         self.precision = precision
+        self.device = device
 
         # Import embedding classes
         from syntonic.nn.architectures.embeddings_pure import (
@@ -393,6 +405,7 @@ class PureSyntonicTransformerLM(sn.Module):
                 num_embeddings=vocab_size,
                 embedding_dim=d_model,
                 num_windings=8,
+                device=device,
             )
         elif embedding_type == 'syntonic':
             self.token_embedding = PureSyntonicEmbedding(
@@ -400,6 +413,7 @@ class PureSyntonicTransformerLM(sn.Module):
                 embedding_dim=d_model,
                 harmonize=True,
                 scale_by_sqrt_dim=True,
+                device=device,
             )
         else:  # 'learned'
             self.token_embedding = PureSyntonicEmbedding(
@@ -407,6 +421,7 @@ class PureSyntonicTransformerLM(sn.Module):
                 embedding_dim=d_model,
                 harmonize=False,
                 scale_by_sqrt_dim=True,
+                device=device,
             )
 
         # Positional encoding
@@ -425,10 +440,11 @@ class PureSyntonicTransformerLM(sn.Module):
             d_ff=d_ff,
             dropout=dropout,
             precision=precision,
+            device=device,
         )
 
         # Output projection to vocabulary (shape [out, in] for matmul)
-        self.output_proj = sn.Parameter([vocab_size, d_model], init='kaiming')
+        self.output_proj = sn.Parameter([vocab_size, d_model], init='kaiming', device=device)
 
     def forward(self, token_indices: List[int]) -> ResonantTensor:
         """

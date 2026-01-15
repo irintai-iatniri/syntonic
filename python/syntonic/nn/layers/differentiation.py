@@ -49,6 +49,7 @@ class DifferentiationLayer:
         out_features: Optional[int] = None,
         bias: bool = True,
         alpha_scale: float = 1.0,
+        device: str = 'cpu',
     ):
         """
         Initialize differentiation layer.
@@ -58,13 +59,15 @@ class DifferentiationLayer:
             out_features: Output dimension (defaults to in_features)
             bias: Include bias term
             alpha_scale: Scaling factor for differentiation strength
+            device: Device placement
         """
         out_features = out_features or in_features
 
         self.in_features = in_features
         self.out_features = out_features
-        self.linear = ResonantLinear(in_features, out_features, bias=bias)
+        self.linear = ResonantLinear(in_features, out_features, bias=bias, device=device)
         self.alpha_scale = alpha_scale
+        self.device = device
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
@@ -119,7 +122,7 @@ class DifferentiationLayer:
         return diff_norm / (x_norm + 1e-8)
 
     def __repr__(self) -> str:
-        return f'DifferentiationLayer(in_features={self.in_features}, out_features={self.out_features}, alpha_scale={self.alpha_scale})'
+        return f'DifferentiationLayer(in_features={self.in_features}, out_features={self.out_features}, alpha_scale={self.alpha_scale}, device={self.device})'
 
 
 class DifferentiationModule:
@@ -135,6 +138,7 @@ class DifferentiationModule:
         d_model: int,
         n_heads: int,
         dropout: float = 0.1,
+        device: str = 'cpu',
     ):
         """
         Initialize multi-head differentiation module.
@@ -143,22 +147,24 @@ class DifferentiationModule:
             d_model: Model dimension
             n_heads: Number of differentiation heads
             dropout: Dropout probability
+            device: Device placement
         """
         self.d_model = d_model
         self.n_heads = n_heads
         self.head_dim = d_model // n_heads
+        self.device = device
 
         if self.head_dim * n_heads != d_model:
             raise ValueError(f"d_model {d_model} must be divisible by n_heads {n_heads}")
 
         # Multi-head projections (possibility spaces)
         self.projectors = [
-            ResonantLinear(d_model, self.head_dim)
+            ResonantLinear(d_model, self.head_dim, device=device)
             for _ in range(n_heads)
         ]
 
         # Recombine projection
-        self.out_proj = ResonantLinear(d_model, d_model)
+        self.out_proj = ResonantLinear(d_model, d_model, device=device)
         self.dropout_p = dropout
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:

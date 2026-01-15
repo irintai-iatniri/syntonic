@@ -93,6 +93,7 @@ class PureSyntonicConv1d(sn.Module):
         stride: int = 1,
         padding: int = 1,
         precision: int = 100,
+        device: str = 'cpu',
     ):
         """
         Initialize syntonic 1D convolution.
@@ -104,6 +105,7 @@ class PureSyntonicConv1d(sn.Module):
             stride: Convolution stride
             padding: Padding size
             precision: ResonantTensor precision
+            device: Device placement
         """
         super().__init__()
 
@@ -113,15 +115,17 @@ class PureSyntonicConv1d(sn.Module):
         self.stride = stride
         self.padding = padding
         self.precision = precision
+        self.device = device
 
         # Kernel weights
         self.kernel = sn.Parameter(
             [out_channels, in_channels, kernel_size],
-            init='kaiming'
+            init='kaiming',
+            device=device
         )
         
         # Bias
-        self.bias = sn.Parameter([out_channels], init='zeros')
+        self.bias = sn.Parameter([out_channels], init='zeros', device=device)
 
         self._syntony: Optional[float] = None
 
@@ -192,6 +196,7 @@ class PureSyntonicConv2d(sn.Module):
         stride: int = 1,
         padding: int = 1,
         precision: int = 100,
+        device: str = 'cpu',
     ):
         """
         Initialize syntonic 2D convolution.
@@ -203,6 +208,7 @@ class PureSyntonicConv2d(sn.Module):
             stride: Convolution stride
             padding: Padding size
             precision: ResonantTensor precision
+            device: Device placement
         """
         super().__init__()
 
@@ -212,15 +218,17 @@ class PureSyntonicConv2d(sn.Module):
         self.stride = stride
         self.padding = padding
         self.precision = precision
+        self.device = device
 
         # Kernel weights [out_channels, kernel_h, kernel_w, in_channels]
         self.kernel = sn.Parameter(
             [out_channels, kernel_size, kernel_size, in_channels],
-            init='kaiming'
+            init='kaiming',
+            device=device
         )
         
         # Bias
-        self.bias = sn.Parameter([out_channels], init='zeros')
+        self.bias = sn.Parameter([out_channels], init='zeros', device=device)
         
         self._syntony: Optional[float] = None
 
@@ -307,6 +315,7 @@ class PureSyntonicCNN1d(sn.Module):
         hidden_channels: List[int] = [64, 128],
         kernel_size: int = 3,
         precision: int = 100,
+        device: str = 'cpu',
     ):
         """
         Initialize 1D syntonic CNN.
@@ -317,22 +326,24 @@ class PureSyntonicCNN1d(sn.Module):
             hidden_channels: List of hidden channel sizes
             kernel_size: Convolution kernel size
             precision: ResonantTensor precision
+            device: Device placement
         """
         super().__init__()
 
         self.precision = precision
+        self.device = device
         
         # Build conv layers
         self.convs = sn.ModuleList()
         ch = in_channels
         for out_ch in hidden_channels:
             self.convs.append(PureSyntonicConv1d(
-                ch, out_ch, kernel_size, padding=kernel_size // 2, precision=precision
+                ch, out_ch, kernel_size, padding=kernel_size // 2, precision=precision, device=device
             ))
             ch = out_ch
         
         # Classifier
-        self.classifier = sn.Parameter([ch, num_classes], init='kaiming')
+        self.classifier = sn.Parameter([ch, num_classes], init='kaiming', device=device)
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """

@@ -44,22 +44,24 @@ class SyntonicGate:
         [32, 256]
     """
 
-    def __init__(self, d_model: int, hidden_dim: Optional[int] = None):
+    def __init__(self, d_model: int, hidden_dim: Optional[int] = None, device: str = 'cpu'):
         """
         Initialize syntonic gate.
 
         Args:
             d_model: Model dimension
             hidden_dim: Hidden dimension for gate network (default: d_model)
+            device: Device placement
         """
         hidden_dim = hidden_dim or d_model
 
         self.d_model = d_model
+        self.device = device
 
         # Gate network: [x, x_processed] -> gate values
         # Input: d_model * 2, Hidden: hidden_dim, Output: d_model
-        self.linear1 = ResonantLinear(d_model * 2, hidden_dim, bias=True)
-        self.linear2 = ResonantLinear(hidden_dim, d_model, bias=True)
+        self.linear1 = ResonantLinear(d_model * 2, hidden_dim, bias=True, device=device)
+        self.linear2 = ResonantLinear(hidden_dim, d_model, bias=True, device=device)
 
     def forward(self, x: ResonantTensor, x_processed: ResonantTensor) -> ResonantTensor:
         """
@@ -105,7 +107,7 @@ class SyntonicGate:
         return gate
 
     def __repr__(self) -> str:
-        return f'SyntonicGate(d_model={self.d_model})'
+        return f'SyntonicGate(d_model={self.d_model}, device={self.device})'
 
 
 class AdaptiveGate:
@@ -130,6 +132,7 @@ class AdaptiveGate:
         syntony_temp: float = 1.0,
         min_gate: float = 0.1,
         max_gate: float = 0.9,
+        device: str = 'cpu',
     ):
         """
         Initialize adaptive gate.
@@ -139,19 +142,21 @@ class AdaptiveGate:
             syntony_temp: Temperature for syntony-based modulation
             min_gate: Minimum gate value (always some processing)
             max_gate: Maximum gate value (always some preservation)
+            device: Device placement
         """
         self.d_model = d_model
         self.syntony_temp = syntony_temp
         self.min_gate = min_gate
         self.max_gate = max_gate
+        self.device = device
 
         # Gate network: [x, x_diff, x_harm] -> gate
-        self.gate_linear1 = ResonantLinear(d_model * 3, d_model, bias=True)
-        self.gate_linear2 = ResonantLinear(d_model, d_model, bias=True)
+        self.gate_linear1 = ResonantLinear(d_model * 3, d_model, bias=True, device=device)
+        self.gate_linear2 = ResonantLinear(d_model, d_model, bias=True, device=device)
 
         # Syntony estimator: [x, x_diff, x_harm] -> syntony ∈ [0, 1]
-        self.syntony_linear1 = ResonantLinear(d_model * 3, d_model // 2, bias=True)
-        self.syntony_linear2 = ResonantLinear(d_model // 2, 1, bias=True)
+        self.syntony_linear1 = ResonantLinear(d_model * 3, d_model // 2, bias=True, device=device)
+        self.syntony_linear2 = ResonantLinear(d_model // 2, 1, bias=True, device=device)
 
     def forward(
         self,

@@ -35,6 +35,7 @@ class ResonantLinear(sn.Module):
         out_features: int,
         bias: bool = True,
         precision: int = 100,
+        device: str = 'cpu',
     ):
         """
         Initialize resonant linear layer.
@@ -44,12 +45,14 @@ class ResonantLinear(sn.Module):
             out_features: Size of each output sample
             bias: If set to False, the layer will not learn an additive bias
             precision: Bit precision for exact lattice arithmetic
+            device: Device to place layer on
         """
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.precision = precision
         self.bias_enabled = bias
+        self._device = device
 
         # 1. Initialize weight parameter
         # We use 'golden' initialization which respects the lattice structure
@@ -57,7 +60,8 @@ class ResonantLinear(sn.Module):
             shape=[out_features, in_features],
             init='golden',
             requires_grad=True,
-            precision=precision
+            precision=precision,
+            device=device
         )
 
         # 2. Initialize bias parameter
@@ -66,7 +70,8 @@ class ResonantLinear(sn.Module):
                 shape=[out_features],
                 init='golden',
                 requires_grad=True,
-                precision=precision
+                precision=precision,
+                device=device
             )
         else:
             self.register_buffer('bias', None)
