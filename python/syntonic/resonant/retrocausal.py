@@ -193,6 +193,11 @@ def create_retrocausal_evolver(
         **kwargs
     )
 
+    
+    # Unwrap Python wrapper if present
+    if hasattr(template, '_inner'):
+        template = template._inner
+
     return ResonantEvolver(template, config)
 
 
@@ -227,6 +232,11 @@ def create_standard_evolver(
         enable_retrocausal=False,
         **kwargs
     )
+
+    
+    # Unwrap Python wrapper if present
+    if hasattr(template, '_inner'):
+        template = template._inner
 
     return ResonantEvolver(template, config)
 

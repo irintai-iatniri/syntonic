@@ -80,8 +80,9 @@ setup_directories() {
 compile_kernel_arch() {
     local kernel=$1
     local arch=$2
+    local arch_clean=${arch//_/}
     local cu_file="${KERNEL_DIR}/${kernel}.cu"
-    local ptx_file="${PTX_DIR}/${kernel}_${arch}.ptx"
+    local ptx_file="${PTX_DIR}/${kernel}_${arch_clean}.ptx"
 
     if [ ! -f "$cu_file" ]; then
         print_msg "$YELLOW" "⚠ Skipping ${kernel}.cu (file not found)"

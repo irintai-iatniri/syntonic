@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Optional, List
 import math
 
-from syntonic._core import ResonantTensor
+from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic.nn.layers import (
     DifferentiationLayer,
     HarmonizationLayer,
@@ -132,8 +132,8 @@ class PureSyntonicLinear(sn.Module):
         return ResonantTensor(
             dropped,
             list(x.shape),
-            x.mode_norm_sq(),
-            x.precision()
+            x.get_mode_norms(),
+            x.precision
         )
 
     def _compute_syntony(

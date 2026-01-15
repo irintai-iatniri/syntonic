@@ -12,7 +12,7 @@ import math
 import random
 from typing import List, Optional
 
-from syntonic._core import ResonantTensor
+from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic._core import GoldenExact
 
 PHI = (1 + math.sqrt(5)) / 2
@@ -85,7 +85,7 @@ class ResonantParameter:
 
     def to_lattice(self) -> List[GoldenExact]:
         """Get the parameter values as GoldenExact lattice points."""
-        return self._tensor.to_lattice_list()
+        return self._tensor.to_lattice()
 
     def mutate(self, mutation_rate: float = 0.1, magnitude: int = 1):
         """
@@ -95,7 +95,7 @@ class ResonantParameter:
             mutation_rate: Probability of mutating each element
             magnitude: Maximum change in lattice coefficients
         """
-        lattice = self._tensor.to_lattice_list()
+        lattice = self._tensor.to_lattice()
         new_lattice = []
         
         for g in lattice:
@@ -115,7 +115,7 @@ class ResonantParameter:
         """Create a copy of this parameter."""
         return ResonantParameter.from_tensor(
             ResonantTensor.from_golden_exact(
-                self._tensor.to_lattice_list(),
+                self._tensor.to_lattice(),
                 self._shape
             )
         )

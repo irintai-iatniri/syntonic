@@ -175,30 +175,50 @@ impl SyntonicSoftmaxState {
                 let final_weights = if x.shape().len() > 1 && scaled_log_weights.shape().len() == 1 {
                     let w_shape = scaled_log_weights.shape();
                     let x_shape = x.shape();
-                    let last_dim = x_shape[x_shape.len() - 1];
+                    let ndim = x_shape.len();
+
+                    // Calculate actual dimension index (handle negative dims)
+                    let dim_idx = if self.dim < 0 {
+                        (ndim as isize + self.dim) as usize
+                    } else {
+                        self.dim as usize
+                    };
+
+                    let softmax_dim_size = x_shape[dim_idx];
                     let weight_dim = w_shape[0];
 
-                    if weight_dim != last_dim {
+                    if weight_dim != softmax_dim_size {
                         return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                            "Shape mismatch in Syntonic Softmax: x shape {:?} incompatible with weights shape {:?}",
-                            x_shape,
-                            w_shape
+                            "Shape mismatch in Syntonic Softmax: x shape {:?} dim {} (size {}) incompatible with weights shape {:?}",
+                            x_shape, self.dim, softmax_dim_size, w_shape
                         )));
                     }
 
-                    // Replicate lattice for broadcasting
-                    let total_elements: usize = x_shape.iter().product();
-                    let num_repeats = total_elements / weight_dim;
+                    // Broadcast weights to match x shape along softmax dimension
+                    // For shape [3, 4] with dim=0: replicate each weight 4 times (inner), no outer
+                    // For shape [3, 4] with dim=-1: replicate pattern 3 times (outer)
+                    let outer: usize = x_shape[..dim_idx].iter().product();
+                    let inner: usize = if dim_idx + 1 < ndim {
+                        x_shape[dim_idx + 1..].iter().product()
+                    } else {
+                        1
+                    };
 
                     let w_lattice = scaled_log_weights.lattice();
                     let w_norms = scaled_log_weights.mode_norm_sq();
+                    let total_elements: usize = x_shape.iter().product();
 
                     let mut new_lattice = Vec::with_capacity(total_elements);
                     let mut new_norms = Vec::with_capacity(total_elements);
 
-                    for _ in 0..num_repeats {
-                        new_lattice.extend_from_slice(w_lattice);
-                        new_norms.extend_from_slice(w_norms);
+                    // Broadcast: [outer, weight_dim, inner]
+                    for _ in 0..outer {
+                        for w_idx in 0..weight_dim {
+                            for _ in 0..inner {
+                                new_lattice.push(w_lattice[w_idx].clone());
+                                new_norms.push(w_norms[w_idx]);
+                            }
+                        }
                     }
 
                     ResonantTensor::from_lattice(new_lattice, x_shape.to_vec(), new_norms)
@@ -646,6 +666,42 @@ pub fn syntonic_softmax_py(
             }
         }
     };
+
+    // Input validation
+    let x_shape = x.shape();
+    let ndim = x_shape.len();
+
+    // Validate input has at least 1 dimension
+    if ndim < 1 {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "input must have at least 1 dimension"
+        ));
+    }
+
+    // Validate dimension range
+    let dim_val = dim.unwrap_or(-1);
+    if dim_val < -(ndim as isize) || dim_val >= ndim as isize {
+        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+            "dimension {} out of range for tensor with {} dimensions",
+            dim_val, ndim
+        )));
+    }
+
+    // Validate mode_norms if provided
+    if let Some(norms) = mode_norms {
+        let norms_ndim = norms.shape().len();
+        if norms_ndim != 1 && norms_ndim != 2 {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "mode_norms must be 1D (scalar norms) or 2D [N, 8] (E8 vectors)"
+            ));
+        }
+        if norms_ndim == 2 && norms.shape()[1] != 8 {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "2D mode_norms must have shape [N, 8], got [{}, {}]",
+                norms.shape()[0], norms.shape()[1]
+            )));
+        }
+    }
 
     let num_features = if let Some(norms) = mode_norms {
         Some(norms.shape()[0])

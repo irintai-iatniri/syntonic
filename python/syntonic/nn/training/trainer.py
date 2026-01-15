@@ -22,13 +22,14 @@ import time
 from syntonic.viz.server import launch_background_thread, update_monitor
 from syntonic.viz import server as viz_server
 from syntonic._core import (
-    ResonantTensor,
+    # ResonantTensor,  <-- Moved to separate import
     ResonantEvolver,
     RESConfig,
     RESResult,
     py_apply_geodesic_slide,
     py_standard_mode_norms,
 )
+from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic.resonant.retrocausal import (
     RetrocausalConfig,
     create_retrocausal_evolver,
@@ -238,7 +239,10 @@ class RetrocausalTrainer:
             # Run evolution with fitness function
             result = self._evolve_weight(evolver, i)
             all_results.append(result)
-            evolved_weights.append(result['best_tensor'])
+            
+            # wrap the result (Rust tensor) into Python wrapper
+            best_tensor_py = ResonantTensor._wrap(result['best_tensor'])
+            evolved_weights.append(best_tensor_py)
 
             # Apply intermediate weight snapshot so the visualization
             # can observe per-weight progress in real-time. We construct
