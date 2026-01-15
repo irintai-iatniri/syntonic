@@ -60,6 +60,30 @@ use exact::{CorrectionLevel, FundamentalConstant, GoldenExact, PySymExpr, Ration
 // Resonant Engine types
 use resonant::{RESConfig, RESResult, ResonantEvolver, ResonantTensor};
 
+// E8 Lattice and Golden Projector wrappers
+use resonant::{
+    py_e8_generate_weights,
+    py_e8_generate_roots,
+    py_golden_projector_q,
+    py_golden_projector_phi,
+    py_golden_project_parallel,
+    py_golden_project_perp,
+    py_is_in_golden_cone,
+    py_compute_8d_weight,
+};
+
+// Neural Network E8 Lattice and Golden Projector wrappers
+use resonant::{
+    py_e8_generate_weights_nn,
+    py_e8_generate_roots_nn,
+    py_golden_projector_q_nn,
+    py_golden_projector_phi_nn,
+    py_golden_project_parallel_nn,
+    py_golden_project_perp_nn,
+    py_is_in_golden_cone_nn,
+    py_compute_8d_weight_nn,
+};
+
 // Number theory and syntony wrappers
 use resonant::py_wrappers::{
     py_aggregate_syntony,
@@ -254,7 +278,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<resonant::SyntonicSoftmaxMode>()?;
     m.add_class::<resonant::SyntonicSoftmaxState>()?;
     m.add_function(wrap_pyfunction!(resonant::syntonic_softmax_py, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::compute_syntonic_weights_py, m)?)?;
+    m.add_function(wrap_pyfunction!(resonant::syntonic_softmax::compute_syntonic_weights_py, m)?)?;
 
     // === Core Tensor Operations ===
     m.add_class::<TensorStorage>()?;
@@ -333,6 +357,26 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(knot_heat_kernel_trace, m)?)?;
     m.add_function(wrap_pyfunction!(knot_spectral_zeta, m)?)?;
     m.add_function(wrap_pyfunction!(knot_spectral_zeta_complex, m)?)?;
+
+    // === E8 Lattice and Golden Projector ===
+    m.add_function(wrap_pyfunction!(py_e8_generate_weights, m)?)?;
+    m.add_function(wrap_pyfunction!(py_e8_generate_roots, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_projector_q, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_projector_phi, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_project_parallel, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_project_perp, m)?)?;
+    m.add_function(wrap_pyfunction!(py_is_in_golden_cone, m)?)?;
+    m.add_function(wrap_pyfunction!(py_compute_8d_weight, m)?)?;
+
+    // === Neural-network-friendly E8 wrappers ===
+    m.add_function(wrap_pyfunction!(py_e8_generate_weights_nn, m)?)?;
+    m.add_function(wrap_pyfunction!(py_e8_generate_roots_nn, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_projector_q_nn, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_projector_phi_nn, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_project_parallel_nn, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_project_perp_nn, m)?)?;
+    m.add_function(wrap_pyfunction!(py_is_in_golden_cone_nn, m)?)?;
+    m.add_function(wrap_pyfunction!(py_compute_8d_weight_nn, m)?)?;
 
     // === Number Theory and Syntony (Rust Performance Backend) ===
     m.add_function(wrap_pyfunction!(py_mobius, m)?)?;

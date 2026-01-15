@@ -21,7 +21,7 @@ python -u -m syntonic.experiments.validate_syntonic_softmax \
     --num-blocks 3 \
     2>&1 | tee "$RESULTS_DIR/xor_overnight.log"
 
-# Experiment 1B: Particles (30 generations, leave-one-out)
+# Experiment 1B: Particles (30 generations)
 echo ""
 echo "Running Experiment 1B: Particle Classification..."
 python -u -m syntonic.experiments.validate_syntonic_softmax \

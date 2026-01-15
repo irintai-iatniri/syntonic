@@ -114,13 +114,16 @@ class WindingNetSyntonic(PureWindingNet):
             # The SyntonicSoftmaxState constructor will generate them
             pass
         elif source == "random_uniform":
-            # TODO: Generate random 36 vectors with uniform distribution
-            # For now, fall back to e6
-            pass
+            # Generate random 36 vectors with uniform distribution on unit sphere
+            # These are used as mode norms for syntonic softmax
+            mode_norms = self._generate_random_uniform_vectors(36)
+            # Store for potential debugging/analysis
+            self._custom_mode_norms = mode_norms
         elif source == "random_golden":
-            # TODO: Generate random 36 vectors with golden distribution
-            # For now, fall back to e6
-            pass
+            # Generate random 36 vectors with golden distribution
+            # Biased toward golden cone structure using φ-based scaling
+            mode_norms = self._generate_random_golden_vectors(36)
+            self._custom_mode_norms = mode_norms
 
         # Create state with learned mode
         # Note: E6 root interpolation happens automatically in Rust backend
@@ -131,6 +134,65 @@ class WindingNetSyntonic(PureWindingNet):
             num_features,
             self.syntony_scale
         )
+
+    def _generate_random_uniform_vectors(self, n: int) -> List[List[float]]:
+        """
+        Generate n random 8D vectors uniformly distributed on the unit sphere.
+        
+        Uses Gaussian sampling normalized to unit length for uniform distribution
+        on the hypersphere surface.
+        
+        Args:
+            n: Number of vectors to generate
+            
+        Returns:
+            List of n 8D vectors (each a list of 8 floats)
+        """
+        vectors = []
+        for _ in range(n):
+            # Gaussian sampling gives uniform distribution on sphere when normalized
+            vec = [random.gauss(0, 1) for _ in range(8)]
+            # Normalize to unit length
+            norm = math.sqrt(sum(x*x for x in vec))
+            if norm > 1e-10:
+                vec = [x / norm for x in vec]
+            vectors.append(vec)
+        return vectors
+
+    def _generate_random_golden_vectors(self, n: int) -> List[List[float]]:
+        """
+        Generate n random 8D vectors with golden distribution.
+        
+        These vectors are biased toward the golden cone structure by:
+        1. Generating base vectors with golden-ratio weighted components
+        2. Applying φ-based scaling to parallel/perpendicular components
+        
+        Args:
+            n: Number of vectors to generate
+            
+        Returns:
+            List of n 8D vectors (each a list of 8 floats)
+        """
+        vectors = []
+        for _ in range(n):
+            # Generate with golden-weighted Gaussian components
+            # First 4 components (parallel subspace) scaled by 1
+            # Last 4 components (perpendicular subspace) scaled by 1/φ
+            vec = []
+            for i in range(8):
+                val = random.gauss(0, 1)
+                if i >= 4:
+                    # Perpendicular subspace: scale down by 1/φ
+                    val = val / PHI
+                vec.append(val)
+            
+            # Normalize to unit length while preserving golden structure
+            norm = math.sqrt(sum(x*x for x in vec))
+            if norm > 1e-10:
+                vec = [x / norm for x in vec]
+            vectors.append(vec)
+        return vectors
+
 
     def forward(
         self,
@@ -154,13 +216,16 @@ class WindingNetSyntonic(PureWindingNet):
         if self.softmax_mode == "pytorch":
             # Pure ResonantTensor softmax (baseline) - in-place operation
             logits.softmax(precision=self.precision)
+            # Extract syntony from output probabilities
+            self.softmax_syntony = self._compute_output_syntony(logits)
             return logits
 
         elif self.softmax_mode in ["identity", "learned"]:
             # Use syntonic softmax state
             output = self.softmax_state.forward(logits, None)
-            # TODO: Extract softmax-specific syntony when Rust backend supports it
-            self.softmax_syntony = 0.0
+            # Extract syntony from output probabilities
+            # This measures how "peaked" the distribution is (high syntony = confident)
+            self.softmax_syntony = self._compute_output_syntony(output)
             return output
 
         elif self.softmax_mode == "provided":
@@ -175,11 +240,74 @@ class WindingNetSyntonic(PureWindingNet):
                 self.syntony_scale
             )
             output = state.forward(logits, syntony_tensor)
-            self.softmax_syntony = 0.0
+            # Extract syntony from the provided syntony tensor
+            self.softmax_syntony = self._compute_tensor_syntony(syntony_tensor)
             return output
 
         else:
             raise ValueError(f"Unknown softmax_mode: {self.softmax_mode}")
+
+    def _compute_output_syntony(self, probs: ResonantTensor) -> float:
+        """
+        Compute syntony from output probability distribution.
+        
+        Uses entropy-based measure: S = 1 - H(p)/H_max
+        where H(p) = -sum(p * log(p)) and H_max = log(num_classes)
+        
+        High syntony = peaked distribution (confident prediction)
+        Low syntony = uniform distribution (uncertain prediction)
+        
+        Args:
+            probs: Probability tensor [batch, num_classes]
+            
+        Returns:
+            Syntony value in [0, 1]
+        """
+        floats = probs.to_floats()
+        num_classes = self.output_dim
+        batch_size = len(floats) // num_classes
+        
+        if batch_size == 0 or num_classes <= 1:
+            return 0.5  # Default for degenerate cases
+        
+        total_entropy = 0.0
+        h_max = math.log(num_classes)  # Maximum entropy for uniform distribution
+        
+        for b in range(batch_size):
+            start = b * num_classes
+            batch_probs = floats[start:start + num_classes]
+            
+            # Compute entropy: H = -sum(p * log(p))
+            entropy = 0.0
+            for p in batch_probs:
+                if p > 1e-10:  # Avoid log(0)
+                    entropy -= p * math.log(p)
+            
+            # Normalize: syntony = 1 - H/H_max
+            # This gives 1.0 for peaked (deterministic) and 0.0 for uniform
+            if h_max > 0:
+                normalized = 1.0 - entropy / h_max
+            else:
+                normalized = 0.5
+            
+            total_entropy += normalized
+        
+        return total_entropy / batch_size
+
+    def _compute_tensor_syntony(self, tensor: ResonantTensor) -> float:
+        """
+        Compute syntony from a ResonantTensor.
+        
+        Uses the tensor's built-in syntony property.
+        
+        Args:
+            tensor: ResonantTensor to compute syntony from
+            
+        Returns:
+            Syntony value
+        """
+        return tensor.syntony
+
 
     def get_all_syntonies(self) -> dict:
         """

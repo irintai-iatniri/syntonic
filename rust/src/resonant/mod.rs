@@ -60,12 +60,37 @@ pub mod syntonic_softmax;
 pub mod syntony;
 mod tensor;
 pub mod e8_lattice;
+pub mod e8_lattice_nn;
 
 pub use evolver::{RESConfig, RESResult, ResonantEvolver};
 pub use golden_norm::GoldenNormMode;
 pub use phi_ops::{phi_residual, phi_residual_relu, PhiResidualMode};
 pub use syntonic_softmax::{syntonic_softmax_py, SyntonicSoftmaxMode, SyntonicSoftmaxState};
 pub use tensor::{ResonantError, ResonantPhase, ResonantTensor};
+
+// E8 Lattice and Golden Projector PyO3 wrappers
+pub use e8_lattice::{
+    py_e8_generate_weights,
+    py_e8_generate_roots,
+    py_golden_projector_q,
+    py_golden_projector_phi,
+    py_golden_project_parallel,
+    py_golden_project_perp,
+    py_is_in_golden_cone,
+    py_compute_8d_weight,
+};
+
+// Neural Network E8 Lattice and Golden Projector PyO3 wrappers
+pub use e8_lattice_nn::{
+    py_e8_generate_weights_nn,
+    py_e8_generate_roots_nn,
+    py_golden_projector_q_nn,
+    py_golden_projector_phi_nn,
+    py_golden_project_parallel_nn,
+    py_golden_project_perp_nn,
+    py_is_in_golden_cone_nn,
+    py_compute_8d_weight_nn,
+};
 
 // Re-export key constants
 pub const PHI: f64 = 1.6180339887498948482;

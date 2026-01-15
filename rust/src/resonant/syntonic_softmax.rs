@@ -138,7 +138,15 @@ impl SyntonicSoftmaxState {
     ) -> PyResult<ResonantTensor> {
         match self.mode {
             SyntonicSoftmaxMode::Identity => {
-                // Standard softmax (no syntony weighting)
+                // Dispatch to GPU if available
+                #[cfg(feature = "cuda")]
+                {
+                    if x.device_idx().is_some() && x.phase() == ResonantPhase::Flux {
+                        return self.forward_cuda(x, None);
+                    }
+                }
+
+                // CPU fallback: Standard softmax (no syntony weighting)
                 let mut output = x.clone();
                 output
                     .softmax_core(Some(self.dim), 1000)
@@ -259,8 +267,15 @@ impl SyntonicSoftmaxState {
         weights: Option<&ResonantTensor>,
     ) -> PyResult<ResonantTensor> {
         use crate::tensor::srt_kernels::{
+            // F64 kernels
             cuda_syntonic_softmax_learned_f64, cuda_syntonic_softmax_provided_f64,
             cuda_syntonic_softmax_learned_strided_f64, cuda_syntonic_softmax_provided_strided_f64,
+            // F32 kernels
+            cuda_syntonic_softmax_learned_f32, cuda_syntonic_softmax_provided_f32,
+            cuda_syntonic_softmax_learned_strided_f32, cuda_syntonic_softmax_provided_strided_f32,
+            // Identity kernels
+            cuda_softmax_identity_f64, cuda_softmax_identity_f32,
+            cuda_softmax_identity_strided_f64, cuda_softmax_identity_strided_f32,
         };
 
         let device_idx = x.device_idx().ok_or_else(|| {
@@ -272,7 +287,10 @@ impl SyntonicSoftmaxState {
 
         let shape = x.shape();
         let ndim = shape.len();
-        
+
+        // Check if using F32 mode (flux_f32 exists)
+        let use_f32 = x.flux_f32_ref().is_some();
+
         // Handle negative dim
         let dim_idx = if self.dim < 0 {
             if (ndim as isize + self.dim) < 0 {
@@ -293,109 +311,259 @@ impl SyntonicSoftmaxState {
         // Determine dims
         let num_classes = shape[dim_idx]; // dim_size
         let is_last_dim = dim_idx == ndim - 1;
-        
+
         let batch_size = if is_last_dim {
              x.len() / num_classes
         } else {
              0 // unused in strided
         };
 
-        // Allocate output
-        let mut out_flux = device
-            .default_stream()
-            .alloc_zeros::<f64>(x.len())
-            .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
-
-        let x_flux = x.flux_ref().ok_or_else(|| {
-            pyo3::exceptions::PyRuntimeError::new_err("Flux missing for CUDA operation")
-        })?;
-
         // Strided parameters calculation
         let outer_size: usize = shape[..dim_idx].iter().product();
         let inner_size: usize = shape[dim_idx+1..].iter().product();
         let dim_size = num_classes;
 
-        match self.mode {
-            SyntonicSoftmaxMode::Learned => {
-                let mode_norms = self.mode_norms.as_ref().unwrap();
-                let norms_flux = mode_norms.flux_ref().ok_or_else(|| {
-                    pyo3::exceptions::PyRuntimeError::new_err(
-                        "mode_norms must be on GPU for CUDA softmax",
-                    )
+        // Identity mode uses dedicated GPU kernels
+        if self.mode == SyntonicSoftmaxMode::Identity {
+            if use_f32 {
+                // F32 identity mode
+                let x_flux = x.flux_f32_ref().ok_or_else(|| {
+                    pyo3::exceptions::PyRuntimeError::new_err("F32 Flux missing for CUDA operation")
                 })?;
+                let mut out_flux = device
+                    .default_stream()
+                    .alloc_zeros::<f32>(x.len())
+                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
 
                 if is_last_dim {
-                    // Optimized contiguous reduction
-                    cuda_syntonic_softmax_learned_f64(
+                    cuda_softmax_identity_f32(
                         &device,
                         &mut out_flux,
                         x_flux,
-                        norms_flux,
-                        self.syntony_scale,
                         batch_size as i32,
                         num_classes as i32,
                     )
                     .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
                 } else {
-                    // Strided
-                    cuda_syntonic_softmax_learned_strided_f64(
+                    cuda_softmax_identity_strided_f32(
                         &device,
                         &mut out_flux,
                         x_flux,
-                        norms_flux,
-                        self.syntony_scale,
                         outer_size as i32,
                         dim_size as i32,
                         inner_size as i32,
                     )
                     .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
                 }
-            }
-            SyntonicSoftmaxMode::Provided => {
-                let w = weights.unwrap();
-                let w_flux = w.flux_ref().ok_or_else(|| {
-                    pyo3::exceptions::PyRuntimeError::new_err(
-                        "syntony weights must be on GPU for CUDA softmax",
-                    )
+
+                let mut output = x.clone();
+                output.set_flux_f32(out_flux);
+                return Ok(output);
+            } else {
+                // F64 identity mode
+                let x_flux = x.flux_ref().ok_or_else(|| {
+                    pyo3::exceptions::PyRuntimeError::new_err("Flux missing for CUDA operation")
                 })?;
+                let mut out_flux = device
+                    .default_stream()
+                    .alloc_zeros::<f64>(x.len())
+                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
 
                 if is_last_dim {
-                    cuda_syntonic_softmax_provided_f64(
+                    cuda_softmax_identity_f64(
                         &device,
                         &mut out_flux,
                         x_flux,
-                        w_flux,
-                        self.syntony_scale,
                         batch_size as i32,
                         num_classes as i32,
                     )
                     .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
                 } else {
-                    cuda_syntonic_softmax_provided_strided_f64(
+                    cuda_softmax_identity_strided_f64(
                         &device,
                         &mut out_flux,
                         x_flux,
-                        w_flux,
-                        self.syntony_scale,
                         outer_size as i32,
                         dim_size as i32,
                         inner_size as i32,
                     )
                     .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
                 }
-            }
-            SyntonicSoftmaxMode::Identity => {
-                let mut out = x.clone();
 
-                out.softmax_core(Some(self.dim), 1000)
-                    .map_err(|e| PyErr::from(e))?;
-                return Ok(out);
+                let mut output = x.clone();
+                output.set_flux(out_flux);
+                return Ok(output);
             }
         }
 
-        let mut output = x.clone();
-        output.set_flux(out_flux);
-        Ok(output)
+        // Learned and Provided modes with F32/F64 dispatch
+        if use_f32 {
+            // F32 path
+            let x_flux = x.flux_f32_ref().ok_or_else(|| {
+                pyo3::exceptions::PyRuntimeError::new_err("F32 Flux missing for CUDA operation")
+            })?;
+            let mut out_flux = device
+                .default_stream()
+                .alloc_zeros::<f32>(x.len())
+                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+
+            match self.mode {
+                SyntonicSoftmaxMode::Learned => {
+                    let mode_norms = self.mode_norms.as_ref().unwrap();
+                    let norms_flux = mode_norms.flux_f32_ref().ok_or_else(|| {
+                        pyo3::exceptions::PyRuntimeError::new_err(
+                            "mode_norms must be on GPU (F32) for CUDA softmax",
+                        )
+                    })?;
+
+                    if is_last_dim {
+                        cuda_syntonic_softmax_learned_f32(
+                            &device,
+                            &mut out_flux,
+                            x_flux,
+                            norms_flux,
+                            self.syntony_scale as f32,
+                            batch_size as i32,
+                            num_classes as i32,
+                        )
+                        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                    } else {
+                        cuda_syntonic_softmax_learned_strided_f32(
+                            &device,
+                            &mut out_flux,
+                            x_flux,
+                            norms_flux,
+                            self.syntony_scale as f32,
+                            outer_size as i32,
+                            dim_size as i32,
+                            inner_size as i32,
+                        )
+                        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                    }
+                }
+                SyntonicSoftmaxMode::Provided => {
+                    let w = weights.unwrap();
+                    let w_flux = w.flux_f32_ref().ok_or_else(|| {
+                        pyo3::exceptions::PyRuntimeError::new_err(
+                            "syntony weights must be on GPU (F32) for CUDA softmax",
+                        )
+                    })?;
+
+                    if is_last_dim {
+                        cuda_syntonic_softmax_provided_f32(
+                            &device,
+                            &mut out_flux,
+                            x_flux,
+                            w_flux,
+                            self.syntony_scale as f32,
+                            batch_size as i32,
+                            num_classes as i32,
+                        )
+                        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                    } else {
+                        cuda_syntonic_softmax_provided_strided_f32(
+                            &device,
+                            &mut out_flux,
+                            x_flux,
+                            w_flux,
+                            self.syntony_scale as f32,
+                            outer_size as i32,
+                            dim_size as i32,
+                            inner_size as i32,
+                        )
+                        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                    }
+                }
+                SyntonicSoftmaxMode::Identity => unreachable!(), // Handled above
+            }
+
+            let mut output = x.clone();
+            output.set_flux_f32(out_flux);
+            Ok(output)
+        } else {
+            // F64 path (original implementation)
+            let x_flux = x.flux_ref().ok_or_else(|| {
+                pyo3::exceptions::PyRuntimeError::new_err("Flux missing for CUDA operation")
+            })?;
+            let mut out_flux = device
+                .default_stream()
+                .alloc_zeros::<f64>(x.len())
+                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+
+            match self.mode {
+                SyntonicSoftmaxMode::Learned => {
+                    let mode_norms = self.mode_norms.as_ref().unwrap();
+                    let norms_flux = mode_norms.flux_ref().ok_or_else(|| {
+                        pyo3::exceptions::PyRuntimeError::new_err(
+                            "mode_norms must be on GPU for CUDA softmax",
+                        )
+                    })?;
+
+                    if is_last_dim {
+                        cuda_syntonic_softmax_learned_f64(
+                            &device,
+                            &mut out_flux,
+                            x_flux,
+                            norms_flux,
+                            self.syntony_scale,
+                            batch_size as i32,
+                            num_classes as i32,
+                        )
+                        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                    } else {
+                        cuda_syntonic_softmax_learned_strided_f64(
+                            &device,
+                            &mut out_flux,
+                            x_flux,
+                            norms_flux,
+                            self.syntony_scale,
+                            outer_size as i32,
+                            dim_size as i32,
+                            inner_size as i32,
+                        )
+                        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                    }
+                }
+                SyntonicSoftmaxMode::Provided => {
+                    let w = weights.unwrap();
+                    let w_flux = w.flux_ref().ok_or_else(|| {
+                        pyo3::exceptions::PyRuntimeError::new_err(
+                            "syntony weights must be on GPU for CUDA softmax",
+                        )
+                    })?;
+
+                    if is_last_dim {
+                        cuda_syntonic_softmax_provided_f64(
+                            &device,
+                            &mut out_flux,
+                            x_flux,
+                            w_flux,
+                            self.syntony_scale,
+                            batch_size as i32,
+                            num_classes as i32,
+                        )
+                        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                    } else {
+                        cuda_syntonic_softmax_provided_strided_f64(
+                            &device,
+                            &mut out_flux,
+                            x_flux,
+                            w_flux,
+                            self.syntony_scale,
+                            outer_size as i32,
+                            dim_size as i32,
+                            inner_size as i32,
+                        )
+                        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e))?;
+                    }
+                }
+                SyntonicSoftmaxMode::Identity => unreachable!(), // Handled above
+            }
+
+            let mut output = x.clone();
+            output.set_flux(out_flux);
+            Ok(output)
+        }
     }
 
     /// Get current mode norms (for learned mode)
@@ -524,7 +692,6 @@ pub fn compute_syntonic_weights_py(mode_norms: &ResonantTensor) -> PyResult<Reso
                 weights.push(w);
             }
         }
-rm -rf ~/.local/share/Antigravity ~/.cache/Antigravity ~/.local/state/Antigravity ~/.config/Antigravity
         ResonantTensor::from_floats_default_modes(&weights, vec![n], 100)
             .map_err(|e| PyErr::from(e))
     } else {

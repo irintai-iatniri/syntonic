@@ -102,6 +102,26 @@ class ResonantTensor:
     # =========================================================================
 
     @classmethod
+    def from_floats_32(
+        cls,
+        data: List[float],
+        shape: List[int],
+        precision: int = 100
+    ) -> "ResonantTensor":
+        """
+        Create from float32 values (alias for constructor).
+
+        Args:
+            data: Flattened tensor values
+            shape: Tensor shape
+            precision: Lattice precision
+
+        Returns:
+            New ResonantTensor
+        """
+        return cls(data, shape, precision=precision)
+
+    @classmethod
     def from_golden_exact(
         cls,
         lattice: List[GoldenExact],

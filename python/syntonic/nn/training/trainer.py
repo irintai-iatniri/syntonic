@@ -307,12 +307,25 @@ class RetrocausalTrainer:
         # relative to the attractor (Time-Loop Logic).
         
         attractor = self._weight_templates[weight_idx]
+
+        # (Breathing Schedule) ---
+        # Dissonance: 0.0 (Harmony) -> 1.0 (Chaos)
+        dissonance = 1.0 - result.final_syntony
         
-        # Calculate thermodynamics based on phase
-        # High Syntony = Low Temp (Freeze). Low Syntony = High Temp (Melt/Tunneling).
-        temp = (1.0 - result.final_syntony) * self.config.noise_scale
-        gravity = self.config.pull_strength * 1.618  # Scale by Phi
+        # Temperature: High when dissonant (Melt lattice to explore)
+        # If we are stuck (high dissonance), we heat up.
+        temp = dissonance * self.config.noise_scale
         
+        # Gravity: Low when dissonant (Don't crush exploration)
+        # Only turn on the "Vacuum Sombrero" when we start finding truth (Syntony > 0.6)
+        # Using PHI (1.618) as the scaling constant
+        gravity_scalar = 0.0
+        if result.final_syntony > 0.6:
+            # Scale from 0 at syntony=0.6 to 1.0 at syntony=1.0
+            gravity_scalar = (result.final_syntony - 0.6) * 2.5
+        
+        gravity = self.config.pull_strength * PHI * gravity_scalar
+
         # Apply slide if on CUDA (geometry requires GPU acceleration)
         try:
             best_tensor = result.winner
