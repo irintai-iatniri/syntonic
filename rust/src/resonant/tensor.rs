@@ -640,6 +640,18 @@ impl ResonantTensor {
         self.lattice.iter().map(|g| g.to_f64()).collect()
     }
 
+    /// Convert to list of floats (Rust-accessible).
+    pub fn to_floats_rust(&self) -> Vec<f64> {
+        // If a CPU-side flux shadow exists and we're in Flux phase, prefer it
+        if self.phase == ResonantPhase::Flux {
+            if let Some(ref cpu) = self.cpu_flux {
+                return cpu.clone();
+            }
+        }
+
+        self.to_floats_core()
+    }
+
     /// Get the precision used for last crystallization.
     pub fn precision(&self) -> i64 {
         self.precision
@@ -2107,6 +2119,12 @@ impl ResonantTensor {
         self.phase.to_string()
     }
 
+    /// Get the device index (if any).
+    #[pyo3(name = "device_idx")]
+    fn py_device_idx(&self) -> Option<usize> {
+        self.device_idx()
+    }
+
     /// Get the tensor shape.
     #[getter]
     fn get_shape(&self) -> Vec<usize> {
@@ -2139,14 +2157,7 @@ impl ResonantTensor {
 
     /// Alias for to_list()
     fn to_floats(&self) -> Vec<f64> {
-        // If a CPU-side flux shadow exists and we're in Flux phase, prefer it
-        if self.phase == ResonantPhase::Flux {
-            if let Some(ref cpu) = self.cpu_flux {
-                return cpu.clone();
-            }
-        }
-
-        self.to_floats_core()
+        self.to_floats_rust()
     }
 
     /// Get the lattice as a list of GoldenExact values.
@@ -2567,6 +2578,78 @@ impl ResonantTensor {
 
         self.wake_flux_with_d_phase(device, noise_scale)
             .map_err(|e| e.into())
+    }
+
+    /// Move tensor to CUDA device.
+    ///
+    /// Creates a new tensor on the specified GPU.
+    /// If the current tensor has active flux (is on another GPU), it is downloaded first.
+    #[cfg(feature = "cuda")]
+    fn to_device(&self, device_idx: usize) -> PyResult<Self> {
+        // 1. Resolve current values (download if on GPU)
+        let values = self.resolve_values_core()?;
+
+        // 2. Create new tensor (snaps to lattice)
+        let mut new_tensor = Self::from_floats(
+            &values,
+            self.shape.clone(),
+            self.mode_norm_sq.clone(),
+            self.precision
+        ).map_err(|e| PyErr::from(e))?;
+
+        // 3. Move to target device
+        let device = crate::tensor::cuda::device_manager::get_device(device_idx).map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("cuda device error: {}", e))
+        })?;
+        
+        new_tensor.wake_flux(device).map_err(|e| PyErr::from(e))?;
+        new_tensor.set_device_idx(device_idx);
+        
+        Ok(new_tensor)
+    }
+
+    /// Move tensor to CPU.
+    ///
+    /// If the tensor is on GPU (Flux phase), downloads the values.
+    /// Returns a new tensor on CPU (Crystallized phase).
+    fn to_cpu(&self) -> PyResult<Self> {
+        // 1. Resolve current values
+        let values = self.resolve_values_core()?;
+
+        // 2. Create new tensor (snaps to lattice)
+        Self::from_floats(
+            &values,
+            self.shape.clone(),
+            self.mode_norm_sq.clone(),
+            self.precision
+        ).map_err(|e| PyErr::from(e))
+    }
+}
+
+impl ResonantTensor {
+    /// Helper to resolve values to Vec<f64>, downloading from GPU if necessary.
+    fn resolve_values_core(&self) -> PyResult<Vec<f64>> {
+        #[cfg(feature = "cuda")]
+        if self.phase == ResonantPhase::Flux {
+            if let Some(device) = &self.device {
+                // Check f32 flux
+                if let Some(flux_f32) = &self.flux_f32 {
+                     let mut host_data = vec![0.0f32; self.len()];
+                     device.default_stream().memcpy_dtoh(flux_f32, &mut host_data).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+                     return Ok(host_data.into_iter().map(|v| v as f64).collect());
+                }
+                
+                // Check f64 flux
+                if let Some(flux) = &self.flux {
+                     let mut host_data = vec![0.0f64; self.len()];
+                     device.default_stream().memcpy_dtoh(flux, &mut host_data).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+                     return Ok(host_data);
+                }
+            }
+        }
+        
+        // Fallback to CPU methods
+        Ok(self.to_floats_rust())
     }
 }
 

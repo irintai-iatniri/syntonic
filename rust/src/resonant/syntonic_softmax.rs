@@ -136,6 +136,19 @@ impl SyntonicSoftmaxState {
         x: &ResonantTensor,
         syntony: Option<&ResonantTensor>,
     ) -> PyResult<ResonantTensor> {
+        // Numerical stability check: Check for NaN/Inf in input
+        // Note: This forces a CPU sync if data is on GPU. For maximum performance in production
+        // this might be optional, but for "Robustness" phase it is required.
+        // We only check if not on GPU or if explicitly requested (omitted for now to avoid sync overhead on GPU path)
+        if x.device_idx().is_none() {
+            let floats = x.to_floats_rust();
+            if floats.iter().any(|v| !v.is_finite()) {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "Input contains NaN or Inf values"
+                ));
+            }
+        }
+
         match self.mode {
             SyntonicSoftmaxMode::Identity => {
                 // Dispatch to GPU if available
@@ -353,7 +366,7 @@ impl SyntonicSoftmaxState {
                 let mut out_flux = device
                     .default_stream()
                     .alloc_zeros::<f32>(x.len())
-                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to allocate GPU memory for output (f32 identity): {}", e)))?;
 
                 if is_last_dim {
                     cuda_softmax_identity_f32(
@@ -387,7 +400,7 @@ impl SyntonicSoftmaxState {
                 let mut out_flux = device
                     .default_stream()
                     .alloc_zeros::<f64>(x.len())
-                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to allocate GPU memory for output (f64 identity): {}", e)))?;
 
                 if is_last_dim {
                     cuda_softmax_identity_f64(
@@ -425,7 +438,7 @@ impl SyntonicSoftmaxState {
             let mut out_flux = device
                 .default_stream()
                 .alloc_zeros::<f32>(x.len())
-                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to allocate GPU memory for output (f32): {}", e)))?;
 
             match self.mode {
                 SyntonicSoftmaxMode::Learned => {
@@ -508,7 +521,7 @@ impl SyntonicSoftmaxState {
             let mut out_flux = device
                 .default_stream()
                 .alloc_zeros::<f64>(x.len())
-                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(e.to_string()))?;
+                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to allocate GPU memory for output (f64): {}", e)))?;
 
             match self.mode {
                 SyntonicSoftmaxMode::Learned => {
@@ -699,6 +712,25 @@ pub fn syntonic_softmax_py(
             return Err(pyo3::exceptions::PyValueError::new_err(format!(
                 "2D mode_norms must have shape [N, 8], got [{}, {}]",
                 norms.shape()[0], norms.shape()[1]
+=======
+    if let Some(norms) = mode_norms {
+        let n_dims = norms.shape().len();
+        let shape = norms.shape();
+        // Allow 1D norms or 2D [N, 8] E8 roots
+        let valid_shape = n_dims == 1 || (n_dims == 2 && shape[1] == 8);
+        if !valid_shape {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "mode_norms must be 1D tensor of norms OR [N, 8] tensor of E8 roots"
+            ));
+        }
+    }
+
+    if let Some(syn) = syntony {
+        if syn.shape() != x.shape() {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "syntony shape {:?} must match input shape {:?}",
+                syn.shape(),
+                x.shape()
             )));
         }
     }
