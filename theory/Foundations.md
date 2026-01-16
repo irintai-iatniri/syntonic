@@ -997,11 +997,11 @@ This formula generates the Standard Model charge spectrum:
 |----------|-----------------------------------|------------|
 | Proton | $(1,1,1,0)$ | $+1$ |
 | Up quark | $(1,1,0,0)$ | $+\frac{2}{3}$ |
-| Down quark | $(1,0,0,0)$ | $+\frac{1}{3}$ |
+| Down quark | $(-1,0,0,0)$ | $-\frac{1}{3}$ |
 | Electron | $(-1,-1,-1,0)$ | $-1$ |
 | Neutrino | $(0,0,0,n_{10})$ | $0$ |
 | Anti-up | $(-1,-1,0,0)$ | $-\frac{2}{3}$ |
-| Anti-down | $(-1,0,0,0)$ | $-\frac{1}{3}$ |
+| Anti-down | $(1,0,0,0)$ | $+\frac{1}{3}$ |
 
 **Status:** Theorem — Charges are not put in by hand but emerge from the unique recursion-invariant maps on $\mathbb{Z}^4$.
 

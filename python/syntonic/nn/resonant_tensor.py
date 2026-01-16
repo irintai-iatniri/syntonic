@@ -168,6 +168,7 @@ class ResonantTensor:
         """
         instance = cls.__new__(cls)
         instance._inner = _RustResonantTensor.from_golden_exact(lattice, shape, mode_norm_sq)
+        instance._device_str = 'cpu' # Default to cpu for lattice creation
         return instance
 
     @classmethod
@@ -190,6 +191,7 @@ class ResonantTensor:
         instance._inner = _RustResonantTensor.zeros(shape, precision)
         if device != 'cpu':
             instance._inner = instance._inner.to_device(device)
+        instance._device_str = device
         return instance
 
     @classmethod

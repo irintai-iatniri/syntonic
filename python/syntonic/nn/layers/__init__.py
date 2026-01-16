@@ -23,6 +23,7 @@ from syntonic.nn.layers.recursion import (
     RecursionBlock,
     DeepRecursionNet,
 )
+from syntonic.nn.layers.gnosis import GnosisLayer
 from syntonic.nn.layers.normalization import (
     SyntonicNorm,
     GoldenNorm,
@@ -41,4 +42,5 @@ __all__ = [
     'SyntonicNorm',
     'GoldenNorm',
     'ResonantLinear',
+    'GnosisLayer',
 ]
