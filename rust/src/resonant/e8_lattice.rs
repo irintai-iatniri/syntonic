@@ -14,7 +14,7 @@ pub struct E8Lattice {
 impl E8Lattice {
     pub fn new() -> Self {
         let mut roots = Vec::with_capacity(240);
-        
+
         // Type A: Permutations of (+-1, +-1, 0, 0, 0, 0, 0, 0)
         // Indices pairs: (0..8) choose 2 = 28 pairs.
         // Signs: ++, +-, -+, -- (4 combinations)
@@ -50,7 +50,7 @@ impl E8Lattice {
                 roots.push(v);
             }
         }
-        
+
         E8Lattice { roots }
     }
 
@@ -74,9 +74,9 @@ impl E8Lattice {
         let mut result = Vec::with_capacity(n * 8);
         for i in 0..n {
             let root = self.roots[i % 240];
-            let scale = 1.0 + (i / 240) as f64; 
+            let scale = 1.0 + (i / 240) as f64;
             for x in root {
-                 result.push(x * scale);
+                result.push(x * scale);
             }
         }
         result
@@ -102,19 +102,19 @@ impl GoldenProjector {
     pub fn new() -> Self {
         let phi = PHI;
         let norm = 1.0f64 / (1.0f64 + phi * phi).sqrt();
-        
+
         // Parallel Projection: x_i + phi * x_{i+4} (normalized)
         let mut p_par = [[0.0; 8]; 4];
         let mut p_perp = [[0.0; 8]; 4];
-        
+
         for i in 0..4 {
             p_par[i][i] = 1.0 * norm;
-            p_par[i][i+4] = phi * norm;
-            
+            p_par[i][i + 4] = phi * norm;
+
             p_perp[i][i] = phi * norm;
-            p_perp[i][i+4] = -1.0 * norm;
+            p_perp[i][i + 4] = -1.0 * norm;
         }
-        
+
         Self { phi, p_par, p_perp }
     }
 
@@ -143,7 +143,7 @@ impl GoldenProjector {
     }
 
     /// Compute the hyperbolic metric Q = ||v_parallel||² - ||v_perp||²
-    /// 
+    ///
     /// This is the key invariant for the Golden Cone:
     /// - Q > 0: Inside the cone (timelike)
     /// - Q = 0: On the cone boundary (lightlike)
@@ -165,10 +165,18 @@ impl GoldenProjector {
 /// The 4 null vectors defining the golden cone boundary
 /// These satisfy Q(c_a) = 0 and define the 36 Φ⁺(E₆) roots via ⟨c_a, α⟩ > 0
 const NULL_VECTORS: [[f64; 8]; 4] = [
-    [-0.152753, -0.312330, 0.192683, -0.692448, 0.013308, 0.531069, 0.153449, 0.238219],
-    [0.270941, 0.201058, 0.532514, -0.128468, 0.404635, -0.475518, -0.294881, 0.330591],
-    [0.157560, 0.189639, 0.480036, 0.021016, 0.274831, -0.782436, 0.060319, 0.130225],
-    [0.476719, 0.111410, 0.464671, -0.543379, -0.142049, -0.150498, -0.314296, 0.327929],
+    [
+        -0.152753, -0.312330, 0.192683, -0.692448, 0.013308, 0.531069, 0.153449, 0.238219,
+    ],
+    [
+        0.270941, 0.201058, 0.532514, -0.128468, 0.404635, -0.475518, -0.294881, 0.330591,
+    ],
+    [
+        0.157560, 0.189639, 0.480036, 0.021016, 0.274831, -0.782436, 0.060319, 0.130225,
+    ],
+    [
+        0.476719, 0.111410, 0.464671, -0.543379, -0.142049, -0.150498, -0.314296, 0.327929,
+    ],
 ];
 
 /// Check if vector is in the golden cone using 4 null vectors
@@ -190,7 +198,7 @@ pub fn is_in_golden_cone(v: &[f64], tol: f64) -> bool {
 
 /// Compute scalar weight from 8D vector using Golden Cone & hyperbolic metric
 /// Returns w = exp(-Q / φ) where Q = ||v_parallel||² - ||v_perp||²
-/// 
+///
 /// The Q metric measures "how timelike" the vector is:
 /// - Q > 0: Timelike (inside cone) → high weight
 /// - Q < 0: Spacelike (outside cone) → suppressed

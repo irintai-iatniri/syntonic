@@ -45,6 +45,7 @@ KERNEL_FILES=(
     "matmul"
     "conv_ops"
     "winding_ops"
+    "hierarchy"
 )
 
 # Compute capabilities to compile for
@@ -85,3 +86,4 @@ echo "  - heat_kernel.cu    : Heat kernel / theta series summation"
 echo "  - dhsr.cu           : DHSR cycle operations (differentiation, harmonization, syntony)"
 echo "  - corrections.cu    : SRT correction factors (1 ± q/N)"
 echo "  - resonant_d.cu     : Resonant D-phase operations (flux generation, noise, syntony)"
+echo "  - hierarchy.cu      : SRT-Zero hierarchy corrections (batched q/divisor, special, suppression)"

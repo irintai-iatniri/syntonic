@@ -959,7 +959,8 @@ impl ResonantEvolver {
     /// Returns true if the tensor was stored (syntony >= min_syntony threshold).
     fn store_attractor(&mut self, tensor: &ResonantTensor) -> bool {
         let syntony = tensor.syntony();
-        self.attractor_memory.maybe_add(tensor, syntony, self.generation);
+        self.attractor_memory
+            .maybe_add(tensor, syntony, self.generation);
         syntony >= self.config.attractor_min_syntony
     }
 
@@ -980,7 +981,8 @@ impl ResonantEvolver {
             &mut result,
             &self.attractor_memory,
             self.config.attractor_pull_strength,
-        ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        )
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
         Ok(result)
     }
 
@@ -988,10 +990,13 @@ impl ResonantEvolver {
     ///
     /// Computes weighted pull vector from all attractors and applies to tensor.
     fn pull(&self, tensor: &ResonantTensor) -> PyResult<ResonantTensor> {
-        let pull_vec = self.attractor_memory.compute_attractor_pull(tensor)
+        let pull_vec = self
+            .attractor_memory
+            .compute_attractor_pull(tensor)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
         let mut result = tensor.clone();
-        result.set_lattice(&pull_vec)
+        result
+            .set_lattice(&pull_vec)
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
         Ok(result)
     }

@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 mod exact;
+mod hierarchy;
 mod hypercomplex;
 mod linalg;
 mod resonant;
@@ -12,15 +13,15 @@ use hypercomplex::{Octonion, Quaternion};
 #[cfg(feature = "cuda")]
 use tensor::cuda::{AsyncTensorTransfer, TransferComputeOverlap};
 use tensor::srt_kernels;
-#[cfg(feature = "cuda")]
-use tensor::storage::{
-    srt_memory_resonance, srt_pool_stats, srt_reserve_memory, srt_transfer_stats,
-    srt_wait_for_resonance,
-};
 use tensor::storage::{
     cuda_device_count, cuda_is_available, srt_apply_correction, srt_compute_syntony,
     srt_dhsr_cycle, srt_e8_batch_projection, srt_golden_gaussian_weights, srt_scale_phi,
     srt_theta_series, TensorStorage,
+};
+#[cfg(feature = "cuda")]
+use tensor::storage::{
+    srt_memory_resonance, srt_pool_stats, srt_reserve_memory, srt_transfer_stats,
+    srt_wait_for_resonance,
 };
 
 // Winding state and enumeration
@@ -62,26 +63,15 @@ use resonant::{RESConfig, RESResult, ResonantEvolver, ResonantTensor};
 
 // E8 Lattice and Golden Projector wrappers
 use resonant::{
-    py_e8_generate_weights,
-    py_e8_generate_roots,
-    py_golden_projector_q,
-    py_golden_projector_phi,
-    py_golden_project_parallel,
-    py_golden_project_perp,
-    py_is_in_golden_cone,
-    py_compute_8d_weight,
+    py_compute_8d_weight, py_e8_generate_roots, py_e8_generate_weights, py_golden_project_parallel,
+    py_golden_project_perp, py_golden_projector_phi, py_golden_projector_q, py_is_in_golden_cone,
 };
 
 // Neural Network E8 Lattice and Golden Projector wrappers
 use resonant::{
-    py_e8_generate_weights_nn,
-    py_e8_generate_roots_nn,
-    py_golden_projector_q_nn,
-    py_golden_projector_phi_nn,
-    py_golden_project_parallel_nn,
-    py_golden_project_perp_nn,
-    py_is_in_golden_cone_nn,
-    py_compute_8d_weight_nn,
+    py_compute_8d_weight_nn, py_e8_generate_roots_nn, py_e8_generate_weights_nn,
+    py_golden_project_parallel_nn, py_golden_project_perp_nn, py_golden_projector_phi_nn,
+    py_golden_projector_q_nn, py_is_in_golden_cone_nn,
 };
 
 // Number theory and syntony wrappers
@@ -105,6 +95,8 @@ use resonant::py_wrappers::{
     py_crystallize_with_dwell_legacy,
     py_e_star,
     py_estimate_syntony_from_probs,
+    py_get_q_deficit,
+    py_get_target_syntony,
     py_global_avg_pool2d,
     py_golden_decay_loss,
     py_golden_weight,
@@ -131,8 +123,6 @@ use resonant::py_wrappers::{
     py_syntonic_loss,
     py_syntony_loss,
     py_syntony_loss_srt,
-    py_get_target_syntony,
-    py_get_q_deficit,
 };
 
 // Linear algebra operations
@@ -180,6 +170,18 @@ fn srt_q_deficit() -> f64 {
     srt_kernels::Q_DEFICIT
 }
 
+/// Get π (pi) constant
+#[pyfunction]
+fn srt_pi() -> f64 {
+    std::f64::consts::PI
+}
+
+/// Get e (Euler's number) constant
+#[pyfunction]
+fn srt_e() -> f64 {
+    std::f64::consts::E
+}
+
 /// Get structure dimension by index
 /// 0: E₈ dim (248), 1: E₈ roots (240), 2: E₈ pos (120),
 /// 3: E₆ dim (78), 4: E₆ cone (36), 5: E₆ 27 (27),
@@ -209,7 +211,11 @@ fn py_apply_geodesic_slide(
     {
         use tensor::storage::{CudaData, TensorData};
         if let (
-            TensorData::Cuda { data: w_data, device: dev, .. },
+            TensorData::Cuda {
+                data: w_data,
+                device: dev,
+                ..
+            },
             TensorData::Cuda { data: a_data, .. },
             TensorData::Cuda { data: m_data, .. },
         ) = (&weights.data, &attractor.data, &mode_norms.data)
@@ -229,7 +235,8 @@ fn py_apply_geodesic_slide(
                     gravity,
                     temperature,
                     n,
-                ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e))?;
+                )
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e))?;
             }
         }
     }
@@ -278,7 +285,10 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<resonant::SyntonicSoftmaxMode>()?;
     m.add_class::<resonant::SyntonicSoftmaxState>()?;
     m.add_function(wrap_pyfunction!(resonant::syntonic_softmax_py, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::syntonic_softmax::compute_syntonic_weights_py, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::syntonic_softmax::compute_syntonic_weights_py,
+        m
+    )?)?;
 
     // === Core Tensor Operations ===
     m.add_class::<TensorStorage>()?;
@@ -297,8 +307,19 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(srt_phi, m)?)?;
     m.add_function(wrap_pyfunction!(srt_phi_inv, m)?)?;
     m.add_function(wrap_pyfunction!(srt_q_deficit, m)?)?;
+    m.add_function(wrap_pyfunction!(srt_pi, m)?)?;
+    m.add_function(wrap_pyfunction!(srt_e, m)?)?;
     m.add_function(wrap_pyfunction!(srt_structure_dimension, m)?)?;
     m.add_function(wrap_pyfunction!(srt_correction_factor, m)?)?;
+
+    // === Hierarchy Correction (SRT-Zero) ===
+    m.add_function(wrap_pyfunction!(hierarchy::apply_correction, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::apply_correction_uniform, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::apply_special, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::apply_suppression, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::compute_e_star_n, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::apply_chain, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::init_divisors, m)?)?;
 
     // === SRT Tensor Operations (GPU-accelerated when on CUDA) ===
     m.add_function(wrap_pyfunction!(py_apply_geodesic_slide, m)?)?;
@@ -322,7 +343,10 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "cuda")]
     m.add_function(wrap_pyfunction!(srt_memory_resonance, m)?)?;
     #[cfg(feature = "cuda")]
-    m.add_function(wrap_pyfunction!(tensor::storage::_debug_stress_pool_take, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        tensor::storage::_debug_stress_pool_take,
+        m
+    )?)?;
     #[cfg(feature = "cuda")]
     m.add_function(wrap_pyfunction!(srt_kernels::validate_kernels, m)?)?;
 

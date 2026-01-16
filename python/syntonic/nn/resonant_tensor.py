@@ -728,8 +728,8 @@ class ResonantTensor:
         # PyO3 requires Python context for static methods
         # This is a workaround to get the Python module
         import sys
-        if 'syntonic._core' not in sys.modules:
-            import syntonic._core
+        if 'python.syntonic._core' not in sys.modules:
+            import python.syntonic._core
 
         # Get the module that contains ResonantTensor
         core_module = sys.modules['syntonic._core']

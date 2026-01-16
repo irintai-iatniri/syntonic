@@ -467,7 +467,10 @@ impl SRTMemoryTransferProtocol {
         // Advisory resonant timing (non-blocking)
         let is_resonant = self.scheduler.read().unwrap().is_resonant_window();
         if cfg!(debug_assertions) {
-            eprintln!("SRT: srt_h2d_transfer_f64_core resonant_window={}", is_resonant);
+            eprintln!(
+                "SRT: srt_h2d_transfer_f64_core resonant_window={}",
+                is_resonant
+            );
         }
 
         // Get optimal batch size using golden ratio batching
@@ -562,7 +565,10 @@ impl SRTMemoryTransferProtocol {
         // Advisory resonant timing (non-blocking)
         let is_resonant = self.scheduler.read().unwrap().is_resonant_window();
         if cfg!(debug_assertions) {
-            eprintln!("SRT: srt_h2d_transfer_f32_core resonant_window={}", is_resonant);
+            eprintln!(
+                "SRT: srt_h2d_transfer_f32_core resonant_window={}",
+                is_resonant
+            );
         }
 
         // Get optimal batch size using golden ratio batching
@@ -658,7 +664,10 @@ impl SRTMemoryTransferProtocol {
         // Advisory resonant timing (non-blocking)
         let is_resonant = self.scheduler.read().unwrap().is_resonant_window();
         if cfg!(debug_assertions) {
-            eprintln!("SRT: srt_d2h_transfer_f64_core resonant_window={}", is_resonant);
+            eprintln!(
+                "SRT: srt_d2h_transfer_f64_core resonant_window={}",
+                is_resonant
+            );
         }
 
         let data_len = device_data.len();
@@ -742,7 +751,10 @@ impl SRTMemoryTransferProtocol {
         // Advisory resonant timing (non-blocking)
         let is_resonant = self.scheduler.read().unwrap().is_resonant_window();
         if cfg!(debug_assertions) {
-            eprintln!("SRT: srt_d2h_transfer_f32_core resonant_window={}", is_resonant);
+            eprintln!(
+                "SRT: srt_d2h_transfer_f32_core resonant_window={}",
+                is_resonant
+            );
         }
 
         let data_len = device_data.len();

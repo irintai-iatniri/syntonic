@@ -114,17 +114,23 @@ const PTX_GOLDEN_BATCH_NORM_SM90: &str =
 
 // Syntonic Softmax PTX (4 compute capabilities)
 #[cfg(feature = "cuda")]
-const PTX_SYNTONIC_SOFTMAX_SM75: &str =
-    include_str!("../../kernels/ptx/syntonic_softmax_sm75.ptx");
+const PTX_SYNTONIC_SOFTMAX_SM75: &str = include_str!("../../kernels/ptx/syntonic_softmax_sm75.ptx");
 #[cfg(feature = "cuda")]
-const PTX_SYNTONIC_SOFTMAX_SM80: &str =
-    include_str!("../../kernels/ptx/syntonic_softmax_sm80.ptx");
+const PTX_SYNTONIC_SOFTMAX_SM80: &str = include_str!("../../kernels/ptx/syntonic_softmax_sm80.ptx");
 #[cfg(feature = "cuda")]
-const PTX_SYNTONIC_SOFTMAX_SM86: &str =
-    include_str!("../../kernels/ptx/syntonic_softmax_sm86.ptx");
+const PTX_SYNTONIC_SOFTMAX_SM86: &str = include_str!("../../kernels/ptx/syntonic_softmax_sm86.ptx");
 #[cfg(feature = "cuda")]
-const PTX_SYNTONIC_SOFTMAX_SM90: &str =
-    include_str!("../../kernels/ptx/syntonic_softmax_sm90.ptx");
+const PTX_SYNTONIC_SOFTMAX_SM90: &str = include_str!("../../kernels/ptx/syntonic_softmax_sm90.ptx");
+
+// Hierarchy PTX (4 compute capabilities)
+#[cfg(feature = "cuda")]
+const PTX_HIERARCHY_SM75: &str = include_str!("../../kernels/ptx/hierarchy_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_HIERARCHY_SM80: &str = include_str!("../../kernels/ptx/hierarchy_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_HIERARCHY_SM86: &str = include_str!("../../kernels/ptx/hierarchy_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_HIERARCHY_SM90: &str = include_str!("../../kernels/ptx/hierarchy_sm90.ptx");
 
 // =============================================================================
 // Kernel Function Lists
@@ -218,9 +224,7 @@ const DHSR_FUNCS: &[&str] = &[
 
 /// DHSR gravity functions
 #[cfg(feature = "cuda")]
-const DHSR_GRAVITY_FUNCS: &[&str] = &[
-    "apply_geodesic_gravity_f64",
-];
+const DHSR_GRAVITY_FUNCS: &[&str] = &["apply_geodesic_gravity_f64"];
 
 /// Correction factor functions
 #[cfg(feature = "cuda")]
@@ -579,7 +583,11 @@ fn validate_kernels_for_device(device: &Arc<CudaDevice>) -> PyResult<Vec<String>
     check_module(select_e8_ptx(major, minor), "e8", E8_FUNCS)?;
     check_module(select_heat_ptx(major, minor), "heat", HEAT_FUNCS)?;
     check_module(select_dhsr_ptx(major, minor), "dhsr", DHSR_FUNCS)?;
-    check_module(select_dhsr_ptx(major, minor), "dhsr_gravity", DHSR_GRAVITY_FUNCS)?;
+    check_module(
+        select_dhsr_ptx(major, minor),
+        "dhsr_gravity",
+        DHSR_GRAVITY_FUNCS,
+    )?;
     check_module(select_corr_ptx(major, minor), "correction", CORR_FUNCS)?;
     check_module(
         select_resonant_ptx(major, minor),

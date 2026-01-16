@@ -10,8 +10,8 @@
 use cudarc::driver::safe::CudaContext as CudaDevice;
 use cudarc::driver::CudaSlice;
 use pyo3::prelude::*;
-use std::sync::Arc;
 use std::any::Any;
+use std::sync::Arc;
 
 use super::device_manager::{get_device, get_srt_protocol, CudaError};
 use crate::tensor::storage::{CpuData, DeviceType, TensorStorage};
@@ -355,6 +355,11 @@ impl TransferComputeOverlap {
     #[pyo3(name = "get_srt_stats")]
     fn py_get_srt_stats(&self) -> PyResult<(usize, usize, f64, f64)> {
         let stats = self.srt_stats().map_err(PyErr::from)?;
-        Ok((stats.total_transfers, stats.total_bytes, stats.avg_transfer_time_us, stats.resonance_efficiency))
+        Ok((
+            stats.total_transfers,
+            stats.total_bytes,
+            stats.avg_transfer_time_us,
+            stats.resonance_efficiency,
+        ))
     }
 }

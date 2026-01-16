@@ -36,6 +36,8 @@ from syntonic.core import (
     srt_phi,
     srt_phi_inv,
     srt_q_deficit,
+    srt_pi,
+    srt_e,
     srt_structure_dimension,
     srt_correction_factor,
 )
@@ -69,6 +71,12 @@ E_STAR_NUMERIC = math.exp(math.pi) - math.pi  # 19.999099979189474
 
 # Universal syntony deficit q
 Q_DEFICIT_NUMERIC = srt_q_deficit()  # 0.027395146920
+
+# π constant
+PI_NUMERIC = srt_pi()  # 3.141592653589793
+
+# Euler's number e
+E_NUMERIC = srt_e()  # 2.718281828459045
 
 # =============================================================================
 # Structure Dimensions (for correction factors)
@@ -368,6 +376,8 @@ __all__ = [
     'PHI_NUMERIC',
     'E_STAR_NUMERIC',
     'Q_DEFICIT_NUMERIC',
+    'PI_NUMERIC',
+    'E_NUMERIC',
     # Structure data
     'STRUCTURE_DIMENSIONS',
     'CORRECTION_HIERARCHY',

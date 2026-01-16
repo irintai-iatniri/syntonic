@@ -392,7 +392,9 @@ impl CorrectionLevel {
             Self::Level7 => SymExpr::q().div(SymExpr::from_int(133)),
             Self::Level8 => SymExpr::q().div(SymExpr::from_int(126)),
             Self::Level9 => SymExpr::q().div(SymExpr::from_int(120)),
-            Self::Level10 => SymExpr::q().pow(Rational::from_int(2)).div(SymExpr::phi().pow(Rational::from_int(2))),
+            Self::Level10 => SymExpr::q()
+                .pow(Rational::from_int(2))
+                .div(SymExpr::phi().pow(Rational::from_int(2))),
             Self::Level11 => SymExpr::q().div(SymExpr::from_int(78)),
             Self::Level12 => SymExpr::q().div(SymExpr::from_int(72)),
             Self::Level13 => SymExpr::q().div(SymExpr::from_int(63)),

@@ -66,6 +66,8 @@ from syntonic._core import (
     srt_phi,
     srt_phi_inv,
     srt_q_deficit,
+    srt_pi,
+    srt_e,
     srt_structure_dimension,
     srt_correction_factor,
     # Hypercomplex
@@ -226,6 +228,8 @@ __all__ = [
     'srt_phi',
     'srt_phi_inv',
     'srt_q_deficit',
+    'srt_pi',
+    'srt_e',
     'srt_structure_dimension',
     'srt_correction_factor',
     # Hypercomplex

@@ -1,7 +1,7 @@
 
 import pytest
 import math
-from syntonic.core import ResonantTensor, syntonic_softmax
+from python.syntonic.core import ResonantTensor, syntonic_softmax
 
 def test_learned_mode():
     """Test 'learned' mode with provided mode norms."""

@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <h1 class="logo">SRT Zero</h1>
+        <div class="subtitle">Universal Syntony Correction Engine</div>
+    </header>
+
+    <div class="aletheia-grid">
+        <!-- Left Pane: Geometric Root -->
+        <div class="card pane-left">
+            <h3>Geometric Root</h3>
+
+            <div class="particle-list-scroll">
+                <div class="list-controls"
+                    style="padding: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+                    <span style="font-size: 0.8rem; color: #888;">Select for Probability</span>
+                    <button id="toggle-all-btn"
+                        style="background: none; border: none; color: var(--neon-cyan); cursor: pointer; font-size: 0.8rem;">All</button>
+                </div>
+                {% for p in all_particles %}
+                <div class="particle-item" style="display: flex; align-items: center;">
+                    <input type="checkbox" class="prob-checkbox" data-name="{{ p.name }}"
+                        data-error="{{ particle_errors.get(p.name, 1.0) }}" {% if particle_errors.get(p.name, 1.0) <
+                        0.01 %}checked{% endif %} style="margin-right: 0.5rem;">
+                    <a href="{{ url_for('particle', name=p.name) }}"
+                        class="particle-link {% if p.name == particle.name %}active{% endif %}" style="flex-grow: 1;">
+                        <span class="p-symbol">{{ p.symbol }}</span>
+                        <span class="p-name">{{ p.name }}</span>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <h3>Constants</h3>
+                {% for key, info in constants.items() %}
+                <div class="constant-item {% if key in used_constants %}active{% endif %}">
+                    <div class="const-symbol">{{ info.symbol }}</div>
+                    <div>
+                        <div class="const-name">{{ info.name }}</div>
+                        <div class="const-value">{{ "%.5f"|format(info.value) }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Center Pane: Recursion Waterfall -->
+        <div class="card pane-center">
+            <div class="waterfall-header">
+                <div>
+                    <h1 class="particle-title">{{ particle.name }}</h1>
+                    <div class="subtitle">{{ ethical_meaning }}</div>
+                </div>
+                <div class="particle-symbol">{{ particle.symbol }}</div>
+            </div>
+
+            <div class="waterfall-container">
+                <!-- Tree Level -->
+                <div class="waterfall-step tree-step" style="animation-delay: 0.1s">
+                    <div class="step-label">Tree Level</div>
+                    <div class="step-math">
+                        {% if particle.base_integer_N %}
+                        E* × {{ particle.base_integer_N }}
+                        {% else %}
+                        Base Geometry
+                        {% endif %}
+                    </div>
+                    <div class="step-value">
+                        {% if derivation %}
+                        {{ "%.4f"|format(derivation.tree_value) }}
+                        {% else %}
+                        ...
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Corrections -->
+                {% if derivation %}
+                {% for step in derivation.steps %}
+                <div class="waterfall-step correction-step"
+                    style="--delay-index: {{ loop.index0 }}; animation-delay: calc(0.2s + var(--delay-index) * 0.1s)">
+                    <div class="step-label">{{ step.description }}</div>
+                    <div class="step-math">
+                        × {{ "%.6f"|format(step.factor) }}
+                    </div>
+                    <div class="step-value">
+                        {{ "%.4f"|format(step.after) }}
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <!-- Final Result -->
+                <div class="waterfall-step final-step"
+                    style="--delay-index: {{ (derivation.steps|length) if derivation else 0 }}; animation-delay: calc(0.2s + var(--delay-index) * 0.1s)">
+                    <div class="step-label">Final Prediction</div>
+                    <div class="step-math">
+                        {{ particle.pdg_unit }}
+                    </div>
+                    <div class="step-value">
+                        {% if derivation %}
+                        {{ "%.4f"|format(derivation.final_value) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Pane: Status Quo vs SRT -->
+        <div class="card pane-right">
+            <h3>Precision Comparison</h3>
+
+            <div class="comparison-card">
+                <div class="subtitle">Experimental (PDG)</div>
+                <div class="comp-val sm">{{ particle.pdg_value }}</div>
+                <div class="subtitle">± {{ particle.pdg_uncertainty }}</div>
+            </div>
+
+            <div class="comparison-card">
+                <div class="subtitle">SRT Prediction</div>
+                <div class="comp-val srt">
+                    {% if derivation %}
+                    {{ "%.4f"|format(derivation.final_value) }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="metric-box">
+                <div class="subtitle">Deviation</div>
+                <div
+                    class="metric-val {% if derivation and derivation.deviation_percent < 0.01 %}success{% else %}warning{% endif %}">
+                    {% if derivation %}
+                    {{ "%.6f"|format(derivation.deviation_percent) }}%
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="metric-box">
+                <div class="subtitle">Geometric Origin</div>
+                <div style="font-size: 0.9rem; color: #ccc; margin-top: 0.5rem;">
+                    {{ particle.notes }}
+                </div>
+            </div>
+
+            <div class="kill-shot-card"
+                style="margin-top: 2rem; padding: 1rem; border: 1px solid var(--neon-gold); background: rgba(255, 215, 0, 0.05);">
+                <div class="subtitle" style="color: var(--neon-gold);">Probability of Accident</div>
+                <div id="probability-ticker" class="ticker-display"
+                    style="font-family: 'Courier New', monospace; font-size: 1.5rem; margin-top: 0.5rem;">100%</div>
+                <div id="selected-count" style="font-size: 0.8rem; color: #888; margin-top: 0.5rem;">0 particles
+                    selected</div>
+            </div>
+
+            <button class="btn-toggle" id="altruxian-btn">
+                Altruxian Mode
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkboxes = document.querySelectorAll('.prob-checkbox');
+        const ticker = document.getElementById('probability-ticker');
+        const countLabel = document.getElementById('selected-count');
+        const toggleAllBtn = document.getElementById('toggle-all-btn');
+        const altruxianBtn = document.getElementById('altruxian-btn');
+
+        function updateProbability() {
+            let logProb = 0;
+            let count = 0;
+
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    count++;
+                    let error = parseFloat(cb.dataset.error);
+                    // Floor error at 1e-9 (limit of precision/miracle factor)
+                    // If error is large (> 10%), probability factor is 1 (neutral)
+                    // If error is small, probability is proportional to error
+
+                    let probFactor = 1.0;
+                    if (error < 1e-9) {
+                        probFactor = 1e-9;
+                    } else if (error > 0.5) {
+                        probFactor = 0.5; // Cap at random chance
+                    } else {
+                        probFactor = error;
+                    }
+
+                    logProb += Math.log10(probFactor);
+                }
+            });
+
+            // Display logic
+            let displayHtml = "";
+            if (count === 0) {
+                displayHtml = "100%";
+            } else {
+                // Format as 1 in 10^X
+                let exponent = -logProb;
+                displayHtml = `1 in 10<sup>${exponent.toFixed(1)}</sup>`;
+            }
+
+            ticker.innerHTML = displayHtml;
+            countLabel.textContent = `${count} particles selected`;
+
+            // Color effects
+            if (logProb < -50) {
+                ticker.style.color = "#00ffff"; // Cyan for extreme
+                ticker.style.textShadow = "0 0 10px #00ffff";
+            } else if (logProb < -20) {
+                ticker.style.color = "#ffd700"; // Gold
+                ticker.style.textShadow = "0 0 10px #ffd700";
+            } else {
+                ticker.style.color = "#ffffff";
+                ticker.style.textShadow = "none";
+            }
+        }
+
+        checkboxes.forEach(cb => cb.addEventListener('change', updateProbability));
+
+        toggleAllBtn.addEventListener('click', () => {
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            updateProbability();
+        });
+
+        altruxianBtn.addEventListener('click', () => {
+            document.body.classList.toggle('altruxian-mode');
+            if (document.body.classList.contains('altruxian-mode')) {
+                altruxianBtn.textContent = "Standard Mode";
+                // Add some visual flair class to body
+            } else {
+                altruxianBtn.textContent = "Altruxian Mode";
+            }
+        });
+
+        // Initial calc
+        updateProbability();
+    });
+</script>
+{% endblock %}

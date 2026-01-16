@@ -1,0 +1,150 @@
+"""
+SRT-Zero: The Geometric Bootloader
+==================================
+
+A computational implementation of Syntony Recursion Theory that derives
+the Standard Model particle spectrum from zero physical constants,
+using only geometric axioms.
+
+Modules:
+- hierarchy: Complete 25-level correction system
+- constants: The four seeds {φ, π, e, 1} and derived E*, q
+- geometry: Topological invariants (E₈, E₆, D₄ structures)
+- catalog: Particle configurations (~40 particles)
+- engine: Mass derivation engine
+- validate: Test harness
+
+Usage:
+    from srt_zero import DerivationEngine
+
+    engine = DerivationEngine()
+    result = engine.derive("proton")
+    print(f"Proton mass: {result.final_value} MeV")
+"""
+
+from __future__ import annotations
+
+# Core modules
+from .hierarchy import (
+    # Constants
+    PHI,
+    PHI_INV,
+    PI,
+    E,
+    E_STAR,
+    Q,
+    H_E8,
+    DIM_E8,
+    ROOTS_E8,
+    ROOTS_E8_POS,
+    RANK_E8,
+    DIM_E6,
+    DIM_E6_FUND,
+    ROOTS_E6_POS,
+    K_D4,
+    DIM_T4,
+    N_GEN,
+    # Enums
+    CorrectionLevel,
+    CorrectionCategory,
+    # Dataclasses
+    CorrectionInfo,
+    CorrectionRecord,
+    DerivationResult,
+    # Tables
+    GEOMETRIC_DIVISORS,
+    CORRECTION_HIERARCHY,
+    FIBONACCI,
+    # Functions
+    apply_correction,
+    apply_special,
+    apply_corrections,
+    apply_winding_instability,
+    apply_recursion_penalty,
+    apply_double_inverse,
+    apply_fixed_point_penalty,
+    compute_E_star_N,
+    compute_proton_mass,
+    compute_neutron_mass,
+    compute_pion_mass,
+    compute_kaon_mass,
+)
+
+from .constants import UniverseSeeds
+
+from .geometry import GeometricInvariants
+
+from .catalog import (
+    FormulaType,
+    ParticleType,
+    ParticleConfig,
+    CATALOG,
+    get_particle,
+    list_particles,
+    get_all_configs,
+)
+
+from .engine import DerivationEngine, MassMiner
+
+from .config import SRTConfig, get_config, set_config
+
+# Import backend module (optional)
+try:
+    from . import backend as _backend_module
+except ImportError:
+    _backend_module = None
+
+
+__version__ = "2.1.0"
+__author__ = "SRT-Zero Kernel"
+
+__all__ = [
+    # Version
+    "__version__",
+    # Core Classes
+    "UniverseSeeds",
+    "GeometricInvariants",
+    "DerivationEngine",
+    "MassMiner",
+    # Constants
+    "PHI",
+    "PHI_INV",
+    "PI",
+    "E",
+    "E_STAR",
+    "Q",
+    # Hierarchy
+    "CorrectionLevel",
+    "CorrectionCategory",
+    "CorrectionInfo",
+    "CorrectionRecord",
+    "DerivationResult",
+    "GEOMETRIC_DIVISORS",
+    "CORRECTION_HIERARCHY",
+    # Catalog
+    "FormulaType",
+    "ParticleType",
+    "ParticleConfig",
+    "CATALOG",
+    "get_particle",
+    "list_particles",
+    "get_all_configs",
+    # Functions
+    "apply_correction",
+    "apply_special",
+    "apply_corrections",
+]
+
+# Lazy export backend functions
+if _backend_module is not None:
+    __all__.extend(
+        [
+            "is_cuda_available",
+            "batch_apply_correction",
+            "batch_apply_special_correction",
+            "batch_apply_suppression",
+            "batch_compute_e_star_n",
+            "SpecialCorrectionType",
+            "SuppressionType",
+        ]
+    )

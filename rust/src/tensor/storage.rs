@@ -221,9 +221,13 @@ fn ensure_kernels_loaded(device: &Arc<CudaDevice>, device_idx: usize) -> PyResul
     // In cudarc 0.18.2, modules are not cached by name
     // We load the module on demand in each operation
     // This function is kept for API compatibility but does nothing
-    
+
     // Sanity check
-    debug_assert_eq!(device.ordinal() as usize, device_idx, "Device ordinal mismatch in ensure_kernels_loaded");
+    debug_assert_eq!(
+        device.ordinal() as usize,
+        device_idx,
+        "Device ordinal mismatch in ensure_kernels_loaded"
+    );
     // Ensure variables are effectively used to silence warnings
     let _ = (device, device_idx);
     Ok(())
@@ -1108,7 +1112,10 @@ impl TensorStorage {
         if let Some(o) = ord {
             if o != 2 {
                 return Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
-                    format!("Only L2 norm (ord=2 or None) is currently supported, got {}", o),
+                    format!(
+                        "Only L2 norm (ord=2 or None) is currently supported, got {}",
+                        o
+                    ),
                 ));
             }
         }
@@ -2160,9 +2167,9 @@ impl TensorStorage {
     pub fn harmonize(&self, strength: f64, legacy_gamma: f64) -> PyResult<TensorStorage> {
         // Enforce that if legacy_gamma is provided (non-zero), it matches strength or we warn
         if legacy_gamma != 0.0 && (legacy_gamma - strength).abs() > 1e-6 {
-             // In a perfect world we'd warn, but for now we'll just prioritize strength (the first arg)
-             // as it drives the logic below.
-             // eprintln!("Warning: harmonize called with mismatching strength={} and gamma={}", strength, legacy_gamma);
+            // In a perfect world we'd warn, but for now we'll just prioritize strength (the first arg)
+            // as it drives the logic below.
+            // eprintln!("Warning: harmonize called with mismatching strength={} and gamma={}", strength, legacy_gamma);
         }
         let gamma = if (strength - Self::phi_inv()).abs() < 0.001 {
             Self::phi_inv()
@@ -2873,7 +2880,10 @@ impl TensorStorage {
         let pool_ref = pooled.pool(); // Access the pool field
         if is_empty {
             // unlikely for a freshly allocated pooled slice; keep as sanity check
-            eprintln!("alloc_with_pooled_slice: allocated pooled slice is empty on device {}", device_idx);
+            eprintln!(
+                "alloc_with_pooled_slice: allocated pooled slice is empty on device {}",
+                device_idx
+            );
         }
         // Clone & drop to explicitly release an owned Arc rather than dropping a reference
         let pool_owned = pool_ref.clone();
@@ -3543,7 +3553,9 @@ impl TensorStorage {
                             .arg(&(n as i32))
                             .launch(cfg)
                     }
-                    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+                    .map_err(|e| {
+                        PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
+                    })?;
                     (
                         CudaData::Complex128(Arc::new(out)),
                         "complex128".to_string(),
@@ -4204,7 +4216,7 @@ pub fn srt_transfer_stats(device_idx: usize) -> PyResult<std::collections::HashM
 pub fn srt_reserve_memory(device_idx: usize, size: usize) -> PyResult<usize> {
     let protocol = get_srt_protocol(device_idx)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-    
+
     // Allocate and immediately drop (returning to pool if logic allows, or just testing allocation)
     // Since 'take' returns a Vec<u8> which is pinned, dropping it might unregister or free it.
     // The current implementation of SRTPinnedPool DOES handle dropping by unregistering.
@@ -4213,16 +4225,17 @@ pub fn srt_reserve_memory(device_idx: usize, size: usize) -> PyResult<usize> {
     // this function primarily serves to exercise the 'take' path and verify allocation potential.
     // For a real reservation system, we'd need a Python object wrapping the allocation.
     // Given the constraints, we'll just exercise the method.
-    let block = protocol.take(size)
+    let block = protocol
+        .take(size)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     // Keep the block alive briefly to ensure allocation succeeded, then drop it.
     // Returning the block to the pool or exposing it to Python would require a wrapper type.
     drop(block);
-    
+
     // In a real scenario, we might want to keep this block alive or return a handle.
     // For now, this confirms we can take from the pool.
-    
+
     Ok(size)
 }
 
@@ -4260,18 +4273,18 @@ pub fn srt_memory_resonance(device_idx: usize, block_id: usize) -> PyResult<f64>
 #[pyfunction]
 #[cfg(feature = "cuda")]
 pub fn _debug_stress_pool_take(device_idx: usize) -> PyResult<()> {
-    // This function simply allocates a small slice and takes it, 
+    // This function simply allocates a small slice and takes it,
     // ensuring the method is compiled and linked.
     let pool = get_pool(device_idx)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-    
+
     // Allocate 1 element
     let slice: PooledSlice<f32> = PooledSlice::alloc(pool, 1)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-        
+
     // Take ownership (removing from RAII pool management)
     let raw_cuda_slice = slice.take();
-    
+
     // raw_cuda_slice will be dropped here, freeing the memory via normal CudaSlice Drop
     drop(raw_cuda_slice);
     // but bypassing the pool's recycle logic.

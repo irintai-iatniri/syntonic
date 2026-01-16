@@ -113,7 +113,8 @@ impl ResonantTensor {
                             let combined = Self::phi_residual_cuda(identity, residual, mode)?;
 
                             // Copy GPU flux to host, apply ReLU on CPU, and return new tensor.
-                            let combined_flux = combined.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
+                            let combined_flux =
+                                combined.flux_ref().ok_or(ResonantError::NoFluxPresent)?;
                             let n = combined.len();
 
                             // Allocate host buffer and copy from device

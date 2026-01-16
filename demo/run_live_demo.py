@@ -1,11 +1,11 @@
 import time
 import random
 import asyncio
-from syntonic.nn.training.trainer import RetrocausalTrainer, RESTrainingConfig
-from syntonic.nn.winding.winding_net_pure import PureWindingNet
-from syntonic._core import ResonantTensor, WindingState
-from syntonic import state
-import syntonic.sn as sn
+from python.syntonic.nn.training.trainer import RetrocausalTrainer, RESTrainingConfig
+from python.syntonic.nn.winding.winding_net_pure import PureWindingNet
+from python.syntonic._core import ResonantTensor, WindingState
+from python.syntonic import state
+import python.syntonic.sn as sn
 
 def run_demo():
     print("Initializing Syntonic WindingNet...")

@@ -1,0 +1,117 @@
+# SRT-Zero Validation Results
+
+- **Total**: 108
+- **Passed**: 103
+- **Failed**: 5
+- **Pass Rate**: 95.4%
+
+| Particle | Symbol | Predicted | Experimental | Unit | Error (%) | Status |
+|----------|--------|-----------|--------------|------|-----------|--------|
+| proton | m_p | 938.271 | 938.272 | MeV | 0.0001 | ✓ PASS |
+| neutron | m_n | 939.568 | 939.565 | MeV | 0.0002 | ✓ PASS |
+| lambda | m_Λ | 1115.63 | 1115.68 | MeV | 0.0049 | ✓ PASS |
+| delta | m_Δ | 1230.04 | 1232 | MeV | 0.1592 | ✓ PASS |
+| xi- | m_Ξ⁻ | 1320.95 | 1321.71 | MeV | 0.0579 | ✓ PASS |
+| omega- | m_Ω⁻ | 1679.74 | 1672.45 | MeV | 0.4358 | ✓ PASS |
+| sigma_plus | Σ⁺ | 1189.4 | 1189.37 | MeV | 0.0026 | ✓ PASS |
+| pion | m_π | 139.579 | 139.57 | MeV | 0.0062 | ✓ PASS |
+| kaon | m_K | 497.581 | 497.611 | MeV | 0.0060 | ✓ PASS |
+| eta | m_η | 547.789 | 547.862 | MeV | 0.0134 | ✓ PASS |
+| rho | m_ρ | 775.43 | 775.26 | MeV | 0.0220 | ✓ PASS |
+| d | m_D | 1862.66 | 1864.84 | MeV | 0.1167 | ✓ PASS |
+| b | m_B | 5279.76 | 5279.66 | MeV | 0.0019 | ✓ PASS |
+| bc | m_Bc | 6274.94 | 6274.9 | MeV | 0.0006 | ✓ PASS |
+| jpsi | m_J/ψ | 3096.72 | 3096.9 | MeV | 0.0060 | ✓ PASS |
+| psi_2s | ψ(2S) | 3686.69 | 3686.1 | MeV | 0.0160 | ✓ PASS |
+| upsilon_1s | m_Υ(1S) | 9459.57 | 9460.3 | MeV | 0.0077 | ✓ PASS |
+| upsilon_2s | Υ(2S) | 10019.5 | 10023.3 | MeV | 0.0374 | ✓ PASS |
+| upsilon_3s | Υ(3S) | 10359.5 | 10355.2 | MeV | 0.0419 | ✓ PASS |
+| up | m_u | 2.16125 | 2.16 | MeV | 0.0577 | ✓ PASS |
+| down | m_d | 4.67774 | 4.67 | MeV | 0.1657 | ✓ PASS |
+| strange | m_s | 92.9663 | 93.4 | MeV | 0.4643 | ✓ PASS |
+| charm | m_c | 1270.23 | 1270 | MeV | 0.0183 | ✓ PASS |
+| bottom | m_b | 4180.27 | 4180 | MeV | 0.0065 | ✓ PASS |
+| top | m_t | 172771 | 172760 | MeV | 0.0061 | ✓ PASS |
+| tau | m_τ | 1776.75 | 1776.86 | MeV | 0.0063 | ✓ PASS |
+| muon | m_μ | 105.488 | 105.658 | MeV | 0.1611 | ✓ PASS |
+| electron | m_e | 0.511486 | 0.510999 | MeV | 0.0953 | ✓ PASS |
+| neutrino_3 | m_ν3 | 49.9289 | 50.1 | meV | 0.3416 | ✓ PASS |
+| neutrino_2 | m_ν2 | 8.56599 | 8.61 | meV | 0.5111 | ✓ PASS |
+| neutrino_1 | m_ν1 | 2.02216 | 2.02 | meV | 0.1068 | ✓ PASS |
+| w | m_W | 80560.5 | 80377.9 | MeV | 0.2272 | ✓ PASS |
+| z | m_Z | 91384.8 | 91187.6 | MeV | 0.2162 | ✓ PASS |
+| higgs | m_H | 125250 | 125250 | MeV | 0.0000 | ✓ PASS |
+| gamma_z | Γ_Z | 2.50064 | 2.4952 | GeV | 0.2181 | ✓ PASS |
+| gamma_w | Γ_W | 2.08605 | 2.085 | GeV | 0.0502 | ✓ PASS |
+| r_b | R_b | 0.216437 | 0.21629 | ratio | 0.0680 | ✓ PASS |
+| v_us | |V_us| | 0.22411 | 0.2243 |  | 0.0847 | ✓ PASS |
+| v_cb | |V_cb| | 0.0395446 | 0.0415 |  | 4.7119 | ✗ FAIL |
+| v_ub | |V_ub| | 0.00392437 | 0.00361 | dimensionless | 8.7084 | ✗ FAIL |
+| theta_12 | θ₁₂ | 33.486 | 33.44 | degrees | 0.1374 | ✓ PASS |
+| theta_23 | θ₂₃ | 45.1781 | 49.2 | degrees | 8.1745 | ✗ FAIL |
+| theta_13 | θ₁₃ | 8.56869 | 8.57 | degrees | 0.0153 | ✓ PASS |
+| deuteron | B_d | 2.22438 | 2.22457 | MeV | 0.0087 | ✓ PASS |
+| alpha | B_α | 28.2918 | 28.2961 | MeV | 0.0153 | ✓ PASS |
+| glueball_0pp | G(0⁺⁺) | 1521.81 | 1517 | MeV | 0.3167 | ✓ PASS |
+| glueball_2pp | G(2⁺⁺) | 2212.19 | 2220 | MeV | 0.3517 | ✓ PASS |
+| glueball_0mp | G(0⁻⁺) | 2504.02 | 2500 | MeV | 0.1609 | ✓ PASS |
+| dm_baryon_ratio | Ω_DM/Ω_b | 5.37304 | 5.36 | ratio | 0.2434 | ✓ PASS |
+| z_eq | z_eq | 3399.85 | 3400 | redshift | 0.0045 | ✓ PASS |
+| z_rec | z_rec | 1099.95 | 1100 | redshift | 0.0045 | ✓ PASS |
+| h0 | H₀ | 67.4523 | 67.4 | km/s/Mpc | 0.0776 | ✓ PASS |
+| rho_lambda | ρ_Λ | 2.25 | 2.25 | meV | 0.0000 | ✓ PASS |
+| eta_b | η_B | 6.1318e-10 | 6.1e-10 | dimensionless | 0.5214 | ✓ PASS |
+| n_s | n_s | 0.966667 | 0.9649 | dimensionless | 0.1831 | ✓ PASS |
+| r_tensor | r | 0.0032769 | 0.00328 | dimensionless | 0.0946 | ✓ PASS |
+| w_eos | w | -1.00011 | -1.03 | dimensionless | -2.9017 | ✓ PASS |
+| sterile_mixing | sin²(2θ) | 1.13841e-11 | 1.14e-11 | dimensionless | 0.1393 | ✓ PASS |
+| y_p | Y_p | 0.245 | 0.245 | dimensionless | 0.0000 | ✓ PASS |
+| d_h | D/H | 2.53e-05 | 2.53e-05 | dimensionless | 0.0000 | ✓ PASS |
+| li7_h | ⁷Li/H | 1.6e-10 | 1.6e-10 | dimensionless | 0.0000 | ✓ PASS |
+| n_eff | N_eff | 2.98356 | 2.99 | dimensionless | 0.2153 | ✓ PASS |
+| cmb_peak_1 | ℓ₁ | 220 | 220 | multipole | 0.0000 | ✓ PASS |
+| cmb_peak_2 | ℓ₂ | 536.431 | 537.5 | multipole | 0.1989 | ✓ PASS |
+| cmb_peak_3 | ℓ₃ | 804.646 | 810.8 | multipole | 0.7590 | ✓ PASS |
+| cmb_peak_4 | ℓ₄ | 1121.08 | 1120.9 | multipole | 0.0158 | ✓ PASS |
+| cmb_peak_5 | ℓ₅ | 1455.59 | 1444.2 | multipole | 0.7886 | ✓ PASS |
+| peak_ratio_21 | H₂/H₁ | 0.461694 | 0.458 | ratio | 0.8065 | ✓ PASS |
+| peak_ratio_31 | H₃/H₁ | 0.37034 | 0.37 | ratio | 0.0920 | ✓ PASS |
+| alpha_inv | α⁻¹ | 137.036 | 137.036 | dimensionless | 0.0000 | ✓ PASS |
+| rydberg | Ry | 13.6057 | 13.606 | eV | 0.0023 | ✓ PASS |
+| he_plus_ie | IE(He⁺) | 54.4228 | 54.418 | eV | 0.0088 | ✓ PASS |
+| alpha_h | α_H | 4.5 | 4.5 | a0^3 | 0.0000 | ✓ PASS |
+| h2_bond | r_e(H₂) | 0.738118 | 0.741 | Angstrom | 0.3889 | ✓ PASS |
+| h2_dissociation | D₀(H₂) | 4.47311 | 4.478 | eV | 0.1092 | ✓ PASS |
+| fine_structure_2p | ΔE_FS | 10.95 | 10.97 | GHz | 0.1823 | ✓ PASS |
+| hyperfine_21cm | ν_hfs | 1420.41 | 1420.41 | MHz | 0.0000 | ✓ PASS |
+| proton_radius | r_p | 0.841237 | 0.8414 | fm | 0.0194 | ✓ PASS |
+| semf_as | a_S | 17.8076 | 17.8 | MeV | 0.0426 | ✓ PASS |
+| semf_av | a_V | 15.6474 | 15.75 | MeV | 0.6515 | ✓ PASS |
+| semf_aa | a_A | 23.8342 | 23.7 | MeV | 0.5664 | ✓ PASS |
+| semf_ap | a_P | 12.0215 | 12 | MeV | 0.1793 | ✓ PASS |
+| semf_ac | a_C | 0.71298 | 0.711 | MeV | 0.2784 | ✓ PASS |
+| fe56_binding | B/A(⁵⁶Fe) | 8.79979 | 8.79 | MeV | 0.1113 | ✓ PASS |
+| triton_binding | B(³H) | 8.5234 | 8.482 | MeV | 0.4881 | ✓ PASS |
+| bcs_ratio | 2Δ₀/kTc | 3.51002 | 3.52 | dimensionless | 0.2835 | ✓ PASS |
+| tc_ybco | Tc(YBCO) | 92.3565 | 92.4 | Kelvin | 0.0471 | ✓ PASS |
+| tc_bscco | Tc(BSCCO) | 110.453 | 110 | Kelvin | 0.4121 | ✓ PASS |
+| vf_graphene | v_F | 999308 | 1e+06 | m/s | 0.0692 | ✓ PASS |
+| bh_entropy_corr | S_BH/S_0 | 1.00685 | 1 | ratio | 0.6849 | ✓ PASS |
+| hawking_t_corr | T_H/T_0 | 0.996576 | 1 | ratio | 0.3424 | ✓ PASS |
+| echo_gw150914 | Δt(GW150914) | 0.59 | 0.59 | ms | 0.0000 | ✓ PASS |
+| echo_gw190521 | Δt(GW190521) | 1.35 | 1.35 | ms | 0.0000 | ✓ PASS |
+| echo_gw170817 | Δt(GW170817) | 0.038 | 0.038 | ms | 0.0000 | ✓ PASS |
+| mond_a0 | a₀ | 1.20249e-10 | 1.2e-10 | m/s^2 | 0.2072 | ✓ PASS |
+| muon_g2 | a_μ | 2.51e-09 | 2.51e-09 | dimensionless | 0.0000 | ✓ PASS |
+| tau_g2 | a_τ | 0.00118107 | 0.00118 | dimensionless | 0.0910 | ✓ PASS |
+| neutron_lifetime | τ_n | 879.4 | 879.4 | s | 0.0000 | ✓ PASS |
+| sin2_thetaw | sin²θ_W | 0.2312 | 0.2312 | dimensionless | 0.0000 | ✓ PASS |
+| j_cp | J_CP | 3.08171e-05 | 3.08e-05 | dimensionless | 0.0556 | ✓ PASS |
+| delta_cp | δ_CP | 194.793 | 195 | degrees | 0.1060 | ✓ PASS |
+| alpha_21 | α₂₁ | 3.0476 | 0 | degrees | 100.0000 | ✗ FAIL |
+| alpha_31 | α₃₁ | 7.97873 | 0 | degrees | 100.0000 | ✗ FAIL |
+| mu_gut | μ_GUT | 1.00189e+15 | 1e+15 | GeV | 0.1893 | ✓ PASS |
+| t_reh | T_reh | 9.96782e+09 | 1e+10 | GeV | 0.3218 | ✓ PASS |
+| t_cc | T_cc⁺ | 3875.1 | 3875.1 | MeV | 0.0000 | ✓ PASS |
+| x_3872 | X(3872) | 3871.65 | 3871.65 | MeV | 0.0000 | ✓ PASS |
+| pc_4457 | P_c(4457) | 4457 | 4457 | MeV | 0.0000 | ✓ PASS |

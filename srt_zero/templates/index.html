@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h2>Particle Catalog</h2>
+    <p style="color: var(--text-secondary);">Select a particle to view its complete geometric derivation.</p>
+</div>
+
+<div class="grid">
+    {% for particle in particles %}
+    <a href="/particle/{{ particle.name|lower|replace(' ', '_') }}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <span class="badge badge-type">{{ particle.particle_type.name }}</span>
+                <span class="text-mono text-accent" style="font-size: 1.2rem;">{{ particle.symbol }}</span>
+            </div>
+            <h3 style="margin-bottom: 0.5rem;">{{ particle.name }}</h3>
+            <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                {{ particle.pdg_value }} {{ particle.pdg_unit }}
+            </div>
+            <div
+                style="font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">
+                {{ particle.formula_type.name }}
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

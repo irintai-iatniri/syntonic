@@ -6,10 +6,9 @@
 //! where w(n) = exp(-|n|²/φ) is the golden measure weight.
 
 use crate::resonant::{
-    ResonantTensor, ResonantPhase, 
-    e8_lattice::{E8Lattice, GoldenProjector, compute_8d_weight},
     crystallize::snap_to_lattice,
-    PHI,
+    e8_lattice::{compute_8d_weight, E8Lattice, GoldenProjector},
+    ResonantPhase, ResonantTensor, PHI,
 };
 use pyo3::prelude::*;
 
@@ -88,22 +87,25 @@ impl SyntonicSoftmaxState {
         // Initialize mode norms if learned
         let mode_norms = if mode == SyntonicSoftmaxMode::Learned {
             let n = num_features.unwrap();
-            
+
             // Generate E8 roots
             let roots = E8Lattice::generate_roots();
             let projector = GoldenProjector::new();
 
             // Filter to Golden Cone using 4 null vectors: ⟨c_a, α⟩ > 0 for all a
             // This selects exactly 36 roots = Φ⁺(E₆)
-            let cone_roots: Vec<Vec<f64>> = roots.into_iter()
+            let cone_roots: Vec<Vec<f64>> = roots
+                .into_iter()
                 .filter(|root| {
                     let weight = compute_8d_weight(root, &projector);
                     weight > 1e-8 // Reject 1e-9 (outside cone) but accept valid exp(-x/φ)
                 })
                 .collect();
-            
+
             if cone_roots.is_empty() {
-                 return Err(pyo3::exceptions::PyValueError::new_err("No E8 roots found in Golden Cone"));
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "No E8 roots found in Golden Cone",
+                ));
             }
 
             // Cycle through cone roots to fill num_features
@@ -112,11 +114,13 @@ impl SyntonicSoftmaxState {
                 let root = &cone_roots[i % cone_roots.len()];
                 data.extend_from_slice(root);
             }
-            
+
             // Create [n, 8] tensor
             // We use from_floats_default_modes which calculates trivial mode norms for data values
-            Some(ResonantTensor::from_floats_default_modes(&data, vec![n, 8], 100)
-                 .map_err(|e| PyErr::from(e))?)
+            Some(
+                ResonantTensor::from_floats_default_modes(&data, vec![n, 8], 100)
+                    .map_err(|e| PyErr::from(e))?,
+            )
         } else {
             None
         };
@@ -129,7 +133,6 @@ impl SyntonicSoftmaxState {
             num_features,
         })
     }
-
 
     /// Forward pass: apply syntony-weighted softmax
     pub fn forward(
@@ -145,7 +148,7 @@ impl SyntonicSoftmaxState {
             let floats = x.to_floats_rust();
             if floats.iter().any(|v| !v.is_finite()) {
                 return Err(pyo3::exceptions::PyValueError::new_err(
-                    "Input contains NaN or Inf values"
+                    "Input contains NaN or Inf values",
                 ));
             }
         }
@@ -186,7 +189,8 @@ impl SyntonicSoftmaxState {
                     }
                 }
 
-                let final_weights = if x.shape().len() > 1 && scaled_log_weights.shape().len() == 1 {
+                let final_weights = if x.shape().len() > 1 && scaled_log_weights.shape().len() == 1
+                {
                     let w_shape = scaled_log_weights.shape();
                     let x_shape = x.shape();
                     let ndim = x_shape.len();
@@ -301,15 +305,21 @@ impl SyntonicSoftmaxState {
         weights: Option<&ResonantTensor>,
     ) -> PyResult<ResonantTensor> {
         use crate::tensor::srt_kernels::{
-            // F64 kernels
-            cuda_syntonic_softmax_learned_f64, cuda_syntonic_softmax_provided_f64,
-            cuda_syntonic_softmax_learned_strided_f64, cuda_syntonic_softmax_provided_strided_f64,
-            // F32 kernels
-            cuda_syntonic_softmax_learned_f32, cuda_syntonic_softmax_provided_f32,
-            cuda_syntonic_softmax_learned_strided_f32, cuda_syntonic_softmax_provided_strided_f32,
+            cuda_softmax_identity_f32,
             // Identity kernels
-            cuda_softmax_identity_f64, cuda_softmax_identity_f32,
-            cuda_softmax_identity_strided_f64, cuda_softmax_identity_strided_f32,
+            cuda_softmax_identity_f64,
+            cuda_softmax_identity_strided_f32,
+            cuda_softmax_identity_strided_f64,
+            // F32 kernels
+            cuda_syntonic_softmax_learned_f32,
+            // F64 kernels
+            cuda_syntonic_softmax_learned_f64,
+            cuda_syntonic_softmax_learned_strided_f32,
+            cuda_syntonic_softmax_learned_strided_f64,
+            cuda_syntonic_softmax_provided_f32,
+            cuda_syntonic_softmax_provided_f64,
+            cuda_syntonic_softmax_provided_strided_f32,
+            cuda_syntonic_softmax_provided_strided_f64,
         };
 
         let device_idx = x.device_idx().ok_or_else(|| {
@@ -329,14 +339,16 @@ impl SyntonicSoftmaxState {
         let dim_idx = if self.dim < 0 {
             if (ndim as isize + self.dim) < 0 {
                 return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "Dimension out of range: dim={} for ndim={}", self.dim, ndim
+                    "Dimension out of range: dim={} for ndim={}",
+                    self.dim, ndim
                 )));
             }
             (ndim as isize + self.dim) as usize
         } else {
             if self.dim as usize >= ndim {
                 return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "Dimension out of range: dim={} for ndim={}", self.dim, ndim
+                    "Dimension out of range: dim={} for ndim={}",
+                    self.dim, ndim
                 )));
             }
             self.dim as usize
@@ -347,14 +359,14 @@ impl SyntonicSoftmaxState {
         let is_last_dim = dim_idx == ndim - 1;
 
         let batch_size = if is_last_dim {
-             x.len() / num_classes
+            x.len() / num_classes
         } else {
-             0 // unused in strided
+            0 // unused in strided
         };
 
         // Strided parameters calculation
         let outer_size: usize = shape[..dim_idx].iter().product();
-        let inner_size: usize = shape[dim_idx+1..].iter().product();
+        let inner_size: usize = shape[dim_idx + 1..].iter().product();
         let dim_size = num_classes;
 
         // Identity mode uses dedicated GPU kernels
@@ -367,7 +379,12 @@ impl SyntonicSoftmaxState {
                 let mut out_flux = device
                     .default_stream()
                     .alloc_zeros::<f32>(x.len())
-                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to allocate GPU memory for output (f32 identity): {}", e)))?;
+                    .map_err(|e| {
+                        pyo3::exceptions::PyRuntimeError::new_err(format!(
+                            "Failed to allocate GPU memory for output (f32 identity): {}",
+                            e
+                        ))
+                    })?;
 
                 if is_last_dim {
                     cuda_softmax_identity_f32(
@@ -403,7 +420,12 @@ impl SyntonicSoftmaxState {
                 let mut out_flux = device
                     .default_stream()
                     .alloc_zeros::<f64>(x.len())
-                    .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to allocate GPU memory for output (f64 identity): {}", e)))?;
+                    .map_err(|e| {
+                        pyo3::exceptions::PyRuntimeError::new_err(format!(
+                            "Failed to allocate GPU memory for output (f64 identity): {}",
+                            e
+                        ))
+                    })?;
 
                 if is_last_dim {
                     cuda_softmax_identity_f64(
@@ -428,15 +450,28 @@ impl SyntonicSoftmaxState {
 
                 let mut output = x.clone();
                 output.set_flux(out_flux);
-                
+
                 // Download results and create new tensor for immediate access
                 let mut host_data = vec![0.0f64; output.len()];
-                device.default_stream().memcpy_dtoh(output.flux_ref().unwrap(), &mut host_data).map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to download GPU results: {}", e)))?;
-                
+                device
+                    .default_stream()
+                    .memcpy_dtoh(output.flux_ref().unwrap(), &mut host_data)
+                    .map_err(|e| {
+                        pyo3::exceptions::PyRuntimeError::new_err(format!(
+                            "Failed to download GPU results: {}",
+                            e
+                        ))
+                    })?;
+
                 // Create new tensor from downloaded data
                 let result_lattice = snap_to_lattice(&host_data, x.precision());
                 let result_norms = x.mode_norm_sq().to_vec();
-                return ResonantTensor::from_lattice(result_lattice, x.shape().to_vec(), result_norms).map_err(|e| PyErr::from(e));
+                return ResonantTensor::from_lattice(
+                    result_lattice,
+                    x.shape().to_vec(),
+                    result_norms,
+                )
+                .map_err(|e| PyErr::from(e));
             }
         }
 
@@ -449,12 +484,17 @@ impl SyntonicSoftmaxState {
             let mut out_flux = device
                 .default_stream()
                 .alloc_zeros::<f32>(x.len())
-                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to allocate GPU memory for output (f32): {}", e)))?;
+                .map_err(|e| {
+                    pyo3::exceptions::PyRuntimeError::new_err(format!(
+                        "Failed to allocate GPU memory for output (f32): {}",
+                        e
+                    ))
+                })?;
 
             match self.mode {
                 SyntonicSoftmaxMode::Learned => {
                     let mode_norms = self.mode_norms.as_ref().unwrap();
-                    
+
                     let norms_flux = mode_norms.flux_f32_ref().ok_or_else(|| {
                         pyo3::exceptions::PyRuntimeError::new_err(
                             "mode_norms must be on GPU (F32) for CUDA softmax",
@@ -535,12 +575,17 @@ impl SyntonicSoftmaxState {
             let mut out_flux = device
                 .default_stream()
                 .alloc_zeros::<f64>(x.len())
-                .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to allocate GPU memory for output (f64): {}", e)))?;
+                .map_err(|e| {
+                    pyo3::exceptions::PyRuntimeError::new_err(format!(
+                        "Failed to allocate GPU memory for output (f64): {}",
+                        e
+                    ))
+                })?;
 
             match self.mode {
                 SyntonicSoftmaxMode::Learned => {
                     let mode_norms = self.mode_norms.as_ref().unwrap();
-                    
+
                     let norms_flux = mode_norms.flux_ref().ok_or_else(|| {
                         pyo3::exceptions::PyRuntimeError::new_err(
                             "mode_norms must be on GPU for CUDA softmax",
@@ -630,7 +675,8 @@ impl SyntonicSoftmaxState {
     /// Transfer state to GPU device
     pub fn to_device_inner(&mut self, device: usize) -> PyResult<()> {
         if let Some(ref mut mode_norms) = self.mode_norms {
-            if mode_norms.phase() != ResonantPhase::Flux || mode_norms.device_idx() != Some(device) {
+            if mode_norms.phase() != ResonantPhase::Flux || mode_norms.device_idx() != Some(device)
+            {
                 *mode_norms = mode_norms.to_device(device)?;
             }
         }
@@ -645,14 +691,14 @@ impl SyntonicSoftmaxState {
     /// If mode_norms is [N], assumes inputs are already squared norms (legacy/simple).
     fn compute_golden_weights(&self, mode_norms: &ResonantTensor) -> PyResult<ResonantTensor> {
         let shape = mode_norms.shape();
-        
+
         if shape.len() == 2 && shape[1] == 8 {
             // 8D E8 Lattice weights
             let data = mode_norms.lattice(); // Returns &Vec<GoldenExact>
             let n = shape[0];
             let projector = GoldenProjector::new();
             let mut weights = Vec::with_capacity(n);
-            
+
             for chunk in data.chunks(8) {
                 if chunk.len() == 8 {
                     // Convert slice to Vec<f64> for compute_8d_weight
@@ -663,7 +709,7 @@ impl SyntonicSoftmaxState {
                     weights.push(w);
                 }
             }
-            
+
             // Return as 1D tensor [N]
             ResonantTensor::from_floats_default_modes(&weights, vec![n], 100)
                 .map_err(|e| PyErr::from(e))
@@ -713,7 +759,6 @@ pub fn syntonic_softmax_py(
         }
     };
 
-
     // Input validation
     let x_shape = x.shape();
     let ndim = x_shape.len();
@@ -721,7 +766,7 @@ pub fn syntonic_softmax_py(
     // Validate input has at least 1 dimension
     if ndim < 1 {
         return Err(pyo3::exceptions::PyValueError::new_err(
-            "input must have at least 1 dimension"
+            "input must have at least 1 dimension",
         ));
     }
 
@@ -739,13 +784,14 @@ pub fn syntonic_softmax_py(
         let norms_ndim = norms.shape().len();
         if norms_ndim != 1 && norms_ndim != 2 {
             return Err(pyo3::exceptions::PyValueError::new_err(
-                "mode_norms must be 1D (scalar norms) or 2D [N, 8] (E8 vectors)"
+                "mode_norms must be 1D (scalar norms) or 2D [N, 8] (E8 vectors)",
             ));
         }
         if norms_ndim == 2 && norms.shape()[1] != 8 {
             return Err(pyo3::exceptions::PyValueError::new_err(format!(
                 "2D mode_norms must have shape [N, 8], got [{}, {}]",
-                norms.shape()[0], norms.shape()[1]
+                norms.shape()[0],
+                norms.shape()[1]
             )));
         }
     }
@@ -784,7 +830,6 @@ pub fn syntonic_softmax_py(
 
     state.forward(x, syntony)
 }
-
 
 /// Compute per-feature syntonic weights from mode_norms (1D norms or 2D [N,8] E8 vectors).
 #[pyfunction]
