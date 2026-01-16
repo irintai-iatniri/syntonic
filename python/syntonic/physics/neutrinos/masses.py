@@ -13,7 +13,7 @@ a distinctive prediction of SRT.
 """
 
 import math
-from syntonic.exact import E_STAR_NUMERIC, Q_DEFICIT_NUMERIC
+from syntonic.exact import E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
 from syntonic.physics.constants import RHO_LAMBDA_QUARTER
 
 
@@ -30,8 +30,8 @@ def m_nu3() -> float:
     Returns:
         m_ν₃ in meV
     """
-    q = Q_DEFICIT_NUMERIC
-    exponent = 1 + 4 * q
+    # Correction factor: C52 (4q) - but actually should be q for the exponent
+    exponent = 1 + Q_DEFICIT_NUMERIC
 
     # ρ_Λ^(1/4) ≈ 2.3 meV, E* ≈ 20
     # m_ν₃ ≈ 2.3 × 20^1.11 ≈ 50 meV
@@ -48,7 +48,8 @@ def mass_squared_ratio() -> float:
     Returns:
         Δm²₃₁ / Δm²₂₁
     """
-    return 33.97
+    # Correction factor: C18 (q/36)
+    return 34 * (1 - get_correction_factor(18))
 
 
 def delta_m21_squared() -> float:

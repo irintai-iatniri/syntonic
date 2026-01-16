@@ -16,7 +16,7 @@ Note: The PDG values are provided for validation only.
 """
 
 import math
-from syntonic.exact import PHI, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC
+from syntonic.exact import PHI, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
 
 # =============================================================================
 # Input Scale (the only input in SRT)
@@ -87,8 +87,8 @@ def qcd_scale() -> float:
     """
     # Λ_QCD ≈ 217 MeV from SRT
     phi = PHI.eval()
-    q = Q_DEFICIT_NUMERIC
-    return E_STAR_NUMERIC * 11 * (1 - q / 120)  # ≈ 217 MeV
+    # Correction factor: C9 (q/120)
+    return E_STAR_NUMERIC * 11 * (1 - get_correction_factor(9))  # ≈ 217 MeV
 
 
 # =============================================================================

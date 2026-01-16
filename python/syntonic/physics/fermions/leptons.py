@@ -20,6 +20,7 @@ from syntonic.exact import (
     E_STAR_NUMERIC,
     Q_DEFICIT_NUMERIC,
     fibonacci,
+    get_correction_factor,
 )
 from syntonic.physics.constants import V_EW
 
@@ -73,7 +74,6 @@ def muon_mass() -> float:
         Muon mass in MeV
     """
     phi = PHI.eval()
-    q = Q_DEFICIT_NUMERIC
     m_e = electron_mass()
 
     # Muon/electron ratio from golden recursion
@@ -83,7 +83,7 @@ def muon_mass() -> float:
 
     # Additional winding factor for generation 2
     # Full ratio ≈ 206.77
-    winding_enhancement = 12.2 * (1 + q / 36)
+    winding_enhancement = 12.2 * (1 + get_correction_factor(18))  # C18 (q/36)
 
     return m_e * base_ratio * winding_enhancement
 
@@ -102,11 +102,10 @@ def tau_mass() -> float:
         Tau mass in MeV
     """
     F_11 = fibonacci(11)  # = 89
-    q = Q_DEFICIT_NUMERIC
 
-    # Correction factors from phase5-spec
-    corr1 = 1 - q / (5 * math.pi)  # 5-flavor QCD
-    corr2 = 1 - q / 720            # Structure correction
+    # Correction factors from hierarchy: C28 (q/5π) and C3 (q/720)
+    corr1 = 1 - get_correction_factor(28)  # q/5π
+    corr2 = 1 - get_correction_factor(3)   # q/720
 
     return E_STAR_NUMERIC * F_11 * corr1 * corr2
 

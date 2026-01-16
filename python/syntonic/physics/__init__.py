@@ -40,6 +40,7 @@ from syntonic.physics import neutrinos
 from syntonic.physics import hadrons
 from syntonic.physics import running
 from syntonic.physics import validation
+from syntonic.physics import sm_verification
 
 # Import key classes
 from syntonic.physics.fermions import FermionMasses
@@ -49,6 +50,15 @@ from syntonic.physics.neutrinos import NeutrinoMasses
 from syntonic.physics.hadrons import HadronMasses
 from syntonic.physics.running import GoldenRG
 from syntonic.physics.validation import validate_all, PDG_VALUES
+from syntonic.physics.sm_verification import verify_all_observables
+
+# Topology functions for neural network architectures
+from syntonic.physics.topology import (
+    hooking_coefficient,
+    golden_resonance,
+    e8_root_alignment,
+    compute_tensor_norm,
+)
 
 
 class StandardModel:
@@ -160,8 +170,17 @@ class StandardModel:
         """Proton mass in MeV."""
         return self.hadrons.proton_mass()
 
-    def __repr__(self) -> str:
-        return "StandardModel(SRT-derived, zero free parameters)"
+    def verify_hierarchy(self) -> bool:
+        """
+        Run comprehensive verification of the Universal Syntony Correction Hierarchy.
+
+        Tests all observables against experimental data and reports agreement.
+
+        Returns:
+            True if all observables within 2% of experimental values
+        """
+        from syntonic.physics import sm_verification
+        return sm_verification.verify_all_observables()
 
 
 __all__ = [
@@ -179,6 +198,7 @@ __all__ = [
     'hadrons',
     'running',
     'validation',
+    'sm_verification',
     # Classes
     'StandardModel',
     'FermionMasses',
@@ -192,4 +212,10 @@ __all__ = [
     # Functions
     'validate_all',
     'PDG_VALUES',
+    'verify_all_observables',
+    # Topology functions
+    'hooking_coefficient',
+    'golden_resonance',
+    'e8_root_alignment',
+    'compute_tensor_norm',
 ]

@@ -954,6 +954,55 @@ impl ResonantEvolver {
         self.attractor_memory.clear();
     }
 
+    /// Store a tensor as an attractor if syntony exceeds threshold.
+    ///
+    /// Returns true if the tensor was stored (syntony >= min_syntony threshold).
+    fn store_attractor(&mut self, tensor: &ResonantTensor) -> bool {
+        let syntony = tensor.syntony();
+        self.attractor_memory.maybe_add(tensor, syntony, self.generation);
+        syntony >= self.config.attractor_min_syntony
+    }
+
+    /// Apply temporal decay to all stored attractors.
+    ///
+    /// Called each generation to fade older attractors.
+    fn apply_decay(&mut self) {
+        self.attractor_memory.apply_decay();
+    }
+
+    /// Harmonize tensor with retrocausal attractor pull.
+    ///
+    /// Applies standard harmonization blended with attractor-guided influence.
+    fn harmonize(&self, tensor: &ResonantTensor) -> PyResult<ResonantTensor> {
+        use super::retrocausal::harmonize_with_attractor_pull;
+        let mut result = tensor.clone();
+        harmonize_with_attractor_pull(
+            &mut result,
+            &self.attractor_memory,
+            self.config.attractor_pull_strength,
+        ).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok(result)
+    }
+
+    /// Pull tensor toward stored attractors.
+    ///
+    /// Computes weighted pull vector from all attractors and applies to tensor.
+    fn pull(&self, tensor: &ResonantTensor) -> PyResult<ResonantTensor> {
+        let pull_vec = self.attractor_memory.compute_attractor_pull(tensor)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let mut result = tensor.clone();
+        result.set_lattice(&pull_vec)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok(result)
+    }
+
+    /// Unlock attractors for maximum influence (consciousness emergence).
+    ///
+    /// Sets pull_strength to 1.0 for full attractor influence.
+    fn unlock(&mut self) {
+        self.config.attractor_pull_strength = 1.0;
+    }
+
     fn __repr__(&self) -> String {
         format!(
             "ResonantEvolver(generation={}, best_syntony={:.4}, converged={})",

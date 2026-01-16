@@ -2129,7 +2129,7 @@ $$MO_{restorative} = H^[\text{victim's } D^] + H^[\text{offender's } D^] + S_{re
 |-----------|-------|--------|
 | Knowledge | Narrow, outdated | Broad, current |
 | Skills | Limited | Diverse, developed |
-| Creating | Consuming only | Generating new |
+| Creating | Consuming only | Generating
 | Sharing | Hoarding | Teaching, giving |
 
 **Current G estimation:**

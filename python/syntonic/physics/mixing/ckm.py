@@ -17,7 +17,7 @@ for inter-generation mixing.
 """
 
 import math
-from syntonic.exact import PHI, PHI_INVERSE, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC
+from syntonic.exact import PHI, PHI_INVERSE, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
 
 
 def V_us() -> float:
@@ -34,10 +34,9 @@ def V_us() -> float:
         |V_us|
     """
     phi_hat = PHI_INVERSE.eval()  # φ̂ = 1/φ
-    phi = PHI.eval()
-    q = Q_DEFICIT_NUMERIC
 
-    return phi_hat**3 * (1 - q * phi) * (1 - q / 4)
+    # Correction factors from hierarchy: C48 (qφ), C41 (q/4)
+    return phi_hat**3 * (1 - get_correction_factor(48)) * (1 - get_correction_factor(41))
 
 
 def V_cb() -> float:
@@ -67,9 +66,9 @@ def V_ub() -> float:
         |V_ub|
     """
     phi_hat = PHI_INVERSE.eval()
-    q = Q_DEFICIT_NUMERIC
 
-    return q * phi_hat**4 * (1 - 4*q) * (1 + q/2)
+    # Correction factors from hierarchy: C47 (q), C52 (4q), C45 (q/2)
+    return get_correction_factor(47) * phi_hat**4 * (1 - get_correction_factor(52)) * (1 + get_correction_factor(45))
 
 
 def V_cd() -> float:
@@ -108,10 +107,10 @@ def V_td() -> float:
         |V_td|
     """
     phi_hat = PHI_INVERSE.eval()
-    q = Q_DEFICIT_NUMERIC
 
     # V_td is slightly larger than V_ub
-    return q * phi_hat**3 * (1 - 3*q) * (1 + q/4)
+    # Correction factors from hierarchy: C52 (4q), C45 (q/2)
+    return get_correction_factor(52) * phi_hat**3 * (1 - 3*get_correction_factor(52)) * (1 + get_correction_factor(45))
 
 
 def V_ts() -> float:
@@ -165,10 +164,10 @@ def jarlskog_invariant() -> float:
     Returns:
         J_CP
     """
-    q = Q_DEFICIT_NUMERIC
     phi = PHI.eval()
 
-    return (q**2 / E_STAR_NUMERIC) * (1 - 4*q) * (1 - q*phi**2) * (1 - q/phi**3)
+    # Correction factors from hierarchy: C52 (4q), C49 (qφ²), C40 (q/φ³)
+    return (Q_DEFICIT_NUMERIC**2 / E_STAR_NUMERIC) * (1 - get_correction_factor(52)) * (1 - get_correction_factor(49)) * (1 - get_correction_factor(40))
 
 
 def cabibbo_angle() -> float:

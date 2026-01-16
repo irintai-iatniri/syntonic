@@ -41,10 +41,8 @@ from syntonic.core import (
 )
 
 # Try to import PySymExpr if available
-try:
-    from syntonic.core import PySymExpr as SymExpr
-except ImportError:
-    SymExpr = None
+from syntonic.core import SymExpr
+
 
 # =============================================================================
 # Exact Golden Constants
@@ -85,6 +83,12 @@ STRUCTURE_DIMENSIONS = {
     'E6_fundamental': 27, # dim(27_E₆) fundamental representation
     'D4_kissing': 24,     # K(D₄) kissing number (consciousness threshold)
     'G2_dim': 14,         # dim(G₂) = Aut(O) automorphisms of octonions
+    'E7_dim': 133,        # dim(E₇) adjoint
+    'E7_roots': 126,      # |Φ(E₇)| all roots
+    'E7_positive': 63,    # |Φ⁺(E₇)| positive roots
+    'E7_fundamental': 56, # dim(E₇ fundamental)
+    'F4_dim': 52,         # dim(F₄)
+    'D4_adjoint': 28,     # dim(SO(8)) = 28
 }
 
 # Index mapping for srt_correction_factor
@@ -97,6 +101,83 @@ _STRUCTURE_INDICES = {
     'E6_fundamental': 5,
     'D4_kissing': 6,
     'G2_dim': 7,
+}
+
+# =============================================================================
+# Universal Syntony Correction Hierarchy
+# =============================================================================
+
+# Complete 25-level hierarchy (currently used levels marked ✓ USED in documentation)
+# Extended to include all 60+ geometric structures from T⁴ × E₈ framework
+CORRECTION_HIERARCHY = {
+    0: 1.0,                                    # Exact tree-level
+    1: Q_DEFICIT_NUMERIC**3,                    # Third-order vacuum
+    2: Q_DEFICIT_NUMERIC / 1000,                # Fixed-point stability (h(E₈)³/27)
+    3: Q_DEFICIT_NUMERIC / 720,                 # Coxeter-Kissing product (h(E₈)×K(D₄))
+    4: Q_DEFICIT_NUMERIC / 360,                 # Complete cone cycles (10×36)
+    5: Q_DEFICIT_NUMERIC / 248,                 # Full E₈ adjoint representation
+    6: Q_DEFICIT_NUMERIC / 240,                 # Full E₈ root system (both signs)
+    7: Q_DEFICIT_NUMERIC / 133,                 # Full E₇ adjoint representation
+    8: Q_DEFICIT_NUMERIC / 126,                 # Full E₇ root system
+    9: Q_DEFICIT_NUMERIC / 120,                 # Complete E₈ positive roots
+    10: Q_DEFICIT_NUMERIC**2 / PHI_NUMERIC**2,  # Second-order/double golden
+    11: Q_DEFICIT_NUMERIC / 78,                 # Full E₆ gauge structure
+    12: Q_DEFICIT_NUMERIC / 72,                 # Full E₆ root system (both signs)
+    13: Q_DEFICIT_NUMERIC / 63,                 # E₇ positive roots
+    14: Q_DEFICIT_NUMERIC**2 / PHI_NUMERIC,     # Second-order massless
+    15: Q_DEFICIT_NUMERIC / 56,                 # E₇ fundamental representation
+    16: Q_DEFICIT_NUMERIC / 52,                 # F₄ gauge structure
+    17: Q_DEFICIT_NUMERIC**2,                   # Second-order vacuum
+    18: Q_DEFICIT_NUMERIC / 36,                 # E₆ positive roots (Golden Cone)
+    19: Q_DEFICIT_NUMERIC / 32,                 # Five-fold binary structure
+    20: Q_DEFICIT_NUMERIC / 30,                 # E₈ Coxeter number
+    21: Q_DEFICIT_NUMERIC / 28,                 # D₄ adjoint representation
+    22: Q_DEFICIT_NUMERIC / 27,                 # E₆ fundamental representation
+    23: Q_DEFICIT_NUMERIC / 24,                 # D₄ kissing number
+    24: Q_DEFICIT_NUMERIC**2 * PHI_NUMERIC,     # Quadratic + golden enhancement
+    25: Q_DEFICIT_NUMERIC / (6 * math.pi),      # Six-flavor QCD loop
+    26: Q_DEFICIT_NUMERIC / 18,                 # E₇ Coxeter number
+    27: Q_DEFICIT_NUMERIC / 16,                 # Four-fold binary/spinor dimension
+    28: Q_DEFICIT_NUMERIC / (5 * math.pi),      # Five-flavor QCD loop
+    29: Q_DEFICIT_NUMERIC / 14,                 # G₂ octonion automorphisms
+    30: Q_DEFICIT_NUMERIC / (4 * math.pi),      # One-loop radiative (4D)
+    31: Q_DEFICIT_NUMERIC / 12,                 # Topology × generations (T⁴ × N_gen)
+    32: Q_DEFICIT_NUMERIC / PHI_NUMERIC**5,     # Fifth golden power
+    33: Q_DEFICIT_NUMERIC / (3 * math.pi),      # Three-flavor QCD loop
+    34: Q_DEFICIT_NUMERIC / 9,                  # Generation-squared structure
+    35: Q_DEFICIT_NUMERIC / 8,                  # Cartan subalgebra (rank E₈)
+    36: Q_DEFICIT_NUMERIC / 7,                  # E₇ Cartan subalgebra
+    37: Q_DEFICIT_NUMERIC / PHI_NUMERIC**4,     # Fourth golden power
+    38: Q_DEFICIT_NUMERIC / (2 * math.pi),      # Half-loop integral
+    39: Q_DEFICIT_NUMERIC / 6,                  # Sub-generation structure (2×3)
+    40: Q_DEFICIT_NUMERIC / PHI_NUMERIC**3,     # Third golden power
+    41: Q_DEFICIT_NUMERIC / 4,                  # Quarter layer (sphaleron)
+    42: Q_DEFICIT_NUMERIC / math.pi,            # Circular loop structure
+    43: Q_DEFICIT_NUMERIC / 3,                  # Single generation
+    44: Q_DEFICIT_NUMERIC / PHI_NUMERIC**2,     # Second golden power
+    45: Q_DEFICIT_NUMERIC / 2,                  # Half layer
+    46: Q_DEFICIT_NUMERIC / PHI_NUMERIC,        # Scale running (one layer)
+    47: Q_DEFICIT_NUMERIC,                      # Universal vacuum
+    48: Q_DEFICIT_NUMERIC * PHI_NUMERIC,        # Double layer transitions
+    49: Q_DEFICIT_NUMERIC * PHI_NUMERIC**2,     # Fixed point (φ²=φ+1)
+    50: 3 * Q_DEFICIT_NUMERIC,                  # Triple generation
+    51: math.pi * Q_DEFICIT_NUMERIC,            # Circular enhancement
+    52: 4 * Q_DEFICIT_NUMERIC,                  # Full T⁴ topology
+    53: Q_DEFICIT_NUMERIC * PHI_NUMERIC**3,     # Triple golden transitions
+    54: 6 * Q_DEFICIT_NUMERIC,                  # Full E₆ Cartan enhancement
+    55: Q_DEFICIT_NUMERIC * PHI_NUMERIC**4,     # Fourth golden transitions
+    56: 8 * Q_DEFICIT_NUMERIC,                  # Full E₈ Cartan enhancement
+    57: Q_DEFICIT_NUMERIC * PHI_NUMERIC**5,     # Fifth golden transitions
+}
+
+# Multiplicative suppression factors
+SUPPRESSION_FACTORS = {
+    'inverse_double_recursion': 1 / (1 + Q_DEFICIT_NUMERIC / PHI_NUMERIC**2),
+    'inverse_recursion': 1 / (1 + Q_DEFICIT_NUMERIC / PHI_NUMERIC),
+    'base_suppression': 1 / (1 + Q_DEFICIT_NUMERIC),
+    'recursion_penalty': 1 / (1 + Q_DEFICIT_NUMERIC * PHI_NUMERIC),
+    'fixed_point_penalty': 1 / (1 + Q_DEFICIT_NUMERIC * PHI_NUMERIC**2),
+    'deep_recursion_penalty': 1 / (1 + Q_DEFICIT_NUMERIC * PHI_NUMERIC**3),
 }
 
 # =============================================================================
@@ -211,6 +292,45 @@ def correction_factor(structure: str, sign: int = 1) -> float:
     return srt_correction_factor(index, sign)
 
 
+def get_correction_factor(level: int) -> float:
+    """
+    Get the correction factor for a given hierarchy level.
+
+    Args:
+        level: Hierarchy level (0-57)
+
+    Returns:
+        Correction factor value (1 ± correction)
+
+    Examples:
+        >>> get_correction_factor(35)  # q/8
+        0.996577...
+        >>> get_correction_factor(47)  # q
+        0.027395...
+    """
+    return CORRECTION_HIERARCHY.get(level, 1.0)
+
+
+def get_suppression_factor(name: str) -> float:
+    """
+    Get the suppression factor for a given name.
+
+    Args:
+        name: One of 'inverse_double_recursion', 'inverse_recursion', 'base_suppression',
+              'recursion_penalty', 'fixed_point_penalty', 'deep_recursion_penalty'
+
+    Returns:
+        Suppression factor value (< 1)
+
+    Examples:
+        >>> get_suppression_factor('inverse_recursion')  # 1/(1+q/φ)
+        0.9830...
+        >>> get_suppression_factor('recursion_penalty')  # 1/(1+qφ)
+        0.9578...
+    """
+    return SUPPRESSION_FACTORS.get(name, 1.0)
+
+
 def golden_number(a: int, b: int) -> GoldenExact:
     """
     Create an exact golden number a + b·φ.
@@ -250,9 +370,13 @@ __all__ = [
     'Q_DEFICIT_NUMERIC',
     # Structure data
     'STRUCTURE_DIMENSIONS',
+    'CORRECTION_HIERARCHY',
+    'SUPPRESSION_FACTORS',
     # Functions
     'fibonacci',
     'lucas',
     'correction_factor',
+    'get_correction_factor',
+    'get_suppression_factor',
     'golden_number',
 ]

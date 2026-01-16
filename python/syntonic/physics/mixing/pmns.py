@@ -18,7 +18,7 @@ is a key prediction of SRT.
 """
 
 import math
-from syntonic.exact import PHI, PHI_INVERSE, Q_DEFICIT_NUMERIC
+from syntonic.exact import PHI, PHI_INVERSE, Q_DEFICIT_NUMERIC, get_correction_factor, get_suppression_factor
 
 
 def theta_12() -> float:
@@ -42,8 +42,6 @@ def theta_12() -> float:
     Returns:
         θ₁₂ in degrees
     """
-    q = Q_DEFICIT_NUMERIC
-
     # Base angle from golden ratio geometry
     theta_tree = math.degrees(math.atan(1.236)) / 2  # 25.5°
 
@@ -53,8 +51,8 @@ def theta_12() -> float:
     # Tree-level angle
     theta_0 = theta_tree + delta_berry  # 33.0°
 
-    # Syntony correction (Δk=1)
-    theta_12_final = theta_0 * (1 + q / 2)
+    # Syntony correction (Δk=1): C45 (q/2)
+    theta_12_final = theta_0 * (1 + get_correction_factor(45))
 
     return theta_12_final
 
@@ -74,14 +72,12 @@ def theta_23() -> float:
     Returns:
         θ₂₃ in degrees
     """
-    q = Q_DEFICIT_NUMERIC
-
     # Base is near-maximal with small deviation ε
     base_rad = math.radians(45)
     epsilon = 0.07  # Small deviation from maximal
 
-    # Correction factors from exceptional algebra dimensions
-    correction = (1 + q/8) * (1 + q/36) * (1 - q/120)
+    # Correction factors from hierarchy: C35 (q/8), C18 (q/36), C9 (q/120)
+    correction = (1 + get_correction_factor(35)) * (1 + get_correction_factor(18)) * (1 - get_correction_factor(9))
 
     return math.degrees((base_rad + epsilon) * correction)
 
@@ -117,24 +113,23 @@ def theta_13() -> float:
     """
     phi_hat = PHI_INVERSE.eval()
     phi = PHI.eval()
-    q = Q_DEFICIT_NUMERIC
 
     # Base formula: sin θ₁₃⁰ = φ̂^(3/2) × (1 - qφ)^(1/2) × e^(qφ/2) / π
     phi_hat_3_2 = phi_hat ** 1.5  # 0.486
-    sqrt_factor = math.sqrt(1 - q * phi)  # 0.978
-    exp_factor = math.exp(q * phi / 2)  # 1.0225
+    sqrt_factor = math.sqrt(1 - get_correction_factor(48))  # C48 (qφ)
+    exp_factor = math.exp(get_correction_factor(48) / 2)  # 1.0225
 
     sin_theta_0 = (phi_hat_3_2 * sqrt_factor * exp_factor) / math.pi  # 0.154
     theta_0 = math.degrees(math.asin(sin_theta_0))  # 8.9°
 
-    # Double recursion penalty (Δk=2)
-    theta_1 = theta_0 / (1 + q * phi)  # 8.52°
+    # Double recursion penalty (Δk=2): recursion_penalty suppression
+    theta_1 = theta_0 * get_suppression_factor('recursion_penalty')  # 8.52°
 
-    # Cartan correction (rank E₈ = 8)
-    theta_2 = theta_1 * (1 + q / 8)  # 8.55°
+    # Cartan correction (rank E₈ = 8): C35 (q/8)
+    theta_2 = theta_1 * (1 + get_correction_factor(35))  # 8.55°
 
-    # Topology × Generations (4×3=12)
-    theta_13_final = theta_2 * (1 + q / 12)  # 8.57°
+    # Topology × Generations (4×3=12): C31 (q/12)
+    theta_13_final = theta_2 * (1 + get_correction_factor(31))  # 8.57°
 
     return theta_13_final
 
@@ -152,10 +147,8 @@ def delta_CP() -> float:
     Returns:
         δ_CP in radians
     """
-    q = Q_DEFICIT_NUMERIC
-    phi = PHI.eval()
-
-    return 1.2 * (1 + 4*q) * (1 + q/phi) * (1 + q/4)
+    # Correction factors from hierarchy: C52 (4q), C46 (q/φ), C41 (q/4)
+    return 1.2 * (1 + get_correction_factor(52)) * (1 + get_correction_factor(46)) * (1 + get_correction_factor(41))
 
 
 def delta_CP_degrees() -> float:

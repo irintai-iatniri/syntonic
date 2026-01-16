@@ -23,6 +23,7 @@ from syntonic.exact import (
     PHI,
     E_STAR_NUMERIC,
     Q_DEFICIT_NUMERIC,
+    get_correction_factor,
 )
 
 
@@ -36,7 +37,7 @@ def up_mass() -> float:
     Returns:
         Up quark mass in MeV
     """
-    return E_STAR_NUMERIC / 9
+    return E_STAR_NUMERIC / 9 * (1 - get_correction_factor(47))
 
 
 def down_mass() -> float:
@@ -49,7 +50,7 @@ def down_mass() -> float:
     Returns:
         Down quark mass in MeV
     """
-    return E_STAR_NUMERIC / 4.3
+    return E_STAR_NUMERIC / 4.3 * (1 - get_correction_factor(46))
 
 
 def strange_mass() -> float:
@@ -62,7 +63,7 @@ def strange_mass() -> float:
     Returns:
         Strange quark mass in MeV
     """
-    return E_STAR_NUMERIC * 4.65
+    return E_STAR_NUMERIC * 4.65 * (1 - get_correction_factor(45))
 
 
 def charm_mass() -> float:
@@ -75,7 +76,7 @@ def charm_mass() -> float:
     Returns:
         Charm quark mass in MeV
     """
-    return E_STAR_NUMERIC * 63.5
+    return E_STAR_NUMERIC * 63.5 * (1 - get_correction_factor(44))
 
 
 def bottom_mass() -> float:
@@ -88,7 +89,7 @@ def bottom_mass() -> float:
     Returns:
         Bottom quark mass in MeV
     """
-    return E_STAR_NUMERIC * 209
+    return E_STAR_NUMERIC * 209 * (1 - get_correction_factor(43))
 
 
 def top_mass(loop_order: int = 2) -> float:
@@ -114,20 +115,19 @@ def top_mass(loop_order: int = 2) -> float:
     if loop_order == 0:
         return m_tree
 
-    q = Q_DEFICIT_NUMERIC
     phi = PHI.eval()
 
-    # 1-loop QCD correction
-    m_1loop = m_tree * (1 + q * phi / (4 * math.pi))
+    # 1-loop QCD correction: C35 (qφ/4π)
+    m_1loop = m_tree * (1 + get_correction_factor(35))
 
     if loop_order == 1:
         return m_1loop
 
-    # 2-loop correction
-    m_2loop = m_1loop * (1 - q / (4 * math.pi))
+    # 2-loop correction: C30 (q/4π)
+    m_2loop = m_1loop * (1 - get_correction_factor(30))
 
-    # E₈ roots correction (dim(E₈)/2 = 120)
-    m_final = m_2loop * (1 + q / 120)
+    # E₈ roots correction: C9 (q/120)
+    m_final = m_2loop * (1 + get_correction_factor(9))
 
     return m_final
 

@@ -1284,12 +1284,17 @@ class ResonantTensor:
     # =========================================================================
 
     @staticmethod
-    def _wrap(inner: _RustResonantTensor) -> "ResonantTensor":
+    def _wrap(inner: _RustResonantTensor, device: str = 'cpu') -> "ResonantTensor":
         """
         Wrap a Rust ResonantTensor in Python wrapper.
 
         Internal method for wrapping Rust results.
+
+        Args:
+            inner: The Rust ResonantTensor to wrap
+            device: Device string ('cpu' or 'cuda')
         """
         instance = ResonantTensor.__new__(ResonantTensor)
         instance._inner = inner
+        instance._device_str = device
         return instance

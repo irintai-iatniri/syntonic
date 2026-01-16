@@ -1605,64 +1605,64 @@ The **complete 60+ level correction hierarchy** spans from q³ (~0.002%) to qφ�
 
 | Level | Factor | Magnitude | Geometric Origin | Physical Interpretation | Status |
 |-------|--------|-----------|------------------|------------------------|--------|
-| 0 | 1 | Exact | Tree-level | No corrections needed | ✓ USED |
-| 1 | q³ | ~0.00206% | Third-order vacuum | Three-loop universal | NEW |
-| 2 | q/1000 | ~0.0027% | h(E₈)³/27 = 30³/27 | Fixed-point stability (proton) | ✓ USED |
-| 3 | q/720 | ~0.0038% | h(E₈)×K(D₄) = 30×24 | Coxeter-Kissing product | ✓ USED |
-| 4 | q/360 | ~0.0076% | 10×36 = full cone cycles | Complete cone periodicity | ✓ USED |
-| 5 | q/248 | ~0.011% | dim(E₈) = 248 | Full E₈ adjoint representation | ✓ USED |
-| 6 | q/240 | ~0.0114% | |Φ(E₈)| = 240 | Full E₈ root system (both signs) | NEW |
-| 7 | q/133 | ~0.0206% | dim(E₇) = 133 | Full E₇ adjoint representation | NEW |
-| 8 | q/126 | ~0.0217% | |Φ(E₇)| = 126 | Full E₇ root system | NEW |
-| 9 | q/120 | ~0.023% | |Φ⁺(E₈)| = 120 | Complete E₈ positive roots | ✓ USED |
-| 10 | q²/φ² | ~0.0287% | Second-order/double golden | Deep massless corrections | NEW |
-| 11 | q/78 | ~0.035% | dim(E₆) = 78 | Full E₆ gauge structure | ✓ USED |
-| 12 | q/72 | ~0.0380% | |Φ(E₆)| = 72 | Full E₆ root system (both signs) | NEW |
-| 13 | q/63 | ~0.0435% | |Φ⁺(E₇)| = 63 | E₇ positive roots | NEW |
-| 14 | q²/φ | ~0.046% | Second-order massless | Neutrino corrections, CMB peaks | ✓ USED |
-| 15 | q/56 | ~0.0489% | dim(E₇ fund) = 56 | E₇ fundamental representation | NEW |
-| 16 | q/52 | ~0.0527% | dim(F₄) = 52 | F₄ gauge structure | NEW |
-| 17 | q² | ~0.075% | Second-order vacuum | Two-loop universal corrections | NEW |
-| 18 | q/36 | ~0.076% | |Φ⁺(E₆)| = 36 | 36 roots in Golden Cone | ✓ USED |
-| 19 | q/32 | ~0.0856% | 2⁵ | Five-fold binary structure | NEW |
-| 20 | q/30 | ~0.0913% | h(E₈) = 30 | E₈ Coxeter number alone | NEW |
-| 21 | q/28 | ~0.0978% | dim(SO(8)) = 28 | D₄ adjoint representation | NEW |
-| 22 | q/27 | ~0.101% | dim(E₆ fund) = 27 | E₆ fundamental representation | ✓ USED |
-| 23 | q/24 | ~0.114% | K(D₄) = 24 | D₄ kissing number (collapse threshold) | ✓ USED |
-| 24 | q²φ | ~0.121% | Quadratic + golden | Mixed second-order enhancement | NEW |
-| 25 | q/6π | ~0.145% | 6-flavor QCD loop | Above top threshold | ✓ USED |
-| 26 | q/18 | ~0.152% | h(E₇) = 18 | E₇ Coxeter number | NEW |
-| 27 | q/16 | ~0.171% | 2⁴ = 16 | Four-fold binary / spinor dimension | NEW |
-| 28 | q/5π | ~0.174% | 5-flavor QCD loop | Observables at M_Z scale | ✓ USED |
-| 29 | q/14 | ~0.196% | dim(G₂) = 14 | G₂ octonion automorphisms | NEW |
-| 30 | q/4π | ~0.218% | One-loop radiative | Standard 4D loop integral | ✓ USED |
-| 31 | q/12 | ~0.228% | dim(T⁴) × N_gen = 12 | Topology-generation coupling | ✓ USED |
-| 32 | q/φ⁵ | ~0.247% | Fifth golden power | Fifth recursion layer | NEW |
-| 33 | q/3π | ~0.290% | 3-flavor QCD loop | Below charm threshold | ✓ USED |
-| 34 | q/9 | ~0.304% | N_gen² = 9 | Generation-squared structure | NEW |
-| **35** | **q/8** | **~0.342%** | **rank(E₈) = 8** | **Cartan subalgebra** | ✓ USED |
-| 36 | q/7 | ~0.391% | rank(E₇) = 7 | E₇ Cartan subalgebra | NEW |
-| 37 | q/φ⁴ | ~0.400% | Fourth golden power | Fourth recursion layer | NEW |
-| 38 | q/2π | ~0.436% | Half-loop integral | Sub-loop corrections | NEW |
-| 39 | q/6 | ~0.457% | 2 × 3 = rank(E₆) | Sub-generation structure | ✓ USED |
-| 40 | q/φ³ | ~0.65% | Third golden power | Third-generation enhancements | ✓ USED |
-| 41 | q/4 | ~0.685% | Quarter layer | Sphaleron, partial recursion | ✓ USED |
-| 42 | q/π | ~0.872% | Circular loop | Fundamental loop structure | NEW |
-| 43 | q/3 | ~0.913% | N_gen = 3 | Single generation | NEW |
-| 44 | q/φ² | ~1.04% | Second golden power | Second recursion layer | NEW |
-| 45 | q/2 | ~1.37% | Half layer | Single recursion layer | ✓ USED |
-| 46 | q/φ | ~1.69% | Golden eigenvalue | Scale running (one layer) | ✓ USED |
-| 47 | q | ~2.74% | Universal vacuum | Base syntony deficit | ✓ USED |
-| 48 | qφ | ~4.43% | Double layer | Two-layer transitions | ✓ USED |
-| 49 | qφ² | ~7.17% | Fixed point (φ²=φ+1) | Stability corrections | ✓ USED |
-| 50 | 3q | ~8.22% | N_gen × q | Triple generation | NEW |
-| 51 | πq | ~8.61% | π × q | Circular enhancement | NEW |
-| 52 | 4q | ~10.96% | dim(T⁴) = 4 | Full T⁴ CP violation | ✓ USED |
-| 53 | qφ³ | ~11.6% | Triple golden | Three-layer transitions | NEW |
-| 54 | 6q | ~16.4% | rank(E₆) × q | Full E₆ Cartan enhancement | NEW |
-| 55 | qφ⁴ | ~18.8% | Fourth golden | Four-layer transitions | NEW |
-| 56 | 8q | ~21.9% | rank(E₈) × q | Full E₈ Cartan enhancement | NEW |
-| 57 | qφ⁵ | ~30.4% | Fifth golden | Five-layer transitions | NEW |
+| 0 | 1 | Exact | Tree-level | No corrections needed |
+| 1 | q³ | ~0.00206% | Third-order vacuum | Three-loop universal |
+| 2 | q/1000 | ~0.0027% | h(E₈)³/27 = 30³/27 | Fixed-point stability (proton) |
+| 3 | q/720 | ~0.0038% | h(E₈)×K(D₄) = 30×24 | Coxeter-Kissing product |
+| 4 | q/360 | ~0.0076% | 10×36 = full cone cycles | Complete cone periodicity |
+| 5 | q/248 | ~0.011% | dim(E₈) = 248 | Full E₈ adjoint representation |
+| 6 | q/240 | ~0.0114% | |Φ(E₈)| = 240 | Full E₈ root system (both signs) |
+| 7 | q/133 | ~0.0206% | dim(E₇) = 133 | Full E₇ adjoint representation |
+| 8 | q/126 | ~0.0217% | |Φ(E₇)| = 126 | Full E₇ root system |
+| 9 | q/120 | ~0.023% | |Φ⁺(E₈)| = 120 | Complete E₈ positive roots |
+| 10 | q²/φ² | ~0.0287% | Second-order/double golden | Deep massless corrections |
+| 11 | q/78 | ~0.035% | dim(E₆) = 78 | Full E₆ gauge structure |
+| 12 | q/72 | ~0.0380% | |Φ(E₆)| = 72 | Full E₆ root system (both signs) |
+| 13 | q/63 | ~0.0435% | |Φ⁺(E₇)| = 63 | E₇ positive roots |
+| 14 | q²/φ | ~0.046% | Second-order massless | Neutrino corrections, CMB peaks |
+| 15 | q/56 | ~0.0489% | dim(E₇ fund) = 56 | E₇ fundamental representation |
+| 16 | q/52 | ~0.0527% | dim(F₄) = 52 | F₄ gauge structure |
+| 17 | q² | ~0.075% | Second-order vacuum | Two-loop universal corrections |
+| 18 | q/36 | ~0.076% | |Φ⁺(E₆)| = 36 | 36 roots in Golden Cone |
+| 19 | q/32 | ~0.0856% | 2⁵ | Five-fold binary structure |
+| 20 | q/30 | ~0.0913% | h(E₈) = 30 | E₈ Coxeter number alone |
+| 21 | q/28 | ~0.0978% | dim(SO(8)) = 28 | D₄ adjoint representation |
+| 22 | q/27 | ~0.101% | dim(E₆ fund) = 27 | E₆ fundamental representation |
+| 23 | q/24 | ~0.114% | K(D₄) = 24 | D₄ kissing number (collapse threshold) |
+| 24 | q²φ | ~0.121% | Quadratic + golden | Mixed second-order enhancement |
+| 25 | q/6π | ~0.145% | 6-flavor QCD loop | Above top threshold |
+| 26 | q/18 | ~0.152% | h(E₇) = 18 | E₇ Coxeter number |
+| 27 | q/16 | ~0.171% | 2⁴ = 16 | Four-fold binary / spinor dimension |
+| 28 | q/5π | ~0.174% | 5-flavor QCD loop | Observables at M_Z scale |
+| 29 | q/14 | ~0.196% | dim(G₂) = 14 | G₂ octonion automorphisms |
+| 30 | q/4π | ~0.218% | One-loop radiative | Standard 4D loop integral |
+| 31 | q/12 | ~0.228% | dim(T⁴) × N_gen = 12 | Topology-generation coupling |
+| 32 | q/φ⁵ | ~0.247% | Fifth golden power | Fifth recursion layer |
+| 33 | q/3π | ~0.290% | 3-flavor QCD loop | Below charm threshold |
+| 34 | q/9 | ~0.304% | N_gen² = 9 | Generation-squared structure |
+| **35** | **q/8** | **~0.342%** | **rank(E₈) = 8** | **Cartan subalgebra** |
+| 36 | q/7 | ~0.391% | rank(E₇) = 7 | E₇ Cartan subalgebra |
+| 37 | q/φ⁴ | ~0.400% | Fourth golden power | Fourth recursion layer |
+| 38 | q/2π | ~0.436% | Half-loop integral | Sub-loop corrections |
+| 39 | q/6 | ~0.457% | 2 × 3 = rank(E₆) | Sub-generation structure |
+| 40 | q/φ³ | ~0.65% | Third golden power | Third-generation enhancements |
+| 41 | q/4 | ~0.685% | Quarter layer | Sphaleron, partial recursion |
+| 42 | q/π | ~0.872% | Circular loop | Fundamental loop structure |
+| 43 | q/3 | ~0.913% | N_gen = 3 | Single generation |
+| 44 | q/φ² | ~1.04% | Second golden power | Second recursion layer |
+| 45 | q/2 | ~1.37% | Half layer | Single recursion layer |
+| 46 | q/φ | ~1.69% | Golden eigenvalue | Scale running (one layer) |
+| 47 | q | ~2.74% | Universal vacuum | Base syntony deficit |
+| 48 | qφ | ~4.43% | Double layer | Two-layer transitions |
+| 49 | qφ² | ~7.17% | Fixed point (φ²=φ+1) | Stability corrections |
+| 50 | 3q | ~8.22% | N_gen × q | Triple generation |
+| 51 | πq | ~8.61% | π × q | Circular enhancement |
+| 52 | 4q | ~10.96% | dim(T⁴) = 4 | Full T⁴ CP violation |
+| 53 | qφ³ | ~11.6% | Triple golden | Three-layer transitions |
+| 54 | 6q | ~16.4% | rank(E₆) × q | Full E₆ Cartan enhancement |
+| 55 | qφ⁴ | ~18.8% | Fourth golden | Four-layer transitions |
+| 56 | 8q | ~21.9% | rank(E₈) × q | Full E₈ Cartan enhancement |
+| 57 | qφ⁵ | ~30.4% | Fifth golden | Five-layer transitions |
 
 ### Multiplicative Suppression Factors
 
@@ -1670,12 +1670,12 @@ These factors appear as **divisors** for processes involving recursion layer cro
 
 | Factor | Magnitude | Geometric Origin | Physical Interpretation | Status |
 |--------|-----------|------------------|------------------------|--------|
-| 1/(1+qφ⁻²) | ~1.05% suppression | Double inverse | Deep winding instability | NEW |
-| 1/(1+qφ⁻¹) | ~1.7% suppression | Inverse recursion | Winding instability (neutron decay) | ✓ USED |
-| 1/(1+q) | ~2.7% suppression | Base suppression | Universal vacuum penalty | NEW |
-| 1/(1+qφ) | ~4.2% suppression | Recursion penalty | Double layer crossings (θ₁₃) | ✓ USED |
-| 1/(1+qφ²) | ~6.7% suppression | Fixed point penalty | Triple layer crossings | NEW |
-| 1/(1+qφ³) | ~10.4% suppression | Deep recursion | Four-layer crossings | NEW |
+| 1/(1+qφ⁻²) | ~1.05% suppression | Double inverse | Deep winding instability |
+| 1/(1+qφ⁻¹) | ~1.7% suppression | Inverse recursion | Winding instability (neutron decay) |
+| 1/(1+q) | ~2.7% suppression | Base suppression | Universal vacuum penalty |
+| 1/(1+qφ) | ~4.2% suppression | Recursion penalty | Double layer crossings (θ₁₃) |
+| 1/(1+qφ²) | ~6.7% suppression | Fixed point penalty | Triple layer crossings |
+| 1/(1+qφ³) | ~10.4% suppression | Deep recursion | Four-layer crossings |
 
 ### Category Classification
 

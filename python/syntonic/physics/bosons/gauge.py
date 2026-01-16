@@ -18,7 +18,7 @@ Charge Quantization (from winding numbers):
 """
 
 import math
-from syntonic.exact import PHI, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC
+from syntonic.exact import PHI, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
 from syntonic.physics.constants import V_EW
 
 
@@ -101,10 +101,9 @@ def strong_coupling(mu: float = 91.188) -> float:
     Returns:
         α_s(μ)
     """
-    q = Q_DEFICIT_NUMERIC
     # Base value at M_Z
     alpha_s_base = 0.1181
-    correction = 1 - q / (5 * math.pi)
+    correction = 1 - get_correction_factor(28)  # Level 28: q/5π
     return alpha_s_base * correction
 
 
@@ -156,7 +155,6 @@ def w_mass(v: float = V_EW) -> float:
     Returns:
         W mass in GeV
     """
-    q = Q_DEFICIT_NUMERIC
     sin2_w = weinberg_angle()
 
     # g from electroweak relations at M_Z scale
@@ -167,7 +165,7 @@ def w_mass(v: float = V_EW) -> float:
     g = e / sin_w
 
     # W mass with SRT correction
-    correction = 1 - q / (4 * math.pi)
+    correction = 1 - get_correction_factor(30)  # Level 30: q/4π
     return (v / 2) * g * correction
 
 
@@ -203,7 +201,8 @@ def z_width() -> float:
     """
     m_z = z_mass()
     q = Q_DEFICIT_NUMERIC
-    return m_z * q * (1 - q / 24)
+    correction = 1 - get_correction_factor(23)  # Level 23: q/24
+    return m_z * q * correction
 
 
 def w_z_mass_ratio() -> float:

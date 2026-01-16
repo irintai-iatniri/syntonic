@@ -17,7 +17,7 @@ Meson mass patterns:
 """
 
 import math
-from syntonic.exact import PHI, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC
+from syntonic.exact import PHI, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
 from syntonic.physics.constants import V_EW
 
 
@@ -47,8 +47,8 @@ def proton_mass() -> float:
     # (E* - q) ≈ 19.972 — recursion fixed point
     e_star_minus_q = E_STAR_NUMERIC - q
 
-    # Fixed-point stability correction
-    stability = 1 + q / 1000
+    # Fixed-point stability correction: C2 (q/1000)
+    stability = 1 + get_correction_factor(2)
 
     return phi_8 * e_star_minus_q * stability
 
@@ -73,15 +73,14 @@ def neutron_proton_mass_diff() -> float:
         m_n - m_p in MeV
     """
     phi = PHI.eval()
-    q = Q_DEFICIT_NUMERIC
 
     # φ⁸ ≈ 46.979
     phi_8 = phi ** 8
 
-    # Correction chain from recursion evolution
-    correction = (1 + q / 6) * (1 + q / 36) * (1 + q / 360)
+    # Correction chain from recursion evolution: C39 (q/6), C18 (q/36), C4 (q/360)
+    correction = (1 + get_correction_factor(39)) * (1 + get_correction_factor(18)) * (1 + get_correction_factor(4))
 
-    return phi_8 * q * correction
+    return phi_8 * Q_DEFICIT_NUMERIC * correction
 
 
 def neutron_mass() -> float:
@@ -100,13 +99,12 @@ def neutron_mass() -> float:
         Neutron mass in MeV
     """
     phi = PHI.eval()
-    q = Q_DEFICIT_NUMERIC
 
     # φ⁸ ≈ 46.979
     phi_8 = phi ** 8
 
-    # Correction factor: 720 = h(E₈) × K(D₄) = 30 × 24
-    correction = 1 + q / 720
+    # Correction factor: C3 (q/720)
+    correction = 1 + get_correction_factor(3)
 
     return E_STAR_NUMERIC * phi_8 * correction
 
@@ -123,7 +121,8 @@ def pion_mass() -> float:
     Returns:
         π± mass in MeV
     """
-    return E_STAR_NUMERIC * 7
+    # Correction factor: C35 (q/8)
+    return E_STAR_NUMERIC * 7 * (1 - get_correction_factor(35))
 
 
 def pion_neutral_mass() -> float:
