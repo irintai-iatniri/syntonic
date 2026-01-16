@@ -46,6 +46,7 @@ KERNEL_FILES=(
     "conv_ops"
     "winding_ops"
     "hierarchy"
+    "golden_gelu"
 )
 
 # Compute capabilities to compile for

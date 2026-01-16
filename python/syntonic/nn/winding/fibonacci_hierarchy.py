@@ -95,7 +95,72 @@ class FibonacciHierarchy:
     def __repr__(self) -> str:
         return f"FibonacciHierarchy(max_depth={self.max_depth}, fib={self.fib_dims[:self.max_depth+1]})"
 
+class MersenneHierarchy(FibonacciHierarchy):
+    """
+    Network topology that strictly follows Stable Mersenne Generations.
+    
+    Maps logical layers to Prime Winding Depths:
+    Layer 0 -> p=2 (Gen 1: Light Matter)
+    Layer 1 -> p=3 (Gen 2: Strange/Charm)
+    Layer 2 -> p=5 (Gen 3: Bottom/Top)
+    Layer 3 -> p=7 (Heavy Sector / Higgs)
+    -- GAP (p=11 skipped/blocked) --
+    Layer 4 -> p=13 (Gauge Boson Scale)
+    """
+    
+    # Sequence of primes used for generations
+    P_SEQUENCE = [2, 3, 5, 7, 13, 17, 19, 31]
 
+    def get_layer_p(self, logical_layer: int) -> int:
+        """Get the winding depth p for a given logical network layer."""
+        if logical_layer >= len(self.P_SEQUENCE):
+            raise ValueError("Exceeded maximum stable generations in Standard Model scope")
+        return self.P_SEQUENCE[logical_layer]
+    
+    def get_layer_dims_practical(self, base_dim: int) -> List[int]:
+        """
+        Dimensions scale by the Fibonacci shadow of the winding depth p.
+        
+        We use F_p instead of M_p = 2^p - 1 because M_p grows too rapidly
+        for practical tensor dimensions (e.g., M_13 = 8191).
+        """
+        dims = []
+        for i in range(self.max_depth):
+            p = self.get_layer_p(i)
+            
+            # Use Fibonacci(p) as the tractable projection of the volume
+            scale_factor = self._fib_at_index(p)
+            
+            dims.append(base_dim * scale_factor)
+            
+        return dims
+    
+    def get_layer_dims(self, base_dim: int, use_true_volume: bool = False) -> List[int]:
+        """
+        Get dimensions for each layer.
+        
+        Args:
+            base_dim: The starting dimension unit.
+            use_true_volume: If True, scales by M_p = 2^p - 1 (Huge!).
+                             If False, scales by F_p (Fibonacci Shadow, manageable).
+        """
+        dims = []
+        for i in range(self.max_depth):
+            p = self.get_layer_p(i)
+            
+            if use_true_volume:
+                # The exact Mersenne Volume (Explodes quickly!)
+                # p=13 -> scale=8191
+                scale_factor = (2**p) - 1
+            else:
+                # The Golden Shadow (Manageable)
+                # p=13 -> scale=233
+                scale_factor = self._fib_at_index(p)
+                
+            dims.append(base_dim * scale_factor)
+            
+        return dims
+    
 if __name__ == "__main__":
     # Example usage
     fib = FibonacciHierarchy(max_depth=5)

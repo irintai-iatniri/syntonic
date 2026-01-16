@@ -128,7 +128,8 @@ class ResonantTensor:
         cls,
         data: List[float],
         shape: List[int],
-        precision: int = 100
+        precision: int = 100,
+        device: str = 'cpu'
     ) -> "ResonantTensor":
         """
         Create from float32 values (alias for constructor).
@@ -221,7 +222,9 @@ class ResonantTensor:
         shape: List[int],
         mean: float = 0.0,
         std: float = 1.0,
-        precision: int = 100
+        precision: int = 100,
+        device: str = 'cpu'
+
     ) -> "ResonantTensor":
         """
         Create a tensor with random Gaussian values.

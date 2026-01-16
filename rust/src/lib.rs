@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 mod exact;
+mod golden_gelu;
 mod hierarchy;
 mod hypercomplex;
 mod linalg;
@@ -320,6 +321,15 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hierarchy::compute_e_star_n, m)?)?;
     m.add_function(wrap_pyfunction!(hierarchy::apply_chain, m)?)?;
     m.add_function(wrap_pyfunction!(hierarchy::init_divisors, m)?)?;
+
+    // === GoldenGELU Activation ===
+    m.add_function(wrap_pyfunction!(golden_gelu::golden_gelu_forward, m)?)?;
+    m.add_function(wrap_pyfunction!(golden_gelu::golden_gelu_backward, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        golden_gelu::batched_golden_gelu_forward,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(golden_gelu::get_golden_gelu_phi, m)?)?;
 
     // === SRT Tensor Operations (GPU-accelerated when on CUDA) ===
     m.add_function(wrap_pyfunction!(py_apply_geodesic_slide, m)?)?;

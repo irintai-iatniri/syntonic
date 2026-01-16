@@ -132,6 +132,16 @@ const PTX_HIERARCHY_SM86: &str = include_str!("../../kernels/ptx/hierarchy_sm86.
 #[cfg(feature = "cuda")]
 const PTX_HIERARCHY_SM90: &str = include_str!("../../kernels/ptx/hierarchy_sm90.ptx");
 
+// GoldenGELU PTX (4 compute capabilities)
+#[cfg(feature = "cuda")]
+const PTX_GOLDEN_GELU_SM75: &str = include_str!("../../kernels/ptx/golden_gelu_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_GOLDEN_GELU_SM80: &str = include_str!("../../kernels/ptx/golden_gelu_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_GOLDEN_GELU_SM86: &str = include_str!("../../kernels/ptx/golden_gelu_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_GOLDEN_GELU_SM90: &str = include_str!("../../kernels/ptx/golden_gelu_sm90.ptx");
+
 // =============================================================================
 // Kernel Function Lists
 // =============================================================================

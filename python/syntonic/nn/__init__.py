@@ -63,6 +63,9 @@ from syntonic.nn.loss.regularization import (
     compute_sparsity_penalty,
 )
 
+# Activations
+from syntonic.nn.golden_gelu import GoldenGELU
+
 # Retrocausal RES Optimization (replaces gradient-based optimizers)
 from syntonic.nn.optim import (
     RetrocausalConfig,
@@ -84,7 +87,7 @@ from syntonic.nn.training.trainer import (
 # Constants
 import math
 PHI = (1 + math.sqrt(5)) / 2
-Q_DEFICIT = 0.027395146920
+Q_DEFICIT = 0.027395146920071658
 S_TARGET = PHI - Q_DEFICIT
 
 __all__ = [
