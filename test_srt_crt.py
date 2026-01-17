@@ -46,8 +46,10 @@ class SRTCRTTestRunner:
     def run_rust_tests(self) -> bool:
         """Run Rust unit tests."""
         print("🔧 Running Rust unit tests...")
+        # Run Rust tests without PyO3 by disabling the extension-module feature
+        # This allows testing the core Rust logic without Python binding complications
         exit_code, stdout, stderr = self.run_command(
-            ["cargo", "test"],
+            ["cargo", "test", "--lib", "--no-default-features", "--features", "cuda,cpu"],
             cwd=str(Path(__file__).parent / "rust")
         )
 
@@ -66,9 +68,37 @@ class SRTCRTTestRunner:
 
         return success
 
+    def build_python_extension(self) -> bool:
+        """Build Python extension module for integration testing."""
+        print("🔗 Building Python extension module...")
+        exit_code, stdout, stderr = self.run_command(
+            ["cargo", "build", "--release"],
+            cwd=str(Path(__file__).parent / "rust")
+        )
+
+        success = exit_code == 0
+        self.results['python_extension_build'] = {
+            'success': success,
+            'output': stdout,
+            'errors': stderr
+        }
+
+        if success:
+            print("✅ Python extension built successfully")
+        else:
+            print("❌ Python extension build failed")
+            print(stderr)
+
+        return success
+
     def run_python_tests(self) -> bool:
         """Run Python unit tests."""
         print("🐍 Running Python unit tests...")
+
+        # First build the Python extension if not already built
+        if not self.build_python_extension():
+            print("    ❌ Cannot run Python tests without extension module")
+            return False
 
         test_files = [
             "tests/test_prime_theory.py",
@@ -261,9 +291,10 @@ class SRTCRTTestRunner:
         print("=" * 50)
 
         print("\n🔧 Core Implementation:")
-        print(f"  Rust Backend:     {'✅' if rust_success else '❌'}")
-        print(f"  Python Bindings:  {'✅' if python_success else '❌'}")
-        print(f"  Neural Networks:  {'✅' if nn_success else '❌'}")
+        print(f"  Rust Core Tests:      {'✅' if rust_success else '❌'}")
+        print(f"  Python Extension:     {'✅' if self.results.get('python_extension_build', {}).get('success', False) else '❌'}")
+        print(f"  Python Bindings:      {'✅' if python_success else '❌'}")
+        print(f"  Neural Networks:      {'✅' if nn_success else '❌'}")
 
         print("\n🔬 Theoretical Validation:")
         for prediction, valid in validations.items():

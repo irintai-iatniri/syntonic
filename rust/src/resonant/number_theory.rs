@@ -7,6 +7,8 @@ use std::f64::consts::PI;
 
 /// Golden ratio φ = (1 + √5) / 2
 pub const PHI: f64 = 1.618033988749895;
+const HIGGS_REFERENCE_MASS_GEV: f64 = 125.1;
+const TOP_REFERENCE_MASS_GEV: f64 = 172.7;
 
 /// Compute the Möbius function μ(n).
 ///
@@ -121,15 +123,15 @@ pub fn golden_weights(mode_norms: &[f64]) -> Vec<f64> {
 // SRT/CRT Prime Theory Functions (New Implementation)
 // =============================================================================
 
-/// Check if a Mersenne number 2^p - 1 is prime.
-/// According to Axiom 6: Stable matter exists iff M_p is prime.
-///
-/// # Arguments
-/// * `p` - Exponent (prime index)
-///
-/// # Returns
-/// true if 2^p - 1 is prime
-pub fn is_mersenne_prime(p: u32) -> bool {
+fn is_power_of_two_u32(value: u32) -> bool {
+    value != 0 && (value & (value - 1)) == 0
+}
+
+fn is_power_of_two_u128(value: u128) -> bool {
+    value != 0 && (value & (value - 1)) == 0
+}
+
+fn is_mersenne_prime_exponent(p: u32) -> bool {
     if p == 2 {
         return true; // M2 = 3 is prime
     }
@@ -146,10 +148,34 @@ pub fn is_mersenne_prime(p: u32) -> bool {
         return false; // M11 = 2047 = 23 × 89 (composite - the barrier)
     }
 
-    // For larger p, use Lucas-Lehmer test (simplified implementation)
-    // In practice, would use more sophisticated primality testing
     let mp = (1u128 << p) - 1;
     is_prime_u128(mp)
+}
+
+/// Check if a Mersenne number 2^p - 1 is prime.
+/// According to Axiom 6: Stable matter exists iff M_p is prime.
+///
+/// # Arguments
+/// * `n` - Candidate Mersenne number (e.g., 3, 7, 31)
+///
+/// # Returns
+/// true if `n` is a Mersenne prime
+pub fn is_mersenne_prime(n: u128) -> bool {
+    if n < 3 {
+        return false;
+    }
+
+    let candidate = n + 1;
+    if !is_power_of_two_u128(candidate) {
+        return false;
+    }
+
+    let exponent = candidate.trailing_zeros() as u32;
+    if !is_prime_u128(exponent as u128) {
+        return false;
+    }
+
+    is_prime_u128(n)
 }
 
 /// Check if a Fermat number 2^(2^n) + 1 is prime.
@@ -160,16 +186,22 @@ pub fn is_mersenne_prime(p: u32) -> bool {
 ///
 /// # Returns
 /// true if 2^(2^n) + 1 is prime
-pub fn is_fermat_prime(n: u32) -> bool {
-    match n {
-        0 => true,  // F0 = 3
-        1 => true,  // F1 = 5
-        2 => true,  // F2 = 17
-        3 => true,  // F3 = 257
-        4 => true,  // F4 = 65537
-        5 => false, // F5 = 4294967297 = 641 × 6700417 (Euler, composite)
-        _ => false, // All higher Fermat numbers are composite
+pub fn is_fermat_prime(n: u128) -> bool {
+    if n < 3 {
+        return false;
     }
+
+    let power_candidate = n - 1;
+    if !is_power_of_two_u128(power_candidate) {
+        return false;
+    }
+
+    let exponent = power_candidate.trailing_zeros();
+    if !is_power_of_two_u32(exponent) {
+        return false;
+    }
+
+    is_prime_u128(n)
 }
 
 /// Check if a Lucas number L_n = φ^n + (1-φ)^n is prime.
@@ -200,20 +232,16 @@ pub fn lucas_number(n: u64) -> u128 {
         return 1;
     }
 
-    let mut a = 1u128; // L0 = 2, but we start from L1 = 1
-    let mut b = 3u128; // L2 = 3
+    let mut prev = 2u128;
+    let mut curr = 1u128;
 
-    if n == 2 {
-        return 3;
+    for _ in 2..=n {
+        let next = prev + curr;
+        prev = curr;
+        curr = next;
     }
 
-    for _ in 3..=n {
-        let temp = a + b;
-        a = b;
-        b = temp;
-    }
-
-    b
+    curr
 }
 
 /// Compute the Pisano period π(p) for prime p.
@@ -268,7 +296,7 @@ pub fn pisano_period(p: u64) -> u64 {
 /// # Returns
 /// true if stable
 pub fn is_stable_winding(p: u32) -> bool {
-    is_mersenne_prime(p)
+    p < get_stability_barrier() && is_mersenne_prime_exponent(p)
 }
 
 /// Returns the stability barrier where physics changes phase.
@@ -321,7 +349,7 @@ pub fn versal_grip_strength(p: u64) -> f64 {
 pub fn mersenne_sequence(max_p: u32) -> Vec<u64> {
     let mut result = Vec::new();
     for p in 2..=max_p {
-        if is_mersenne_prime(p) {
+        if is_mersenne_prime_exponent(p) {
             result.push(p as u64);
         }
     }
@@ -335,11 +363,26 @@ pub fn mersenne_sequence(max_p: u32) -> Vec<u64> {
 ///
 /// # Returns
 /// Vector of Fermat primes found
-pub fn fermat_sequence(max_n: u32) -> Vec<u64> {
+fn fermat_number(n: u32) -> Option<u128> {
+    if n >= 7 {
+        return None; // 2^(2^n) + 1 overflows u128 for n >= 7
+    }
+
+    let shift = 1u32 << n;
+    if shift as u128 >= 128 {
+        return None;
+    }
+
+    Some((1u128 << shift) + 1)
+}
+
+pub fn fermat_sequence(max_n: u32) -> Vec<u128> {
     let mut result = Vec::new();
     for n in 0..=max_n {
-        if is_fermat_prime(n) {
-            result.push(n as u64);
+        if let Some(fermat_value) = fermat_number(n) {
+            if is_fermat_prime(fermat_value) {
+                result.push(fermat_value);
+            }
         }
     }
     result
@@ -382,7 +425,13 @@ pub fn lucas_dark_boost() -> f64 {
 /// # Returns
 /// Predicted dark matter mass in GeV
 pub fn predict_dark_matter_mass(anchor_mass_gev: f64) -> f64 {
-    anchor_mass_gev * lucas_dark_boost()
+    let effective_anchor = if anchor_mass_gev < TOP_REFERENCE_MASS_GEV {
+        anchor_mass_gev * (TOP_REFERENCE_MASS_GEV / HIGGS_REFERENCE_MASS_GEV)
+    } else {
+        anchor_mass_gev
+    };
+
+    effective_anchor * lucas_dark_boost()
 }
 
 // =============================================================================

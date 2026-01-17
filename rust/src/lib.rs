@@ -1,4 +1,9 @@
+#[cfg(feature = "extension-module")]
 use pyo3::prelude::*;
+#[cfg(feature = "extension-module")]
+use pyo3::types::PyModule;
+#[cfg(feature = "extension-module")]
+use pyo3::{wrap_pyfunction, Bound, PyResult};
 
 mod exact;
 mod golden_gelu;
@@ -154,30 +159,35 @@ use linalg::{
 // =============================================================================
 
 /// Get the golden ratio φ = (1 + √5) / 2
+#[cfg(feature = "extension-module")]
 #[pyfunction]
 fn srt_phi() -> f64 {
     srt_kernels::PHI
 }
 
 /// Get the golden ratio inverse φ⁻¹ = φ - 1
+#[cfg(feature = "extension-module")]
 #[pyfunction]
 fn srt_phi_inv() -> f64 {
     srt_kernels::PHI_INV
 }
 
 /// Get the q-deficit value q = W(∞) - 1 ≈ 0.027395
+#[cfg(feature = "extension-module")]
 #[pyfunction]
 fn srt_q_deficit() -> f64 {
     srt_kernels::Q_DEFICIT
 }
 
 /// Get π (pi) constant
+#[cfg(feature = "extension-module")]
 #[pyfunction]
 fn srt_pi() -> f64 {
     std::f64::consts::PI
 }
 
 /// Get e (Euler's number) constant
+#[cfg(feature = "extension-module")]
 #[pyfunction]
 fn srt_e() -> f64 {
     std::f64::consts::E
@@ -187,12 +197,14 @@ fn srt_e() -> f64 {
 /// 0: E₈ dim (248), 1: E₈ roots (240), 2: E₈ pos (120),
 /// 3: E₆ dim (78), 4: E₆ cone (36), 5: E₆ 27 (27),
 /// 6: D₄ kissing (24), 7: G₂ dim (14)
+#[cfg(feature = "extension-module")]
 #[pyfunction]
 fn srt_structure_dimension(index: i32) -> i32 {
     srt_kernels::get_structure_dimension(index)
 }
 
 /// Compute correction factor (1 + sign * q / N)
+#[cfg(feature = "extension-module")]
 #[pyfunction]
 fn srt_correction_factor(structure_index: i32, sign: i32) -> f64 {
     let n = srt_kernels::get_structure_dimension(structure_index);
@@ -200,6 +212,7 @@ fn srt_correction_factor(structure_index: i32, sign: i32) -> f64 {
 }
 
 /// Apply Geodesic Gravity Slide to weights in-place (Physical AI update)
+#[cfg(feature = "extension-module")]
 #[pyfunction]
 fn py_apply_geodesic_slide(
     weights: &TensorStorage,
@@ -251,6 +264,7 @@ fn py_apply_geodesic_slide(
 /// - The five fundamental SRT constants (π, e, φ, E*, q)
 /// - Tensor storage (legacy, uses floats - to be replaced)
 /// - Hypercomplex numbers (Quaternion, Octonion)
+#[cfg(feature = "extension-module")]
 #[pymodule]
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // === Exact Arithmetic (NEW - preferred) ===
@@ -425,20 +439,56 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_standard_mode_norms, m)?)?;
 
     // === SRT/CRT Prime Theory Functions ===
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_mersenne_prime, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_fermat_prime, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_lucas_prime, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_mersenne_prime,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_fermat_prime,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_lucas_prime,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_lucas_number, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_pisano_period, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_stable_winding, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_get_stability_barrier, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_transcendence_gate, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_versal_grip_strength, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_mersenne_sequence, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_fermat_sequence, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_pisano_period,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_stable_winding,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_get_stability_barrier,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_transcendence_gate,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_versal_grip_strength,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_mersenne_sequence,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_fermat_sequence,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_lucas_primes, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_lucas_dark_boost, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_predict_dark_matter_mass, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_lucas_dark_boost,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_predict_dark_matter_mass,
+        m
+    )?)?;
 
     // === Crystallization Functions ===
     m.add_function(wrap_pyfunction!(py_crystallize_with_dwell_legacy, m)?)?;
