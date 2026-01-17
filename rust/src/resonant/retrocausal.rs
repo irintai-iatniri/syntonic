@@ -30,6 +30,7 @@ use super::attractor::AttractorMemory;
 use super::tensor::ResonantTensor;
 use super::ResonantError;
 use crate::exact::golden::GoldenExact;
+use crate::exact::Rational;
 
 /// Apply harmonization with attractor-guided retrocausal influence.
 ///

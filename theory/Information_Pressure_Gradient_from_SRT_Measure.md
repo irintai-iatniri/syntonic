@@ -783,12 +783,12 @@ The powers of q encode how many times the information has "recursed" through the
 | **P** | 1/φ | 0.6180 | — | Fundamental |
 | **G** | (ℓ_P²c³/ℏ)/(12πq) | 6.67×10⁻¹¹ | 6.67×10⁻¹¹ | ✓ **Verified** |
 | **D** | γ₀ℓ_P²/8 | 8.2×10⁻⁵⁰ m²/s | — | ✓ Derived |
-| **Λ** | 3q²M_Pl² | — | — | ✓ **EXACT** |
-| **H₀** | qM_Pl c | 67.4 km/s/Mpc | 67.4 ± 0.5 | ✓ **EXACT** |
-| **ρ_Λ** | (2.25 meV)⁴ | — | — | ✓ **EXACT** |
-| **w** | -1 (exactly) | -1 | -1.03 ± 0.03 | ✓ **EXACT** |
+| **Λ** | 3q²M_Pl² | — | — | ✓  |
+| **H₀** | qM_Pl c | 67.4 km/s/Mpc | 67.4 ± 0.5 | ✓  |
+| **ρ_Λ** | (2.25 meV)⁴ | — | — | ✓  |
+| **w** | -1 (exactly) | -1 | -1.03 ± 0.03 | ✓  |
 | **Ω_DM/Ω_b** | φ³+1+5q | 5.373 | 5.36 | ✓ 0.24% |
-| **α** | E*q³(1+q+q²/φ) | 1/137.036 | 1/137.036 | ✓ **EXACT** |
+| **α** | E*q³(1+q+q²/φ) | 1/137.036 | 1/137.036 | ✓  |
 | **a₀** | √q × c × H₀ | 1.1×10⁻¹⁰ m/s² | 1.2×10⁻¹⁰ m/s² | ✓ Excellent |
 
 ## **57. The Chain of Logic**

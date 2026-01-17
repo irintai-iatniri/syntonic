@@ -516,7 +516,7 @@ $$\boxed{w = -1 \text{ (exactly)}}$$
 
 **Geometric Meaning:** The cosmological constant in SRT is a geometric fixed point. The syntony field at late times sits at its minimum with zero kinetic energy, implying w = −1 exactly.
 
-**Status:** **EXACT** ✓ (within 1σ)
+**Status:**  ✓ (within 1σ)
 
 ### **2.3.2 Dark Matter to Baryon Ratio**
 
@@ -525,7 +525,7 @@ $$\boxed{w = -1 \text{ (exactly)}}$$
 **SRT Formula:**
 $$\boxed{\frac{\Omega_{\text{DM}}}{\Omega_b} = \phi^3 + 1 + 5q = 5.373}$$
 
-**Precision:** 0.24% → **EXACT** ✓
+**Precision:** 0.24% →  ✓
 
 **Geometric Meaning:** The golden ratio cubed plus unity, with five syntony corrections. The dark-to-baryonic ratio encodes φ³!
 
@@ -544,7 +544,7 @@ $$\boxed{\sin^2(2\theta) = q^7 \times \left(1 - \frac{q}{\phi}\right) = 1.14 \ti
 
 $$\boxed{\rho_\Lambda = (2.25 \text{ meV})^4 = \rho_\Lambda^{(0)} \times (1 - q\phi^2)(1 - q/2)}$$
 
-**Status:** **EXACT** — The cosmological constant problem is SOLVED!
+**Status:**  — The cosmological constant problem is SOLVED!
 
 ---
 
@@ -815,7 +815,7 @@ $$\boxed{B_d = \frac{E_*}{N_{\text{gen}}^2} \times \left(1 + \frac{q}{\dim(E_6 \
 |----------|-------|
 | Prediction | 2.22438 MeV |
 | Experimental | 2.22457 MeV |
-| **Precision** | **0.0085%** → **EXACT** ✓ |
+| **Precision** | **0.0085%** →  ✓ |
 
 **Geometric Meaning:**
 - 9 = N_gen² = 3² (generation structure squared)  
@@ -831,7 +831,7 @@ $$\boxed{B_\alpha = E_* \sqrt{2} \times \left(1 + \frac{q}{78}\right)\left(1 + \
 |----------|-------|
 | Prediction | 28.2961 MeV |
 | Experimental | 28.2960 MeV |
-| **Precision** | **0.0002%** → **EXACT** ✓ |
+| **Precision** | **0.0002%** →  ✓ |
 
 **Geometric Meaning:**
 - √2 appears from the pairing structure (2 protons, 2 neutrons)
@@ -846,7 +846,7 @@ $$\boxed{\frac{B}{A} = \frac{E_*}{2\phi} \times \sqrt{2} \times \left(1 + \frac{
 |----------|-------|
 | Prediction | 8.80 MeV/nucleon |
 | Experiment | 8.79 MeV/nucleon |
-| **Precision** | **0.11%** → **EXACT** ✓ |
+| **Precision** | **0.11%** →  ✓ |
 
 **Geometric meaning:**
 - E*/(2φ) = Spectral base / double golden
@@ -858,16 +858,16 @@ $$\boxed{\frac{B}{A} = \frac{E_*}{2\phi} \times \sqrt{2} \times \left(1 + \frac{
 
 $$\boxed{B_t = \frac{E_*}{\phi^2} \times (1 + 4q) \times \left(1 + \frac{q}{6}\right) \times \left(1 + \frac{q}{27}\right) = 8.52 \text{ MeV}}$$
 
-**Experiment:** 8.482 MeV → **EXACT** ✓ (0.5%)
+**Experiment:** 8.482 MeV →  ✓ (0.5%)
 
 ### **Nuclear Binding Summary**
 
 | Nucleus | Formula | SRT | Experiment | Precision |
 |---------|---------|-----|------------|-----------|
-| Deuteron | E*/9 × (1+q/27) | 2.22438 MeV | 2.22457 MeV | **EXACT** |
-| ⁴He | E*√2 × (1+q/78)(1+q/248) | 28.2961 MeV | 28.2960 MeV | **EXACT** |
-| ⁵⁶Fe (B/A) | E*√2/(2φ) × (1+q/4) | 8.80 MeV | 8.79 MeV | **EXACT** |
-| ³H | E*/φ² × (1+4q)(1+q/6)(1+q/27) | 8.52 MeV | 8.48 MeV | **EXACT** |
+| Deuteron | E*/9 × (1+q/27) | 2.22438 MeV | 2.22457 MeV |  |
+| ⁴He | E*√2 × (1+q/78)(1+q/248) | 28.2961 MeV | 28.2960 MeV |  |
+| ⁵⁶Fe (B/A) | E*√2/(2φ) × (1+q/4) | 8.80 MeV | 8.79 MeV |  |
+| ³H | E*/φ² × (1+4q)(1+q/6)(1+q/27) | 8.52 MeV | 8.48 MeV |  |
 
 ## **3.4 Chemical Bonding**
 
@@ -914,7 +914,7 @@ $$\ln\frac{\mu_{\text{GUT}}}{M_Z} = \ln\frac{1.0 \times 10^{15}}{91.2} \approx 3
 |----------|-----|------------|-----------|
 | α_EM⁻¹(M_Z) | 127.94 | 127.955 ± 0.010 | **0.01%** ✓ |
 | sin²θ_W(M_Z) | 0.2312 | 0.23122 ± 0.00004 | **0.01%** ✓ |
-| α_s(M_Z) | 0.1179 | 0.1179 ± 0.0010 | **EXACT** ✓ |
+| α_s(M_Z) | 0.1179 | 0.1179 ± 0.0010 |  ✓ |
 
 ### **3.5.3 Running to Low Energy**
 
@@ -969,9 +969,9 @@ Low-energy running: M_Z → 0
 
 | Prediction | Value | Status |
 |------------|-------|--------|
-| Period lengths | 2, 8, 8, 18, 18, 32, 32 | ✓ **Exact** |
-| Shell capacities | 2n² | ✓ **Exact** |
-| Orbital degeneracies | 2l+1 | ✓ **Exact** |
+| Period lengths | 2, 8, 8, 18, 18, 32, 32 | ✓  |
+| Shell capacities | 2n² | ✓  |
+| Orbital degeneracies | 2l+1 | ✓  |
 | Proton stability | τ_p → ∞ | ✓ Consistent |
 | Neutron instability | τ_n ≈ 879 s | ✓ 0.03% |
 

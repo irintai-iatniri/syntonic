@@ -234,6 +234,102 @@ pub fn py_golden_decay_loss(weight_norms: Vec<f64>, lambda_decay: f64) -> f64 {
     super::loss::golden_decay_loss(&weight_norms, lambda_decay)
 }
 
+// =============================================================================
+// SRT/CRT Prime Theory Functions (New Python Bindings)
+// =============================================================================
+
+/// Check if a Mersenne number 2^p - 1 is prime.
+/// According to Axiom 6: Stable matter exists iff M_p is prime.
+#[pyfunction]
+pub fn py_is_mersenne_prime(p: u32) -> bool {
+    number_theory::is_mersenne_prime(p)
+}
+
+/// Check if a Fermat number 2^(2^n) + 1 is prime.
+/// According to CRT: Forces exist iff F_n is prime.
+#[pyfunction]
+pub fn py_is_fermat_prime(n: u32) -> bool {
+    number_theory::is_fermat_prime(n)
+}
+
+/// Check if a Lucas number L_n is prime.
+/// According to CRT: Dark sectors stabilize iff L_n is prime.
+#[pyfunction]
+pub fn py_is_lucas_prime(n: u64) -> bool {
+    number_theory::is_lucas_prime(n)
+}
+
+/// Compute the nth Lucas number L_n = φ^n + (1-φ)^n.
+#[pyfunction]
+pub fn py_lucas_number(n: u64) -> u128 {
+    number_theory::lucas_number(n)
+}
+
+/// Compute the Pisano period π(p) for prime p.
+/// Determines the "hooking cycle" of prime windings.
+#[pyfunction]
+pub fn py_pisano_period(p: u64) -> u64 {
+    number_theory::pisano_period(p)
+}
+
+/// Check if a winding index p generates a stable Mersenne geometry.
+/// According to Axiom 6: Stable iff 2^p - 1 is prime.
+#[pyfunction]
+pub fn py_is_stable_winding(p: u32) -> bool {
+    number_theory::is_stable_winding(p)
+}
+
+/// Returns the stability barrier where physics changes phase.
+/// Currently p=11 where M11 = 23 × 89 (composite).
+#[pyfunction]
+pub fn py_get_stability_barrier() -> u32 {
+    number_theory::get_stability_barrier()
+}
+
+/// Check if a number corresponds to a "transcendence gate".
+#[pyfunction]
+pub fn py_is_transcendence_gate(n: u64) -> bool {
+    number_theory::is_transcendence_gate(n)
+}
+
+/// Calculate the "versal grip" strength of a prime.
+#[pyfunction]
+pub fn py_versal_grip_strength(p: u64) -> f64 {
+    number_theory::versal_grip_strength(p)
+}
+
+/// Generate Mersenne primes up to maximum exponent.
+#[pyfunction]
+pub fn py_mersenne_sequence(max_p: u32) -> Vec<u64> {
+    number_theory::mersenne_sequence(max_p)
+}
+
+/// Generate Fermat primes up to maximum index.
+#[pyfunction]
+pub fn py_fermat_sequence(max_n: u32) -> Vec<u64> {
+    number_theory::fermat_sequence(max_n)
+}
+
+/// Generate Lucas primes up to maximum index.
+#[pyfunction]
+pub fn py_lucas_primes(max_n: u64) -> Vec<u64> {
+    number_theory::lucas_primes(max_n)
+}
+
+/// Compute the Lucas boost factor L_{17}/L_{13} ≈ 6.854.
+/// Used for dark matter mass predictions.
+#[pyfunction]
+pub fn py_lucas_dark_boost() -> f64 {
+    number_theory::lucas_dark_boost()
+}
+
+/// Predict dark matter mass using Lucas boost.
+/// M_dark = M_anchor × (L_{17}/L_{13})
+#[pyfunction]
+pub fn py_predict_dark_matter_mass(anchor_mass_gev: f64) -> f64 {
+    number_theory::predict_dark_matter_mass(anchor_mass_gev)
+}
+
 // === Broadcasting Operations ===
 
 use crate::tensor::broadcast;

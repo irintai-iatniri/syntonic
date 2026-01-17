@@ -743,28 +743,28 @@ The following table summarizes all major SRT predictions, their experimental com
 | Muon mass | 105.7 MeV | 105.7 MeV | Exact | ✓ |
 | Tau mass (E* × F₁₁) | 1776.9 MeV | 1776.86 MeV | **0.002%** | ✓ |
 | **Quark Masses** |
-| Up quark (E*/9) | 2.161 MeV | 2.16 ± 0.49 MeV | **EXACT** | ✓ |
-| Down quark | 4.678 MeV | 4.67 ± 0.48 MeV | **EXACT** | ✓ |
-| Strange quark | 93.0 MeV | 93.4 ± 8.6 MeV | **EXACT** | ✓ |
-| Charm quark (E*×63.5) | 1270.2 MeV | 1270 ± 20 MeV | **EXACT** | ✓ |
-| Bottom quark (E*×209) | 4180.3 MeV | 4180 ± 30 MeV | **EXACT** | ✓ |
+| Up quark (E*/9) | 2.161 MeV | 2.16 ± 0.49 MeV |  | ✓ |
+| Down quark | 4.678 MeV | 4.67 ± 0.48 MeV |  | ✓ |
+| Strange quark | 93.0 MeV | 93.4 ± 8.6 MeV |  | ✓ |
+| Charm quark (E*×63.5) | 1270.2 MeV | 1270 ± 20 MeV |  | ✓ |
+| Bottom quark (E*×209) | 4180.3 MeV | 4180 ± 30 MeV |  | ✓ |
 | **Meson Masses** |
-| Pion (E*×7) | 139.570 MeV | 139.570 MeV | **EXACT** | ✓ |
-| Kaon (E*×25) | 497.611 MeV | 497.611 MeV | **EXACT** | ✓ |
+| Pion (E*×7) | 139.570 MeV | 139.570 MeV |  | ✓ |
+| Kaon (E*×25) | 497.611 MeV | 497.611 MeV |  | ✓ |
 | D meson (E*×93) | 1862.7 MeV | 1864.84 MeV | **0.12%** | ✓ |
 | B meson (E*×264) | 5279.8 MeV | 5279.66 MeV | **0.002%** | ✓ |
-| B_c meson (E*×314) | 6274.9 MeV | 6274.9 MeV | **EXACT** | ✓ |
+| B_c meson (E*×314) | 6274.9 MeV | 6274.9 MeV |  | ✓ |
 | **Baryon Masses** |
 | Λ baryon | 1115.6 MeV | 1115.68 MeV | **0.004%** | ✓ |
 | Δ baryon | 1230.0 MeV | 1232 MeV | **0.16%** | ✓ |
-| Ξ⁻ baryon (E*×66) | 1321.0 MeV | 1321.71 MeV | **EXACT** | ✓ |
+| Ξ⁻ baryon (E*×66) | 1321.0 MeV | 1321.71 MeV |  | ✓ |
 | Ω⁻ baryon (E*×84) | 1679.7 MeV | 1672.45 MeV | **0.44%** | ✓ |
 | **Nuclear Binding** |
 | Deuteron binding | 2.22438 MeV | 2.22457 MeV | **0.008%** | ✓ |
 | Alpha binding | 28.2961 MeV | 28.2960 MeV | **0.0002%** | ✓ |
 | Iron-56 B/A | 8.80 MeV | 8.79 MeV | **0.11%** | ✓ |
 | **Neutrino Masses** |
-| m_ν₃ (ρ_Λ×E*×(1+4q)) | 49.93 meV | ~50 meV | **EXACT** | ✓ |
+| m_ν₃ (ρ_Λ×E*×(1+4q)) | 49.93 meV | ~50 meV |  | ✓ |
 | Δm²₃₁/Δm²₂₁ | 33.97 | 33.83 | **0.43%** | ✓ |
 | **Nucleon Masses** |
 | Neutron mass (E* × φ⁸) | 939.53 MeV | 939.565 MeV | **0.004%** | ✓ |
@@ -783,26 +783,26 @@ The following table summarizes all major SRT predictions, their experimental com
 | **CKM Matrix** |
 | Cabibbo angle | 0.2242 | $0.2243 \pm 0.0005$ | **0.04%** | ✓ |
 | $V_{cb}$ ($q \times 3/2$) | 0.04109 | $0.0412 \pm 0.0006$ | **0.3%** | ✓ |
-| $V_{ub}$ | 0.0037 | $0.0037 \pm 0.0002$ | **Exact** | ✓ |
+| $V_{ub}$ | 0.0037 | $0.0037 \pm 0.0002$ |  | ✓ |
 | **PMNS Matrix** |
 | θ₁₂ (solar) | 33.45° | 33.44° ± 0.77° | **0.03%** | ✓ |
 | θ₂₃ (atmospheric) | 49.17° | 49.2° ± 1.0° | **0.06%** | ✓ |
-| θ₁₃ (reactor) | 8.57° | 8.57° ± 0.12° | **Exact** | ✓ |
-| δ_CP | 1.36 rad | 1.36 ± 0.17 rad | **Exact** | ✓ |
+| θ₁₃ (reactor) | 8.57° | 8.57° ± 0.12° |  | ✓ |
+| δ_CP | 1.36 rad | 1.36 ± 0.17 rad |  | ✓ |
 | **Cosmology** |
-| Baryon asymmetry | $6.10 \times 10^{-10}$ | $(6.1 \pm 0.4) \times 10^{-10}$ | **Exact** | ✓ |
+| Baryon asymmetry | $6.10 \times 10^{-10}$ | $(6.1 \pm 0.4) \times 10^{-10}$ |  | ✓ |
 | $H_0$ | 67.4 km/s/Mpc | $67.4 \pm 0.5$ km/s/Mpc | Exact | ✓ (CMB) |
-| $n_s$ (spectral index) | 0.9649 | $0.9649 \pm 0.0042$ | **Exact** | ✓ |
+| $n_s$ (spectral index) | 0.9649 | $0.9649 \pm 0.0042$ |  | ✓ |
 | $r$ (tensor/scalar) | 0.003 | $< 0.064$ (95% CL) | Consistent | ✓ |
-| Dark energy w | −1 (exact) | −1.03 ± 0.03 | **Exact** | ✓ |
+| Dark energy w | −1 (exact) | −1.03 ± 0.03 |  | ✓ |
 | Ω_DM/Ω_b | 5.373 | 5.36 | **0.24%** | ✓ |
 | **Big Bang Nucleosynthesis** |
-| N_eff | 2.999 | 2.99 ± 0.17 | **Exact** | ✓ |
-| Y_p (helium-4) | 0.245 | 0.245 ± 0.003 | **Exact** | ✓ |
-| D/H (deuterium) | 2.53 × 10⁻⁵ | (2.53 ± 0.04) × 10⁻⁵ | **Exact** | ✓ |
-| ⁷Li/H (lithium-7) | 1.60 × 10⁻¹⁰ | (1.6 ± 0.3) × 10⁻¹⁰ | **Exact** | ✓ |
+| N_eff | 2.999 | 2.99 ± 0.17 |  | ✓ |
+| Y_p (helium-4) | 0.245 | 0.245 ± 0.003 |  | ✓ |
+| D/H (deuterium) | 2.53 × 10⁻⁵ | (2.53 ± 0.04) × 10⁻⁵ |  | ✓ |
+| ⁷Li/H (lithium-7) | 1.60 × 10⁻¹⁰ | (1.6 ± 0.3) × 10⁻¹⁰ |  | ✓ |
 | **CMB Acoustic Peaks** |
-| ℓ₁ (first peak) | 220.0 | 220.0 ± 0.5 | **Exact** | ✓ |
+| ℓ₁ (first peak) | 220.0 | 220.0 ± 0.5 |  | ✓ |
 | ℓ₂ (second peak) | 537.2 | 537.5 | 0.05% | ✓ |
 | ℓ₃ (third peak) | 810.4 | 810.8 | 0.05% | ✓ |
 | ℓ₄ (fourth peak) | 1120.3 | 1120.9 | 0.06% | ✓ |
@@ -822,8 +822,8 @@ The following table summarizes all major SRT predictions, their experimental com
 | **Atomic Physics** |
 | α⁻¹(0) (fine structure) | 137.04 | 137.036 | **0.07%** | ✓ |
 | α_EM⁻¹(M_Z) | 127.94 | 127.955 ± 0.010 | **0.01%** | ✓ |
-| Period lengths | 2, 8, 8, 18, 18, 32, 32 | Exact match | **Exact** | ✓ |
-| Shell capacities | 2n² | Exact match | **Exact** | ✓ |
+| Period lengths | 2, 8, 8, 18, 18, 32, 32 | Exact match |  | ✓ |
+| Shell capacities | 2n² | Exact match |  | ✓ |
 | Bond length ratios | φ^(1/3) = 1.175 | 1.162 mean | **1.1%** | ✓ |
 | N/Z (U-238) | φ = 1.618 | 1.587 | **2%** | ✓ |
 | Maximum Z | ~137 | Currently 118 | — | ○ Testable |
@@ -855,16 +855,16 @@ The following table summarizes all major SRT predictions, their experimental com
 - V_cb: **0.04%** 
 - W boson mass: **0.01%**
 - **Z boson mass: 0.01%** (improved from 0.2% via q/4π)
-- α_s(M_Z): **Exact** (improved from 0.4%)
+- α_s(M_Z):  (improved from 0.4%)
 - Λ_QCD: **0.14%** (improved from 2%)
 - PMNS θ₁₂: **0.03%**
 - **PMNS θ₂₃: 0.06%** (improved from 0.4% via q/8)
 - **PMNS θ₁₃: Exact** (improved from 0.6% via q/8 + q/12)
 - **δ_CP: Exact** (improved from 2.2% via triple nested (1+4q)(1+q/φ)(1+q/4))
-- J_CP (Jarlskog): **Exact** (improved from 1.3%)
+- J_CP (Jarlskog):  (improved from 1.3%)
 - **Muon g-2: 0.06%** (improved from 0.4% via q/8)
 - **Baryon asymmetry η_B: Exact** (improved from 0.7% via q/4 sphaleron)
-- n_s (spectral index): **Exact** (improved from 0.2%)
+- n_s (spectral index):  (improved from 0.2%)
 - **CMB acoustic peaks: 0.004-0.017%** (improved from 0.05% via q²/φ)
 - **BBN abundances: All Exact** (Y_p, D/H, N_eff, ⁷Li/H)
 - Photonic gaps: **0.01-0.04%** (all three generations)
@@ -1213,7 +1213,7 @@ $$\frac{^7\text{Li}}{\text{H}} = \frac{^7\text{Li}}{\text{H}}^{(0)} \times (1 - 
 | N_eff | 2.999 | 2.99 ± 0.17 | Exact ✓ |
 | Y_p | 0.245 | 0.245 ± 0.003 | Exact ✓ |
 | D/H | 2.53 × 10⁻⁵ | (2.53 ± 0.04) × 10⁻⁵ | Exact ✓ |
-| ⁷Li/H | 1.60 × 10⁻¹⁰ | (1.6 ± 0.3) × 10⁻¹⁰ | **Exact** ✓ |
+| ⁷Li/H | 1.60 × 10⁻¹⁰ | (1.6 ± 0.3) × 10⁻¹⁰ |  ✓ |
 
 All four BBN observables are derived with **zero free parameters**, including the **complete resolution** of the decades-old lithium problem.
 
@@ -1318,7 +1318,7 @@ $$\boxed{m_c = E_* \times 63.5 \times (1 + q/120) = 1270.2 \text{ MeV}}$$
 
 **Geometric Meaning:** 63.5 = 127/2 where **127 = 2⁷ − 1** is a Mersenne prime!
 
-**Precision:** 0.018% → **EXACT** ✓
+**Precision:** 0.018% →  ✓
 
 ---
 
@@ -1331,7 +1331,7 @@ $$\boxed{m_b = E_* \times 209 \times (1 + q/248) = 4180.3 \text{ MeV}}$$
 
 **Geometric Meaning:** 209 = 11 × 19 (product of primes), q/248 = dim(E₈) correction
 
-**Precision:** 0.007% → **EXACT** ✓
+**Precision:** 0.007% →  ✓
 
 ---
 
@@ -1344,7 +1344,7 @@ $$\boxed{m_s = E_* \times 5 \times (1 - q\phi)(1 - q)(1 + q/120) = 93.0 \text{ M
 
 **Geometric Meaning:** Base 5 × E* = 100 MeV with triple nested corrections
 
-**Precision:** 0.46% → **EXACT** ✓
+**Precision:** 0.46% →  ✓
 
 ---
 
@@ -1362,7 +1362,7 @@ $$\boxed{m_d = m_u \times (2 + 6q) = 4.678 \text{ MeV}}$$
 - m_u uses **same E*/9** as deuteron binding!
 - m_d/m_u = 2 + 6q ≈ 2.16
 
-**Precision:** m_u: 0.06%, m_d: 0.17% → **EXACT** ✓
+**Precision:** m_u: 0.06%, m_d: 0.17% →  ✓
 
 ---
 
@@ -1377,7 +1377,7 @@ $$\boxed{m_D = E_* \times 93 \times (1 + q/27)(1 + q/78)(1 + q/248) = 1862.7 \te
 
 **Geometric Meaning:** 93 = 3 × 31 (same as Higgs tree-level in GeV!)
 
-**Precision:** 0.12% → **EXACT** ✓
+**Precision:** 0.12% →  ✓
 
 ---
 
@@ -1392,7 +1392,7 @@ $$\boxed{m_B = E_* \times 264 = 5279.8 \text{ MeV}}$$
 
 **Geometric Meaning:** 264 = **24 × 11 = K(D₄) × 11** (kissing number times prime!)
 
-**Precision:** 0.002% → **EXACT** ✓ (tree-level!)
+**Precision:** 0.002% →  ✓ (tree-level!)
 
 ---
 
@@ -1400,11 +1400,11 @@ $$\boxed{m_B = E_* \times 264 = 5279.8 \text{ MeV}}$$
 
 **Λ Baryon:**
 $$\boxed{m_\Lambda = m_p \times (1 + 6.9q) = 1115.6 \text{ MeV}}$$
-**Precision:** 0.004% → **EXACT** ✓
+**Precision:** 0.004% →  ✓
 
 **Ω⁻ Baryon:**
 $$\boxed{m_\Omega = E_* \times 84 \times (1 - q/248) = 1679.7 \text{ MeV}}$$
-**Precision:** 0.44% → **EXACT** ✓
+**Precision:** 0.44% →  ✓
 
 ---
 
@@ -1417,7 +1417,7 @@ $$\boxed{m_\Delta = m_p + E_* \times 15 \times (1 - q) = 1230.0 \text{ MeV}}$$
 
 **Geometric Meaning:** N-Δ splitting = 15 × E* where 15 = dim(SU(4)/SU(2))
 
-**Precision:** 0.16% → **EXACT** ✓
+**Precision:** 0.16% →  ✓
 
 ---
 
@@ -1425,16 +1425,16 @@ $$\boxed{m_\Delta = m_p + E_* \times 15 \times (1 - q) = 1230.0 \text{ MeV}}$$
 
 | Observable | Formula | Error | Status |
 |------------|---------|-------|--------|
-| m_c | E* × 63.5 × (1+q/120) | 0.018% | **EXACT** |
-| m_b | E* × 209 × (1+q/248) | 0.007% | **EXACT** |
-| m_s | E* × 5 × (1-qφ)(1-q)(1+q/120) | 0.46% | **EXACT** |
-| m_u | E*/9 × (1-q) | 0.06% | **EXACT** |
-| m_d | m_u × (2+6q) | 0.17% | **EXACT** |
-| m_D | E* × 93 × triple | 0.12% | **EXACT** |
-| m_B | E* × 264 | 0.002% | **EXACT** |
-| m_Λ | m_p × (1+6.9q) | 0.004% | **EXACT** |
-| m_Ω | E* × 84 × (1-q/248) | 0.44% | **EXACT** |
-| m_Δ | m_p + E*×15×(1-q) | 0.16% | **EXACT** |
+| m_c | E* × 63.5 × (1+q/120) | 0.018% |  |
+| m_b | E* × 209 × (1+q/248) | 0.007% |  |
+| m_s | E* × 5 × (1-qφ)(1-q)(1+q/120) | 0.46% |  |
+| m_u | E*/9 × (1-q) | 0.06% |  |
+| m_d | m_u × (2+6q) | 0.17% |  |
+| m_D | E* × 93 × triple | 0.12% |  |
+| m_B | E* × 264 | 0.002% |  |
+| m_Λ | m_p × (1+6.9q) | 0.004% |  |
+| m_Ω | E* × 84 × (1-q/248) | 0.44% |  |
+| m_Δ | m_p + E*×15×(1-q) | 0.16% |  |
 
 ---
 
@@ -1454,14 +1454,14 @@ $$\boxed{m_{\nu_3} = \rho_\Lambda^{1/4} \times E_* \times (1 + 4q) = 49.93 \text
 - (1 + 4q) = 1.1096 (full T⁴ topology enhancement)
 
 **Experiment:** √|Δm²₃₁| = 50.1 meV  
-**Precision:** 0.34% → **EXACT** ✓
+**Precision:** 0.34% →  ✓
 
 ### Middle Neutrino m_ν₂
 
 $$\boxed{m_{\nu_2} = \frac{m_{\nu_3}}{\sqrt{34 \times (1 - q/36)}} = 8.57 \text{ meV}}$$
 
 **Experiment:** √Δm²₂₁ = 8.61 meV  
-**Precision:** 0.56% → **EXACT** ✓
+**Precision:** 0.56% →  ✓
 
 ### Lightest Neutrino m_ν₁
 
@@ -1482,7 +1482,7 @@ $$\boxed{\frac{\Delta m^2_{31}}{\Delta m^2_{21}} = 34 \times \left(1 - \frac{q}{
 - q/36 = Golden Cone correction
 
 **Experiment:** 33.83  
-**Precision:** 0.43% → **EXACT** ✓
+**Precision:** 0.43% →  ✓
 
 ### Sum of Neutrino Masses
 
@@ -1514,10 +1514,10 @@ $$\boxed{m_{\beta\beta} \approx m_{\nu_1} \approx 2.0 \text{ meV}}$$
 
 | Observable | Formula | Value | Status |
 |------------|---------|-------|--------|
-| m_ν₃ | ρ_Λ^(1/4) × E* × (1+4q) | 49.93 meV | **EXACT** ✓ |
-| m_ν₂ | m_ν₃ / √[34×(1-q/36)] | 8.57 meV | **EXACT** ✓ |
+| m_ν₃ | ρ_Λ^(1/4) × E* × (1+4q) | 49.93 meV |  ✓ |
+| m_ν₂ | m_ν₃ / √[34×(1-q/36)] | 8.57 meV |  ✓ |
 | m_ν₁ | m_ν₂ / φ³ | 2.02 meV | Predicted |
-| Δm²₃₁/Δm²₂₁ | 34 × (1-q/36) | 33.97 | **EXACT** ✓ |
+| Δm²₃₁/Δm²₂₁ | 34 × (1-q/36) | 33.97 |  ✓ |
 | Σm_ν | Sum | 0.061 eV | < 0.12 eV ✓ |
 | α₂₁ | π×q/φ | 3.0° | Predicted |
 | α₃₁ | π×qφ | 8.0° | Predicted |
@@ -1548,7 +1548,7 @@ $$\boxed{w = -1 \text{ (exactly)}}$$
 **SRT Formula:**
 $$\boxed{\frac{\Omega_{\text{DM}}}{\Omega_b} = \phi^3 + 1 + 5q = 5.373}$$
 
-**Precision:** 0.24% → **EXACT** ✓
+**Precision:** 0.24% →  ✓
 
 **Geometric Meaning:** The golden ratio cubed plus unity, with five syntony corrections. The dark-to-baryonic ratio encodes φ³!
 
@@ -1600,7 +1600,7 @@ $$\boxed{\frac{dn_s}{d\ln k} = -q \times (n_s - 1) = 0.00096}$$
 **SRT Formula:**
 $$\boxed{z_{\text{eq}} = E_* \times 170 = 3400}$$
 
-**Precision:** 0.00% → **EXACT** ✓
+**Precision:** 0.00% →  ✓
 
 **Geometric Meaning:** 
 - E* = 19.999 (Spectral Möbius constant)
@@ -1615,7 +1615,7 @@ $$\boxed{z_{\text{eq}} = E_* \times 170 = 3400}$$
 **SRT Formula:**
 $$\boxed{z_{\text{rec}} = E_* \times 55 = 1100}$$
 
-**Precision:** 0.00% → **EXACT** ✓
+**Precision:** 0.00% →  ✓
 
 **Geometric Meaning:** **55 = F₁₀** (10th Fibonacci number!)
 
@@ -1627,10 +1627,10 @@ The universe becomes transparent at a **Fibonacci redshift**!
 
 | Observable | Formula | SRT | Experiment | Status |
 |------------|---------|-----|------------|--------|
-| w (EoS) | -1 | -1 | -1.03 ± 0.03 | **EXACT** ✓ |
-| Ω_DM/Ω_b | φ³ + 1 + 5q | 5.37 | 5.36 | **EXACT** ✓ |
-| z_eq | E* × 170 | 3400 | 3400 | **EXACT** ✓ |
-| z_rec | E* × 55 | 1100 | 1100 | **EXACT** ✓ |
+| w (EoS) | -1 | -1 | -1.03 ± 0.03 |  ✓ |
+| Ω_DM/Ω_b | φ³ + 1 + 5q | 5.37 | 5.36 |  ✓ |
+| z_eq | E* × 170 | 3400 | 3400 |  ✓ |
+| z_rec | E* × 55 | 1100 | 1100 |  ✓ |
 | sin²(2θ)_s | q⁷(1-q/φ) | 1.1×10⁻¹¹ | <10⁻¹⁰ | Predicted |
 | r | 12/N²(1-q/φ) | 0.0033 | <0.036 | Predicted |
 | dn_s/d ln k | -q(n_s-1) | 0.001 | -0.005±0.007 | Consistent |
@@ -1648,16 +1648,16 @@ The universe becomes transparent at a **Fibonacci redshift**!
 
 **Scalar Glueball 0⁺⁺:**
 $$\boxed{m(0^{++}) = \Lambda_{\text{QCD}} \times 8 \times (1 - 4q) = 1517 \text{ MeV}}$$
-**Lattice QCD:** 1.5-1.7 GeV → **EXACT** ✓
+**Lattice QCD:** 1.5-1.7 GeV →  ✓
 
 **Tensor Glueball 2⁺⁺:**
 $$\boxed{m(2^{++}) = m(0^{++}) \times (\phi - 4q) = 2289 \text{ MeV}}$$
-**Lattice QCD:** 2.2-2.4 GeV → **EXACT** ✓
+**Lattice QCD:** 2.2-2.4 GeV →  ✓
 **Geometric meaning:** φ - 4q ≈ 3/2 is the spin-2 angular momentum factor!
 
 **Pseudoscalar Glueball 0⁻⁺:**
 $$\boxed{m(0^{-+}) = m(0^{++}) \times \phi = 2455 \text{ MeV}}$$
-**Lattice QCD:** 2.5-2.6 GeV → **EXACT** ✓
+**Lattice QCD:** 2.5-2.6 GeV →  ✓
 
 ---
 
@@ -1666,7 +1666,7 @@ $$\boxed{m(0^{-+}) = m(0^{++}) \times \phi = 2455 \text{ MeV}}$$
 **X(3872) Tetraquark:**
 $$\boxed{m_X(3872) = m_{D^0} + m_{D^{*0}} = 3871.69 \text{ MeV}}$$
 **Experiment:** 3871.65 MeV  
-**Error:** 0.001% → **EXACT** ✓
+**Error:** 0.001% →  ✓
 **Nature:** Pure threshold molecular state (no binding correction needed!)
 
 **P_c(4450) Pentaquark:**
@@ -1679,13 +1679,13 @@ $$m_{P_c}(4450) \approx m_{\Sigma_c} + m_{\bar{D}^*} \text{ (molecular threshold
 **J/ψ Mass:**
 $$\boxed{m_{J/\psi} = E_* \times 155 \times \left(1 - \frac{q}{27}\right) = 3096.7 \text{ MeV}}$$
 **Experiment:** 3096.9 MeV  
-**Error:** 0.006% → **EXACT** ✓
+**Error:** 0.006% →  ✓
 **Geometric:** 155 = 5 × 31 (product of primes)
 
 **ψ(2S) Mass:**
 $$\boxed{m_{\psi(2S)} = m_{J/\psi} + E_* \times \frac{59}{2} = 3686.9 \text{ MeV}}$$
 **Experiment:** 3686.1 MeV  
-**Error:** 0.02% → **EXACT** ✓
+**Error:** 0.02% →  ✓
 **Geometric:** Radial splitting = E* × 59/2 (half of prime 59!)
 
 ---
@@ -1694,19 +1694,19 @@ $$\boxed{m_{\psi(2S)} = m_{J/\psi} + E_* \times \frac{59}{2} = 3686.9 \text{ MeV
 
 **Υ(1S):**
 $$\boxed{m_{\Upsilon(1S)} = E_* \times 473 = 9459.6 \text{ MeV}}$$
-**Experiment:** 9460.3 MeV → **EXACT** ✓ (0.008%)
+**Experiment:** 9460.3 MeV →  ✓ (0.008%)
 **Geometric:** 473 = 11 × 43
 
 **Alternative formula:** Υ(1S) = 2m_b + E*×55 where **55 = F₁₀** (10th Fibonacci!)
 
 **Υ(2S):**
 $$\boxed{m_{\Upsilon(2S)} = E_* \times 501 = 10019.6 \text{ MeV}}$$
-**Experiment:** 10023.3 MeV → **EXACT** ✓ (0.04%)
+**Experiment:** 10023.3 MeV →  ✓ (0.04%)
 **Geometric:** 501 = 3 × 167
 
 **Υ(3S):**
 $$\boxed{m_{\Upsilon(3S)} = E_* \times 518 = 10359.5 \text{ MeV}}$$
-**Experiment:** 10355.2 MeV → **EXACT** ✓ (0.04%)
+**Experiment:** 10355.2 MeV →  ✓ (0.04%)
 **Geometric:** 518 = 2 × 7 × 37
 
 ---
@@ -1714,7 +1714,7 @@ $$\boxed{m_{\Upsilon(3S)} = E_* \times 518 = 10359.5 \text{ MeV}}$$
 ### **4.4.5 Quark Condensate — SOLVED!
 
 $$\boxed{\langle\bar{q}q\rangle^{1/3} = E_* \times \frac{25}{2} = 250 \text{ MeV}}$$
-**Experiment:** ≈ 250 MeV → **EXACT** ✓
+**Experiment:** ≈ 250 MeV →  ✓
 **Geometric:** 25/2 = 5²/2 (perfect square divided by 2)
 
 ---
@@ -1723,16 +1723,16 @@ $$\boxed{\langle\bar{q}q\rangle^{1/3} = E_* \times \frac{25}{2} = 250 \text{ MeV
 
 | Observable | Formula | SRT | Experiment | Status |
 |------------|---------|-----|------------|--------|
-| 0⁺⁺ glueball | Λ_QCD×8×(1-4q) | 1517 MeV | 1.5-1.7 GeV | **EXACT** ✓ |
-| 2⁺⁺ glueball | m(0⁺⁺)×(φ-4q) | 2289 MeV | 2.2-2.4 GeV | **EXACT** ✓ |
-| 0⁻⁺ glueball | m(0⁺⁺)×φ | 2455 MeV | 2.5-2.6 GeV | **EXACT** ✓ |
-| X(3872) | m_D + m_D* | 3871.7 MeV | 3871.65 MeV | **EXACT** ✓ |
-| J/ψ | E*×155×(1-q/27) | 3096.7 MeV | 3096.9 MeV | **EXACT** ✓ |
-| ψ(2S) | J/ψ + E*×59/2 | 3686.9 MeV | 3686.1 MeV | **EXACT** ✓ |
-| Υ(1S) | E*×473 | 9459.6 MeV | 9460.3 MeV | **EXACT** ✓ |
-| Υ(2S) | E*×501 | 10019.6 MeV | 10023.3 MeV | **EXACT** ✓ |
-| Υ(3S) | E*×518 | 10359.5 MeV | 10355.2 MeV | **EXACT** ✓ |
-| ⟨q̄q⟩^(1/3) | E*×25/2 | 250 MeV | ~250 MeV | **EXACT** ✓ |
+| 0⁺⁺ glueball | Λ_QCD×8×(1-4q) | 1517 MeV | 1.5-1.7 GeV |  ✓ |
+| 2⁺⁺ glueball | m(0⁺⁺)×(φ-4q) | 2289 MeV | 2.2-2.4 GeV |  ✓ |
+| 0⁻⁺ glueball | m(0⁺⁺)×φ | 2455 MeV | 2.5-2.6 GeV |  ✓ |
+| X(3872) | m_D + m_D* | 3871.7 MeV | 3871.65 MeV |  ✓ |
+| J/ψ | E*×155×(1-q/27) | 3096.7 MeV | 3096.9 MeV |  ✓ |
+| ψ(2S) | J/ψ + E*×59/2 | 3686.9 MeV | 3686.1 MeV |  ✓ |
+| Υ(1S) | E*×473 | 9459.6 MeV | 9460.3 MeV |  ✓ |
+| Υ(2S) | E*×501 | 10019.6 MeV | 10023.3 MeV |  ✓ |
+| Υ(3S) | E*×518 | 10359.5 MeV | 10355.2 MeV |  ✓ |
+| ⟨q̄q⟩^(1/3) | E*×25/2 | 250 MeV | ~250 MeV |  ✓ |
 
 **KEY DISCOVERIES:**
 1. **Tensor glueball ratio:** m(2⁺⁺)/m(0⁺⁺) = φ - 4q ≈ 3/2 (spin-2 factor from golden ratio!)
@@ -1787,7 +1787,7 @@ $$\boxed{d_e \ll 10^{-30} \text{ e·cm} \quad (\text{unobservable})}$$
 **SRT Formula:**
 $$\boxed{\Gamma_W = m_W \times q \times (1 - 2q) = 2.081 \text{ GeV}}$$
 
-**Precision:** 0.18% → **EXACT** ✓
+**Precision:** 0.18% →  ✓
 
 **Geometric Meaning:** The 2q correction reflects the T⁴ double-layer structure in W decay!
 
@@ -1800,7 +1800,7 @@ $$\boxed{\Gamma_W = m_W \times q \times (1 - 2q) = 2.081 \text{ GeV}}$$
 **SRT Formula:**
 $$\boxed{\Gamma_Z = m_Z \times q \times \left(1 - \frac{q}{27}\right) = 2.4956 \text{ GeV}}$$
 
-**Precision:** 0.015% → **EXACT** ✓
+**Precision:** 0.015% →  ✓
 
 **Geometric Meaning:** The q/27 correction involves dim(E₆ fund) = 27!
 
@@ -1815,7 +1815,7 @@ $$\boxed{\Gamma_Z = m_Z \times q \times \left(1 - \frac{q}{27}\right) = 2.4956 \
 **SRT Formula:**
 $$\boxed{R_b = \frac{1}{5} \times (1 + 3q) = 0.2164}$$
 
-**Precision:** 0.07% → **EXACT** ✓
+**Precision:** 0.07% →  ✓
 
 **Geometric Meaning:** 1/5 for five quark flavors, 3q for three colors!
 
@@ -1828,7 +1828,7 @@ $$\boxed{R_b = \frac{1}{5} \times (1 + 3q) = 0.2164}$$
 **SRT Formula:**
 $$\boxed{A_{FB}(b) = q \times (\phi^2 + 1) \times \left(1 - \frac{q}{36}\right) = 0.0990}$$
 
-**Precision:** 0.16% → **EXACT** ✓
+**Precision:** 0.16% →  ✓
 
 **Geometric Meaning:** φ² + 1 is the golden ratio squared plus unity, q/36 involves the 36 Golden Cone roots!
 
@@ -1841,7 +1841,7 @@ $$\boxed{A_{FB}(b) = q \times (\phi^2 + 1) \times \left(1 - \frac{q}{36}\right) 
 **SRT Formula:**
 $$\boxed{N_\nu = 3 \times \left(1 - \frac{q}{5}\right) = 2.984}$$
 
-**Precision:** 0.015% → **EXACT** ✓
+**Precision:** 0.015% →  ✓
 
 **Geometric Meaning:** Exact 3 generations with q/5 correction for 5 quark flavors contributing at the Z pole!
 
@@ -1854,7 +1854,7 @@ $$\boxed{N_\nu = 3 \times \left(1 - \frac{q}{5}\right) = 2.984}$$
 **SRT Formula:**
 $$\boxed{\rho = 1 + \frac{q^2}{2} = 1.00038}$$
 
-**Precision:** 0.0015% → **EXACT** ✓
+**Precision:** 0.0015% →  ✓
 
 **Geometric Meaning:** Quadratic correction in q (second-order effect)!
 
@@ -1864,12 +1864,12 @@ $$\boxed{\rho = 1 + \frac{q^2}{2} = 1.00038}$$
 
 | Observable | Formula | SRT | Experiment | Status |
 |------------|---------|-----|------------|--------|
-| Γ_Z | m_Z × q × (1-q/27) | 2.4956 GeV | 2.4952±0.002 | **EXACT** ✓ |
-| Γ_W | m_W × q × (1-2q) | 2.081 GeV | 2.085±0.042 | **EXACT** ✓ |
-| R_b | (1/5) × (1+3q) | 0.2164 | 0.2163±0.001 | **EXACT** ✓ |
-| A_FB(b) | q×(φ²+1)×(1-q/36) | 0.0990 | 0.0992±0.002 | **EXACT** ✓ |
-| N_ν | 3 × (1-q/5) | 2.984 | 2.984±0.008 | **EXACT** ✓ |
-| ρ | 1 + q²/2 | 1.00038 | 1.00039±0.0002 | **EXACT** ✓ |
+| Γ_Z | m_Z × q × (1-q/27) | 2.4956 GeV | 2.4952±0.002 |  ✓ |
+| Γ_W | m_W × q × (1-2q) | 2.081 GeV | 2.085±0.042 |  ✓ |
+| R_b | (1/5) × (1+3q) | 0.2164 | 0.2163±0.001 |  ✓ |
+| A_FB(b) | q×(φ²+1)×(1-q/36) | 0.0990 | 0.0992±0.002 |  ✓ |
+| N_ν | 3 × (1-q/5) | 2.984 | 2.984±0.008 |  ✓ |
+| ρ | 1 + q²/2 | 1.00038 | 1.00039±0.0002 |  ✓ |
 | a_τ | α/(2π)×(1+q/φ) | 1.18×10⁻³ | ~1.18×10⁻³ | Consistent |
 
 **KEY DISCOVERY:** Gauge boson widths are SET BY q:
@@ -1888,22 +1888,22 @@ This provides DIRECT evidence that decay rates are controlled by the fundamental
 
 **Surface Term a_S — EXACT!**
 $$\boxed{a_S = E_* \times (1 - 4q) = 17.81 \text{ MeV}}$$
-**Experiment:** 17.8 MeV → **EXACT** ✓ (0.04%)
+**Experiment:** 17.8 MeV →  ✓ (0.04%)
 **Geometric:** Same (1-4q) as glueballs and CP violation — nuclear surface shares topology with QCD vacuum!
 
 **Volume Term a_V — EXACT!**
 $$\boxed{a_V = E_* \times (\phi^{-1} + 6q) = 15.65 \text{ MeV}}$$
-**Experiment:** 15.75 MeV → **EXACT** ✓ (0.65%)
+**Experiment:** 15.75 MeV →  ✓ (0.65%)
 **Geometric:** Golden ratio inverse plus six syntony corrections
 
 **Asymmetry Term a_A — EXACT!**
 $$\boxed{a_A = E_* \times (1 + 7q) = 23.83 \text{ MeV}}$$
-**Experiment:** 23.7 MeV → **EXACT** ✓ (0.57%)
+**Experiment:** 23.7 MeV →  ✓ (0.57%)
 **Geometric:** Seven syntony corrections for isospin asymmetry
 
 **Pairing Term a_P — EXACT!**
 $$\boxed{a_P = \frac{E_*}{\phi} \times (1 - q) = 12.02 \text{ MeV}}$$
-**Experiment:** 12.0 MeV → **EXACT** ✓ (0.18%)
+**Experiment:** 12.0 MeV →  ✓ (0.18%)
 **Geometric:** Golden ratio inverse with scale-running correction
 
 **Coulomb Term a_C:**
@@ -1934,7 +1934,7 @@ $$a_C = E_* \times q \times (1 + 10q) = 0.698 \text{ MeV}$$
 **SRT Formula:**
 $$\boxed{r_p = \frac{4 \hbar c}{m_p} = 0.8411 \text{ fm}}$$
 
-**Precision:** 0.033% → **EXACT** ✓
+**Precision:** 0.033% →  ✓
 
 **Geometric Meaning:** 4 = dimension of spacetime M⁴! The proton is exactly **4 Compton wavelengths** across!
 
@@ -1947,7 +1947,7 @@ $$\boxed{r_p = \frac{4 \hbar c}{m_p} = 0.8411 \text{ fm}}$$
 **SRT Formula:**
 $$\boxed{B_d = \frac{E_*}{9} = \frac{E_*}{N_{\text{gen}}^2} = 2.222 \text{ MeV}}$$
 
-**Precision:** 0.11% → **EXACT** ✓
+**Precision:** 0.11% →  ✓
 
 **Geometric Meaning:** 9 = N_gen² = three generations squared! The simplest nuclear system encodes the family structure!
 
@@ -1960,7 +1960,7 @@ $$\boxed{B_d = \frac{E_*}{9} = \frac{E_*}{N_{\text{gen}}^2} = 2.222 \text{ MeV}}
 **SRT Formula:**
 $$\boxed{B_\alpha = E_* \times \sqrt{2} = 28.283 \text{ MeV}}$$
 
-**Precision:** 0.05% → **EXACT** ✓
+**Precision:** 0.05% →  ✓
 
 **Geometric Meaning:** √2 appears because ⁴He is **doubly magic** (Z=N=2). Each magic closure contributes √2 to the binding!
 
@@ -1981,13 +1981,13 @@ $$B_t = E_* \times (\phi^{-2} + q\phi) = 8.53 \text{ MeV}$$
 
 | Observable | Formula | SRT | Experiment | Status |
 |------------|---------|-----|------------|--------|
-| a_S (surface) | E*×(1-4q) | 17.81 MeV | 17.8 MeV | **EXACT** ✓ |
-| a_V (volume) | E*×(φ⁻¹+6q) | 15.65 MeV | 15.75 MeV | **EXACT** ✓ |
-| a_A (asymmetry) | E*×(1+7q) | 23.83 MeV | 23.7 MeV | **EXACT** ✓ |
-| a_P (pairing) | E*/φ×(1-q) | 12.02 MeV | 12.0 MeV | **EXACT** ✓ |
-| r_p (proton) | 4×ℏc/m_p | 0.8411 fm | 0.8414 fm | **EXACT** ✓ |
-| B_d (deuteron) | E*/9 | 2.222 MeV | 2.225 MeV | **EXACT** ✓ |
-| B_α (⁴He) | E*×√2 | 28.28 MeV | 28.30 MeV | **EXACT** ✓ |
+| a_S (surface) | E*×(1-4q) | 17.81 MeV | 17.8 MeV |  ✓ |
+| a_V (volume) | E*×(φ⁻¹+6q) | 15.65 MeV | 15.75 MeV |  ✓ |
+| a_A (asymmetry) | E*×(1+7q) | 23.83 MeV | 23.7 MeV |  ✓ |
+| a_P (pairing) | E*/φ×(1-q) | 12.02 MeV | 12.0 MeV |  ✓ |
+| r_p (proton) | 4×ℏc/m_p | 0.8411 fm | 0.8414 fm |  ✓ |
+| B_d (deuteron) | E*/9 | 2.222 MeV | 2.225 MeV |  ✓ |
+| B_α (⁴He) | E*×√2 | 28.28 MeV | 28.30 MeV |  ✓ |
 | Magic ratios | — | 50/28≈82/50≈φ | — | **GEOMETRIC** |
 
 **KEY DISCOVERIES:**
@@ -2005,11 +2005,11 @@ $$B_t = E_* \times (\phi^{-2} + q\phi) = 8.53 \text{ MeV}$$
 
 **Hydrogen (Rydberg):**
 $$\boxed{\text{Ry} = \frac{m_e \alpha^2}{2} = 13.606 \text{ eV}}$$
-**Experiment:** 13.606 eV → **EXACT** ✓
+**Experiment:** 13.606 eV →  ✓
 
 **He⁺ (hydrogen-like):**
 $$\boxed{IE(\text{He}^+) = Z^2 \times \text{Ry} = 4 \times 13.606 = 54.42 \text{ eV}}$$
-**Experiment:** 54.418 eV → **EXACT** ✓ (0.01%)
+**Experiment:** 54.418 eV →  ✓ (0.01%)
 
 ---
 
@@ -2017,7 +2017,7 @@ $$\boxed{IE(\text{He}^+) = Z^2 \times \text{Ry} = 4 \times 13.606 = 54.42 \text{
 
 $$\boxed{\alpha_H = \frac{N_{\text{gen}}^2}{2} \times a_0^3 = \frac{9}{2} \times a_0^3 = 4.5 \, a_0^3}$$
 
-**Experiment:** 4.5 a₀³ → **EXACT** ✓
+**Experiment:** 4.5 a₀³ →  ✓
 
 **Geometric Meaning:** 9 = N_gen² = 3² (three generations squared) — the **SAME structure** as deuteron binding B_d = E*/9! The generation structure appears in both nuclear and atomic physics.
 
@@ -2027,7 +2027,7 @@ $$\boxed{\alpha_H = \frac{N_{\text{gen}}^2}{2} \times a_0^3 = \frac{9}{2} \times
 
 $$\boxed{r_e(\text{H}_2) = \sqrt{2} \times a_0 \times \left(1 - \frac{q}{2}\right) = 0.738 \text{ Å}}$$
 
-**Experiment:** 0.741 Å → **EXACT** ✓ (0.39%)
+**Experiment:** 0.741 Å →  ✓ (0.39%)
 
 **Geometric Meaning:**
 - √2 from electron pairing (same factor as alpha particle!)
@@ -2039,7 +2039,7 @@ $$\boxed{r_e(\text{H}_2) = \sqrt{2} \times a_0 \times \left(1 - \frac{q}{2}\righ
 
 $$\boxed{D_0(\text{H}_2) = \frac{\text{Ry}}{N_{\text{gen}}} \times \left(1 - \frac{q}{2}\right) = \frac{\text{Ry}}{3} \times \left(1 - \frac{q}{2}\right) = 4.473 \text{ eV}}$$
 
-**Experiment:** 4.478 eV → **EXACT** ✓ (0.11%)
+**Experiment:** 4.478 eV →  ✓ (0.11%)
 
 **Geometric Meaning:**
 - 1/3 = 1/N_gen (generation structure again!)
@@ -2051,7 +2051,7 @@ $$\boxed{D_0(\text{H}_2) = \frac{\text{Ry}}{N_{\text{gen}}} \times \left(1 - \fr
 
 $$\boxed{\Delta E_{FS}(2P) = \frac{\alpha^4 m_e}{32} = 10.95 \text{ GHz}}$$
 
-**Experiment:** 10.97 GHz → **EXACT** ✓
+**Experiment:** 10.97 GHz →  ✓
 
 ---
 
@@ -2059,7 +2059,7 @@ $$\boxed{\Delta E_{FS}(2P) = \frac{\alpha^4 m_e}{32} = 10.95 \text{ GHz}}$$
 
 $$\boxed{\nu_{hfs} = 1420.405751 \text{ MHz}}$$
 
-Standard QED formula with SRT's α value → **EXACT** ✓
+Standard QED formula with SRT's α value →  ✓
 
 **Interesting:** 1420 / E* ≈ 71 (prime number!)
 
@@ -2069,13 +2069,13 @@ Standard QED formula with SRT's α value → **EXACT** ✓
 
 | Observable | Formula | SRT | Experiment | Status |
 |------------|---------|-----|------------|--------|
-| Rydberg | m_e α²/2 | 13.606 eV | 13.606 eV | **EXACT** ✓ |
-| He⁺ ionization | 4 × Ry | 54.42 eV | 54.42 eV | **EXACT** ✓ |
-| α_H (polarizability) | N_gen²/2 × a₀³ | 4.5 a₀³ | 4.5 a₀³ | **EXACT** ✓ |
-| r_e(H₂) | √2×a₀×(1-q/2) | 0.738 Å | 0.741 Å | **EXACT** ✓ |
-| D₀(H₂) | Ry/3×(1-q/2) | 4.473 eV | 4.478 eV | **EXACT** ✓ |
-| Fine structure | α⁴m_e/32 | 10.95 GHz | 10.97 GHz | **EXACT** ✓ |
-| 21 cm line | QED + SRT α | 1420 MHz | 1420 MHz | **EXACT** ✓ |
+| Rydberg | m_e α²/2 | 13.606 eV | 13.606 eV |  ✓ |
+| He⁺ ionization | 4 × Ry | 54.42 eV | 54.42 eV |  ✓ |
+| α_H (polarizability) | N_gen²/2 × a₀³ | 4.5 a₀³ | 4.5 a₀³ |  ✓ |
+| r_e(H₂) | √2×a₀×(1-q/2) | 0.738 Å | 0.741 Å |  ✓ |
+| D₀(H₂) | Ry/3×(1-q/2) | 4.473 eV | 4.478 eV |  ✓ |
+| Fine structure | α⁴m_e/32 | 10.95 GHz | 10.97 GHz |  ✓ |
+| 21 cm line | QED + SRT α | 1420 MHz | 1420 MHz |  ✓ |
 
 **KEY DISCOVERIES:**
 1. **Polarizability = N_gen²/2** — Same 9 as deuteron!
@@ -2260,7 +2260,7 @@ Sb₂Te₃/Bi₂Te₃ = 1.647 ≈ φ = 1.618
 **Universal BCS ratio:**
 $$\boxed{\frac{2\Delta_0}{k_B T_c} = 2\phi + 10q = 3.510}$$
 
-**Experiment:** 3.52 → **EXACT** ✓ (0.28%)
+**Experiment:** 3.52 →  ✓ (0.28%)
 
 **Geometric Meaning:**
 - 2φ from Cooper pair structure (two electrons)
@@ -2273,7 +2273,7 @@ $$\boxed{\frac{2\Delta_0}{k_B T_c} = 2\phi + 10q = 3.510}$$
 **High-Tc cuprates (YBCO):**
 $$\boxed{\frac{2\Delta}{k_B T_c} = (2\phi + 10q) \times \phi = 5.68}$$
 
-**Experiment:** 5-6 → **EXACT** ✓
+**Experiment:** 5-6 →  ✓
 
 **Very strong coupling (BSCCO):**
 $$(2\phi + 10q) \times \phi^2 = 9.19$$
@@ -2306,14 +2306,14 @@ $$\boxed{\nu = \frac{F_n}{F_{n+2}}}$$
 
 $$\boxed{v_F = \frac{c}{10 \times h(E_8)} = \frac{c}{300}}$$
 
-**Experiment:** v_F ≈ c/300 → **EXACT** ✓
+**Experiment:** v_F ≈ c/300 →  ✓
 
 **Geometric Meaning:** The Coxeter number h(E₈) = 30 sets the graphene Fermi velocity! This connects 2D materials to E₈ geometry.
 
 **Graphene effective α:**
 $$\alpha_g = \alpha \times \frac{c}{v_F} = \frac{300}{137} = 2.19$$
 
-**Experiment:** α_g ≈ 2.2 → **EXACT** ✓
+**Experiment:** α_g ≈ 2.2 →  ✓
 
 ---
 
@@ -2322,7 +2322,7 @@ $$\alpha_g = \alpha \times \frac{c}{v_F} = \frac{300}{137} = 2.19$$
 **Temperature-dependent conductivity:**
 $$\boxed{\sigma \propto T^{3/2}}$$
 
-**Experiment:** β ≈ 1.5 → **EXACT** ✓
+**Experiment:** β ≈ 1.5 →  ✓
 
 **Geometric Meaning:** β = 3/2 from 3D projection of 4D golden lattice recursion structure.
 
@@ -2343,13 +2343,13 @@ $$\boxed{ZT_{max} \approx \phi^2 = 2.62}$$
 
 | Observable | Formula | SRT | Experiment | Status |
 |------------|---------|-----|------------|--------|
-| BCS ratio | 2φ + 10q | 3.51 | 3.52 | **EXACT** ✓ |
-| Photonic gaps | λ₀φ^(-k) | 1000,618,382 | observed | **EXACT** ✓ |
+| BCS ratio | 2φ + 10q | 3.51 | 3.52 |  ✓ |
+| Photonic gaps | λ₀φ^(-k) | 1000,618,382 | observed |  ✓ |
 | FQHE fractions | F_n/F_{n+2} | 1/3,2/5,3/8 | observed | **FIBONACCI** |
-| Strong coupling | BCS × φ | 5.68 | 5-6 | **EXACT** ✓ |
-| Graphene v_F | c/(10h(E₈)) | c/300 | c/300 | **EXACT** ✓ |
-| Graphene α_g | 300/137 | 2.19 | 2.2 | **EXACT** ✓ |
-| Quasicrystal β | 3/2 | 1.50 | 1.5 | **EXACT** ✓ |
+| Strong coupling | BCS × φ | 5.68 | 5-6 |  ✓ |
+| Graphene v_F | c/(10h(E₈)) | c/300 | c/300 |  ✓ |
+| Graphene α_g | 300/137 | 2.19 | 2.2 |  ✓ |
+| Quasicrystal β | 3/2 | 1.50 | 1.5 |  ✓ |
 | ZT maximum | φ² | 2.62 | 2.5 | **DERIVED** |
 
 **KEY DISCOVERIES:**
@@ -2528,7 +2528,7 @@ where 44 = 36 + 8 = |Φ⁺(E₆)| + rank(E₈)
 ### Ξ⁻ (dss) Mass
 $$\boxed{m_{\Xi^-} = E_* \times 66 \times \left(1 + \frac{q}{36}\right) = 1321.0 \text{ MeV}}$$
 
-**Experiment:** 1321.71 MeV → **EXACT** ✓ (0.06%)
+**Experiment:** 1321.71 MeV →  ✓ (0.06%)
 
 **Geometric Meaning:**
 - 66 = 2 × h(E₈) + 6 = 2 × 30 + 6 (Coxeter structure!)
@@ -2537,7 +2537,7 @@ $$\boxed{m_{\Xi^-} = E_* \times 66 \times \left(1 + \frac{q}{36}\right) = 1321.0
 ### Ξ⁰ (uss) Mass  
 $$\boxed{m_{\Xi^0} = m_{\Xi^-} \times \left(1 - \frac{q}{4}\right) = 1312 \text{ MeV}}$$
 
-**Experiment:** 1314.86 MeV → **EXACT** ✓ (0.23%)
+**Experiment:** 1314.86 MeV →  ✓ (0.23%)
 
 ---
 
@@ -2558,14 +2558,14 @@ For GW190521 (142 M_sun final mass):
 ### YBCO Critical Temperature
 $$\boxed{T_c^{YBCO} = E_* \times (\phi^2 + 2) = 92.4 \text{ K}}$$
 
-**Experiment:** 92 K → **EXACT** ✓ (0.4%)
+**Experiment:** 92 K →  ✓ (0.4%)
 
 **Geometric Meaning:** φ² + 2 = 4.618 connects superconductivity directly to the golden ratio squared!
 
 ### BSCCO Critical Temperature
 $$\boxed{T_c^{BSCCO} = E_* \times (\phi^2 + 3) \times \left(1 - \frac{q}{\phi}\right) = 110.5 \text{ K}}$$
 
-**Experiment:** ~110 K → **EXACT** ✓ (0.4%)
+**Experiment:** ~110 K →  ✓ (0.4%)
 
 ---
 
@@ -2573,7 +2573,7 @@ $$\boxed{T_c^{BSCCO} = E_* \times (\phi^2 + 3) \times \left(1 - \frac{q}{\phi}\r
 
 $$\boxed{B_t = \frac{E_*}{\phi^2} \times (1 + 4q) \times \left(1 + \frac{q}{6}\right) \times \left(1 + \frac{q}{27}\right) = 8.52 \text{ MeV}}$$
 
-**Experiment:** 8.482 MeV → **EXACT** ✓ (0.5%)
+**Experiment:** 8.482 MeV →  ✓ (0.5%)
 
 **Geometric Meaning:**
 - E*/φ² = Base from golden hierarchy
@@ -2587,10 +2587,10 @@ $$\boxed{B_t = \frac{E_*}{\phi^2} \times (1 + 4q) \times \left(1 + \frac{q}{6}\r
 
 | Observable | Formula | SRT | Experiment | Status |
 |------------|---------|-----|------------|--------|
-| Ξ⁻ mass | E*×66×(1+q/36) | 1321.0 MeV | 1321.71 MeV | **EXACT** ✓ |
-| Ξ⁰ mass | Ξ⁻×(1-q/4) | 1312 MeV | 1314.86 MeV | **EXACT** ✓ |
-| YBCO T_c | E*×(φ²+2) | 92.4 K | 92 K | **EXACT** ✓ |
-| BSCCO T_c | E*×(φ²+3)×(1-q/φ) | 110.5 K | 110 K | **EXACT** ✓ |
+| Ξ⁻ mass | E*×66×(1+q/36) | 1321.0 MeV | 1321.71 MeV |  ✓ |
+| Ξ⁰ mass | Ξ⁻×(1-q/4) | 1312 MeV | 1314.86 MeV |  ✓ |
+| YBCO T_c | E*×(φ²+2) | 92.4 K | 92 K |  ✓ |
+| BSCCO T_c | E*×(φ²+3)×(1-q/φ) | 110.5 K | 110 K |  ✓ |
 | GW190521 echo | (2r_H/c)×ln(φ) | 1.35 ms | TBD | **PREDICTION** |
 
 **KEY DISCOVERIES:**
@@ -2606,7 +2606,7 @@ $$\boxed{B_t = \frac{E_*}{\phi^2} \times (1 + 4q) \times \left(1 + \frac{q}{6}\r
 
 $$\boxed{m_{B_c} = E_* \times 314 \times \left(1 - \frac{q}{36}\right) = 6274.9 \text{ MeV}}$$
 
-**Experiment:** 6274.9 MeV → **EXACT** ✓ (0.001%)
+**Experiment:** 6274.9 MeV →  ✓ (0.001%)
 
 **Geometric Meaning:**
 - 314 ≈ 100π (circle geometry!)
@@ -2619,7 +2619,7 @@ $$\boxed{m_{B_c} = E_* \times 314 \times \left(1 - \frac{q}{36}\right) = 6274.9 
 
 $$\boxed{m_{P_c(4457)} = (m_{\Sigma_c} + m_{D^*}) \times \left(1 - \frac{q}{120}\right) = 4462 \text{ MeV}}$$
 
-**Experiment:** 4457.3 MeV → **EXACT** ✓ (0.11%)
+**Experiment:** 4457.3 MeV →  ✓ (0.11%)
 
 **Geometric Meaning:**
 - Σ_c D̄* molecular threshold = 4463 MeV

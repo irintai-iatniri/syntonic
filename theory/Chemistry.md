@@ -114,7 +114,7 @@ This is the first complete winding shell beyond |n|² = 0, representing maximal 
 
 $$\boxed{\text{Ry} = \frac{m_e \alpha^2}{2} = 13.606 \text{ eV}}$$
 
-**Experiment:** 13.606 eV → **EXACT** ✓
+**Experiment:** 13.606 eV →  ✓
 
 This fundamental atomic energy scale is derived from SRT's fine structure constant. The Rydberg is the characteristic energy for atomic transitions.
 
@@ -124,13 +124,13 @@ This fundamental atomic energy scale is derived from SRT's fine structure consta
 
 $$\boxed{IE(\text{H}) = \text{Ry} = 13.606 \text{ eV}}$$
 
-**Experiment:** 13.606 eV → **EXACT** ✓
+**Experiment:** 13.606 eV →  ✓
 
 ### He⁺ (hydrogen-like):
 
 $$\boxed{IE(\text{He}^+) = Z^2 \times \text{Ry} = 4 \times 13.606 = 54.42 \text{ eV}}$$
 
-**Experiment:** 54.418 eV → **EXACT** ✓ (0.009%)
+**Experiment:** 54.418 eV →  ✓ (0.009%)
 
 The Z² scaling follows from the Coulomb potential in M⁴, while the base energy Ry comes from T⁴ winding structure.
 
@@ -138,7 +138,7 @@ The Z² scaling follows from the Coulomb potential in M⁴, while the base energ
 
 $$\boxed{\alpha_H = \frac{N_{\text{gen}}^2}{2} \times a_0^3 = \frac{9}{2} \times a_0^3 = 4.5 \, a_0^3}$$
 
-**Experiment:** 4.5 a₀³ → **EXACT** ✓
+**Experiment:** 4.5 a₀³ →  ✓
 
 **Geometric Meaning:** 9 = N_gen² = 3² (three generations squared) — the **SAME structure** as deuteron binding B_d = E*/9! The generation structure appears in both nuclear and atomic physics.
 
@@ -151,7 +151,7 @@ $$\boxed{\alpha_H = \frac{N_{\text{gen}}^2}{2} \times a_0^3 = \frac{9}{2} \times
 
 $$\boxed{\Delta E_{FS}(2P) = \frac{\alpha^4 m_e}{32} = 10.95 \text{ GHz}}$$
 
-**Experiment:** 10.97 GHz → **EXACT** ✓
+**Experiment:** 10.97 GHz →  ✓
 
 The fine structure splitting emerges from relativistic corrections, with α⁴ coming from two-photon exchange processes.
 
@@ -159,7 +159,7 @@ The fine structure splitting emerges from relativistic corrections, with α⁴ c
 
 $$\boxed{\nu_{hfs} = 1420.405751 \text{ MHz}}$$
 
-Standard QED formula with SRT's α value → **EXACT** ✓
+Standard QED formula with SRT's α value →  ✓
 
 **Interesting:** 1420 / E* ≈ 71 (prime number!)
 
@@ -173,7 +173,7 @@ The 21 cm line is the signature of neutral hydrogen in the cosmos, and SRT repro
 
 $$\boxed{r_e(\text{H}_2) = \sqrt{2} \times a_0 \times \left(1 - \frac{q}{2}\right) = 0.738 \text{ Å}}$$
 
-**Experiment:** 0.741 Å → **EXACT** ✓ (0.39%)
+**Experiment:** 0.741 Å →  ✓ (0.39%)
 
 **Geometric Meaning:**
 - √2 from electron pairing (same factor as alpha particle binding!)
@@ -184,7 +184,7 @@ $$\boxed{r_e(\text{H}_2) = \sqrt{2} \times a_0 \times \left(1 - \frac{q}{2}\righ
 
 $$\boxed{D_0(\text{H}_2) = \frac{\text{Ry}}{N_{\text{gen}}} \times \left(1 - \frac{q}{2}\right) = \frac{\text{Ry}}{3} \times \left(1 - \frac{q}{2}\right) = 4.473 \text{ eV}}$$
 
-**Experiment:** 4.478 eV → **EXACT** ✓ (0.11%)
+**Experiment:** 4.478 eV →  ✓ (0.11%)
 
 **Geometric Meaning:**
 - 1/3 = 1/N_gen (generation structure again!)
@@ -205,7 +205,7 @@ $$\boxed{\frac{R_{\text{single}}}{R_{\text{double}}} = \phi^{1/3} \times (\text{
 | C-N / C=N | φ^(1/3) × (1+q/8) = 1.180 | 1.47/1.27 = 1.157 | 2.0% |
 | C-O / C=O | φ^(1/3) × (1-q/6) = 1.170 | 1.43/1.23 = 1.163 | 0.6% |
 
-**Mean experimental:** 1.162 → **EXACT** ✓ (1.1% mean deviation)
+**Mean experimental:** 1.162 →  ✓ (1.1% mean deviation)
 
 **Why φ^(1/3)?** The cube root appears because chemical bonds involve:
 1. Three spatial dimensions for orbital overlap
@@ -231,7 +231,7 @@ With hierarchy corrections (q/27, q/8, q/6), the predicted ratios match experime
 
 $$\boxed{B_d = \frac{E_*}{9} = \frac{E_*}{N_{\text{gen}}^2} = 2.222 \text{ MeV}}$$
 
-**Experiment:** 2.225 MeV → **EXACT** ✓ (0.11%)
+**Experiment:** 2.225 MeV →  ✓ (0.11%)
 
 **Geometric Meaning:** 9 = N_gen² = three generations squared! The simplest nuclear system encodes the family structure.
 
@@ -243,7 +243,7 @@ $$\boxed{B_d = \frac{E_*}{N_{\text{gen}}^2} \times \left(1 + \frac{q}{\dim(E_6 \
 |----------|-------|
 | Prediction | 2.22438 MeV |
 | Experimental | 2.22457 MeV |
-| **Precision** | **0.0085%** → **EXACT** ✓ |
+| **Precision** | **0.0085%** →  ✓ |
 
 **Geometric Meaning:**
 - 9 = N_gen² = 3² (generation structure squared)  
@@ -253,7 +253,7 @@ $$\boxed{B_d = \frac{E_*}{N_{\text{gen}}^2} \times \left(1 + \frac{q}{\dim(E_6 \
 
 $$\boxed{B_\alpha = E_* \times \sqrt{2} = 28.283 \text{ MeV}}$$
 
-**Experiment:** 28.296 MeV → **EXACT** ✓ (0.05%)
+**Experiment:** 28.296 MeV →  ✓ (0.05%)
 
 **Geometric Meaning:** √2 appears because ⁴He is **doubly magic** (Z=N=2). Each magic closure contributes √2 to the binding!
 
@@ -265,7 +265,7 @@ $$\boxed{B_\alpha = E_* \sqrt{2} \times \left(1 + \frac{q}{78}\right)\left(1 + \
 |----------|-------|
 | Prediction | 28.2961 MeV |
 | Experimental | 28.2960 MeV |
-| **Precision** | **0.0002%** → **EXACT** ✓ |
+| **Precision** | **0.0002%** →  ✓ |
 
 **Geometric Meaning:**
 - √2 appears from the pairing structure (2 protons, 2 neutrons)
@@ -280,7 +280,7 @@ $$\boxed{\frac{B}{A} = \frac{E_*}{2\phi} \times \sqrt{2} \times \left(1 + \frac{
 |----------|-------|
 | Prediction | 8.80 MeV/nucleon |
 | Experiment | 8.79 MeV/nucleon |
-| **Precision** | **0.11%** → **EXACT** ✓ |
+| **Precision** | **0.11%** →  ✓ |
 
 **Geometric meaning:**
 - E*/(2φ) = Spectral base / double golden
@@ -298,7 +298,7 @@ All coefficients derived from E*, φ, and q:
 
 $$\boxed{a_S = E_* \times (1 - 4q) = 17.81 \text{ MeV}}$$
 
-**Experiment:** 17.8 MeV → **EXACT** ✓ (0.04%)
+**Experiment:** 17.8 MeV →  ✓ (0.04%)
 
 Same (1-4q) factor appears in glueball masses and CP violation!
 
@@ -306,19 +306,19 @@ Same (1-4q) factor appears in glueball masses and CP violation!
 
 $$\boxed{a_V = E_* \times (\phi^{-1} + 6q) = 15.65 \text{ MeV}}$$
 
-**Experiment:** 15.75 MeV → **EXACT** ✓ (0.65%)
+**Experiment:** 15.75 MeV →  ✓ (0.65%)
 
 ### Asymmetry Term:
 
 $$\boxed{a_A = E_* \times (1 + 7q) = 23.83 \text{ MeV}}$$
 
-**Experiment:** 23.7 MeV → **EXACT** ✓ (0.57%)
+**Experiment:** 23.7 MeV →  ✓ (0.57%)
 
 ### Pairing Term:
 
 $$\boxed{a_P = \frac{E_*}{\phi} \times (1 - q) = 12.02 \text{ MeV}}$$
 
-**Experiment:** 12.0 MeV → **EXACT** ✓ (0.18%)
+**Experiment:** 12.0 MeV →  ✓ (0.18%)
 
 **Geometric:** Golden ratio inverse with scale-running correction
 
@@ -326,10 +326,10 @@ $$\boxed{a_P = \frac{E_*}{\phi} \times (1 - q) = 12.02 \text{ MeV}}$$
 
 | Coefficient | Formula | SRT | Experiment | Status |
 |-------------|---------|-----|------------|--------|
-| a_S (surface) | E*×(1-4q) | 17.81 MeV | 17.8 MeV | **EXACT** ✓ |
-| a_V (volume) | E*×(φ⁻¹+6q) | 15.65 MeV | 15.75 MeV | **EXACT** ✓ |
-| a_A (asymmetry) | E*×(1+7q) | 23.83 MeV | 23.7 MeV | **EXACT** ✓ |
-| a_P (pairing) | E*/φ×(1-q) | 12.02 MeV | 12.0 MeV | **EXACT** ✓ |
+| a_S (surface) | E*×(1-4q) | 17.81 MeV | 17.8 MeV |  ✓ |
+| a_V (volume) | E*×(φ⁻¹+6q) | 15.65 MeV | 15.75 MeV |  ✓ |
+| a_A (asymmetry) | E*×(1+7q) | 23.83 MeV | 23.7 MeV |  ✓ |
+| a_P (pairing) | E*/φ×(1-q) | 12.02 MeV | 12.0 MeV |  ✓ |
 
 ## 5.3 Nuclear Magic Numbers
 
@@ -397,7 +397,7 @@ At the Z mass:
 
 $$\boxed{\alpha_{EM}^{-1}(M_Z) = 127.94}$$
 
-**Experiment:** 127.95 ± 0.014 → **EXACT** ✓ (0.01%)
+**Experiment:** 127.95 ± 0.014 →  ✓ (0.01%)
 
 The running from 137 (atomic) to 128 (Z mass) follows the Golden Renormalization Group with (1+q) enhancement factors.
 
@@ -434,22 +434,22 @@ Another universal pattern — √2 appears in:
 
 | Observable | Formula | SRT | Experiment | Status |
 |------------|---------|-----|------------|--------|
-| Rydberg | m_e α²/2 | 13.606 eV | 13.606 eV | **EXACT** ✓ |
-| He⁺ ionization | 4 × Ry | 54.42 eV | 54.42 eV | **EXACT** ✓ |
-| α_H (polarizability) | N_gen²/2 × a₀³ | 4.5 a₀³ | 4.5 a₀³ | **EXACT** ✓ |
-| r_e(H₂) | √2×a₀×(1-q/2) | 0.738 Å | 0.741 Å | **EXACT** ✓ |
-| D₀(H₂) | Ry/3×(1-q/2) | 4.473 eV | 4.478 eV | **EXACT** ✓ |
-| Fine structure | α⁴m_e/32 | 10.95 GHz | 10.97 GHz | **EXACT** ✓ |
-| 21 cm line | QED + SRT α | 1420 MHz | 1420 MHz | **EXACT** ✓ |
+| Rydberg | m_e α²/2 | 13.606 eV | 13.606 eV |  ✓ |
+| He⁺ ionization | 4 × Ry | 54.42 eV | 54.42 eV |  ✓ |
+| α_H (polarizability) | N_gen²/2 × a₀³ | 4.5 a₀³ | 4.5 a₀³ |  ✓ |
+| r_e(H₂) | √2×a₀×(1-q/2) | 0.738 Å | 0.741 Å |  ✓ |
+| D₀(H₂) | Ry/3×(1-q/2) | 4.473 eV | 4.478 eV |  ✓ |
+| Fine structure | α⁴m_e/32 | 10.95 GHz | 10.97 GHz |  ✓ |
+| 21 cm line | QED + SRT α | 1420 MHz | 1420 MHz |  ✓ |
 
 ## 8.2 Verified Predictions (Nuclear)
 
 | Observable | Formula | SRT | Experiment | Status |
 |------------|---------|-----|------------|--------|
-| B_d (deuteron) | E*/9 × (1+q/27) | 2.22438 MeV | 2.22457 MeV | **EXACT** ✓ |
-| B_α (⁴He) | E*√2 × (1+q/78)(1+q/248) | 28.2961 MeV | 28.2960 MeV | **EXACT** ✓ |
-| ⁵⁶Fe (B/A) | E*√2/(2φ) × (1+q/4) | 8.80 MeV | 8.79 MeV | **EXACT** ✓ |
-| Proton radius | 4ℏc/m_p | 0.8411 fm | 0.8414 fm | **EXACT** ✓ |
+| B_d (deuteron) | E*/9 × (1+q/27) | 2.22438 MeV | 2.22457 MeV |  ✓ |
+| B_α (⁴He) | E*√2 × (1+q/78)(1+q/248) | 28.2961 MeV | 28.2960 MeV |  ✓ |
+| ⁵⁶Fe (B/A) | E*√2/(2φ) × (1+q/4) | 8.80 MeV | 8.79 MeV |  ✓ |
+| Proton radius | 4ℏc/m_p | 0.8411 fm | 0.8414 fm |  ✓ |
 
 ## 8.3 Extensions in Progress
 
@@ -659,7 +659,7 @@ $$r(\text{C-O}_{\text{acid}}) = \frac{r(\text{C-O}) + r(\text{C=O})}{2} \times (
 This intermediate length reflects the partial double-bond character from resonance.
 
 **Predicted:** (1.43 + 1.21)/2 × 1.007 = 1.33 Å
-**Experimental:** 1.31-1.36 Å → **EXACT** ✓
+**Experimental:** 1.31-1.36 Å →  ✓
 
 ### 10.4.3 The Amide Bond (CONH)
 
@@ -668,7 +668,7 @@ The amide bond is crucial for protein structure:
 **C-N bond in amide:**
 $$\boxed{r(\text{C-N}_{\text{amide}}) = r(\text{C-N}) \times \phi^{-1/6} \times (1 - q/27) = 1.33 \text{ Å}}$$
 
-**Experimental:** 1.32-1.34 Å → **EXACT** ✓
+**Experimental:** 1.32-1.34 Å →  ✓
 
 **Physical origin:** The partial double-bond character (resonance with C=N⁺) shortens the bond by one half-sublevel (φ^(-1/6) instead of φ^(-1/3)).
 
@@ -757,7 +757,7 @@ where n is the number of conjugated double bonds.
 
 | System | n | Predicted E_g | Experimental | Precision |
 |--------|---|---------------|--------------|-----------|
-| Ethene | 1 | E₀ = 7.1 eV | 7.1 eV | **EXACT** ✓ |
+| Ethene | 1 | E₀ = 7.1 eV | 7.1 eV |  ✓ |
 | Butadiene | 2 | 5.2 eV | 5.6 eV | 7% |
 | Hexatriene | 3 | 4.0 eV | 4.3 eV | 7% |
 | β-carotene | 11 | 2.1 eV | 2.5 eV | 16% |
@@ -906,7 +906,7 @@ $$\boxed{n = 3.6 = \frac{2}{\phi} \times N_{\text{gen}} = \frac{2 \times 3}{1.61
 **Helix pitch:**
 $$\boxed{p = 5.4 \text{ Å} = a_0 \times 10 \times (1 + q)}$$
 
-**Experimental:** 5.4 Å → **EXACT** ✓
+**Experimental:** 5.4 Å →  ✓
 
 ### 11.3.2 The Beta Sheet
 
@@ -914,7 +914,7 @@ $$\boxed{p = 5.4 \text{ Å} = a_0 \times 10 \times (1 + q)}$$
 
 $$\boxed{d_{\text{strand}} = a_0 \times \phi^2 \times (1 - q/4) = 4.7 \text{ Å}}$$
 
-**Experimental:** 4.7 Å → **EXACT** ✓
+**Experimental:** 4.7 Å →  ✓
 
 ### 11.3.3 Protein Folding Energetics
 
@@ -965,7 +965,7 @@ $$\boxed{\Delta G°'(\text{ATP}) = -\text{Ry} \times \phi^{-1} \times (1 + 4q) =
 | With corrections | **-7.3 kcal/mol** |
 | **Experimental** | **-7.3 kcal/mol** |
 
-**Precision:** **EXACT** ✓
+**Precision:**  ✓
 
 ### 11.5.2 Proton Motive Force
 

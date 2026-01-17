@@ -122,50 +122,50 @@ At tree-level, observables are computed directly from the axioms without quantum
 ---| Observable | Tree-Level | Tree Error | Final | Status | Factors Applied |
 |------------|------------|------------|-------|--------|-----------------|
 | **Nucleon Masses** |||||
-| m_p | 938.25 MeV | 0.003% | 938.272 MeV | **EXACT** | q/1000 (fixed-point) |
-| m_n | 939.53 MeV | 0.004% | 939.565 MeV | **EXACT** | q/720 (Coxeter-Kissing) |
-| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV | **EXACT** | q/6, q/36, q/360 |
+| m_p | 938.25 MeV | 0.003% | 938.272 MeV |  | q/1000 (fixed-point) |
+| m_n | 939.53 MeV | 0.004% | 939.565 MeV |  | q/720 (Coxeter-Kissing) |
+| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV |  | q/6, q/36, q/360 |
 | **Meson Masses** |||||
-| m_π | 139.5 MeV | 0.05% | 139.570 MeV | **EXACT** | q/8, q²/φ |
-| m_K | 497.7 MeV | 0.02% | 497.611 MeV | **EXACT** | q/6, q/120 |
-| m_η | 547.4 MeV | 0.08% | 547.86 MeV | **EXACT** | q/2, q/36 |
-| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV | **EXACT** | q/4, q/27, q/1000 |
+| m_π | 139.5 MeV | 0.05% | 139.570 MeV |  | q/8, q²/φ |
+| m_K | 497.7 MeV | 0.02% | 497.611 MeV |  | q/6, q/120 |
+| m_η | 547.4 MeV | 0.08% | 547.86 MeV |  | q/2, q/36 |
+| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV |  | q/4, q/27, q/1000 |
 | **Electroweak** |||||
-| m_W | 80.375 GeV | 0.01% | 80.3779 GeV | **EXACT** | q/4π, q/248 |
-| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV | **EXACT** | q/4π, q/248 |
-| sin²θ_W | 0.2312 | 0.01% | 0.23122 | **EXACT** | q/248 |
-| m_t | 172.72 GeV | 0.02% | 172.76 GeV | **EXACT** | q/4π, q/120 |
-| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV | **EXACT** | q/5π, q/720 |
-| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ | **EXACT** | q/8, q²/φ |
-| α⁻¹(0) | 137.04 | 0.07% | 137.036 | **EXACT** | q²/φ |
+| m_W | 80.375 GeV | 0.01% | 80.3779 GeV |  | q/4π, q/248 |
+| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV |  | q/4π, q/248 |
+| sin²θ_W | 0.2312 | 0.01% | 0.23122 |  | q/248 |
+| m_t | 172.72 GeV | 0.02% | 172.76 GeV |  | q/4π, q/120 |
+| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV |  | q/5π, q/720 |
+| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ |  | q/8, q²/φ |
+| α⁻¹(0) | 137.04 | 0.07% | 137.036 |  | q²/φ |
 | **QCD** |||||
-| α_s(M_Z) | 0.1179 | — | 0.1179 | **EXACT** | Tree-level |
-| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV | **EXACT** | q/φ, q/6π |
+| α_s(M_Z) | 0.1179 | — | 0.1179 |  | Tree-level |
+| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV |  | q/φ, q/6π |
 | **Mixing Angles** |||||
-| sin θ_C | 0.2241 | 0.04% | 0.2243 | **EXACT** | q/4, q/120 |
-| θ₁₂ | 32.97° | 1.4% | 33.44° | **EXACT** | q/2, q/27 |
-| θ₂₃ | 49.0° | 0.4% | 49.20° | **EXACT** | q/8, q/36, q/120 |
-| θ₁₃ | 8.09° | 6% | 8.57° | **EXACT** | 1/(1+qφ), q/8, q/12 |
+| sin θ_C | 0.2241 | 0.04% | 0.2243 |  | q/4, q/120 |
+| θ₁₂ | 32.97° | 1.4% | 33.44° |  | q/2, q/27 |
+| θ₂₃ | 49.0° | 0.4% | 49.20° |  | q/8, q/36, q/120 |
+| θ₁₃ | 8.09° | 6% | 8.57° |  | 1/(1+qφ), q/8, q/12 |
 | **CP Violation** |||||
-| δ_CP | 180° | 8% | 195° | **EXACT** | (1-4q), q/φ |
-| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ | **EXACT** | (1-4q), qφ², q/φ³ |
-| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ | **EXACT** | (1-4q), q/4 |
+| δ_CP | 180° | 8% | 195° |  | (1-4q), q/φ |
+| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ |  | (1-4q), qφ², q/φ³ |
+| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ |  | (1-4q), q/4 |
 | **Cosmology** |||||
-| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ | **EXACT** | (1-qφ²), (1-q/2) |
-| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc | **EXACT** | Tree-level |
-| n_s | 0.9649 | — | 0.9649 | **EXACT** | Tree-level |
-| N_eff | 2.999 | — | 2.999 | **EXACT** | q²/φ |
-| Y_p | 0.245 | — | 0.245 | **EXACT** | Tree-level |
-| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ | **EXACT** | Tree-level |
-| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ | **EXACT** | 7/E*, qφ, q, q/φ |
+| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ |  | (1-qφ²), (1-q/2) |
+| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc |  | Tree-level |
+| n_s | 0.9649 | — | 0.9649 |  | Tree-level |
+| N_eff | 2.999 | — | 2.999 |  | q²/φ |
+| Y_p | 0.245 | — | 0.245 |  | Tree-level |
+| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ |  | Tree-level |
+| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ |  | 7/E*, qφ, q, q/φ |
 | **CMB Peaks** |||||
-| ℓ₁ | 220.0 | — | 220.0 | **EXACT** | Tree-level |
-| ℓ₂ | 537.2 | 0.01% | 537.50 | **EXACT** | q²/φ, q/248 |
-| ℓ₃ | 810.4 | 0.004% | 810.80 | **EXACT** | q²/φ, q/248 |
-| ℓ₄ | 1120.3 | 0.007% | 1120.90 | **EXACT** | q²/φ, q/248 |
-| ℓ₅ | 1443.3 | 0.017% | 1444.20 | **EXACT** | q²/φ, q/248 |
+| ℓ₁ | 220.0 | — | 220.0 |  | Tree-level |
+| ℓ₂ | 537.2 | 0.01% | 537.50 |  | q²/φ, q/248 |
+| ℓ₃ | 810.4 | 0.004% | 810.80 |  | q²/φ, q/248 |
+| ℓ₄ | 1120.3 | 0.007% | 1120.90 |  | q²/φ, q/248 |
+| ℓ₅ | 1443.3 | 0.017% | 1444.20 |  | q²/φ, q/248 |
 | **Neutron Lifetime** |||||
-| τ_n | 881 s | 0.2% | 879.4 s | **EXACT** | 1/(1+qφ⁻¹), q/78 |
+| τ_n | 881 s | 0.2% | 879.4 s |  | 1/(1+qφ⁻¹), q/78 |
 ### Level 1: q/1000 ≈ 0.0027% — Fixed-Point Stability
 
 **Geometric Origin:** Coxeter³ / dim(E₆ fundamental) = h(E₈)³/27
@@ -920,50 +920,50 @@ $$\frac{q^2}{\phi^2} = \frac{(0.027395)^2}{2.618} = 0.000287$$
 ---| Observable | Tree-Level | Tree Error | Final | Status | Factors Applied |
 |------------|------------|------------|-------|--------|-----------------|
 | **Nucleon Masses** |||||
-| m_p | 938.25 MeV | 0.003% | 938.272 MeV | **EXACT** | q/1000 (fixed-point) |
-| m_n | 939.53 MeV | 0.004% | 939.565 MeV | **EXACT** | q/720 (Coxeter-Kissing) |
-| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV | **EXACT** | q/6, q/36, q/360 |
+| m_p | 938.25 MeV | 0.003% | 938.272 MeV |  | q/1000 (fixed-point) |
+| m_n | 939.53 MeV | 0.004% | 939.565 MeV |  | q/720 (Coxeter-Kissing) |
+| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV |  | q/6, q/36, q/360 |
 | **Meson Masses** |||||
-| m_π | 139.5 MeV | 0.05% | 139.570 MeV | **EXACT** | q/8, q²/φ |
-| m_K | 497.7 MeV | 0.02% | 497.611 MeV | **EXACT** | q/6, q/120 |
-| m_η | 547.4 MeV | 0.08% | 547.86 MeV | **EXACT** | q/2, q/36 |
-| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV | **EXACT** | q/4, q/27, q/1000 |
+| m_π | 139.5 MeV | 0.05% | 139.570 MeV |  | q/8, q²/φ |
+| m_K | 497.7 MeV | 0.02% | 497.611 MeV |  | q/6, q/120 |
+| m_η | 547.4 MeV | 0.08% | 547.86 MeV |  | q/2, q/36 |
+| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV |  | q/4, q/27, q/1000 |
 | **Electroweak** |||||
-| m_W | 80.375 GeV | 0.01% | 80.3779 GeV | **EXACT** | q/4π, q/248 |
-| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV | **EXACT** | q/4π, q/248 |
-| sin²θ_W | 0.2312 | 0.01% | 0.23122 | **EXACT** | q/248 |
-| m_t | 172.72 GeV | 0.02% | 172.76 GeV | **EXACT** | q/4π, q/120 |
-| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV | **EXACT** | q/5π, q/720 |
-| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ | **EXACT** | q/8, q²/φ |
-| α⁻¹(0) | 137.04 | 0.07% | 137.036 | **EXACT** | q²/φ |
+| m_W | 80.375 GeV | 0.01% | 80.3779 GeV |  | q/4π, q/248 |
+| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV |  | q/4π, q/248 |
+| sin²θ_W | 0.2312 | 0.01% | 0.23122 |  | q/248 |
+| m_t | 172.72 GeV | 0.02% | 172.76 GeV |  | q/4π, q/120 |
+| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV |  | q/5π, q/720 |
+| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ |  | q/8, q²/φ |
+| α⁻¹(0) | 137.04 | 0.07% | 137.036 |  | q²/φ |
 | **QCD** |||||
-| α_s(M_Z) | 0.1179 | — | 0.1179 | **EXACT** | Tree-level |
-| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV | **EXACT** | q/φ, q/6π |
+| α_s(M_Z) | 0.1179 | — | 0.1179 |  | Tree-level |
+| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV |  | q/φ, q/6π |
 | **Mixing Angles** |||||
-| sin θ_C | 0.2241 | 0.04% | 0.2243 | **EXACT** | q/4, q/120 |
-| θ₁₂ | 32.97° | 1.4% | 33.44° | **EXACT** | q/2, q/27 |
-| θ₂₃ | 49.0° | 0.4% | 49.20° | **EXACT** | q/8, q/36, q/120 |
-| θ₁₃ | 8.09° | 6% | 8.57° | **EXACT** | 1/(1+qφ), q/8, q/12 |
+| sin θ_C | 0.2241 | 0.04% | 0.2243 |  | q/4, q/120 |
+| θ₁₂ | 32.97° | 1.4% | 33.44° |  | q/2, q/27 |
+| θ₂₃ | 49.0° | 0.4% | 49.20° |  | q/8, q/36, q/120 |
+| θ₁₃ | 8.09° | 6% | 8.57° |  | 1/(1+qφ), q/8, q/12 |
 | **CP Violation** |||||
-| δ_CP | 180° | 8% | 195° | **EXACT** | (1-4q), q/φ |
-| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ | **EXACT** | (1-4q), qφ², q/φ³ |
-| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ | **EXACT** | (1-4q), q/4 |
+| δ_CP | 180° | 8% | 195° |  | (1-4q), q/φ |
+| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ |  | (1-4q), qφ², q/φ³ |
+| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ |  | (1-4q), q/4 |
 | **Cosmology** |||||
-| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ | **EXACT** | (1-qφ²), (1-q/2) |
-| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc | **EXACT** | Tree-level |
-| n_s | 0.9649 | — | 0.9649 | **EXACT** | Tree-level |
-| N_eff | 2.999 | — | 2.999 | **EXACT** | q²/φ |
-| Y_p | 0.245 | — | 0.245 | **EXACT** | Tree-level |
-| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ | **EXACT** | Tree-level |
-| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ | **EXACT** | 7/E*, qφ, q, q/φ |
+| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ |  | (1-qφ²), (1-q/2) |
+| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc |  | Tree-level |
+| n_s | 0.9649 | — | 0.9649 |  | Tree-level |
+| N_eff | 2.999 | — | 2.999 |  | q²/φ |
+| Y_p | 0.245 | — | 0.245 |  | Tree-level |
+| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ |  | Tree-level |
+| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ |  | 7/E*, qφ, q, q/φ |
 | **CMB Peaks** |||||
-| ℓ₁ | 220.0 | — | 220.0 | **EXACT** | Tree-level |
-| ℓ₂ | 537.2 | 0.01% | 537.50 | **EXACT** | q²/φ, q/248 |
-| ℓ₃ | 810.4 | 0.004% | 810.80 | **EXACT** | q²/φ, q/248 |
-| ℓ₄ | 1120.3 | 0.007% | 1120.90 | **EXACT** | q²/φ, q/248 |
-| ℓ₅ | 1443.3 | 0.017% | 1444.20 | **EXACT** | q²/φ, q/248 |
+| ℓ₁ | 220.0 | — | 220.0 |  | Tree-level |
+| ℓ₂ | 537.2 | 0.01% | 537.50 |  | q²/φ, q/248 |
+| ℓ₃ | 810.4 | 0.004% | 810.80 |  | q²/φ, q/248 |
+| ℓ₄ | 1120.3 | 0.007% | 1120.90 |  | q²/φ, q/248 |
+| ℓ₅ | 1443.3 | 0.017% | 1444.20 |  | q²/φ, q/248 |
 | **Neutron Lifetime** |||||
-| τ_n | 881 s | 0.2% | 879.4 s | **EXACT** | 1/(1+qφ⁻¹), q/78 |
+| τ_n | 881 s | 0.2% | 879.4 s |  | 1/(1+qφ⁻¹), q/78 |
 
 ### q/30 ≈ 0.0913% — E₈ Coxeter Number Alone
 
@@ -1581,50 +1581,50 @@ The Universal Syntony Hierarchy achieves **0.0000% precision** for every observa
 | Observable | Tree-Level | Tree Error | Final | Status | Factors Applied |
 |------------|------------|------------|-------|--------|-----------------|
 | **Nucleon Masses** |||||
-| m_p | 938.25 MeV | 0.003% | 938.272 MeV | **EXACT** | q/1000 (fixed-point) |
-| m_n | 939.53 MeV | 0.004% | 939.565 MeV | **EXACT** | q/720 (Coxeter-Kissing) |
-| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV | **EXACT** | q/6, q/36, q/360 |
+| m_p | 938.25 MeV | 0.003% | 938.272 MeV |  | q/1000 (fixed-point) |
+| m_n | 939.53 MeV | 0.004% | 939.565 MeV |  | q/720 (Coxeter-Kissing) |
+| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV |  | q/6, q/36, q/360 |
 | **Meson Masses** |||||
-| m_π | 139.5 MeV | 0.05% | 139.570 MeV | **EXACT** | q/8, q²/φ |
-| m_K | 497.7 MeV | 0.02% | 497.611 MeV | **EXACT** | q/6, q/120 |
-| m_η | 547.4 MeV | 0.08% | 547.86 MeV | **EXACT** | q/2, q/36 |
-| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV | **EXACT** | q/4, q/27, q/1000 |
+| m_π | 139.5 MeV | 0.05% | 139.570 MeV |  | q/8, q²/φ |
+| m_K | 497.7 MeV | 0.02% | 497.611 MeV |  | q/6, q/120 |
+| m_η | 547.4 MeV | 0.08% | 547.86 MeV |  | q/2, q/36 |
+| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV |  | q/4, q/27, q/1000 |
 | **Electroweak** |||||
-| m_W | 80.375 GeV | 0.01% | 80.3779 GeV | **EXACT** | q/4π, q/248 |
-| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV | **EXACT** | q/4π, q/248 |
-| sin²θ_W | 0.2312 | 0.01% | 0.23122 | **EXACT** | q/248 |
-| m_t | 172.72 GeV | 0.02% | 172.76 GeV | **EXACT** | q/4π, q/120 |
-| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV | **EXACT** | q/5π, q/720 |
-| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ | **EXACT** | q/8, q²/φ |
-| α⁻¹(0) | 137.04 | 0.07% | 137.036 | **EXACT** | q²/φ |
+| m_W | 80.375 GeV | 0.01% | 80.3779 GeV |  | q/4π, q/248 |
+| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV |  | q/4π, q/248 |
+| sin²θ_W | 0.2312 | 0.01% | 0.23122 |  | q/248 |
+| m_t | 172.72 GeV | 0.02% | 172.76 GeV |  | q/4π, q/120 |
+| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV |  | q/5π, q/720 |
+| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ |  | q/8, q²/φ |
+| α⁻¹(0) | 137.04 | 0.07% | 137.036 |  | q²/φ |
 | **QCD** |||||
-| α_s(M_Z) | 0.1179 | — | 0.1179 | **EXACT** | Tree-level |
-| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV | **EXACT** | q/φ, q/6π |
+| α_s(M_Z) | 0.1179 | — | 0.1179 |  | Tree-level |
+| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV |  | q/φ, q/6π |
 | **Mixing Angles** |||||
-| sin θ_C | 0.2241 | 0.04% | 0.2243 | **EXACT** | q/4, q/120 |
-| θ₁₂ | 32.97° | 1.4% | 33.44° | **EXACT** | q/2, q/27 |
-| θ₂₃ | 49.0° | 0.4% | 49.20° | **EXACT** | q/8, q/36, q/120 |
-| θ₁₃ | 8.09° | 6% | 8.57° | **EXACT** | 1/(1+qφ), q/8, q/12 |
+| sin θ_C | 0.2241 | 0.04% | 0.2243 |  | q/4, q/120 |
+| θ₁₂ | 32.97° | 1.4% | 33.44° |  | q/2, q/27 |
+| θ₂₃ | 49.0° | 0.4% | 49.20° |  | q/8, q/36, q/120 |
+| θ₁₃ | 8.09° | 6% | 8.57° |  | 1/(1+qφ), q/8, q/12 |
 | **CP Violation** |||||
-| δ_CP | 180° | 8% | 195° | **EXACT** | (1-4q), q/φ |
-| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ | **EXACT** | (1-4q), qφ², q/φ³ |
-| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ | **EXACT** | (1-4q), q/4 |
+| δ_CP | 180° | 8% | 195° |  | (1-4q), q/φ |
+| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ |  | (1-4q), qφ², q/φ³ |
+| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ |  | (1-4q), q/4 |
 | **Cosmology** |||||
-| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ | **EXACT** | (1-qφ²), (1-q/2) |
-| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc | **EXACT** | Tree-level |
-| n_s | 0.9649 | — | 0.9649 | **EXACT** | Tree-level |
-| N_eff | 2.999 | — | 2.999 | **EXACT** | q²/φ |
-| Y_p | 0.245 | — | 0.245 | **EXACT** | Tree-level |
-| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ | **EXACT** | Tree-level |
-| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ | **EXACT** | 7/E*, qφ, q, q/φ |
+| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ |  | (1-qφ²), (1-q/2) |
+| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc |  | Tree-level |
+| n_s | 0.9649 | — | 0.9649 |  | Tree-level |
+| N_eff | 2.999 | — | 2.999 |  | q²/φ |
+| Y_p | 0.245 | — | 0.245 |  | Tree-level |
+| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ |  | Tree-level |
+| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ |  | 7/E*, qφ, q, q/φ |
 | **CMB Peaks** |||||
-| ℓ₁ | 220.0 | — | 220.0 | **EXACT** | Tree-level |
-| ℓ₂ | 537.2 | 0.01% | 537.50 | **EXACT** | q²/φ, q/248 |
-| ℓ₃ | 810.4 | 0.004% | 810.80 | **EXACT** | q²/φ, q/248 |
-| ℓ₄ | 1120.3 | 0.007% | 1120.90 | **EXACT** | q²/φ, q/248 |
-| ℓ₅ | 1443.3 | 0.017% | 1444.20 | **EXACT** | q²/φ, q/248 |
+| ℓ₁ | 220.0 | — | 220.0 |  | Tree-level |
+| ℓ₂ | 537.2 | 0.01% | 537.50 |  | q²/φ, q/248 |
+| ℓ₃ | 810.4 | 0.004% | 810.80 |  | q²/φ, q/248 |
+| ℓ₄ | 1120.3 | 0.007% | 1120.90 |  | q²/φ, q/248 |
+| ℓ₅ | 1443.3 | 0.017% | 1444.20 |  | q²/φ, q/248 |
 | **Neutron Lifetime** |||||
-| τ_n | 881 s | 0.2% | 879.4 s | **EXACT** | 1/(1+qφ⁻¹), q/78 |
+| τ_n | 881 s | 0.2% | 879.4 s |  | 1/(1+qφ⁻¹), q/78 |
 
 ### Statistics
 
@@ -1658,66 +1658,66 @@ The Universal Syntony Hierarchy achieves **0.0000% precision** for every observa
 
 | Observable | Formula | Result | Status |
 |------------|---------|--------|--------|
-| T_cc^+ tetraquark | m_D + m_D* | 3875.1 MeV | **EXACT** |
-| Iron-56 B/A | E*/(2φ) × √2 × (1+q/4) | 8.80 MeV | **EXACT** |
+| T_cc^+ tetraquark | m_D + m_D* | 3875.1 MeV |  |
+| Iron-56 B/A | E*/(2φ) × √2 × (1+q/4) | 8.80 MeV |  |
 | S₈ tension | S₈(CMB) × (1-q/φ) | 0.818 | **REDUCED** |
 | Quasicrystal gaps | φ^(-k) × (1+q/120) | — | **GEOMETRIC** |
-| m_ν₃ (heaviest ν) | ρ_Λ^(1/4) × E* × (1+4q) | 49.93 meV | **EXACT** |
-| m_ν₂ (middle ν) | m_ν₃/√[34(1-q/36)] | 8.57 meV | **EXACT** |
-| Δm²₃₁/Δm²₂₁ ratio | 34 × (1-q/36) | 33.97 | **EXACT** |
-| m_c (charm) | E* × 63.5 × (1+q/120) | 1270.2 MeV | **EXACT** |
-| m_b (bottom) | E* × 209 × (1+q/248) | 4180.3 MeV | **EXACT** |
-| m_u (up) | E*/9 × (1-q) | 2.16 MeV | **EXACT** |
-| m_d (down) | m_u × (2+6q) | 4.68 MeV | **EXACT** |
-| m_B (B meson) | E* × 264 | 5279.8 MeV | **EXACT** |
-| m_Λ (Lambda) | m_p × (1+6.9q) | 1115.6 MeV | **EXACT** |
-| m_Δ (Delta) | m_p + E*×15×(1-q) | 1230.0 MeV | **EXACT** |
-| Ω_DM/Ω_b | φ³ + 1 + 5q | 5.37 | **EXACT** |
-| z_eq (equality) | E* × 170 | 3400 | **EXACT** |
-| z_rec (recomb) | E* × F₁₀ = E*×55 | 1100 | **EXACT** |
+| m_ν₃ (heaviest ν) | ρ_Λ^(1/4) × E* × (1+4q) | 49.93 meV |  |
+| m_ν₂ (middle ν) | m_ν₃/√[34(1-q/36)] | 8.57 meV |  |
+| Δm²₃₁/Δm²₂₁ ratio | 34 × (1-q/36) | 33.97 |  |
+| m_c (charm) | E* × 63.5 × (1+q/120) | 1270.2 MeV |  |
+| m_b (bottom) | E* × 209 × (1+q/248) | 4180.3 MeV |  |
+| m_u (up) | E*/9 × (1-q) | 2.16 MeV |  |
+| m_d (down) | m_u × (2+6q) | 4.68 MeV |  |
+| m_B (B meson) | E* × 264 | 5279.8 MeV |  |
+| m_Λ (Lambda) | m_p × (1+6.9q) | 1115.6 MeV |  |
+| m_Δ (Delta) | m_p + E*×15×(1-q) | 1230.0 MeV |  |
+| Ω_DM/Ω_b | φ³ + 1 + 5q | 5.37 |  |
+| z_eq (equality) | E* × 170 | 3400 |  |
+| z_rec (recomb) | E* × F₁₀ = E*×55 | 1100 |  |
 | sin²(2θ)_sterile | q⁷(1-q/φ) | 1.1×10⁻¹¹ | **PREDICTED** |
 | r (tensor/scalar) | 12/N²(1-q/φ) | 0.0033 | **PREDICTED** |
-| 2⁺⁺ glueball | m(0⁺⁺)×(φ-4q) | 2289 MeV | **EXACT** |
-| 0⁻⁺ glueball | m(0⁺⁺)×φ | 2455 MeV | **EXACT** |
-| X(3872) | m_D + m_D* | 3871.7 MeV | **EXACT** |
-| J/ψ | E*×155×(1-q/27) | 3096.7 MeV | **EXACT** |
-| ψ(2S) | J/ψ + E*×59/2 | 3686.9 MeV | **EXACT** |
-| Υ(1S) | E*×473 | 9459.6 MeV | **EXACT** |
-| Υ(2S) | E*×501 | 10019.6 MeV | **EXACT** |
-| Υ(3S) | E*×518 | 10359.5 MeV | **EXACT** |
-| ⟨q̄q⟩^(1/3) | E*×25/2 | 250 MeV | **EXACT** |
-| Γ_Z | m_Z×q×(1-q/27) | 2.4956 GeV | **EXACT** |
-| Γ_W | m_W×q×(1-2q) | 2.081 GeV | **EXACT** |
-| R_b | (1/5)×(1+3q) | 0.2164 | **EXACT** |
-| A_FB(b) | q×(φ²+1)×(1-q/36) | 0.0990 | **EXACT** |
-| N_ν | 3×(1-q/5) | 2.984 | **EXACT** |
-| ρ parameter | 1 + q²/2 | 1.00038 | **EXACT** |
-| a_S (SEMF surface) | E*×(1-4q) | 17.81 MeV | **EXACT** |
-| a_V (SEMF volume) | E*×(φ⁻¹+6q) | 15.65 MeV | **EXACT** |
-| a_A (SEMF asymmetry) | E*×(1+7q) | 23.83 MeV | **EXACT** |
-| a_P (SEMF pairing) | E*/φ×(1-q) | 12.02 MeV | **EXACT** |
-| r_p (proton radius) | 4ℏc/m_p | 0.8411 fm | **EXACT** |
-| B_d (deuteron) | E*/9 | 2.222 MeV | **EXACT** |
-| B_α (⁴He) | E*×√2 | 28.28 MeV | **EXACT** |
-| Rydberg | m_e α²/2 | 13.606 eV | **EXACT** |
-| He⁺ ionization | Z²×Ry | 54.42 eV | **EXACT** |
-| H polarizability | (9/2)a₀³ | 4.5 a₀³ | **EXACT** |
-| H₂ bond length | √2×a₀×(1-q/2) | 0.738 Å | **EXACT** |
-| H₂ dissociation | Ry/3×(1-q/2) | 4.47 eV | **EXACT** |
-| Fine structure | α⁴m_e/32 | 10.95 GHz | **EXACT** |
-| 21 cm line | QED + SRT α | 1420 MHz | **EXACT** |
+| 2⁺⁺ glueball | m(0⁺⁺)×(φ-4q) | 2289 MeV |  |
+| 0⁻⁺ glueball | m(0⁺⁺)×φ | 2455 MeV |  |
+| X(3872) | m_D + m_D* | 3871.7 MeV |  |
+| J/ψ | E*×155×(1-q/27) | 3096.7 MeV |  |
+| ψ(2S) | J/ψ + E*×59/2 | 3686.9 MeV |  |
+| Υ(1S) | E*×473 | 9459.6 MeV |  |
+| Υ(2S) | E*×501 | 10019.6 MeV |  |
+| Υ(3S) | E*×518 | 10359.5 MeV |  |
+| ⟨q̄q⟩^(1/3) | E*×25/2 | 250 MeV |  |
+| Γ_Z | m_Z×q×(1-q/27) | 2.4956 GeV |  |
+| Γ_W | m_W×q×(1-2q) | 2.081 GeV |  |
+| R_b | (1/5)×(1+3q) | 0.2164 |  |
+| A_FB(b) | q×(φ²+1)×(1-q/36) | 0.0990 |  |
+| N_ν | 3×(1-q/5) | 2.984 |  |
+| ρ parameter | 1 + q²/2 | 1.00038 |  |
+| a_S (SEMF surface) | E*×(1-4q) | 17.81 MeV |  |
+| a_V (SEMF volume) | E*×(φ⁻¹+6q) | 15.65 MeV |  |
+| a_A (SEMF asymmetry) | E*×(1+7q) | 23.83 MeV |  |
+| a_P (SEMF pairing) | E*/φ×(1-q) | 12.02 MeV |  |
+| r_p (proton radius) | 4ℏc/m_p | 0.8411 fm |  |
+| B_d (deuteron) | E*/9 | 2.222 MeV |  |
+| B_α (⁴He) | E*×√2 | 28.28 MeV |  |
+| Rydberg | m_e α²/2 | 13.606 eV |  |
+| He⁺ ionization | Z²×Ry | 54.42 eV |  |
+| H polarizability | (9/2)a₀³ | 4.5 a₀³ |  |
+| H₂ bond length | √2×a₀×(1-q/2) | 0.738 Å |  |
+| H₂ dissociation | Ry/3×(1-q/2) | 4.47 eV |  |
+| Fine structure | α⁴m_e/32 | 10.95 GHz |  |
+| 21 cm line | QED + SRT α | 1420 MHz |  |
 | BH entropy | S×(1+q/4) | +0.69% | **DERIVED** |
 | Hawking temp | T_H×(1-q/8) | -0.34% | **DERIVED** |
 | GW echoes | (2r_H/c)×ln(φ) | 0.59 ms | **DERIVED** |
 | Echo decay | φ^(-n) | 38%/echo | **DERIVED** |
 | QNM frequency | ω×(1+q/36) | +0.08% | **DERIVED** |
 | Modified gravity | 1+8q×exp(-r/√φℓ_P) | — | **DERIVED** |
-| BCS ratio | 2φ + 10q | 3.51 | **EXACT** |
+| BCS ratio | 2φ + 10q | 3.51 |  |
 | FQHE fractions | F_n/F_{n+2} | 1/3,2/5,3/8 | **FIBONACCI** |
-| Strong coupling | BCS × φ | 5.68 | **EXACT** |
-| Graphene v_F | c/(10×h(E₈)) | c/300 | **EXACT** |
-| Graphene α_g | 300/137 | 2.19 | **EXACT** |
-| Quasicrystal β | 3/2 | 1.50 | **EXACT** |
+| Strong coupling | BCS × φ | 5.68 |  |
+| Graphene v_F | c/(10×h(E₈)) | c/300 |  |
+| Graphene α_g | 300/137 | 2.19 |  |
+| Quasicrystal β | 3/2 | 1.50 |  |
 | ZT maximum | φ² | 2.62 | **DERIVED** |
 | E* transcendental | proof | — | **PROVEN** |
 | q transcendental | proof | — | **PROVEN** |
@@ -1726,24 +1726,24 @@ The Universal Syntony Hierarchy achieves **0.0000% precision** for every observa
 | 744 = 6!+4! | identity | exact | **VERIFIED** |
 | 1000 = 30³/27 | identity | exact | **VERIFIED** |
 | 1100 = E*×F₁₀ | identity | exact | **VERIFIED** |
-| Ξ⁻ mass | E*×66×(1+q/36) | 1321.0 MeV | **EXACT** |
-| Ξ⁰ mass | Ξ⁻×(1-q/4) | 1312 MeV | **EXACT** |
-| YBCO T_c | E*×(φ²+2) | 92.4 K | **EXACT** |
-| BSCCO T_c | E*×(φ²+3)×(1-q/φ) | 110.5 K | **EXACT** |
+| Ξ⁻ mass | E*×66×(1+q/36) | 1321.0 MeV |  |
+| Ξ⁰ mass | Ξ⁻×(1-q/4) | 1312 MeV |  |
+| YBCO T_c | E*×(φ²+2) | 92.4 K |  |
+| BSCCO T_c | E*×(φ²+3)×(1-q/φ) | 110.5 K |  |
 | GW190521 echo | (2r_H/c)×ln(φ) | 1.35 ms | **PREDICTION** |
-| B_c meson | E*×314×(1-q/36) | 6274.9 MeV | **EXACT** |
-| P_c(4457) | (Σ_c+D*)×(1-q/120) | 4462 MeV | **EXACT** |
+| B_c meson | E*×314×(1-q/36) | 6274.9 MeV |  |
+| P_c(4457) | (Σ_c+D*)×(1-q/120) | 4462 MeV |  |
 | Island Z | 82+h(E₈)+2 | 114 | **VERIFIED** |
 | Island N | 126+56+2 | 184 | **PREDICTION** |
-| pp I flux | φ⁴/(1+φ⁴) | 87.3% | **EXACT** |
-| pp II flux | 1/(1+φ⁴) | 12.7% | **EXACT** |
+| pp I flux | φ⁴/(1+φ⁴) | 87.3% |  |
+| pp II flux | 1/(1+φ⁴) | 12.7% |  |
 | GW170817 echo | (2R/c)×ln(φ) | 0.038 ms | **PREDICTION** |
-| α_H (polarizability) | N_gen²/2 × a₀³ | 4.5 a₀³ | **EXACT** |
-| r_e(H₂) | √2×a₀×(1-q/2) | 0.738 Å | **EXACT** |
-| D₀(H₂) | Ry/3×(1-q/2) | 4.473 eV | **EXACT** |
-| Fine structure | α⁴m_e/32 | 10.95 GHz | **EXACT** |
-| 21 cm hyperfine | QED + SRT α | 1420 MHz | **EXACT** |
-| He⁺ ionization | 4×Ry | 54.42 eV | **EXACT** |
+| α_H (polarizability) | N_gen²/2 × a₀³ | 4.5 a₀³ |  |
+| r_e(H₂) | √2×a₀×(1-q/2) | 0.738 Å |  |
+| D₀(H₂) | Ry/3×(1-q/2) | 4.473 eV |  |
+| Fine structure | α⁴m_e/32 | 10.95 GHz |  |
+| 21 cm hyperfine | QED + SRT α | 1420 MHz |  |
+| He⁺ ionization | 4×Ry | 54.42 eV |  |
 
 ---
 

@@ -581,7 +581,7 @@ $$m_H^{(2\text{-loop})} = 125.30 - 0.05 = 125.25 \text{ GeV}$$
 
 The agreement is now **exact within experimental error**, demonstrating that syntony-symmetry provides a natural solution to the hierarchy problem without requiring supersymmetry.
 
-## **F.5 Log-Periodic Structure of the Beta Functions**
+## **G.5 Log-Periodic Structure of the Beta Functions**
 
 The discrete recursion symmetry on $T^4$ implies that the beta functions are not smooth but exhibit log-periodic oscillations.
 
@@ -634,7 +634,7 @@ High-precision measurements of $\alpha_s$ at multiple energy scales (LEP, Tevatr
 
 **Final Corrections Applied:**
 - Top mass: $173.02 \times (1 - q/4\pi) = 172.72$ GeV → **0.02%** error
-- $\alpha_s$: $0.1181 \times (1 - q/5\pi) = 0.1179$ → **Exact** (5-flavor QCD correction)
+- $\alpha_s$: $0.1181 \times (1 - q/5\pi) = 0.1179$ →  (5-flavor QCD correction)
 
 The systematic improvement from tree-level → one-loop → two-loop → final demonstrates that SRT is a **complete quantum field theory** with:
 1. Finite, calculable corrections at all orders
