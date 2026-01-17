@@ -15,7 +15,7 @@ import torch.nn as nn
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'python'))
 
 try:
-    from syntonic.nn.layers.prime_syntony_gate import (
+    from python.syntonic.nn.layers.prime_syntony_gate import (
         PrimeSyntonyGate,
         WindingAttention,
         SRTTransformerBlock

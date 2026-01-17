@@ -152,6 +152,7 @@ use linalg::{
     py_phi_bracket,
     py_projection_sum,
     py_q_correction_scalar,
+    py_resonant_matmul,
 };
 
 // =============================================================================
@@ -562,6 +563,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_mm_golden_phase, m)?)?;
     m.add_function(wrap_pyfunction!(py_mm_golden_weighted, m)?)?;
     m.add_function(wrap_pyfunction!(py_projection_sum, m)?)?;
+    m.add_function(wrap_pyfunction!(py_resonant_matmul, m)?)?;
     // Generalized GEMM and q-correction operations
     m.add_function(wrap_pyfunction!(py_mm_gemm, m)?)?;
     m.add_function(wrap_pyfunction!(py_mm_q_corrected_direct, m)?)?;

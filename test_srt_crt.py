@@ -17,7 +17,7 @@ from typing import Dict, List, Tuple
 sys.path.insert(0, str(Path(__file__).parent.parent / "python"))
 
 import syntonic._core as core
-from syntonic.physics.srt_physics import SRTPhysicsEngine
+from python.syntonic.physics.srt_physics import SRTPhysicsEngine
 
 
 class SRTCRTTestRunner:
@@ -217,7 +217,7 @@ class SRTCRTTestRunner:
         print("🧠 Testing neural networks...")
 
         try:
-            from syntonic.nn.layers.prime_syntony_gate import (
+            from python.syntonic.nn.layers.prime_syntony_gate import (
                 PrimeSyntonyGate,
                 WindingAttention,
                 SRTTransformerBlock

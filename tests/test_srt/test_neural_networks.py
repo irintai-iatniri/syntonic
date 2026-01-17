@@ -9,7 +9,7 @@ import pytest
 import torch
 import torch.nn as nn
 import math
-from syntonic.nn.layers.prime_syntony_gate import (
+from python.syntonic.nn.layers.prime_syntony_gate import (
     PrimeSyntonyGate,
     WindingAttention,
     SRTTransformerBlock,

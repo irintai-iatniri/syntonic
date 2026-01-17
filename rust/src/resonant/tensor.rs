@@ -1088,6 +1088,31 @@ impl ResonantTensor {
         Self::from_lattice(result_lattice, result_shape, result_norms)
     }
 
+    /// Resonant matrix multiplication: versal_grip_strength(w_a, w_b) × (A × B)
+    ///
+    /// Applies geometry compatibility damping based on winding indices.
+    /// Only compatible geometries (same Pisano period) produce non-zero grip strength.
+    ///
+    /// Args:
+    ///     weights: Another ResonantTensor (W)
+    ///
+    /// Returns:
+    ///     New ResonantTensor representing grip_strength * (self * weights^T)
+    pub fn resonant_matmul_core(&self, weights: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
+        // First perform regular matrix multiplication
+        let mut result = self.matmul_core(weights)?;
+
+        // Get winding indices from metadata
+        let w_a = self.winding_depth();
+        let w_b = weights.winding_depth();
+
+        // Compute versal grip strength (geometry compatibility coefficient)
+        let grip_strength = crate::resonant::number_theory::versal_grip_strength_2(w_a, w_b);
+
+        // Scale the result by grip strength
+        result.scalar_mul_core(grip_strength)
+    }
+
     /// Native bias addition for GoldenExact lattice.
     ///
     /// Performs self + bias where self is (batch, out) and bias is (out).
@@ -2214,6 +2239,20 @@ impl ResonantTensor {
     ///     New ResonantTensor representing self * weights^T
     fn matmul(&self, weights: &ResonantTensor) -> PyResult<Self> {
         self.matmul_core(weights).map_err(|e| e.into())
+    }
+
+    /// Resonant matrix multiplication: versal_grip_strength(w_a, w_b) × (A × B)
+    ///
+    /// Applies geometry compatibility damping based on winding indices.
+    /// Only compatible geometries (same Pisano period) produce non-zero grip strength.
+    ///
+    /// Args:
+    ///     weights: Another ResonantTensor (W)
+    ///
+    /// Returns:
+    ///     New ResonantTensor representing grip_strength * (self * weights^T)
+    fn resonant_matmul(&self, weights: &ResonantTensor) -> PyResult<Self> {
+        self.resonant_matmul_core(weights).map_err(|e| e.into())
     }
 
     /// Add bias to the tensor.

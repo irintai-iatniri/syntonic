@@ -339,6 +339,32 @@ pub fn versal_grip_strength(p: u64) -> f64 {
     }
 }
 
+/// Compute versal grip strength between two winding indices.
+///
+/// Grip strength measures geometric compatibility between two winding numbers.
+/// Only geometries with the same Pisano period can interact (grip strength > 0).
+///
+/// # Arguments
+/// * `w_a` - Winding index of first geometry
+/// * `w_b` - Winding index of second geometry
+///
+/// # Returns
+/// Grip strength (dimensionless). Returns 0.0 if geometries are incompatible.
+pub fn versal_grip_strength_2(w_a: u64, w_b: u64) -> f64 {
+    // Check geometric compatibility: same Pisano period
+    let pi_a = pisano_period(w_a);
+    let pi_b = pisano_period(w_b);
+
+    if pi_a == pi_b {
+        // Compatible geometries: return interaction strength
+        // For now, use a simple scaling based on the shared Pisano period
+        pi_a as f64 / (w_a.max(w_b) as f64).sqrt()
+    } else {
+        // Incompatible geometries: no interaction
+        0.0
+    }
+}
+
 /// Generate Mersenne primes up to maximum exponent.
 ///
 /// # Arguments

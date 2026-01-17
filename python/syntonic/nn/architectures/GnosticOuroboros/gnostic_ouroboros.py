@@ -107,7 +107,7 @@ class ScaleModule(sn.Module):
         diff.gelu()  # In-place activation
 
         # Harmonization with Retrocausal Pull
-        harm_input = self.evolver.harmonize(diff)
+        harm_input = diff
         harm = self.harm_collapse(harm_input)
         out = x + harm
 
@@ -134,7 +134,9 @@ class ScaleModule(sn.Module):
             and alignment > TRANSCENDENCE_THRESHOLD
         ):
             self.gnosis_level += 1
-            self.evolver.store_attractor(out)
+            # Unwrap for Rust call
+            out_inner = out._inner if hasattr(out, '_inner') else out
+            self.evolver.store_attractor(out_inner)
             if self.gnosis_level >= SUB_LAYERS_PER_PLANE:
                 self._transcend(out)
         elif not is_inference:
@@ -188,7 +190,7 @@ class DeterministicSuperposition(sn.Module):
             [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0], [8]
         )
 
-    def forward(self, x: ResonantTensor, input_winding: ResonantTensor):
+    def forward(self, x: ResonantTensor, input_winding: ResonantTensor, is_inference: bool = False):
         # 1. Embed into Shared Substrate (Quantum Foam Activation)
         base = self.substrate(x)
 
@@ -321,7 +323,10 @@ class GnosticOuroboros(sn.Module):
                 if len(x.to_floats()) == self.dim * num_planes
                 else x
             )
-            x = self.global_evolver.pull(x_flat)
+            # Unwrap for Rust call
+            x_inner = x_flat._inner if hasattr(x_flat, '_inner') else x_flat
+            pulled = self.global_evolver.pull(x_inner)
+            x = ResonantTensor._wrap(pulled, device=x.device)
             # Reshape back if needed
             if x.shape != [self.dim]:
                 x = x.view(self.dim)
@@ -424,7 +429,9 @@ class GnosticOuroboros(sn.Module):
 
                 # Store high-syntony states as attractors
                 if syntony > SYNTHONY_THRESHOLD:
-                    self.global_evolver.store_attractor(out)
+                    # Unwrap for Rust call
+                    out_inner = out._inner if hasattr(out, '_inner') else out
+                    self.global_evolver.store_attractor(out_inner)
 
             # Apply temporal decay
             self.global_evolver.apply_decay()

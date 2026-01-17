@@ -7,7 +7,7 @@ against known physical phenomena.
 
 import pytest
 import math
-from syntonic.physics.srt_physics import (
+from python.syntonic.physics.srt_physics import (
     SRTPhysicsEngine,
     ForceSimulator,
     MatterSimulator,

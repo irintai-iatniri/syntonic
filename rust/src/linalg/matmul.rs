@@ -1482,6 +1482,28 @@ pub fn projection_sum(
     Ok(result)
 }
 
+/// Resonant matrix multiplication: versal_grip_strength(w_a, w_b) × (A × B)
+///
+/// Applies geometry compatibility damping based on winding indices.
+/// Only compatible geometries (same Pisano period) produce non-zero grip strength.
+/// Uses versal_grip_strength from number theory module.
+pub fn resonant_matmul(a: &TensorStorage, b: &TensorStorage) -> Result<TensorStorage, MatmulError> {
+    use crate::resonant::number_theory::versal_grip_strength_2;
+
+    // Get winding indices from tensor metadata
+    let w_a = a.winding_index();
+    let w_b = b.winding_index();
+
+    // Compute grip strength - returns 0.0 for incompatible geometries
+    let grip = versal_grip_strength_2(w_a, w_b);
+
+    // Perform standard matrix multiplication
+    let result = mm(a, b)?;
+
+    // Apply grip strength scaling
+    mul_scalar_internal(&result, grip)
+}
+
 // =============================================================================
 // Internal Helper Functions
 // =============================================================================
