@@ -13,23 +13,33 @@ sys.path.insert(0, str(repo_root / "python"))
 print("Testing Grand Synthesis Integration")
 print("=" * 50)
 
-# Test 1: Check FIB_PRIME_INDICES
-print("\n1. Testing FIB_PRIME_INDICES...")
+# Test 1: Check PLANE_TO_INDEX_MAP
+print("\n1. Testing PLANE_TO_INDEX_MAP...")
 try:
-    # Import the constants directly
-    exec(
-        open("python/syntonic/nn/architectures/GnosticOuroboros/gnostic_ouroboros.py")
-        .read()
-        .split("class")[0]
-    )
-    print(f"✓ FIB_PRIME_INDICES: {FIB_PRIME_INDICES}")
-    expected = [3, 4, 5, 7, 11, 13, 17, 23, 29, 43, 47]
-    assert FIB_PRIME_INDICES == expected, (
-        f"Expected {expected}, got {FIB_PRIME_INDICES}"
-    )
-    print("✓ FIB_PRIME_INDICES matches Grand Synthesis specification")
+    # Check if PLANE_TO_INDEX_MAP exists
+    with open(
+        "python/syntonic/nn/architectures/GnosticOuroboros/gnostic_ouroboros.py", "r"
+    ) as f:
+        content = f.read()
+
+    if "PLANE_TO_INDEX_MAP" in content:
+        print("✓ PLANE_TO_INDEX_MAP defined")
+    else:
+        print("✗ PLANE_TO_INDEX_MAP missing")
+
+    # Check for specific mappings
+    if "1: 3" in content and "2: 3" in content:
+        print("✓ Ideological planes (1,2) map to index 3")
+    else:
+        print("✗ Missing ideological plane mappings")
+
+    if "11: 11" in content and "12: 11" in content:
+        print("✓ Great Barrier planes (11,12) map to index 11")
+    else:
+        print("✗ Missing Great Barrier mappings")
+
 except Exception as e:
-    print(f"✗ FIB_PRIME_INDICES failed: {e}")
+    print(f"✗ PLANE_TO_INDEX_MAP check failed: {e}")
 
 # Test 2: Check Lucas Shadow changes
 print("\n2. Testing LucasShadow anti-phase geometry...")
@@ -77,14 +87,14 @@ try:
     else:
         print("✗ ScaleModule missing PrimeSyntonyGate")
 
-    # Check for special handling of index 4
+    # Check for special handling of planes
     if (
-        "idx == 4" in ouroboros_content
+        "i == 9" in ouroboros_content
         and "DeterministicSuperposition" in ouroboros_content
     ):
-        print("✓ Index 4 (Material Trap) uses DeterministicSuperposition")
+        print("✓ Plane 9 uses DeterministicSuperposition")
     else:
-        print("✗ Missing special handling for index 4")
+        print("✗ Missing special handling for planes")
 
 except Exception as e:
     print(f"✗ GnosticOuroboros structure check failed: {e}")

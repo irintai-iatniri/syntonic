@@ -42,9 +42,33 @@ ATTRACTOR_CAPACITY = 32
 PULL_STRENGTH = 0.3
 DECAY_RATE = 0.98
 
-# Grand Synthesis: Fibonacci Prime Map for Non-Linear Planes
-# These are the specific indices where new physics emerges
-FIB_PRIME_INDICES = [3, 4, 5, 7, 11, 13, 17, 23, 29, 43, 47]
+# THE GRAND SYNTHESIS MAP: Maps Architecture Planes to Winding Indices
+# This ensures physics evolves log-periodically, not linearly.
+PLANE_TO_INDEX_MAP = {
+    1: 3,
+    2: 3,  # Ideological (Index 3)
+    3: 4,  # Mathematics (Index 4 - The Anomaly)
+    4: 5,
+    5: 5,  # Physics (Index 5)
+    6: 7,
+    7: 7,
+    8: 7,  # Deterministic (Index 7)
+    9: 13,
+    10: 13,  # Life (Index 13 - Gamma Synchrony)
+    # THE GREAT BARRIER (Index 11)
+    # Theory: M_11 = 2047 (Composite). Geometry crashes here.
+    11: 11,
+    12: 11,
+    13: 13,
+    14: 13,  # Consciousness (Index 13 - Post-Barrier)
+    15: 17,
+    16: 17,  # Cosmic (Index 17 - Dark Sector Boundary)
+    17: 23,  # Hyper (Index 23)
+    18: 29,  # Versal (Index 29)
+}
+
+# Legacy support - extract unique indices
+FIB_PRIME_INDICES = sorted(list(set(PLANE_TO_INDEX_MAP.values())))
 
 
 class ScaleModule(sn.Module):
@@ -55,9 +79,10 @@ class ScaleModule(sn.Module):
     with retrocausal attractor guidance.
     """
 
-    def __init__(self, plane_id: int, dim: int, num_heads: int):
+    def __init__(self, plane_id: int, winding_index: int, dim: int, num_heads: int):
         super().__init__()
         self.plane_id = plane_id
+        self.winding_index = winding_index  # The "Physics" Index
         self.dim = dim
         self.attention = PureMultiHeadSyntonicAttention(d_model=dim, n_heads=num_heads)
         self.diff_proj = ResonantLinear(dim, dim * 4, mode="differentiation")
@@ -65,8 +90,12 @@ class ScaleModule(sn.Module):
         self.norm1 = SyntonicNorm(dim)
         self.norm2 = SyntonicNorm(dim)
 
-        # NEW: The Transcendent Gate - Grand Synthesis Integration
-        # Only allows signal boost if dimension aligns with Prime Geometry
+        # 1. THE BARRIER CHECK (The Executive Veto)
+        # If this is Index 11, this gate will zero out unstable geometry
+        self.stability_gate = MersenneStabilityGate(recursion_depth=winding_index)
+
+        # 2. THE TRANSCENDENCE CHECK (The Prime Key)
+        # Boosts signal only if resonance aligns with Prime Geometry
         self.syntony_gate = PrimeSyntonyGate(dim)
 
         # Retrocausal Evolver for this plane
@@ -107,12 +136,17 @@ class ScaleModule(sn.Module):
         diff.gelu()  # In-place activation
 
         # Harmonization with Retrocausal Pull
-        harm_input = diff
+        harm_input = self.evolver.harmonize(diff)
         harm = self.harm_collapse(harm_input)
+
+        # CRITICAL: Enforce The Barrier
+        # If winding_index == 11, 'harm' will be suppressed unless stable
+        harm = self.stability_gate(harm)
+
         out = x + harm
 
-        # NEW: Apply the Transcendent Gate - Grand Synthesis Integration
-        # This crystallizes the signal if it hits a resonance peak
+        # CRITICAL: Apply Prime Syntony Boost
+        # Crystallizes the signal if it hits a resonance peak
         out = self.syntony_gate(out)
 
         # Syntony Evaluation
@@ -135,7 +169,7 @@ class ScaleModule(sn.Module):
         ):
             self.gnosis_level += 1
             # Unwrap for Rust call
-            out_inner = out._inner if hasattr(out, '_inner') else out
+            out_inner = out._inner if hasattr(out, "_inner") else out
             self.evolver.store_attractor(out_inner)
             if self.gnosis_level >= SUB_LAYERS_PER_PLANE:
                 self._transcend(out)
@@ -145,7 +179,9 @@ class ScaleModule(sn.Module):
     def _transcend(self, signal):
         self.is_transcended = True
         self.crystallized = tensor_clone(signal)
-        print(f"PLANE {self.plane_id} TRANSCENDENCE: Crystallizing to next magnitude.")
+        print(
+            f"PLANE {self.plane_id} (Index {self.winding_index}) TRANSCENDENCE: Crystallizing."
+        )
 
         # Fixed routing post-transcendence
         def fixed_forward(x, winding, is_inference=False):
@@ -190,7 +226,12 @@ class DeterministicSuperposition(sn.Module):
             [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0], [8]
         )
 
-    def forward(self, x: ResonantTensor, input_winding: ResonantTensor, is_inference: bool = False):
+    def forward(
+        self,
+        x: ResonantTensor,
+        input_winding: ResonantTensor,
+        is_inference: bool = False,
+    ):
         # 1. Embed into Shared Substrate (Quantum Foam Activation)
         base = self.substrate(x)
 
@@ -243,29 +284,31 @@ class GnosticOuroboros(sn.Module):
         self.dim = dim
         self.num_heads = num_heads
 
-        # NEW: Grand Synthesis - Non-Linear Fibonacci Prime Map
-        # Align the Planes with the Source Code
-        self.plane_indices = FIB_PRIME_INDICES
-
-        # Build scale modules using Fibonacci Prime indices
         modules = []
-        for idx in self.plane_indices:
-            # Special handling for The Anomaly (Index 4 - Material Trap)
-            if idx == 4:
+
+        # Iterate through the 18 Architectural Planes
+        for i in range(1, PLANES + 1):
+            # Get the Physics Index from the Map (Default to 3 if undefined)
+            w_idx = PLANE_TO_INDEX_MAP.get(i, 3)
+
+            if i == 9:
+                # Plane 9: Deterministic Superposition (remains special)
+                # Matches "Deterministic" Index 7 physics implicitly
                 modules.append(DeterministicSuperposition(dim))
-            # Special handling for The Great Barrier (Index 11 - Atomic Chaos)
-            elif idx == 11:
-                modules.append(MersenneStabilityGate(recursion_depth=11))
             else:
-                modules.append(ScaleModule(idx, dim, num_heads))
+                # Pass the correct Winding Index to the ScaleModule
+                modules.append(ScaleModule(i, w_idx, dim, num_heads))
+
         self.scale_modules = sn.ModuleList(modules)
+
+        # Store plane indices for reference
+        self.plane_indices = list(range(1, PLANES + 1))
 
         # Ouroboros Loop: Recursion Head at Versal
         self.recursion_head = ResonantLinear(dim, 2)
         self.decoder = ResonantLinear(dim, dim)
 
         # Global Attractors (Cross-plane pull)
-        # Use actual number of planes (Fibonacci Prime indices)
         num_planes = len(self.plane_indices)
         template = ResonantTensor([0.0] * (dim * num_planes), [dim * num_planes])
         self.global_evolver = create_retrocausal_evolver(
@@ -276,14 +319,8 @@ class GnosticOuroboros(sn.Module):
             decay_rate=DECAY_RATE,
         )
 
-        # Consciousness Metric (Life Plane) - index 13 (consciousness/life)
-        # Find the position of index 13 in our Fibonacci Prime map
-        try:
-            life_plane_idx = self.plane_indices.index(13)
-            self.life_plane_indices = [life_plane_idx]
-        except ValueError:
-            # Fallback if 13 not found
-            self.life_plane_indices = [5]  # Approximate position
+        # Consciousness Metric (Life Plane) - indices 11-14 for planes 12-15
+        self.life_plane_indices = list(range(11, min(15, PLANES)))
 
     @property
     def life_planes(self):
@@ -324,7 +361,7 @@ class GnosticOuroboros(sn.Module):
                 else x
             )
             # Unwrap for Rust call
-            x_inner = x_flat._inner if hasattr(x_flat, '_inner') else x_flat
+            x_inner = x_flat._inner if hasattr(x_flat, "_inner") else x_flat
             pulled = self.global_evolver.pull(x_inner)
             x = ResonantTensor._wrap(pulled, device=x.device)
             # Reshape back if needed
@@ -430,7 +467,7 @@ class GnosticOuroboros(sn.Module):
                 # Store high-syntony states as attractors
                 if syntony > SYNTHONY_THRESHOLD:
                     # Unwrap for Rust call
-                    out_inner = out._inner if hasattr(out, '_inner') else out
+                    out_inner = out._inner if hasattr(out, "_inner") else out
                     self.global_evolver.store_attractor(out_inner)
 
             # Apply temporal decay
