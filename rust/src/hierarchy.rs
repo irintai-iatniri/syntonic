@@ -425,6 +425,136 @@ pub fn hierarchy_exponent() -> i32 {
     HIERARCHY_EXPONENT
 }
 
+// ============================================================================
+// Extended Structure Constants (Unexposed in Python)
+// ============================================================================
+
+/// Get E₈ root count (240)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e8_roots")]
+pub fn e8_roots() -> i32 {
+    E8_ROOTS
+}
+
+/// Get E₈ positive root count (120)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e8_positive_roots")]
+pub fn e8_positive_roots() -> i32 {
+    E8_POSITIVE_ROOTS
+}
+
+/// Get E₈ rank (8)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e8_rank")]
+pub fn e8_rank() -> i32 {
+    E8_RANK
+}
+
+/// Get E₈ Coxeter number (30)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e8_coxeter")]
+pub fn e8_coxeter() -> i32 {
+    E8_COXETER
+}
+
+/// Get E₇ root count (126)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e7_roots")]
+pub fn e7_roots() -> i32 {
+    E7_ROOTS
+}
+
+/// Get E₇ positive roots (63)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e7_positive_roots")]
+pub fn e7_positive_roots() -> i32 {
+    E7_POSITIVE_ROOTS
+}
+
+/// Get E₇ fundamental representation (56)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e7_fundamental")]
+pub fn e7_fundamental() -> i32 {
+    E7_FUNDAMENTAL
+}
+
+/// Get E₇ rank (7)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e7_rank")]
+pub fn e7_rank() -> i32 {
+    E7_RANK
+}
+
+/// Get E₇ Coxeter number (18)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e7_coxeter")]
+pub fn e7_coxeter() -> i32 {
+    E7_COXETER
+}
+
+/// Get E₆ root count (72)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e6_roots")]
+pub fn e6_roots() -> i32 {
+    E6_ROOTS
+}
+
+/// Get E₆ positive roots / Golden Cone (36)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e6_positive_roots")]
+pub fn e6_positive_roots() -> i32 {
+    E6_POSITIVE_ROOTS
+}
+
+/// Get E₆ fundamental representation (27)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e6_fundamental")]
+pub fn e6_fundamental() -> i32 {
+    E6_FUNDAMENTAL
+}
+
+/// Get E₆ rank (6)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e6_rank")]
+pub fn e6_rank() -> i32 {
+    E6_RANK
+}
+
+/// Get E₆ Coxeter number (12)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e6_coxeter")]
+pub fn e6_coxeter() -> i32 {
+    E6_COXETER
+}
+
+/// Get D₄ rank (4)
+#[pyfunction]
+#[pyo3(name = "hierarchy_d4_rank")]
+pub fn d4_rank() -> i32 {
+    D4_RANK
+}
+
+/// Get D₄ Coxeter number (6)
+#[pyfunction]
+#[pyo3(name = "hierarchy_d4_coxeter")]
+pub fn d4_coxeter() -> i32 {
+    D4_COXETER
+}
+
+/// Get G₂ rank (2)
+#[pyfunction]
+#[pyo3(name = "hierarchy_g2_rank")]
+pub fn g2_rank() -> i32 {
+    G2_RANK
+}
+
+/// Get F₄ rank (4)
+#[pyfunction]
+#[pyo3(name = "hierarchy_f4_rank")]
+pub fn f4_rank() -> i32 {
+    F4_RANK
+}
+
 /// Initialize geometric divisors in constant memory
 ///
 /// Args:

@@ -1,283 +1,197 @@
-//! Prime Selection Rules for SRT Physics
-//!
-//! Implements the number-theoretic selection rules that determine:
-//! - Gauge forces (Fermat primes)
-//! - Matter stability (Mersenne primes)
-//! - Dark sector (Lucas primes)
+// =============================================================================
+// Pisano Period Functions
+// =============================================================================
 
+use crate::tensor::srt_kernels::PHI;
 use pyo3::prelude::*;
 
-// ============================================================================
-// Constants
-// ============================================================================
-
-/// Fermat primes F_n = 2^(2^n) + 1 for n = 0..4
-pub const FERMAT_PRIMES: [u64; 5] = [3, 5, 17, 257, 65537];
-
-/// Mersenne prime exponents where M_p = 2^p - 1 is prime
-pub const MERSENNE_EXPONENTS: [u32; 8] = [2, 3, 5, 7, 13, 17, 19, 31];
-
-/// First 20 Lucas numbers L_n = φ^n + (φ')^n
-pub const LUCAS_SEQUENCE: [u64; 20] = [
-    2, 1, 3, 4, 7, 11, 18, 29, 47, 76, 123, 199, 322, 521, 843, 1364, 2207, 3571, 5778, 9349,
-];
-
-/// Lucas primes (L_n where L_n is prime)
-pub const LUCAS_PRIMES: [u64; 10] = [2, 3, 7, 11, 29, 47, 199, 521, 2207, 3571];
-
-/// The M_11 barrier: 2^11 - 1 = 2047 = 23 × 89 (composite)
-pub const M11_BARRIER: u64 = 2047;
-
-/// Generation barrier factors
-pub const M11_FACTOR_1: u64 = 23;
-pub const M11_FACTOR_2: u64 = 89;
-
-// ============================================================================
-// Fermat Prime Functions (Gauge Forces)
-// ============================================================================
-
-/// Compute Fermat number F_n = 2^(2^n) + 1
+/// Calculates the Pisano Period π(n): the period of Fibonacci sequence mod n.
+/// This determines the "Hook Length" for stable winding modes.
+///
+/// # Mathematical foundation
+/// - π(p) is the minimal k such that F_k ≡ 0 (mod p) and F_{k+1} ≡ 1 (mod p)
+/// - For prime p: π(p) divides p - 1 if p ≡ ±1 (mod 5), else divides 2(p + 1)
 #[pyfunction]
-pub fn fermat_number(n: u32) -> PyResult<u64> {
-    if n > 5 {
-        return Err(pyo3::exceptions::PyValueError::new_err(
-            "Fermat numbers for n > 5 are too large for u64",
-        ));
-    }
-    let exp = 1u64 << n; // 2^n
-    Ok((1u64 << exp) + 1) // 2^(2^n) + 1
-}
-
-/// Check if Fermat number F_n is prime (valid gauge force)
-/// Returns true for n ∈ {0, 1, 2, 3, 4}, false for n ≥ 5
-#[pyfunction]
-pub fn is_fermat_prime(n: u32) -> bool {
-    n <= 4 // F_0 through F_4 are prime; F_5+ are composite
-}
-
-/// Get force spectrum information
-#[pyfunction]
-pub fn get_force_spectrum() -> Vec<(u32, String, u64, String)> {
-    vec![
-        (
-            0,
-            "Strong".to_string(),
-            3,
-            "SU(3) Color - Trinity".to_string(),
-        ),
-        (
-            1,
-            "Electroweak".to_string(),
-            5,
-            "Symmetry Breaking - Pentagon".to_string(),
-        ),
-        (
-            2,
-            "Dark Boundary".to_string(),
-            17,
-            "Topological Firewall".to_string(),
-        ),
-        (
-            3,
-            "Gravity".to_string(),
-            257,
-            "Geometric Container - 2^8 spinor".to_string(),
-        ),
-        (
-            4,
-            "Versal".to_string(),
-            65537,
-            "Syntonic Repulsion".to_string(),
-        ),
-    ]
-}
-
-// ============================================================================
-// Mersenne Prime Functions (Matter Stability)
-// ============================================================================
-
-/// Compute Mersenne number M_p = 2^p - 1
-#[pyfunction]
-pub fn mersenne_number(p: u32) -> u64 {
-    (1u64 << p) - 1
-}
-
-/// Lucas-Lehmer primality test for Mersenne numbers
-/// M_p is prime iff s_{p-2} ≡ 0 (mod M_p) where s_0=4, s_i = s_{i-1}^2 - 2
-#[pyfunction]
-pub fn is_mersenne_prime(p: u32) -> bool {
-    if p == 2 {
-        return true; // M_2 = 3 is prime
-    }
-    if p < 2 {
-        return false;
-    }
-
-    let mp = mersenne_number(p);
-    let mut s: u128 = 4;
-
-    for _ in 0..(p - 2) {
-        s = (s * s - 2) % (mp as u128);
-    }
-
-    s == 0
-}
-
-/// Get generation spectrum information
-#[pyfunction]
-pub fn get_generation_spectrum() -> Vec<(u32, String, u64, Vec<String>)> {
-    vec![
-        (
-            2,
-            "Generation 1".to_string(),
-            3,
-            vec!["Electron".to_string(), "Up".to_string(), "Down".to_string()],
-        ),
-        (
-            3,
-            "Generation 2".to_string(),
-            7,
-            vec![
-                "Muon".to_string(),
-                "Charm".to_string(),
-                "Strange".to_string(),
-            ],
-        ),
-        (
-            5,
-            "Generation 3".to_string(),
-            31,
-            vec!["Tau".to_string(), "Bottom".to_string()],
-        ),
-        (
-            7,
-            "Heavy Anchor".to_string(),
-            127,
-            vec!["Top".to_string(), "Higgs VEV".to_string()],
-        ),
-    ]
-}
-
-/// Explain why there's no 4th generation
-#[pyfunction]
-pub fn generation_barrier_explanation() -> String {
-    format!(
-        "M_11 = 2^11 - 1 = {} = {} × {} (composite)\n\
-         The geometry at winding depth 11 factorizes into modes {} and {}.\n\
-         No stable fermion can exist at the 4th generation.\n\
-         This is the M_11 Barrier.",
-        M11_BARRIER, M11_FACTOR_1, M11_FACTOR_2, M11_FACTOR_1, M11_FACTOR_2
-    )
-}
-
-// ============================================================================
-// Lucas Shadow Functions (Dark Sector)
-// ============================================================================
-
-/// Compute Lucas number L_n iteratively
-#[pyfunction]
-pub fn lucas_number(n: u32) -> u64 {
+pub fn pisano_period(n: u64) -> u64 {
     if n == 0 {
-        return 2;
+        return 0;
     }
     if n == 1 {
         return 1;
     }
 
-    let mut a: u64 = 2;
-    let mut b: u64 = 1;
+    let mut a = 0u64;
+    let mut b = 1u64;
 
-    for _ in 1..n {
-        let temp = a + b;
+    // The period is bounded by 6n (Wall's theorem)
+    for i in 0..(6 * n) {
+        let c = (a + b) % n;
         a = b;
-        b = temp;
+        b = c;
+        if a == 0 && b == 1 {
+            return i + 1;
+        }
+    }
+    0 // Should not happen for valid n
+}
+
+/// Batch compute Pisano periods for multiple values
+#[pyfunction]
+pub fn pisano_periods_batch(values: Vec<u64>) -> Vec<u64> {
+    values.iter().map(|&n| pisano_period(n)).collect()
+}
+
+/// Calculates the "Versal Grip" strength.
+/// A mode is "Self-Hooking" if its Pisano period is a multiple of its index.
+/// Returns: (period / n) if self-hooking, 0.0 otherwise
+#[pyfunction]
+pub fn versal_grip_strength(p: u64) -> f64 {
+    let pi = pisano_period(p);
+    if pi > 0 && pi % p == 0 {
+        (pi as f64) / (p as f64)
+    } else {
+        0.0
+    }
+}
+
+// =============================================================================
+// Fibonacci Prime / Transcendence Gate Functions
+// =============================================================================
+
+/// Fibonacci Prime indices - where F_n is prime
+pub const FIBONACCI_PRIME_INDICES: [u64; 11] = [3, 4, 5, 7, 11, 13, 17, 23, 29, 43, 47];
+
+/// Corresponding Fibonacci Primes
+pub const FIBONACCI_PRIMES: [u64; 11] = [
+    2, 3, 5, 13, 89, 233, 1597, 28657, 514229, 433494437, 2971215073,
+];
+
+/// Check if index n corresponds to a "Transcendence Gate"
+/// These are Fibonacci Prime indices that mark ontological phase transitions
+#[pyfunction]
+pub fn is_transcendence_gate(n: u64) -> bool {
+    FIBONACCI_PRIME_INDICES.contains(&n)
+}
+
+/// Get the Fibonacci number at index n
+#[pyfunction]
+pub fn fibonacci_number(n: u64) -> u64 {
+    if n == 0 {
+        return 0;
+    }
+    if n == 1 {
+        return 1;
     }
 
+    let mut a = 0u64;
+    let mut b = 1u64;
+    for _ in 2..=n {
+        let c = a.saturating_add(b);
+        a = b;
+        b = c;
+    }
     b
 }
 
-/// Compute shadow phase (1-φ)^n
+/// Check if F_n is prime (for known indices)
 #[pyfunction]
-pub fn shadow_phase(n: i32) -> f64 {
-    const PHI_CONJUGATE: f64 = -0.6180339887498948; // 1 - φ
-    PHI_CONJUGATE.powi(n)
+pub fn is_fibonacci_prime(n: u64) -> bool {
+    // Check if n is in known Fibonacci Prime indices
+    FIBONACCI_PRIME_INDICES.contains(&n)
 }
 
-/// Check if a Lucas number is prime
+/// Get resonance boost factor for dimension matching Fibonacci Prime index
+/// Returns φ^n for resonant dimensions, 1.0 otherwise
+/// Special case: n=4 (Material Anomaly) gets 0.9× destabilization
 #[pyfunction]
-pub fn is_lucas_prime(n: u32) -> bool {
-    let ln = lucas_number(n);
-    is_prime_u64(ln)
+pub fn fibonacci_resonance_boost(n: u64) -> f64 {
+    if !is_transcendence_gate(n) {
+        return 1.0;
+    }
+
+    let boost = PHI.powi(n as i32);
+    if n == 4 {
+        // Material Anomaly: composite index producing prime
+        boost * 0.9
+    } else {
+        boost
+    }
 }
 
-/// Simple primality test for u64
-fn is_prime_u64(n: u64) -> bool {
-    if n < 2 {
-        return false;
-    }
-    if n == 2 || n == 3 {
-        return true;
-    }
-    if n % 2 == 0 || n % 3 == 0 {
-        return false;
-    }
+// =============================================================================
+// Lucas Gap / Dark Energy Functions
+// =============================================================================
 
-    let mut i = 5u64;
-    while i * i <= n {
-        if n % i == 0 || n % (i + 2) == 0 {
-            return false;
-        }
-        i += 6;
-    }
-    true
-}
+/// Lucas Prime indices - where L_n is prime
+pub const LUCAS_PRIME_INDICES: [u64; 13] = [0, 2, 4, 5, 7, 8, 11, 13, 16, 17, 19, 31, 37];
 
-/// Dark matter mass prediction from Lucas boost
+/// Check if index n is in a Lucas Gap (no Lucas prime at this index)
 #[pyfunction]
-pub fn dark_matter_mass_prediction() -> (f64, String) {
-    let l17 = lucas_number(17) as f64; // 3571
-    let l13 = lucas_number(13) as f64; // 521
-    let lucas_boost = l17 / l13; // ≈ 6.85
-    let top_mass = 173.0; // GeV
-    let prediction = top_mass * lucas_boost / 1000.0; // TeV
-
-    (
-        prediction,
-        format!(
-            "Dark Matter Mass = m_top × (L_17/L_13) = {} GeV × ({}/{}) = {:.2} TeV",
-            top_mass, l17 as u64, l13 as u64, prediction
-        ),
-    )
+pub fn is_lucas_gap(n: u64) -> bool {
+    !LUCAS_PRIME_INDICES.contains(&n)
 }
 
-// ============================================================================
-// PyO3 Module Registration
-// ============================================================================
+/// Compute "Gap Pressure" - Dark Energy contribution at index n
+/// In gaps: delocalized shadow energy → repulsive pressure
+/// At primes: crystallized → no pressure
+#[pyfunction]
+pub fn lucas_gap_pressure(n: u64) -> f64 {
+    if !is_lucas_gap(n) {
+        return 0.0;
+    }
 
-pub fn register_prime_selection(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // Fermat functions
-    m.add_function(wrap_pyfunction!(fermat_number, m)?)?;
-    m.add_function(wrap_pyfunction!(is_fermat_prime, m)?)?;
-    m.add_function(wrap_pyfunction!(get_force_spectrum, m)?)?;
+    // Find nearest Lucas prime index
+    let nearest = LUCAS_PRIME_INDICES
+        .iter()
+        .min_by_key(|&&p| (p as i64 - n as i64).abs())
+        .copied()
+        .unwrap_or(0);
 
-    // Mersenne functions
-    m.add_function(wrap_pyfunction!(mersenne_number, m)?)?;
-    m.add_function(wrap_pyfunction!(is_mersenne_prime, m)?)?;
-    m.add_function(wrap_pyfunction!(get_generation_spectrum, m)?)?;
-    m.add_function(wrap_pyfunction!(generation_barrier_explanation, m)?)?;
+    let gap_distance = (n as i64 - nearest as i64).abs() as f64;
+    let shadow_phase = (1.0 - PHI).powi(n as i32);
 
-    // Lucas functions
-    m.add_function(wrap_pyfunction!(lucas_number, m)?)?;
-    m.add_function(wrap_pyfunction!(shadow_phase, m)?)?;
-    m.add_function(wrap_pyfunction!(is_lucas_prime, m)?)?;
-    m.add_function(wrap_pyfunction!(dark_matter_mass_prediction, m)?)?;
+    gap_distance * shadow_phase.abs()
+}
 
-    // Constants
-    m.add("FERMAT_PRIMES", FERMAT_PRIMES.to_vec())?;
-    m.add("MERSENNE_EXPONENTS", MERSENNE_EXPONENTS.to_vec())?;
-    m.add("LUCAS_SEQUENCE", LUCAS_SEQUENCE.to_vec())?;
-    m.add("LUCAS_PRIMES", LUCAS_PRIMES.to_vec())?;
-    m.add("M11_BARRIER", M11_BARRIER)?;
+// =============================================================================
+// Fibonacci Prime Access Functions
+// =============================================================================
+
+/// Get the list of known Fibonacci primes
+#[pyfunction]
+pub fn get_fibonacci_primes() -> Vec<u64> {
+    FIBONACCI_PRIMES.to_vec()
+}
+
+/// Get Fibonacci prime at index i (0-indexed)
+#[pyfunction]
+pub fn fibonacci_prime(i: usize) -> Option<u64> {
+    FIBONACCI_PRIMES.get(i).copied()
+}
+
+// =============================================================================
+// Register all new functions with PyO3
+// =============================================================================
+
+pub fn register_extended_prime_selection(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    // Pisano functions
+    m.add_function(wrap_pyfunction!(pisano_period, m)?)?;
+    m.add_function(wrap_pyfunction!(pisano_periods_batch, m)?)?;
+    m.add_function(wrap_pyfunction!(versal_grip_strength, m)?)?;
+
+    // Fibonacci/Transcendence functions
+    m.add_function(wrap_pyfunction!(is_transcendence_gate, m)?)?;
+    m.add_function(wrap_pyfunction!(fibonacci_number, m)?)?;
+    m.add_function(wrap_pyfunction!(is_fibonacci_prime, m)?)?;
+    m.add_function(wrap_pyfunction!(fibonacci_resonance_boost, m)?)?;
+
+    // Lucas Gap functions
+    m.add_function(wrap_pyfunction!(is_lucas_gap, m)?)?;
+    m.add_function(wrap_pyfunction!(lucas_gap_pressure, m)?)?;
+
+    // Fibonacci Prime access functions
+    m.add_function(wrap_pyfunction!(get_fibonacci_primes, m)?)?;
+    m.add_function(wrap_pyfunction!(fibonacci_prime, m)?)?;
 
     Ok(())
 }

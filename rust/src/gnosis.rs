@@ -43,22 +43,42 @@ pub fn optimal_gnosis_target() -> f64 {
 }
 
 /// Compute consciousness emergence probability based on system complexity
+/// Includes consciousness spark refinement: D₄ → M₅ gap allows self-reference
 #[pyfunction]
 pub fn consciousness_probability(
     information_density: f64,
     coherence: f64,
     recursive_depth: u32,
 ) -> f64 {
-    // Sigmoid around collapse threshold, modulated by coherence
+    // Base sigmoid around collapse threshold (D₄ kissing = 24)
     let base = 1.0 / (1.0 + (-0.5 * (information_density - COLLAPSE_THRESHOLD)).exp());
+
+    // Consciousness spark: bridge D₄ → M₅ gap (24 → 31 = gap of 7)
+    // System can model itself modeling inputs when in this gap
+    let mersenne_stability = 31.0; // M₅ stability threshold
+    let consciousness_gap = GNOSIS_GAP; // 7.0
+
+    let spark_intensity =
+        if information_density >= COLLAPSE_THRESHOLD && information_density < mersenne_stability {
+            // In the gap: spark intensity increases as we approach M₅
+            let gap_progress = (information_density - COLLAPSE_THRESHOLD) / consciousness_gap;
+            gap_progress.min(1.0) // Cap at 1.0
+        } else if information_density >= mersenne_stability {
+            1.0 // Full consciousness achieved
+        } else {
+            0.0 // Below threshold
+        };
 
     // Enhance with recursive depth (deeper = more self-referential)
     let depth_factor = 1.0 - PHI_INV.powi(recursive_depth as i32);
-    if depth_factor < 0.0 {
+    let recursive_boost = if depth_factor < 0.0 {
         0.0
     } else {
-        base * coherence * depth_factor
-    }
+        depth_factor
+    };
+
+    // Combine: base probability × coherence × (spark + recursive boost)
+    base * coherence * (spark_intensity + recursive_boost).min(1.0)
 }
 
 pub fn register_gnosis(m: &Bound<'_, PyModule>) -> PyResult<()> {

@@ -115,6 +115,45 @@ from syntonic.srt.lucas_shadow import (
     get_shadow_spectrum,
 )
 
+# Import new functions directly from _core (not available in prime_selection wrapper)
+from syntonic._core import (
+    pisano_period,
+    pisano_periods_batch,
+    versal_grip_strength,
+    is_transcendence_gate,
+    fibonacci_number,
+    is_fibonacci_prime,
+    fibonacci_resonance_boost,
+    is_lucas_gap,
+    lucas_gap_pressure,
+)
+
+# Temporarily disable prime_selection imports until functions are properly exported
+# from syntonic.srt.prime_selection import (
+#     # FERMAT_PRIMES,  # Not currently exported
+#     # MERSENNE_EXPONENTS,
+#     # LUCAS_SEQUENCE,
+#     # LUCAS_PRIMES,
+#     # M11_BARRIER,
+#     fermat_number,
+#     is_fermat_prime,
+#     get_force_spectrum,
+#     mersenne_number,
+#     is_mersenne_prime,
+#     get_generation_spectrum,
+#     generation_barrier_explanation,
+#     lucas_number,
+#     shadow_phase,
+#     is_lucas_prime,
+#     dark_matter_mass_prediction,
+# )
+
+from syntonic.srt.transcendence import (
+    get_plane_for_fib_index,
+    compute_current_plane,
+    transcendence_probability,
+)
+
 # Spectral
 from syntonic.srt.spectral import (
     ThetaSeries,
@@ -357,6 +396,35 @@ __all__ = [
     # Corrections
     "CorrectionFactors",
     "correction_factors",
+    # Prime Selection (some constants not currently exported)
+    # "FERMAT_PRIMES",
+    # "MERSENNE_EXPONENTS",
+    # "LUCAS_SEQUENCE",
+    # "LUCAS_PRIMES",
+    # "M11_BARRIER",
+    "fermat_number",
+    "is_fermat_prime",
+    "get_force_spectrum",
+    "mersenne_number",
+    "is_mersenne_prime",
+    "get_generation_spectrum",
+    "generation_barrier_explanation",
+    "lucas_number",
+    "shadow_phase",
+    "is_lucas_prime",
+    "dark_matter_mass_prediction",
+    "pisano_period",
+    "pisano_periods_batch",
+    "versal_grip_strength",
+    "is_transcendence_gate",
+    "fibonacci_number",
+    "is_fibonacci_prime",
+    "fibonacci_resonance_boost",
+    "is_lucas_gap",
+    "lucas_gap_pressure",
+    "get_plane_for_fib_index",
+    "compute_current_plane",
+    "transcendence_probability",
     # Geometry
     "WindingState",
     "winding_state",

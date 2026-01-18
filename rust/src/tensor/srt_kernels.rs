@@ -492,6 +492,8 @@ const PRIME_OPS_FUNCS: &[&str] = &[
     "fermat_prime_check_kernel",
     "lucas_prime_check_kernel",
     "pisano_period_kernel",
+    "fibonacci_resonance_boost_kernel",
+    "lucas_gap_pressure_kernel",
 ];
 
 /// Gnosis kernel functions (consciousness metrics)

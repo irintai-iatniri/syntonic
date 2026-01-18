@@ -58,8 +58,87 @@ from syntonic.crt.operators import (
     K_D4,
 )
 
+# Extended hierarchy corrections
+from syntonic._core import (
+    hierarchy_e8_dim,
+    hierarchy_e7_dim,
+    hierarchy_e6_dim,
+    hierarchy_d4_dim,
+    hierarchy_d4_kissing,
+    hierarchy_g2_dim,
+    hierarchy_f4_dim,
+    hierarchy_coxeter_kissing_720,
+    hierarchy_exponent,
+    hierarchy_apply_e7_correction,
+    hierarchy_apply_collapse_threshold_correction,
+    hierarchy_apply_coxeter_kissing_correction,
+    # Newly exposed hierarchy constants
+    hierarchy_e8_roots,
+    hierarchy_e8_positive_roots,
+    hierarchy_e8_rank,
+    hierarchy_e8_coxeter,
+    hierarchy_e7_roots,
+    hierarchy_e7_positive_roots,
+    hierarchy_e7_fundamental,
+    hierarchy_e7_rank,
+    hierarchy_e7_coxeter,
+    hierarchy_e6_roots,
+    hierarchy_e6_positive_roots,
+    hierarchy_e6_fundamental,
+    hierarchy_e6_rank,
+    hierarchy_e6_coxeter,
+    hierarchy_d4_rank,
+    hierarchy_d4_coxeter,
+    hierarchy_g2_rank,
+    hierarchy_f4_rank,
+)
+
+from syntonic.crt.extended_hierarchy import (
+    apply_e7_correction,
+    apply_collapse_threshold,
+    apply_coxeter_kissing,
+)
+
+# Structure dimensions dictionary (comprehensive)
+STRUCTURE_DIMENSIONS = {
+    # E8 Family
+    "E8_DIM": hierarchy_e8_dim(),  # 248
+    "E8_ROOTS": hierarchy_e8_roots(),  # 240
+    "E8_POSITIVE": hierarchy_e8_positive_roots(),  # 120
+    "E8_RANK": hierarchy_e8_rank(),  # 8
+    "E8_COXETER": hierarchy_e8_coxeter(),  # 30
+    # E7 Family
+    "E7_DIM": hierarchy_e7_dim(),  # 133
+    "E7_ROOTS": hierarchy_e7_roots(),  # 126
+    "E7_POSITIVE": hierarchy_e7_positive_roots(),  # 63
+    "E7_FUNDAMENTAL": hierarchy_e7_fundamental(),  # 56
+    "E7_RANK": hierarchy_e7_rank(),  # 7
+    "E7_COXETER": hierarchy_e7_coxeter(),  # 18
+    # E6 Family
+    "E6_DIM": hierarchy_e6_dim(),  # 78
+    "E6_ROOTS": hierarchy_e6_roots(),  # 72
+    "E6_POSITIVE": hierarchy_e6_positive_roots(),  # 36 (Golden Cone)
+    "E6_FUNDAMENTAL": hierarchy_e6_fundamental(),  # 27
+    "E6_RANK": hierarchy_e6_rank(),  # 6
+    "E6_COXETER": hierarchy_e6_coxeter(),  # 12
+    # D4 Family
+    "D4_DIM": hierarchy_d4_dim(),  # 28
+    "D4_KISSING": hierarchy_d4_kissing(),  # 24
+    "D4_RANK": hierarchy_d4_rank(),  # 4
+    "D4_COXETER": hierarchy_d4_coxeter(),  # 6
+    # G2 Family
+    "G2_DIM": hierarchy_g2_dim(),  # 14
+    "G2_RANK": hierarchy_g2_rank(),  # 2
+    # F4 Family
+    "F4_DIM": hierarchy_f4_dim(),  # 52
+    "F4_RANK": hierarchy_f4_rank(),  # 4
+    # Derived quantities
+    "COXETER_KISSING": hierarchy_coxeter_kissing_720(),  # 720
+    "HIERARCHY_EXPONENT": hierarchy_exponent(),  # 719
+}
+
 # Evolution
-from python.syntonic.crt.dhsr_evolution import (
+from syntonic.crt.dhsr_evolution import (
     SyntonyTrajectory,
     DHSREvolver,
     default_evolver,
@@ -150,30 +229,30 @@ def create_evolver(
 
 __all__ = [
     # Operators
-    'OperatorBase',
-    'FourierProjector',
-    'DampingProjector',
-    'LaplacianOperator',
-    'create_mode_projectors',
-    'create_damping_cascade',
-    'DifferentiationOperator',
-    'default_differentiation_operator',
-    'HarmonizationOperator',
-    'default_harmonization_operator',
-    'RecursionOperator',
-    'default_recursion_operator',
-    'SyntonyComputer',
-    'syntony_entropy',
-    'syntony_spectral',
-    'syntony_quick',
-    'GnosisComputer',
-    'default_gnosis_computer',
-    'K_D4',
+    "OperatorBase",
+    "FourierProjector",
+    "DampingProjector",
+    "LaplacianOperator",
+    "create_mode_projectors",
+    "create_damping_cascade",
+    "DifferentiationOperator",
+    "default_differentiation_operator",
+    "HarmonizationOperator",
+    "default_harmonization_operator",
+    "RecursionOperator",
+    "default_recursion_operator",
+    "SyntonyComputer",
+    "syntony_entropy",
+    "syntony_spectral",
+    "syntony_quick",
+    "GnosisComputer",
+    "default_gnosis_computer",
+    "K_D4",
     # Evolution
-    'SyntonyTrajectory',
-    'DHSREvolver',
-    'default_evolver',
+    "SyntonyTrajectory",
+    "DHSREvolver",
+    "default_evolver",
     # Factories
-    'create_dhsr_system',
-    'create_evolver',
+    "create_dhsr_system",
+    "create_evolver",
 ]

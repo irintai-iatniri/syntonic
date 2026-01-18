@@ -50,36 +50,48 @@ from python.syntonic.nn.architectures.syntonic_transformer import (
     PureSyntonicTransformerEncoder,
     PureSyntonicTransformer,
 )
+from syntonic.nn.layers.prime_syntony_gate import (
+    PrimeSyntonyGate,
+    WindingAttention,
+    SRTTransformerBlock,
+    get_stable_dimensions,
+    suggest_network_dimensions,
+)
 
 __all__ = [
     # MLP
-    'SyntonicMLP',
-    'SyntonicLinear',
-    'PureSyntonicMLP',
-    'PureSyntonicLinear',
-    'PureDeepSyntonicMLP',
+    "SyntonicMLP",
+    "SyntonicLinear",
+    "PureSyntonicMLP",
+    "PureSyntonicLinear",
+    "PureDeepSyntonicMLP",
     # CNN
-    'SyntonicConv2d',
-    'RecursionConvBlock',
-    'SyntonicCNN',
-    'PureSyntonicConv1d',
-    'PureSyntonicCNN1d',
+    "SyntonicConv2d",
+    "RecursionConvBlock",
+    "SyntonicCNN",
+    "PureSyntonicConv1d",
+    "PureSyntonicCNN1d",
     # Embeddings
-    'SyntonicEmbedding',
-    'WindingEmbedding',
-    'PositionalEncoding',
-    'PureSyntonicEmbedding',
-    'PureWindingEmbedding',
-    'PurePositionalEncoding',
+    "SyntonicEmbedding",
+    "WindingEmbedding",
+    "PositionalEncoding",
+    "PureSyntonicEmbedding",
+    "PureWindingEmbedding",
+    "PurePositionalEncoding",
     # Attention
-    'SyntonicAttention',
-    'GnosisAttention',
-    'MultiHeadSyntonicAttention',
-    'PureSyntonicAttention',
-    'PureMultiHeadSyntonicAttention',
+    "SyntonicAttention",
+    "GnosisAttention",
+    "MultiHeadSyntonicAttention",
+    "PureSyntonicAttention",
+    "PureMultiHeadSyntonicAttention",
     # Transformer (Pure only - PyTorch version removed)
-    'PureDHTransformerLayer',
-    'PureSyntonicTransformerEncoder',
-    'PureSyntonicTransformer',
+    "PureDHTransformerLayer",
+    "PureSyntonicTransformerEncoder",
+    "PureSyntonicTransformer",
+    # Prime Syntony Gates
+    "PrimeSyntonyGate",
+    "WindingAttention",
+    "SRTTransformerBlock",
+    "get_stable_dimensions",
+    "suggest_network_dimensions",
 ]
-

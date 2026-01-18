@@ -10,6 +10,7 @@ mod prime_selection;
 mod resonant;
 mod spectral;
 mod tensor;
+mod transcendence;
 mod winding;
 
 use hypercomplex::{Octonion, Quaternion};
@@ -33,9 +34,10 @@ use winding::{
     WindingState, WindingStateIterator,
 };
 
-// Prime selection and gnosis
+// Prime selection, gnosis, and transcendence
 use gnosis::register_gnosis;
-use prime_selection::register_prime_selection;
+use prime_selection::register_extended_prime_selection;
+use transcendence::register_transcendence;
 
 // Spectral operations
 use spectral::{
@@ -348,6 +350,26 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hierarchy::coxeter_kissing_720, m)?)?;
     m.add_function(wrap_pyfunction!(hierarchy::hierarchy_exponent, m)?)?;
 
+    // Extended hierarchy constants
+    m.add_function(wrap_pyfunction!(hierarchy::e8_roots, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e8_positive_roots, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e8_rank, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e8_coxeter, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e7_roots, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e7_positive_roots, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e7_fundamental, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e7_rank, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e7_coxeter, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e6_roots, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e6_positive_roots, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e6_fundamental, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e6_rank, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e6_coxeter, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::d4_rank, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::d4_coxeter, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::g2_rank, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::f4_rank, m)?)?;
+
     // === GoldenGELU Activation ===
     m.add_function(wrap_pyfunction!(golden_gelu::golden_gelu_forward, m)?)?;
     m.add_function(wrap_pyfunction!(golden_gelu::golden_gelu_backward, m)?)?;
@@ -580,10 +602,13 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_q_correction_scalar, m)?)?;
 
     // === Prime Selection Rules ===
-    register_prime_selection(m)?;
+    register_extended_prime_selection(m)?;
 
     // === Gnosis/Consciousness Module ===
     register_gnosis(m)?;
+
+    // === Transcendence Module ===
+    register_transcendence(m)?;
 
     Ok(())
 }

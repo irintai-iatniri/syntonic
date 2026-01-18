@@ -418,3 +418,171 @@ extern "C" __global__ void apply_suppression_kernel(
         results[idx] = values[idx] / (1.0 + Q * phi_factor);
     }
 }
+
+// ============================================================================
+// Pisano Period Kernels (Hook Length Computation)
+// ============================================================================
+
+/**
+ * Compute Pisano periods for batch of moduli n
+ * π(n): period of Fibonacci sequence mod n
+ * Used for determining "Hook Length" in stable winding modes
+ */
+extern "C" __global__ void pisano_period_kernel(
+    const unsigned long long* n_values,
+    unsigned long long* periods,
+    int count
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < count) {
+        unsigned long long n = n_values[idx];
+        if (n == 0) {
+            periods[idx] = 0;
+            return;
+        }
+        if (n == 1) {
+            periods[idx] = 1;
+            return;
+        }
+
+        unsigned long long a = 0, b = 1;
+        unsigned long long period = 0;
+
+        // Pisano period is bounded by 6n (Wall's theorem)
+        for (unsigned long long i = 0; i < 6 * n; i++) {
+            unsigned long long c = (a + b) % n;
+            a = b;
+            b = c;
+            if (a == 0 && b == 1) {
+                period = i + 1;
+                break;
+            }
+        }
+
+        periods[idx] = period;
+    }
+}
+
+// ============================================================================
+// Fibonacci Transcendence Gate Kernels
+// ============================================================================
+
+/**
+ * Compute Fibonacci resonance boost factors
+ * Returns φ^n for transcendence gates, 1.0 otherwise
+ * Special case: n=4 (Material Anomaly) gets 0.9× destabilization
+ */
+extern "C" __global__ void fibonacci_resonance_boost_kernel(
+    const unsigned long long* n_values,
+    double* boosts,
+    int count
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < count) {
+        unsigned long long n = n_values[idx];
+
+        // Fibonacci Prime indices (transcendence gates)
+        const unsigned long long FIB_PRIME_INDICES[] = {3, 4, 5, 7, 11, 13, 17, 23, 29, 43, 47};
+        bool is_gate = false;
+
+        for (int i = 0; i < 11; i++) {
+            if (n == FIB_PRIME_INDICES[i]) {
+                is_gate = true;
+                break;
+            }
+        }
+
+        if (!is_gate) {
+            boosts[idx] = 1.0;
+            return;
+        }
+
+        // Compute φ^n using binary exponentiation
+        double result = 1.0;
+        double base = PHI;
+        unsigned long long exp = n;
+
+        while (exp > 0) {
+            if (exp & 1) result *= base;
+            base *= base;
+            exp >>= 1;
+        }
+
+        // Material Anomaly: n=4 produces prime from composite seed
+        if (n == 4) {
+            result *= 0.9;  // 10% destabilization factor
+        }
+
+        boosts[idx] = result;
+    }
+}
+
+// ============================================================================
+// Lucas Gap Kernels (Dark Energy Computation)
+// ============================================================================
+
+/**
+ * Compute Lucas gap pressure (dark energy contribution)
+ * In gaps: delocalized shadow energy → repulsive pressure
+ * At primes: crystallized → no pressure
+ */
+extern "C" __global__ void lucas_gap_pressure_kernel(
+    const unsigned long long* n_values,
+    double* pressures,
+    int count
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < count) {
+        unsigned long long n = n_values[idx];
+
+        // Lucas Prime indices (no gaps at these points)
+        const unsigned long long LUCAS_PRIMES[] = {0, 2, 4, 5, 7, 8, 11, 13, 16, 17, 19, 31, 37};
+        bool is_prime = false;
+
+        for (int i = 0; i < 13; i++) {
+            if (n == LUCAS_PRIMES[i]) {
+                is_prime = true;
+                break;
+            }
+        }
+
+        if (is_prime) {
+            pressures[idx] = 0.0;  // No pressure at crystallization points
+            return;
+        }
+
+        // Find nearest Lucas prime index
+        unsigned long long nearest = 0;
+        unsigned long long min_dist = (unsigned long long)-1;
+
+        for (int i = 0; i < 13; i++) {
+            unsigned long long dist = (n > LUCAS_PRIMES[i]) ?
+                (n - LUCAS_PRIMES[i]) : (LUCAS_PRIMES[i] - n);
+            if (dist < min_dist) {
+                min_dist = dist;
+                nearest = LUCAS_PRIMES[i];
+            }
+        }
+
+        // Gap distance (signed)
+        long long gap_distance = (long long)n - (long long)nearest;
+
+        // Shadow phase: (1-φ)^n
+        double shadow_phase = 1.0;
+        double base = PHI_CONJUGATE;
+        unsigned long long exp = (gap_distance < 0) ? -gap_distance : gap_distance;
+
+        while (exp > 0) {
+            if (exp & 1) shadow_phase *= base;
+            base *= base;
+            exp >>= 1;
+        }
+
+        if (gap_distance < 0) {
+            shadow_phase = 1.0 / shadow_phase;
+        }
+
+        // Pressure = gap_distance × shadow_phase
+        pressures[idx] = (double)gap_distance * shadow_phase;
+    }
+}

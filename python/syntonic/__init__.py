@@ -100,6 +100,30 @@ from syntonic import crt
 # SRT submodule (spectral and geometry)
 from syntonic import srt
 
+# Prime Selection (SRT/CRT Physics) - temporarily disabled
+# from syntonic.srt.prime_selection import (
+#     FERMAT_PRIMES,
+#     MERSENNE_EXPONENTS,
+#     LUCAS_PRIMES,
+#     fermat_number,
+#     mersenne_number,
+#     lucas_number,
+# )
+
+# Consciousness/Gnosis
+from syntonic.consciousness.gnosis import (
+    COLLAPSE_THRESHOLD,
+    is_conscious,
+    gnosis_score,
+)
+
+# Extended Hierarchy
+from syntonic.crt.extended_hierarchy import (
+    apply_e7_correction,
+    apply_collapse_threshold,
+    apply_coxeter_kissing,
+)
+
 # Applications submodule
 from syntonic import applications
 
@@ -113,69 +137,84 @@ except (ImportError, NameError):
 
 __all__ = [
     # Version
-    '__version__',
-    '__version_info__',
+    "__version__",
+    "__version_info__",
     # State
-    'State',
-    'state',
-    'ResonantTensor',
-    'RESConfig',
-    'RESResult',
-    'ResonantEvolver',
+    "State",
+    "state",
+    "ResonantTensor",
+    "RESConfig",
+    "RESResult",
+    "ResonantEvolver",
     # DTypes
-    'DType',
-    'float32',
-    'float64',
-    'complex64',
-    'complex128',
-    'int32',
-    'int64',
-    'winding',
-    'get_dtype',
-    'promote_dtypes',
+    "DType",
+    "float32",
+    "float64",
+    "complex64",
+    "complex128",
+    "int32",
+    "int64",
+    "winding",
+    "get_dtype",
+    "promote_dtypes",
     # Devices
-    'Device',
-    'cpu',
-    'cuda',
-    'cuda_is_available',
-    'cuda_device_count',
-    'srt_transfer_stats',
-    'srt_reserve_memory',
-    'srt_wait_for_resonance',
-    'srt_pool_stats',
-    'srt_memory_resonance',
-    'device',
+    "Device",
+    "cpu",
+    "cuda",
+    "cuda_is_available",
+    "cuda_device_count",
+    "srt_transfer_stats",
+    "srt_reserve_memory",
+    "srt_wait_for_resonance",
+    "srt_pool_stats",
+    "srt_memory_resonance",
+    "device",
     # Exceptions
-    'SyntonicError',
-    'DeviceError',
-    'DTypeError',
-    'ShapeError',
-    'LinAlgError',
+    "SyntonicError",
+    "DeviceError",
+    "DTypeError",
+    "ShapeError",
+    "LinAlgError",
     # Submodules
-    'linalg',
-    'hypercomplex',
-    'crt',
-    'srt',
-    'applications',
-    'nn',
+    "linalg",
+    "hypercomplex",
+    "crt",
+    "srt",
+    "applications",
+    "nn",
     # Hypercomplex types
-    'Quaternion',
-    'Octonion',
-    'quaternion',
-    'octonion',
+    "Quaternion",
+    "Octonion",
+    "quaternion",
+    "octonion",
     # Exact arithmetic
-    'exact',
-    'GoldenExact',
-    'Rational',
-    'PHI',
-    'PHI_SQUARED',
-    'PHI_INVERSE',
-    'PHI_NUMERIC',
-    'E_STAR_NUMERIC',
-    'Q_DEFICIT_NUMERIC',
-    'STRUCTURE_DIMENSIONS',
-    'fibonacci',
-    'lucas',
-    'correction_factor',
-    'golden_number',
+    "exact",
+    "GoldenExact",
+    "Rational",
+    "PHI",
+    "PHI_SQUARED",
+    "PHI_INVERSE",
+    "PHI_NUMERIC",
+    "E_STAR_NUMERIC",
+    "Q_DEFICIT_NUMERIC",
+    "STRUCTURE_DIMENSIONS",
+    "fibonacci",
+    "lucas",
+    "correction_factor",
+    "golden_number",
+    # Prime Selection (SRT/CRT Physics)
+    "FERMAT_PRIMES",
+    "MERSENNE_EXPONENTS",
+    "LUCAS_PRIMES",
+    "fermat_number",
+    "mersenne_number",
+    "lucas_number",
+    # Consciousness
+    "COLLAPSE_THRESHOLD",
+    "is_conscious",
+    "gnosis_score",
+    # Extended Hierarchy
+    "apply_e7_correction",
+    "apply_collapse_threshold",
+    "apply_coxeter_kissing",
 ]

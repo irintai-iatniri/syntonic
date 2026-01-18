@@ -41,6 +41,7 @@ from syntonic.physics import hadrons
 from syntonic.physics import running
 from syntonic.physics import validation
 from syntonic.physics import sm_verification
+from syntonic.physics import gravity
 
 # Import key classes
 from syntonic.physics.fermions import FermionMasses
@@ -51,6 +52,7 @@ from syntonic.physics.hadrons import HadronMasses
 from syntonic.physics.running import GoldenRG
 from syntonic.physics.validation import validate_all, PDG_VALUES
 from syntonic.physics.sm_verification import verify_all_observables
+from syntonic.physics.gravity import BimetricGravity
 
 # Topology functions for neural network architectures
 from syntonic.physics.topology import (
@@ -106,50 +108,43 @@ class StandardModel:
         """
         return {
             # Fermion masses (MeV for leptons/light quarks, GeV for heavy)
-            'm_e': self.fermions.electron_mass(),
-            'm_mu': self.fermions.muon_mass(),
-            'm_tau': self.fermions.tau_mass(),
-            'm_u': self.fermions.up_mass(),
-            'm_d': self.fermions.down_mass(),
-            'm_s': self.fermions.strange_mass(),
-            'm_c': self.fermions.charm_mass(),
-            'm_b': self.fermions.bottom_mass(),
-            'm_t': self.fermions.top_mass(),
-
+            "m_e": self.fermions.electron_mass(),
+            "m_mu": self.fermions.muon_mass(),
+            "m_tau": self.fermions.tau_mass(),
+            "m_u": self.fermions.up_mass(),
+            "m_d": self.fermions.down_mass(),
+            "m_s": self.fermions.strange_mass(),
+            "m_c": self.fermions.charm_mass(),
+            "m_b": self.fermions.bottom_mass(),
+            "m_t": self.fermions.top_mass(),
             # Gauge bosons (GeV)
-            'm_W': self.bosons.w_mass(),
-            'm_Z': self.bosons.z_mass(),
-            'Gamma_Z': self.bosons.z_width(),
-
+            "m_W": self.bosons.w_mass(),
+            "m_Z": self.bosons.z_mass(),
+            "Gamma_Z": self.bosons.z_width(),
             # Higgs (GeV)
-            'm_H': self.higgs.mass(),
-
+            "m_H": self.higgs.mass(),
             # Couplings
-            'alpha_em': self.bosons.fine_structure_constant(),
-            'alpha_s': self.bosons.strong_coupling(),
-            'sin2_theta_W': self.bosons.weinberg_angle(),
-
+            "alpha_em": self.bosons.fine_structure_constant(),
+            "alpha_s": self.bosons.strong_coupling(),
+            "sin2_theta_W": self.bosons.weinberg_angle(),
             # CKM elements
-            'V_us': self.ckm.V_us(),
-            'V_cb': self.ckm.V_cb(),
-            'V_ub': self.ckm.V_ub(),
-            'J_CP': self.ckm.jarlskog_invariant(),
-
+            "V_us": self.ckm.V_us(),
+            "V_cb": self.ckm.V_cb(),
+            "V_ub": self.ckm.V_ub(),
+            "J_CP": self.ckm.jarlskog_invariant(),
             # PMNS angles (degrees)
-            'theta_12': self.pmns.theta_12(),
-            'theta_23': self.pmns.theta_23(),
-            'theta_13': self.pmns.theta_13(),
-            'delta_CP': self.pmns.delta_CP(),
-
+            "theta_12": self.pmns.theta_12(),
+            "theta_23": self.pmns.theta_23(),
+            "theta_13": self.pmns.theta_13(),
+            "delta_CP": self.pmns.delta_CP(),
             # Neutrinos
-            'm_nu3': self.neutrinos.m_nu3(),
-            'Delta_m2_ratio': self.neutrinos.mass_squared_ratio(),
-
+            "m_nu3": self.neutrinos.m_nu3(),
+            "Delta_m2_ratio": self.neutrinos.mass_squared_ratio(),
             # Hadrons (MeV)
-            'm_p': self.hadrons.proton_mass(),
-            'm_n': self.hadrons.neutron_mass(),
-            'm_pi': self.hadrons.pion_mass(),
-            'm_K': self.hadrons.kaon_mass(),
+            "m_p": self.hadrons.proton_mass(),
+            "m_n": self.hadrons.neutron_mass(),
+            "m_pi": self.hadrons.pion_mass(),
+            "m_K": self.hadrons.kaon_mass(),
         }
 
     def validate(self) -> dict:
@@ -180,42 +175,45 @@ class StandardModel:
             True if all observables within 2% of experimental values
         """
         from syntonic.physics import sm_verification
+
         return sm_verification.verify_all_observables()
 
 
 __all__ = [
     # Constants
-    'V_EW',
-    'M_Z',
-    'M_W_PDG',
-    'M_H_PDG',
-    'ALPHA_EM_0',
+    "V_EW",
+    "M_Z",
+    "M_W_PDG",
+    "M_H_PDG",
+    "ALPHA_EM_0",
     # Submodules
-    'fermions',
-    'bosons',
-    'mixing',
-    'neutrinos',
-    'hadrons',
-    'running',
-    'validation',
-    'sm_verification',
+    "fermions",
+    "bosons",
+    "mixing",
+    "neutrinos",
+    "hadrons",
+    "running",
+    "validation",
+    "sm_verification",
+    "gravity",
     # Classes
-    'StandardModel',
-    'FermionMasses',
-    'GaugeSector',
-    'HiggsSector',
-    'CKMMatrix',
-    'PMNSMatrix',
-    'NeutrinoMasses',
-    'HadronMasses',
-    'GoldenRG',
+    "StandardModel",
+    "FermionMasses",
+    "GaugeSector",
+    "HiggsSector",
+    "CKMMatrix",
+    "PMNSMatrix",
+    "NeutrinoMasses",
+    "HadronMasses",
+    "GoldenRG",
+    "BimetricGravity",
     # Functions
-    'validate_all',
-    'PDG_VALUES',
-    'verify_all_observables',
+    "validate_all",
+    "PDG_VALUES",
+    "verify_all_observables",
     # Topology functions
-    'hooking_coefficient',
-    'golden_resonance',
-    'e8_root_alignment',
-    'compute_tensor_norm',
+    "hooking_coefficient",
+    "golden_resonance",
+    "e8_root_alignment",
+    "compute_tensor_norm",
 ]

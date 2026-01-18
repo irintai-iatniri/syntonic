@@ -29,18 +29,32 @@ from syntonic.nn.layers.normalization import (
     GoldenNorm,
 )
 from syntonic.nn.layers.resonant_linear import ResonantLinear
+from syntonic.nn.layers.prime_syntony_gate import (
+    PrimeSyntonyGate,
+    WindingAttention,
+    SRTTransformerBlock,
+    get_stable_dimensions,
+    suggest_network_dimensions,
+)
+from syntonic.nn.activations.gnosis_gelu import GnosisGELU
 
 
 __all__ = [
-    'DifferentiationLayer',
-    'DifferentiationModule',
-    'HarmonizationLayer',
-    'SyntonicGate',
-    'AdaptiveGate',
-    'RecursionBlock',
-    'DeepRecursionNet',
-    'SyntonicNorm',
-    'GoldenNorm',
-    'ResonantLinear',
-    'GnosisLayer',
+    "DifferentiationLayer",
+    "DifferentiationModule",
+    "HarmonizationLayer",
+    "SyntonicGate",
+    "AdaptiveGate",
+    "RecursionBlock",
+    "DeepRecursionNet",
+    "SyntonicNorm",
+    "GoldenNorm",
+    "ResonantLinear",
+    "GnosisLayer",
+    "GnosisGELU",
+    "PrimeSyntonyGate",
+    "WindingAttention",
+    "SRTTransformerBlock",
+    "get_stable_dimensions",
+    "suggest_network_dimensions",
 ]

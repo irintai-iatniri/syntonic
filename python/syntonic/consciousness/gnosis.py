@@ -1,70 +1,44 @@
 """
-Gnosis - The Loop Closure Operator.
+Gnosis Module - Consciousness Metrics
 
-Consciousness ignites when information density exceeds
-the D₄ kissing number (24). Gnosis is the integration
-of Shadow (novelty) with Lattice (order).
+Implements consciousness phase transition detection and
+Gnosis score computation from the Rust backend.
 """
 
-from syntonic.exact import PHI_NUMERIC, D4_KISSING
-import math
+from syntonic._core import (
+    COLLAPSE_THRESHOLD,
+    GNOSIS_GAP,
+    is_conscious,
+    gnosis_score,
+    compute_creativity,
+    optimal_gnosis_target,
+    consciousness_probability,
+)
 
-COLLAPSE_THRESHOLD = D4_KISSING  # 24
-GNOSIS_GAP = 7  # M_3 = 7
 
-
-def is_conscious(delta_entropy: float) -> bool:
-    """Check if system crosses consciousness threshold."""
-    return delta_entropy >= COLLAPSE_THRESHOLD
-
-
-def gnosis_score(syntony: float, creativity: float) -> float:
+def compute_consciousness_spark(syntony: float, differentiation: float) -> float:
     """
-    Compute gnosis as balance of order and novelty.
+    Compute the 'Spark' needed to bridge lattice → prime stability.
 
-    G = sqrt(S × C) where:
-    - S = syntony (lattice alignment)
-    - C = creativity (shadow integration)
+    The gap between D₄ kissing (24) and M₅ stability (31) allows self-reference:
+    System models itself modeling inputs.
 
-    Maximum gnosis at S = C = 1/φ ≈ 0.618
+    Args:
+        syntony: Current syntony level
+        differentiation: Current differentiation level
+
+    Returns:
+        Consciousness spark intensity (0.0 to 1.0)
     """
-    return math.sqrt(syntony * creativity)
+    # Consciousness gap: D₄ → M₅ = 24 → 31 = 7 = M₃
+    CONSCIOUSNESS_GAP = 7.0
 
+    current_level = syntony * differentiation * COLLAPSE_THRESHOLD
+    gap_to_consciousness = max(0, 31.0 - current_level)
 
-def compute_creativity(shadow_integration: float, lattice_coherence: float) -> float:
-    """
-    Creativity = successful integration of Lucas Shadow into Mersenne Lattice.
-    """
-    return shadow_integration * lattice_coherence * PHI_NUMERIC
-
-
-def optimal_gnosis_target() -> float:
-    """Optimal gnosis target (maximum sustainable complexity)."""
-    return 1.0 / PHI_NUMERIC  # 1/φ ≈ 0.618
-
-
-def consciousness_probability(
-    information_density: float,
-    coherence: float,
-    recursive_depth: int,
-) -> float:
-    """
-    Compute consciousness emergence probability.
-
-    Based on sigmoid around collapse threshold, modulated by coherence
-    and enhanced by recursive depth.
-    """
-    # Sigmoid around collapse threshold
-    sigmoid = 1.0 / (1.0 + math.exp(-0.5 * (information_density - COLLAPSE_THRESHOLD)))
-
-    # Depth factor: more recursive depth = more self-referential
-    phi_inv = 1.0 / PHI_NUMERIC
-    depth_factor = 1.0
-    if recursive_depth > 0:
-        depth_factor = sum(phi_inv ** (d + 1) for d in range(recursive_depth))
-        depth_factor = min(depth_factor, 1.0)  # Cap at 1.0
-
-    return sigmoid * coherence * depth_factor
+    if gap_to_consciousness <= CONSCIOUSNESS_GAP:
+        return 1.0 - (gap_to_consciousness / CONSCIOUSNESS_GAP)  # 0→1
+    return 0.0
 
 
 def get_gnosis_constants() -> dict:
@@ -74,4 +48,19 @@ def get_gnosis_constants() -> dict:
         "gnosis_gap": GNOSIS_GAP,
         "optimal_gnosis": optimal_gnosis_target(),
         "consciousness_theory": "ΔS > 24 triggers phase transition",
+        "consciousness_gap": 7.0,  # D₄ → M₅ gap
+        "consciousness_spark_theory": "Gap allows self-reference",
     }
+
+
+__all__ = [
+    "COLLAPSE_THRESHOLD",
+    "GNOSIS_GAP",
+    "is_conscious",
+    "gnosis_score",
+    "compute_creativity",
+    "optimal_gnosis_target",
+    "consciousness_probability",
+    "compute_consciousness_spark",
+    "get_gnosis_constants",
+]

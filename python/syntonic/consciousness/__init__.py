@@ -1,0 +1,26 @@
+"""
+Consciousness Module
+
+Implements consciousness metrics and phase transitions
+based on SRT mathematics.
+"""
+
+from syntonic.consciousness.gnosis import (
+    COLLAPSE_THRESHOLD,
+    GNOSIS_GAP,
+    is_conscious,
+    gnosis_score,
+    compute_creativity,
+    optimal_gnosis_target,
+    consciousness_probability,
+)
+
+__all__ = [
+    "COLLAPSE_THRESHOLD",
+    "GNOSIS_GAP",
+    "is_conscious",
+    "gnosis_score",
+    "compute_creativity",
+    "optimal_gnosis_target",
+    "consciousness_probability",
+]
