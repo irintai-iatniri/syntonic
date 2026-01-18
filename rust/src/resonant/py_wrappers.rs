@@ -241,14 +241,14 @@ pub fn py_golden_decay_loss(weight_norms: Vec<f64>, lambda_decay: f64) -> f64 {
 /// Check if a Mersenne number 2^p - 1 is prime.
 /// According to Axiom 6: Stable matter exists iff M_p is prime.
 #[pyfunction]
-pub fn py_is_mersenne_prime(n: u128) -> bool {
-    number_theory::is_mersenne_prime(n)
+pub fn py_is_mersenne_prime(p: u32) -> bool {
+    number_theory::is_mersenne_prime(p)
 }
 
 /// Check if a Fermat number 2^(2^n) + 1 is prime.
 /// According to CRT: Forces exist iff F_n is prime.
 #[pyfunction]
-pub fn py_is_fermat_prime(n: u128) -> bool {
+pub fn py_is_fermat_prime(n: u32) -> bool {
     number_theory::is_fermat_prime(n)
 }
 
@@ -262,11 +262,7 @@ pub fn py_is_lucas_prime(n: u64) -> bool {
 /// Compute the nth Lucas number L_n = φ^n + (1-φ)^n.
 #[pyfunction]
 pub fn py_lucas_number(n: u64) -> u128 {
-    if n == 0 {
-        number_theory::lucas_number(0)
-    } else {
-        number_theory::lucas_number(n - 1)
-    }
+    number_theory::lucas_number(n)
 }
 
 /// Compute the Pisano period π(p) for prime p.
@@ -310,7 +306,7 @@ pub fn py_mersenne_sequence(max_p: u32) -> Vec<u64> {
 
 /// Generate Fermat primes up to maximum index.
 #[pyfunction]
-pub fn py_fermat_sequence(max_n: u32) -> Vec<u128> {
+pub fn py_fermat_sequence(max_n: u32) -> Vec<u64> {
     number_theory::fermat_sequence(max_n)
 }
 

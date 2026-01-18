@@ -323,26 +323,12 @@ pub enum TensorData {
     },
 }
 
-/// Metadata for tensor operations (Grand Synthesis integration)
-#[derive(Clone, Debug)]
-pub struct Metadata {
-    /// Winding index for Pisano hooking in tensor operations
-    pub winding_index: u64,
-}
-
-impl Default for Metadata {
-    fn default() -> Self {
-        Metadata { winding_index: 1 }
-    }
-}
-
 /// Core tensor storage
 #[pyclass]
 pub struct TensorStorage {
     pub(crate) data: TensorData,
     pub(crate) shape: Vec<usize>,
     pub(crate) device: DeviceType,
-    pub(crate) metadata: Metadata,
 }
 
 #[pymethods]
@@ -445,11 +431,16 @@ impl TensorStorage {
                 }
             };
 
+        // Transfer to CUDA if requested
+        #[cfg(feature = "cuda")]
+        if let DeviceType::Cuda(idx) = &device_type {
+            return Self::cpu_to_cuda(cpu_data, shape, *idx);
+        }
+
         Ok(TensorStorage {
             data: TensorData::Cpu(cpu_data),
             shape,
             device: device_type,
-            metadata: Metadata::default(),
         })
     }
 
@@ -480,7 +471,6 @@ impl TensorStorage {
             data: TensorData::Cpu(cpu_data),
             shape,
             device: device_type,
-            metadata: Metadata::default(),
         })
     }
 
@@ -511,17 +501,6 @@ impl TensorStorage {
     #[getter]
     pub fn device_name(&self) -> String {
         self.device.to_string()
-    }
-
-    /// Get winding index from metadata
-    #[getter]
-    pub fn winding_index(&self) -> u64 {
-        self.metadata.winding_index
-    }
-
-    /// Set winding index in metadata
-    pub fn set_winding_index(&mut self, winding_index: u64) {
-        self.metadata.winding_index = winding_index;
     }
 
     /// Convert to flat Python list
@@ -577,7 +556,6 @@ impl TensorStorage {
                         data: TensorData::Cpu(cpu_data),
                         shape: self.shape.clone(),
                         device: DeviceType::Cpu,
-                        metadata: Metadata::default(),
                     })
                 }
 
@@ -2318,7 +2296,6 @@ impl TensorStorage {
                 data: TensorData::Cpu(CpuData::Float64(ArrayD::from_elem(IxDyn(&shape), sum))),
                 shape,
                 device: self.device.clone(),
-                metadata: Metadata::default(),
             });
         }
 
@@ -2372,7 +2349,6 @@ impl TensorStorage {
                 data: TensorData::Cpu(CpuData::Float64(ArrayD::from_elem(IxDyn(&shape), mean))),
                 shape,
                 device: self.device.clone(),
-                metadata: Metadata::default(),
             });
         }
 
@@ -3232,7 +3208,6 @@ impl TensorStorage {
             data: TensorData::Cpu(cpu_data),
             shape: self.shape.clone(),
             device: DeviceType::Cpu,
-            metadata: Metadata::default(),
         })
     }
 
@@ -3603,7 +3578,6 @@ impl TensorStorage {
             },
             shape: self.shape.clone(),
             device: self.device.clone(),
-            metadata: Metadata::default(),
         })
     }
 
@@ -3727,7 +3701,6 @@ impl TensorStorage {
             },
             shape: self.shape.clone(),
             device: self.device.clone(),
-            metadata: Metadata::default(),
         })
     }
 
@@ -3901,7 +3874,6 @@ impl TensorStorage {
             data: self.data.clone(),
             shape: self.shape.clone(),
             device: self.device.clone(),
-            metadata: Metadata::default(),
         }
     }
 
@@ -4002,7 +3974,6 @@ impl TensorStorage {
             },
             shape,
             device: DeviceType::Cuda(device_idx),
-            metadata: Metadata::default(),
         })
     }
 
@@ -4149,7 +4120,6 @@ impl TensorStorage {
             data: TensorData::Cpu(data),
             shape,
             device,
-            metadata: Metadata::default(),
         }
     }
 
@@ -4176,7 +4146,6 @@ impl TensorStorage {
             },
             shape,
             device: DeviceType::Cuda(device_idx),
-            metadata: Metadata::default(),
         }
     }
 }
@@ -4346,7 +4315,6 @@ pub fn srt_scale_phi(tensor: &TensorStorage) -> PyResult<TensorStorage> {
                         data: TensorData::Cpu(CpuData::Float64(new_arr)),
                         shape: tensor.shape.clone(),
                         device: DeviceType::Cpu,
-                        metadata: Metadata::default(),
                     })
                 }
                 CpuData::Float32(arr) => {
@@ -4360,7 +4328,6 @@ pub fn srt_scale_phi(tensor: &TensorStorage) -> PyResult<TensorStorage> {
                         data: TensorData::Cpu(CpuData::Float32(new_arr)),
                         shape: tensor.shape.clone(),
                         device: DeviceType::Cpu,
-                        metadata: Metadata::default(),
                     })
                 }
                 _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
@@ -4435,7 +4402,6 @@ pub fn srt_golden_gaussian_weights(vectors: &TensorStorage) -> PyResult<TensorSt
                     data: TensorData::Cpu(CpuData::Float64(new_arr)),
                     shape: output_shape,
                     device: DeviceType::Cpu,
-                    metadata: Metadata::default(),
                 })
             }
             _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
@@ -4503,7 +4469,6 @@ pub fn srt_apply_correction(
                     data: TensorData::Cpu(CpuData::Float64(new_arr)),
                     shape: tensor.shape.clone(),
                     device: DeviceType::Cpu,
-                    metadata: Metadata::default(),
                 })
             }
             CpuData::Float32(arr) => {
@@ -4517,7 +4482,6 @@ pub fn srt_apply_correction(
                     data: TensorData::Cpu(CpuData::Float32(new_arr)),
                     shape: tensor.shape.clone(),
                     device: DeviceType::Cpu,
-                    metadata: Metadata::default(),
                 })
             }
             _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
@@ -4642,7 +4606,6 @@ pub fn srt_e8_batch_projection(
                         )),
                         shape: vec![count, 4],
                         device: DeviceType::Cpu,
-                        metadata: Metadata::default(),
                     };
                     let proj_perp = TensorStorage {
                         data: TensorData::Cpu(CpuData::Float64(
@@ -4654,7 +4617,6 @@ pub fn srt_e8_batch_projection(
                         )),
                         shape: vec![count, 4],
                         device: DeviceType::Cpu,
-                        metadata: Metadata::default(),
                     };
                     let q_values = TensorStorage {
                         data: TensorData::Cpu(CpuData::Float64(
@@ -4666,7 +4628,6 @@ pub fn srt_e8_batch_projection(
                         )),
                         shape: vec![count],
                         device: DeviceType::Cpu,
-                        metadata: Metadata::default(),
                     };
                     let in_cone = TensorStorage {
                         data: TensorData::Cpu(CpuData::Int64(
@@ -4676,7 +4637,6 @@ pub fn srt_e8_batch_projection(
                         )),
                         shape: vec![count],
                         device: DeviceType::Cpu,
-                        metadata: Metadata::default(),
                     };
 
                     Ok((proj_parallel, proj_perp, q_values, in_cone))
@@ -4765,7 +4725,6 @@ pub fn srt_e8_batch_projection(
                             )),
                             shape: vec![count],
                             device: DeviceType::Cpu,
-                            metadata: Metadata::default(),
                         },
                     ))
                 }
@@ -5033,7 +4992,6 @@ pub fn srt_dhsr_cycle(
                         )),
                         shape: psi.shape.clone(),
                         device: DeviceType::Cpu,
-                        metadata: Metadata::default(),
                     };
 
                     Ok((new_psi, new_syntony))

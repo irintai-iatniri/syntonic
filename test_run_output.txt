@@ -1,0 +1,1283 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0 -- /home/Andrew/miniforge3/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /home/Andrew/Documents/SRT Complete/implementation/syntonic
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.12.0, cov-7.0.0, hypothesis-6.148.8
+collecting ... collected 813 items
+
+tests/test_benchmarks/test_convergence.py::TestDatasets::test_xor_shape PASSED [  0%]
+tests/test_benchmarks/test_convergence.py::TestDatasets::test_xor_labels PASSED [  0%]
+tests/test_benchmarks/test_convergence.py::TestDatasets::test_xor_pattern PASSED [  0%]
+tests/test_benchmarks/test_convergence.py::TestDatasets::test_xor_reproducible PASSED [  0%]
+tests/test_benchmarks/test_convergence.py::TestDatasets::test_moons_shape PASSED [  0%]
+tests/test_benchmarks/test_convergence.py::TestDatasets::test_moons_balanced PASSED [  0%]
+tests/test_benchmarks/test_convergence.py::TestDatasets::test_circles_shape PASSED [  0%]
+tests/test_benchmarks/test_convergence.py::TestDatasets::test_train_test_split PASSED [  0%]
+tests/test_benchmarks/test_convergence.py::TestClassificationFitness::test_fitness_callable PASSED [  1%]
+tests/test_benchmarks/test_convergence.py::TestClassificationFitness::test_fitness_accuracy PASSED [  1%]
+tests/test_benchmarks/test_convergence.py::TestClassificationFitness::test_fitness_loss PASSED [  1%]
+tests/test_benchmarks/test_convergence.py::TestClassificationFitness::test_better_weights_higher_fitness PASSED [  1%]
+tests/test_benchmarks/test_convergence.py::TestResonantEvolverWithFitness::test_evolver_step PASSED [  1%]
+tests/test_benchmarks/test_convergence.py::TestResonantEvolverWithFitness::test_evolver_run PASSED [  1%]
+tests/test_benchmarks/test_convergence.py::TestResonantEvolverWithFitness::test_evolver_improves_syntony PASSED [  1%]
+tests/test_benchmarks/test_convergence.py::TestConvergenceSpeedBenchmark::test_benchmark_creation PASSED [  1%]
+tests/test_benchmarks/test_convergence.py::TestConvergenceSpeedBenchmark::test_run_resonant PASSED [  2%]
+tests/test_benchmarks/test_convergence.py::TestConvergenceSpeedBenchmark::test_resonant_learns PASSED [  2%]
+tests/test_benchmarks/test_convergence.py::TestBenchmarkResult::test_result_fields PASSED [  2%]
+tests/test_benchmarks/test_convergence.py::TestPyTorchComparison::test_pytorch_runs PASSED [  2%]
+tests/test_benchmarks/test_convergence.py::TestPyTorchComparison::test_full_comparison PASSED [  2%]
+tests/test_core/test_device.py::TestDeviceBasics::test_cpu_device PASSED [  2%]
+tests/test_core/test_device.py::TestDeviceBasics::test_cpu_str PASSED    [  2%]
+tests/test_core/test_device.py::TestDeviceBasics::test_cpu_repr PASSED   [  2%]
+tests/test_core/test_device.py::TestDeviceBasics::test_cuda_device_properties PASSED [  3%]
+tests/test_core/test_device.py::TestDeviceBasics::test_cuda_device_with_index PASSED [  3%]
+tests/test_core/test_device.py::TestDeviceBasics::test_cuda_device_no_index PASSED [  3%]
+tests/test_core/test_device.py::TestDeviceBasics::test_cuda_str PASSED   [  3%]
+tests/test_core/test_device.py::TestDeviceBasics::test_cuda_repr PASSED  [  3%]
+tests/test_core/test_device.py::TestCudaFunctions::test_cuda_is_available PASSED [  3%]
+tests/test_core/test_device.py::TestCudaFunctions::test_cuda_device_count PASSED [  3%]
+tests/test_core/test_device.py::TestCudaFunctions::test_cuda_function_returns_device PASSED [  3%]
+tests/test_core/test_device.py::TestCudaFunctions::test_cuda_function_with_different_index PASSED [  4%]
+tests/test_core/test_device.py::TestDeviceParser::test_parse_cpu PASSED  [  4%]
+tests/test_core/test_device.py::TestDeviceParser::test_parse_cuda PASSED [  4%]
+tests/test_core/test_device.py::TestDeviceParser::test_parse_cuda_with_index PASSED [  4%]
+tests/test_core/test_device.py::TestDeviceParser::test_parse_unknown_raises PASSED [  4%]
+tests/test_core/test_device.py::TestDeviceInSyntonic::test_syn_cpu PASSED [  4%]
+tests/test_core/test_device.py::TestDeviceInSyntonic::test_syn_cuda_is_available PASSED [  4%]
+tests/test_core/test_device.py::TestDeviceInSyntonic::test_syn_cuda_device_count PASSED [  4%]
+tests/test_core/test_device.py::TestDeviceInSyntonic::test_syn_device_parser PASSED [  5%]
+tests/test_core/test_device.py::TestDeviceInSyntonic::test_syn_device_cuda PASSED [  5%]
+tests/test_core/test_dtype.py::TestDTypeBasics::test_str PASSED          [  5%]
+tests/test_core/test_dtype.py::TestDTypeBasics::test_repr PASSED         [  5%]
+tests/test_core/test_dtype.py::TestDTypeBasics::test_float32_properties PASSED [  5%]
+tests/test_core/test_dtype.py::TestDTypeBasics::test_float64_properties PASSED [  5%]
+tests/test_core/test_dtype.py::TestDTypeBasics::test_complex64_properties PASSED [  5%]
+tests/test_core/test_dtype.py::TestDTypeBasics::test_complex128_properties PASSED [  5%]
+tests/test_core/test_dtype.py::TestDTypeBasics::test_int32_properties PASSED [  6%]
+tests/test_core/test_dtype.py::TestDTypeBasics::test_int64_properties PASSED [  6%]
+tests/test_core/test_dtype.py::TestDTypeBasics::test_winding_properties PASSED [  6%]
+tests/test_core/test_dtype.py::TestGetDType::test_get_dtype_from_dtype PASSED [  6%]
+tests/test_core/test_dtype.py::TestGetDType::test_get_dtype_from_string PASSED [  6%]
+tests/test_core/test_dtype.py::TestGetDType::test_get_dtype_from_numpy_dtype PASSED [  6%]
+tests/test_core/test_dtype.py::TestGetDType::test_get_dtype_unknown_raises PASSED [  6%]
+tests/test_core/test_dtype.py::TestPromoteDTypes::test_promote_same_dtype PASSED [  6%]
+tests/test_core/test_dtype.py::TestPromoteDTypes::test_promote_float_sizes PASSED [  7%]
+tests/test_core/test_dtype.py::TestPromoteDTypes::test_promote_complex_precedence PASSED [  7%]
+tests/test_core/test_dtype.py::TestPromoteDTypes::test_promote_complex64_with_float PASSED [  7%]
+tests/test_core/test_dtype.py::TestPromoteDTypes::test_promote_complex128_with_float PASSED [  7%]
+tests/test_core/test_dtype.py::TestPromoteDTypes::test_promote_complex_sizes PASSED [  7%]
+tests/test_core/test_state.py::TestStateCreation::test_from_list PASSED  [  7%]
+tests/test_core/test_state.py::TestStateCreation::test_from_complex_list PASSED [  7%]
+tests/test_core/test_state.py::TestStateCreation::test_from_2d_list PASSED [  7%]
+tests/test_core/test_state.py::TestStateCreation::test_zeros PASSED      [  7%]
+tests/test_core/test_state.py::TestStateCreation::test_ones PASSED       [  8%]
+tests/test_core/test_state.py::TestStateCreation::test_random_seeded PASSED [  8%]
+tests/test_core/test_state.py::TestStateCreation::test_randn_seeded PASSED [  8%]
+tests/test_core/test_state.py::TestStateCreation::test_eye PASSED        [  8%]
+tests/test_core/test_state.py::TestStateCreation::test_from_numpy PASSED [  8%]
+tests/test_core/test_state.py::TestStateProperties::test_shape PASSED    [  8%]
+tests/test_core/test_state.py::TestStateProperties::test_ndim PASSED     [  8%]
+tests/test_core/test_state.py::TestStateProperties::test_size PASSED     [  8%]
+tests/test_core/test_state.py::TestStateProperties::test_dtype_float64 PASSED [  9%]
+tests/test_core/test_state.py::TestStateProperties::test_dtype_complex128 PASSED [  9%]
+tests/test_core/test_state.py::TestStateProperties::test_device_default_cpu PASSED [  9%]
+tests/test_core/test_state.py::TestStateArithmetic::test_add_states PASSED [  9%]
+tests/test_core/test_state.py::TestStateArithmetic::test_sub_states PASSED [  9%]
+tests/test_core/test_state.py::TestStateArithmetic::test_mul_states PASSED [  9%]
+tests/test_core/test_state.py::TestStateArithmetic::test_div_states PASSED [  9%]
+tests/test_core/test_state.py::TestStateArithmetic::test_add_scalar PASSED [  9%]
+tests/test_core/test_state.py::TestStateArithmetic::test_radd_scalar PASSED [ 10%]
+tests/test_core/test_state.py::TestStateArithmetic::test_mul_scalar PASSED [ 10%]
+tests/test_core/test_state.py::TestStateArithmetic::test_rmul_scalar PASSED [ 10%]
+tests/test_core/test_state.py::TestStateArithmetic::test_neg PASSED      [ 10%]
+tests/test_core/test_state.py::TestStateArithmetic::test_matmul PASSED   [ 10%]
+tests/test_core/test_state.py::TestStateArithmetic::test_pow PASSED      [ 10%]
+tests/test_core/test_state.py::TestStateArithmetic::test_sub_scalar PASSED [ 10%]
+tests/test_core/test_state.py::TestStateArithmetic::test_rsub_scalar PASSED [ 10%]
+tests/test_core/test_state.py::TestStateArithmetic::test_div_scalar PASSED [ 11%]
+tests/test_core/test_state.py::TestStateReductions::test_norm_l2 PASSED  [ 11%]
+tests/test_core/test_state.py::TestStateReductions::test_norm_l1 PASSED  [ 11%]
+tests/test_core/test_state.py::TestStateReductions::test_normalize PASSED [ 11%]
+tests/test_core/test_state.py::TestStateReductions::test_normalize_zero_raises PASSED [ 11%]
+tests/test_core/test_state.py::TestStateReductions::test_sum PASSED      [ 11%]
+tests/test_core/test_state.py::TestStateReductions::test_mean PASSED     [ 11%]
+tests/test_core/test_state.py::TestStateReductions::test_max PASSED      [ 11%]
+tests/test_core/test_state.py::TestStateReductions::test_min PASSED      [ 12%]
+tests/test_core/test_state.py::TestStateReductions::test_abs PASSED      [ 12%]
+tests/test_core/test_state.py::TestStateComplex::test_conj PASSED        [ 12%]
+tests/test_core/test_state.py::TestStateComplex::test_real PASSED        [ 12%]
+tests/test_core/test_state.py::TestStateComplex::test_imag PASSED        [ 12%]
+tests/test_core/test_state.py::TestStateComplex::test_transpose PASSED   [ 12%]
+tests/test_core/test_state.py::TestStateComplex::test_hermitian PASSED   [ 12%]
+tests/test_core/test_state.py::TestStateShape::test_reshape PASSED       [ 12%]
+tests/test_core/test_state.py::TestStateShape::test_reshape_tuple PASSED [ 13%]
+tests/test_core/test_state.py::TestStateShape::test_flatten PASSED       [ 13%]
+tests/test_core/test_state.py::TestStateShape::test_squeeze PASSED       [ 13%]
+tests/test_core/test_state.py::TestStateShape::test_unsqueeze PASSED     [ 13%]
+tests/test_core/test_state.py::TestStateDHSR::test_differentiate_returns_state PASSED [ 13%]
+tests/test_core/test_state.py::TestStateDHSR::test_harmonize_returns_state PASSED [ 13%]
+tests/test_core/test_state.py::TestStateDHSR::test_recurse_chains PASSED [ 13%]
+tests/test_core/test_state.py::TestStateDHSR::test_dhsr_chaining PASSED  [ 13%]
+tests/test_core/test_state.py::TestStateDHSR::test_syntony_property PASSED [ 14%]
+tests/test_core/test_state.py::TestStateDHSR::test_gnosis_property PASSED [ 14%]
+tests/test_core/test_state.py::TestStateDHSR::test_free_energy_property PASSED [ 14%]
+tests/test_core/test_state.py::TestStateIndexing::test_getitem_scalar PASSED [ 14%]
+tests/test_core/test_state.py::TestStateIndexing::test_getitem_slice PASSED [ 14%]
+tests/test_core/test_state.py::TestStateIndexing::test_getitem_2d PASSED [ 14%]
+tests/test_core/test_state.py::TestStateIndexing::test_setitem PASSED    [ 14%]
+tests/test_core/test_state.py::TestStateInterop::test_to_numpy PASSED    [ 14%]
+tests/test_core/test_state.py::TestStateInterop::test_from_numpy PASSED  [ 15%]
+tests/test_core/test_state.py::TestStateInterop::test_numpy_protocol PASSED [ 15%]
+tests/test_core/test_state.py::TestStateInterop::test_numpy_operations PASSED [ 15%]
+tests/test_core/test_state.py::TestStateRepresentation::test_repr PASSED [ 15%]
+tests/test_core/test_state.py::TestStateRepresentation::test_str PASSED  [ 15%]
+tests/test_core/test_state.py::TestStateRepresentation::test_len PASSED  [ 15%]
+tests/test_core/test_state.py::TestStateAdvancedCreation::test_from_state PASSED [ 15%]
+tests/test_core/test_state.py::TestStateAdvancedCreation::test_explicit_dtype PASSED [ 15%]
+tests/test_core/test_state.py::TestStateAdvancedCreation::test_no_data_no_shape_raises PASSED [ 15%]
+tests/test_core/test_state.py::TestStateAdvancedCreation::test_zeros_with_int_shape PASSED [ 16%]
+tests/test_core/test_state.py::TestStateAdvancedCreation::test_ones_with_int_shape PASSED [ 16%]
+tests/test_core/test_state.py::TestStateAdvancedCreation::test_random_complex PASSED [ 16%]
+tests/test_core/test_state.py::TestStateAdvancedCreation::test_randn_complex PASSED [ 16%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_cuda_is_available PASSED [ 16%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_cuda_device_count PASSED [ 16%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_cuda_transfer PASSED [ 16%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_cuda_device_id PASSED [ 16%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_cuda_already_on_cuda PASSED [ 17%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_cpu_on_cpu PASSED [ 17%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_to_cpu PASSED [ 17%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_to_cuda PASSED [ 17%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_cuda_large_tensor PASSED [ 17%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_cuda_complex PASSED [ 17%]
+tests/test_core/test_state.py::TestStateDeviceOperations::test_cuda_2d PASSED [ 17%]
+tests/test_core/test_state.py::TestStateGnosisLevels::test_gnosis_level_0 PASSED [ 17%]
+tests/test_core/test_state.py::TestStateGnosisLevels::test_gnosis_level_1 PASSED [ 18%]
+tests/test_core/test_state.py::TestStateGnosisLevels::test_gnosis_level_2 PASSED [ 18%]
+tests/test_core/test_state.py::TestStateGnosisLevels::test_gnosis_level_3 PASSED [ 18%]
+tests/test_core/test_state.py::TestStateReductionsWithAxis::test_sum_with_axis PASSED [ 18%]
+tests/test_core/test_state.py::TestStateReductionsWithAxis::test_sum_with_axis_1 PASSED [ 18%]
+tests/test_core/test_state.py::TestStateReductionsWithAxis::test_mean_with_axis PASSED [ 18%]
+tests/test_core/test_state.py::TestStateReductionsWithAxis::test_max_with_axis PASSED [ 18%]
+tests/test_core/test_state.py::TestStateReductionsWithAxis::test_min_with_axis PASSED [ 18%]
+tests/test_core/test_state.py::TestStateSetitemAdvanced::test_setitem_with_state PASSED [ 19%]
+tests/test_core/test_state.py::TestStateArrayProtocol::test_array_with_dtype PASSED [ 19%]
+tests/test_core/test_state.py::TestStateTorchInterop::test_torch_import_error PASSED [ 19%]
+tests/test_core/test_state.py::TestStateTorchInterop::test_from_torch_via_namespace PASSED [ 19%]
+tests/test_core/test_state.py::TestStateTorchInterop::test_from_torch_classmethod PASSED [ 19%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_scalar_data PASSED [ 19%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_empty_list PASSED [ 19%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_inconsistent_shape_raises PASSED [ 19%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_shape_mismatch_raises PASSED [ 20%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_reshape_invalid_raises PASSED [ 20%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_multiple_neg_one_raises PASSED [ 20%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_complex_sum PASSED [ 20%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_complex_mean PASSED [ 20%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_complex_max PASSED [ 20%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_complex_min PASSED [ 20%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_complex_pow PASSED [ 20%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_real_of_real PASSED [ 21%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_imag_of_real PASSED [ 21%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_negative_axis_reduction PASSED [ 21%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_cpu_returns_self PASSED [ 21%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_tolist_nested PASSED [ 21%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_from_list_classmethod PASSED [ 21%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_state_from_list_namespace PASSED [ 21%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_str_truncated PASSED [ 21%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_len_empty_shape PASSED [ 22%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_squeeze_all_ones PASSED [ 22%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_unsqueeze_negative_dim PASSED [ 22%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_from_numpy_complex PASSED [ 22%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_from_list_complex PASSED [ 22%]
+tests/test_core/test_state.py::TestStateEdgeCases::test_setitem_complex PASSED [ 22%]
+tests/test_core/test_syntonic_softmax.py::test_mode_norm_initialization PASSED [ 22%]
+tests/test_core/test_syntonic_softmax.py::test_forward_pass_shapes PASSED [ 22%]
+tests/test_core/test_syntonic_softmax.py::test_probability_normalization PASSED [ 23%]
+tests/test_core/test_syntonic_softmax.py::test_golden_measure_weighting PASSED [ 23%]
+tests/test_core/test_syntonic_softmax.py::test_identity_vs_learned PASSED [ 23%]
+tests/test_core/test_syntonic_softmax.py::test_cpu_gpu_consistency SKIPPED [ 23%]
+tests/test_core/test_syntonic_softmax.py::test_all_modes_callable PASSED [ 23%]
+tests/test_core/test_syntonic_softmax_extended.py::TestNumericalStability::test_large_logits PASSED [ 23%]
+tests/test_core/test_syntonic_softmax_extended.py::TestNumericalStability::test_small_logits PASSED [ 23%]
+tests/test_core/test_syntonic_softmax_extended.py::TestNumericalStability::test_mixed_extreme_logits PASSED [ 23%]
+tests/test_core/test_syntonic_softmax_extended.py::TestNumericalStability::test_zero_logits_uniform PASSED [ 23%]
+tests/test_core/test_syntonic_softmax_extended.py::TestNumericalStability::test_nearly_equal_logits PASSED [ 24%]
+tests/test_core/test_syntonic_softmax_extended.py::TestEdgeCases::test_single_feature PASSED [ 24%]
+tests/test_core/test_syntonic_softmax_extended.py::TestEdgeCases::test_two_features PASSED [ 24%]
+tests/test_core/test_syntonic_softmax_extended.py::TestEdgeCases::test_large_num_classes PASSED [ 24%]
+tests/test_core/test_syntonic_softmax_extended.py::TestEdgeCases::test_various_batch_sizes PASSED [ 24%]
+tests/test_core/test_syntonic_softmax_extended.py::TestEdgeCases::test_1d_tensor PASSED [ 24%]
+tests/test_core/test_syntonic_softmax_extended.py::TestEdgeCases::test_3d_tensor_last_dim PASSED [ 24%]
+tests/test_core/test_syntonic_softmax_extended.py::TestEdgeCases::test_4d_tensor PASSED [ 24%]
+tests/test_core/test_syntonic_softmax_extended.py::TestModeComparisons::test_identity_matches_numpy PASSED [ 25%]
+tests/test_core/test_syntonic_softmax_extended.py::TestModeComparisons::test_provided_uniform_matches_identity PASSED [ 25%]
+tests/test_core/test_syntonic_softmax_extended.py::TestModeComparisons::test_learned_vs_identity_differ PASSED [ 25%]
+tests/test_core/test_syntonic_softmax_extended.py::TestErrorHandling::test_invalid_dimension_positive PASSED [ 25%]
+tests/test_core/test_syntonic_softmax_extended.py::TestErrorHandling::test_invalid_dimension_negative PASSED [ 25%]
+tests/test_core/test_syntonic_softmax_extended.py::TestErrorHandling::test_invalid_mode_string PASSED [ 25%]
+tests/test_core/test_syntonic_softmax_extended.py::TestErrorHandling::test_provided_missing_syntony PASSED [ 25%]
+tests/test_core/test_syntonic_softmax_extended.py::TestErrorHandling::test_shape_mismatch_syntony PASSED [ 25%]
+tests/test_core/test_syntonic_softmax_extended.py::TestStridedRegressions::test_cpu_strided_learned_dim0 PASSED [ 26%]
+tests/test_core/test_syntonic_softmax_extended.py::TestStridedRegressions::test_cpu_strided_learned_dim1_3d PASSED [ 26%]
+tests/test_core/test_syntonic_softmax_extended.py::TestStridedRegressions::test_cpu_strided_identity_dim0 PASSED [ 26%]
+tests/test_core/test_syntonic_softmax_extended.py::TestStridedRegressions::test_strided_learned_nonzero_logits PASSED [ 26%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestF32Support::test_f32_identity_mode_cpu PASSED [ 26%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestF32Support::test_f32_learned_mode_cpu PASSED [ 26%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestF32Support::test_f32_identity_mode_gpu FAILED [ 26%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestF32Support::test_f32_learned_mode_gpu PASSED [ 26%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestGPUIdentityMode::test_gpu_identity_no_cpu_transfer PASSED [ 27%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestGPUIdentityMode::test_gpu_identity_matches_cpu FAILED [ 27%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestGPUIdentityMode::test_identity_vs_standard_softmax PASSED [ 27%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestStridedKernels::test_strided_identity_dim0 PASSED [ 27%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestStridedKernels::test_strided_learned_dim0 PASSED [ 27%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestStridedKernels::test_3d_strided_middle_dim PASSED [ 27%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestProvidedMode::test_provided_mode_basic PASSED [ 27%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestProvidedMode::test_provided_mode_uniform_weights PASSED [ 27%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestPythonAPI::test_api_identity_mode PASSED [ 28%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestPythonAPI::test_api_learned_mode PASSED [ 28%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestPythonAPI::test_api_provided_mode PASSED [ 28%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestPythonAPI::test_api_default_mode PASSED [ 28%]
+tests/test_core/test_syntonic_softmax_phase2.py::TestPerformance::test_gpu_performance_comparison FAILED [ 28%]
+tests/test_core_ops.py::TestExp::test_exp_basic PASSED                   [ 28%]
+tests/test_core_ops.py::TestExp::test_exp_negative PASSED                [ 28%]
+tests/test_core_ops.py::TestExp::test_exp_preserves_shape PASSED         [ 28%]
+tests/test_core_ops.py::TestExpGolden::test_exp_golden_basic PASSED      [ 29%]
+tests/test_core_ops.py::TestExpGolden::test_exp_golden_weight_measure PASSED [ 29%]
+tests/test_core_ops.py::TestSum::test_sum_total PASSED                   [ 29%]
+tests/test_core_ops.py::TestSum::test_sum_axis PASSED                    [ 29%]
+tests/test_core_ops.py::TestMean::test_mean_total PASSED                 [ 29%]
+tests/test_core_ops.py::TestMean::test_mean_axis PASSED                  [ 29%]
+tests/test_core_ops.py::TestLayerNorm::test_layer_norm_standard PASSED   [ 29%]
+tests/test_core_ops.py::TestLayerNorm::test_layer_norm_golden_target PASSED [ 29%]
+tests/test_core_ops.py::TestDropout::test_dropout_inference_identity PASSED [ 30%]
+tests/test_core_ops.py::TestDropout::test_dropout_zero_probability PASSED [ 30%]
+tests/test_core_ops.py::TestDropout::test_dropout_deterministic PASSED   [ 30%]
+tests/test_core_ops.py::TestDropout::test_dropout_scale PASSED           [ 30%]
+tests/test_crt/test_evolution.py::TestSyntonyTrajectory::test_empty_trajectory PASSED [ 30%]
+tests/test_crt/test_evolution.py::TestSyntonyTrajectory::test_trajectory_properties PASSED [ 30%]
+tests/test_crt/test_evolution.py::TestSyntonyTrajectory::test_syntony_delta PASSED [ 30%]
+tests/test_crt/test_evolution.py::TestSyntonyTrajectory::test_syntony_trend PASSED [ 30%]
+tests/test_crt/test_evolution.py::TestSyntonyTrajectory::test_converged_detection PASSED [ 30%]
+tests/test_crt/test_evolution.py::TestSyntonyTrajectory::test_summary PASSED [ 31%]
+tests/test_crt/test_evolution.py::TestDHSREvolver::test_basic_evolution PASSED [ 31%]
+tests/test_crt/test_evolution.py::TestDHSREvolver::test_early_stopping PASSED [ 31%]
+tests/test_crt/test_evolution.py::TestDHSREvolver::test_no_early_stopping PASSED [ 31%]
+tests/test_crt/test_evolution.py::TestDHSREvolver::test_find_attractor PASSED [ 31%]
+tests/test_crt/test_evolution.py::TestDHSREvolver::test_analyze_stability PASSED [ 31%]
+tests/test_crt/test_evolution.py::TestDHSREvolver::test_find_all_attractors PASSED [ 31%]
+tests/test_crt/test_evolution.py::TestFactoryFunctions::test_create_dhsr_system PASSED [ 31%]
+tests/test_crt/test_evolution.py::TestFactoryFunctions::test_create_dhsr_system_custom_params PASSED [ 32%]
+tests/test_crt/test_evolution.py::TestFactoryFunctions::test_create_evolver PASSED [ 32%]
+tests/test_crt/test_evolution.py::TestIntegration::test_full_workflow PASSED [ 32%]
+tests/test_crt/test_evolution.py::TestIntegration::test_attractor_convergence PASSED [ 32%]
+tests/test_crt/test_evolution.py::TestIntegration::test_phase_accumulation PASSED [ 32%]
+tests/test_crt/test_metrics.py::TestSyntonyComputer::test_basic_computation PASSED [ 32%]
+tests/test_crt/test_metrics.py::TestSyntonyComputer::test_syntony_bounds PASSED [ 32%]
+tests/test_crt/test_metrics.py::TestSyntonyComputer::test_compute_components PASSED [ 32%]
+tests/test_crt/test_metrics.py::TestSyntonyQuickEstimates::test_syntony_entropy_bounds PASSED [ 33%]
+tests/test_crt/test_metrics.py::TestSyntonyQuickEstimates::test_syntony_entropy_uniform PASSED [ 33%]
+tests/test_crt/test_metrics.py::TestSyntonyQuickEstimates::test_syntony_spectral_bounds PASSED [ 33%]
+tests/test_crt/test_metrics.py::TestSyntonyQuickEstimates::test_syntony_spectral_smooth_vs_rough PASSED [ 33%]
+tests/test_crt/test_metrics.py::TestSyntonyQuickEstimates::test_syntony_quick_bounds PASSED [ 33%]
+tests/test_crt/test_metrics.py::TestSyntonyQuickEstimates::test_syntony_quick_constant PASSED [ 33%]
+tests/test_crt/test_metrics.py::TestGnosisComputer::test_basic_layer_computation PASSED [ 33%]
+tests/test_crt/test_metrics.py::TestGnosisComputer::test_layer_names PASSED [ 33%]
+tests/test_crt/test_metrics.py::TestGnosisComputer::test_phase_thresholds PASSED [ 34%]
+tests/test_crt/test_metrics.py::TestGnosisComputer::test_transcendence_metric PASSED [ 34%]
+tests/test_crt/test_metrics.py::TestGnosisComputer::test_layer_progress PASSED [ 34%]
+tests/test_crt/test_metrics.py::TestGnosisComputer::test_k_d4_cycles PASSED [ 34%]
+tests/test_crt/test_metrics.py::TestGnosisComputer::test_describe PASSED [ 34%]
+tests/test_crt/test_metrics.py::TestGnosisComputer::test_k_d4_constant PASSED [ 34%]
+tests/test_crt/test_metrics.py::TestGoldenPartition::test_syntony_components_sum PASSED [ 34%]
+tests/test_crt/test_operators.py::TestFourierProjector::test_basic_projection PASSED [ 34%]
+tests/test_crt/test_operators.py::TestFourierProjector::test_dc_mode_projection PASSED [ 35%]
+tests/test_crt/test_operators.py::TestFourierProjector::test_idempotent PASSED [ 35%]
+tests/test_crt/test_operators.py::TestFourierProjector::test_orthogonality PASSED [ 35%]
+tests/test_crt/test_operators.py::TestDampingProjector::test_basic_damping PASSED [ 35%]
+tests/test_crt/test_operators.py::TestDampingProjector::test_low_pass_effect PASSED [ 35%]
+tests/test_crt/test_operators.py::TestDampingProjector::test_preserves_dc PASSED [ 35%]
+tests/test_crt/test_operators.py::TestLaplacianOperator::test_basic_laplacian PASSED [ 35%]
+tests/test_crt/test_operators.py::TestLaplacianOperator::test_constant_gives_zero PASSED [ 35%]
+tests/test_crt/test_operators.py::TestLaplacianOperator::test_linear_gives_zero PASSED [ 36%]
+tests/test_crt/test_operators.py::TestDifferentiationOperator::test_basic_differentiation PASSED [ 36%]
+tests/test_crt/test_operators.py::TestDifferentiationOperator::test_identity_at_high_syntony PASSED [ 36%]
+tests/test_crt/test_operators.py::TestDifferentiationOperator::test_syntony_dependent_coupling PASSED [ 36%]
+tests/test_crt/test_operators.py::TestDifferentiationOperator::test_differentiation_magnitude PASSED [ 36%]
+tests/test_crt/test_operators.py::TestHarmonizationOperator::test_basic_harmonization PASSED [ 36%]
+tests/test_crt/test_operators.py::TestHarmonizationOperator::test_identity_at_low_syntony PASSED [ 36%]
+tests/test_crt/test_operators.py::TestHarmonizationOperator::test_syntony_dependent_damping PASSED [ 36%]
+tests/test_crt/test_operators.py::TestHarmonizationOperator::test_harmonization_magnitude PASSED [ 37%]
+tests/test_crt/test_operators.py::TestRecursionOperator::test_basic_recursion PASSED [ 37%]
+tests/test_crt/test_operators.py::TestRecursionOperator::test_composition PASSED [ 37%]
+tests/test_crt/test_operators.py::TestRecursionOperator::test_iterate PASSED [ 37%]
+tests/test_crt/test_operators.py::TestRecursionOperator::test_find_fixed_point_converges PASSED [ 37%]
+tests/test_crt/test_operators.py::TestRecursionOperator::test_apply_with_info PASSED [ 37%]
+tests/test_crt/test_operators.py::TestProjectorFactories::test_create_mode_projectors PASSED [ 37%]
+tests/test_crt/test_operators.py::TestProjectorFactories::test_create_damping_cascade PASSED [ 37%]
+tests/test_cuda_cache.py::test_cuda_performance PASSED                   [ 38%]
+tests/test_exact/test_golden.py::TestGoldenExactConstruction::test_phi_constructor PASSED [ 38%]
+tests/test_exact/test_golden.py::TestGoldenExactConstruction::test_phi_squared_constructor PASSED [ 38%]
+tests/test_exact/test_golden.py::TestGoldenExactConstruction::test_phi_inverse_constructor PASSED [ 38%]
+tests/test_exact/test_golden.py::TestGoldenExactConstruction::test_from_integers PASSED [ 38%]
+tests/test_exact/test_golden.py::TestGoldenExactConstruction::test_golden_number_helper PASSED [ 38%]
+tests/test_exact/test_golden.py::TestGoldenExactIdentities::test_phi_squared_equals_phi_plus_one PASSED [ 38%]
+tests/test_exact/test_golden.py::TestGoldenExactIdentities::test_phi_inverse_times_phi_equals_one PASSED [ 38%]
+tests/test_exact/test_golden.py::TestGoldenExactIdentities::test_phi_minus_phi_inverse_equals_one PASSED [ 38%]
+tests/test_exact/test_golden.py::TestGoldenExactIdentities::test_phi_inverse_equals_phi_minus_one PASSED [ 39%]
+tests/test_exact/test_golden.py::TestGoldenExactArithmetic::test_addition PASSED [ 39%]
+tests/test_exact/test_golden.py::TestGoldenExactArithmetic::test_subtraction PASSED [ 39%]
+tests/test_exact/test_golden.py::TestGoldenExactArithmetic::test_multiplication PASSED [ 39%]
+tests/test_exact/test_golden.py::TestGoldenExactArithmetic::test_negation PASSED [ 39%]
+tests/test_exact/test_golden.py::TestGoldenExactPowers::test_phi_to_power_positive PASSED [ 39%]
+tests/test_exact/test_golden.py::TestGoldenExactPowers::test_phi_to_power_zero PASSED [ 39%]
+tests/test_exact/test_golden.py::TestGoldenExactPowers::test_phi_to_power_negative PASSED [ 39%]
+tests/test_exact/test_golden.py::TestGoldenExactPowers::test_phi_power_recurrence PASSED [ 40%]
+tests/test_exact/test_golden.py::TestGoldenExactCoefficients::test_phi_coefficient_for_phi PASSED [ 40%]
+tests/test_exact/test_golden.py::TestGoldenExactCoefficients::test_rational_coefficient_for_phi PASSED [ 40%]
+tests/test_exact/test_golden.py::TestGoldenExactCoefficients::test_coefficients_for_golden_number PASSED [ 40%]
+tests/test_exact/test_golden.py::TestGoldenExactConversion::test_to_f64_accuracy PASSED [ 40%]
+tests/test_exact/test_golden.py::TestGoldenExactConversion::test_galois_conjugate PASSED [ 40%]
+tests/test_exact/test_golden.py::TestGoldenExactConversion::test_field_norm PASSED [ 40%]
+tests/test_exact/test_golden.py::TestModuleConstants::test_PHI_matches_numeric PASSED [ 40%]
+tests/test_exact/test_golden.py::TestModuleConstants::test_PHI_SQUARED_value PASSED [ 41%]
+tests/test_exact/test_golden.py::TestModuleConstants::test_PHI_INVERSE_value PASSED [ 41%]
+tests/test_exact/test_sequences.py::TestFibonacci::test_fibonacci_base_case_0 PASSED [ 41%]
+tests/test_exact/test_sequences.py::TestFibonacci::test_fibonacci_base_case_1 PASSED [ 41%]
+tests/test_exact/test_sequences.py::TestFibonacci::test_fibonacci_small_values PASSED [ 41%]
+tests/test_exact/test_sequences.py::TestFibonacci::test_fibonacci_10 PASSED [ 41%]
+tests/test_exact/test_sequences.py::TestFibonacci::test_fibonacci_20 PASSED [ 41%]
+tests/test_exact/test_sequences.py::TestFibonacci::test_fibonacci_large PASSED [ 41%]
+tests/test_exact/test_sequences.py::TestFibonacci::test_fibonacci_recurrence PASSED [ 42%]
+tests/test_exact/test_sequences.py::TestFibonacci::test_fibonacci_negative_raises PASSED [ 42%]
+tests/test_exact/test_sequences.py::TestLucas::test_lucas_base_case_0 PASSED [ 42%]
+tests/test_exact/test_sequences.py::TestLucas::test_lucas_base_case_1 PASSED [ 42%]
+tests/test_exact/test_sequences.py::TestLucas::test_lucas_small_values PASSED [ 42%]
+tests/test_exact/test_sequences.py::TestLucas::test_lucas_10 PASSED      [ 42%]
+tests/test_exact/test_sequences.py::TestLucas::test_lucas_20 PASSED      [ 42%]
+tests/test_exact/test_sequences.py::TestLucas::test_lucas_recurrence PASSED [ 42%]
+tests/test_exact/test_sequences.py::TestLucas::test_lucas_negative_raises PASSED [ 43%]
+tests/test_exact/test_sequences.py::TestFibonacciLucasRelations::test_lucas_equals_fib_sum PASSED [ 43%]
+tests/test_exact/test_sequences.py::TestFibonacciLucasRelations::test_fib_lucas_identity PASSED [ 43%]
+tests/test_exact/test_sequences.py::TestCorrectionFactor::test_correction_factor_e8_positive PASSED [ 43%]
+tests/test_exact/test_sequences.py::TestCorrectionFactor::test_correction_factor_e6_positive PASSED [ 43%]
+tests/test_exact/test_sequences.py::TestCorrectionFactor::test_correction_factor_d4_kissing PASSED [ 43%]
+tests/test_exact/test_sequences.py::TestCorrectionFactor::test_correction_factor_all_structures PASSED [ 43%]
+tests/test_exact/test_sequences.py::TestCorrectionFactor::test_correction_factor_invalid_structure PASSED [ 43%]
+tests/test_exact/test_sequences.py::TestSRTConstants::test_e_star_numeric PASSED [ 44%]
+tests/test_exact/test_sequences.py::TestSRTConstants::test_q_deficit_numeric PASSED [ 44%]
+tests/test_exact/test_sequences.py::TestSRTConstants::test_structure_dimensions PASSED [ 44%]
+tests/test_exact/test_sequences.py::TestGoldenPowerFibonacciConnection::test_phi_power_fibonacci_relation PASSED [ 44%]
+tests/test_exact/test_sequences.py::TestGoldenPowerFibonacciConnection::test_phi_power_lucas_relation PASSED [ 44%]
+tests/test_gpu_support.py::test_resonant_tensor_device PASSED            [ 44%]
+tests/test_gpu_support.py::test_parameter_device PASSED                  [ 44%]
+tests/test_gpu_support.py::test_mlp_device PASSED                        [ 44%]
+tests/test_gpu_support.py::test_transformer_device PASSED                [ 45%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionConstruction::test_basic_construction PASSED [ 45%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionConstruction::test_from_factory_function PASSED [ 45%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionConstruction::test_unit_octonion_E0 PASSED [ 45%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionConstruction::test_unit_octonions_basis PASSED [ 45%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionProperties::test_real_part PASSED [ 45%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionProperties::test_norm PASSED [ 45%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionProperties::test_norm_unit PASSED [ 45%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionProperties::test_conjugate PASSED [ 46%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionProperties::test_inverse PASSED [ 46%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionArithmetic::test_addition PASSED [ 46%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionArithmetic::test_subtraction PASSED [ 46%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionArithmetic::test_negation PASSED [ 46%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionArithmetic::test_scalar_multiplication PASSED [ 46%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionNonAssociativity::test_non_associativity PASSED [ 46%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionNonAssociativity::test_associator_nonzero PASSED [ 46%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionNonAssociativity::test_alternativity_left PASSED [ 46%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionNonAssociativity::test_alternativity_right PASSED [ 47%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionCayleyDickson::test_quaternion_subalgebra PASSED [ 47%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionCayleyDickson::test_e1_times_e2_equals_e3 PASSED [ 47%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionCayleyDickson::test_norm_multiplicative PASSED [ 47%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionSpecialProperties::test_seven_imaginaries_anticommute PASSED [ 47%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionSpecialProperties::test_octonion_from_quaternion_pair PASSED [ 47%]
+tests/test_hypercomplex/test_octonion.py::TestOctonionSpecialProperties::test_imag_property PASSED [ 47%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionConstruction::test_basic_construction PASSED [ 47%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionConstruction::test_from_factory_function PASSED [ 48%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionConstruction::test_unit_quaternion_I PASSED [ 48%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionConstruction::test_unit_quaternion_J PASSED [ 48%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionConstruction::test_unit_quaternion_K PASSED [ 48%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionProperties::test_norm PASSED [ 48%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionProperties::test_norm_unit PASSED [ 48%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionProperties::test_conjugate PASSED [ 48%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionProperties::test_inverse PASSED [ 48%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionArithmetic::test_addition PASSED [ 49%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionArithmetic::test_subtraction PASSED [ 49%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionArithmetic::test_negation PASSED [ 49%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionArithmetic::test_scalar_multiplication PASSED [ 49%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionArithmetic::test_quaternion_multiplication_associative PASSED [ 49%]
+tests/test_hypercomplex/test_quaternion.py::TestHamiltonProduct::test_I_squared_equals_minus_one PASSED [ 49%]
+tests/test_hypercomplex/test_quaternion.py::TestHamiltonProduct::test_J_squared_equals_minus_one PASSED [ 49%]
+tests/test_hypercomplex/test_quaternion.py::TestHamiltonProduct::test_K_squared_equals_minus_one PASSED [ 49%]
+tests/test_hypercomplex/test_quaternion.py::TestHamiltonProduct::test_IJ_equals_K PASSED [ 50%]
+tests/test_hypercomplex/test_quaternion.py::TestHamiltonProduct::test_JK_equals_I PASSED [ 50%]
+tests/test_hypercomplex/test_quaternion.py::TestHamiltonProduct::test_KI_equals_J PASSED [ 50%]
+tests/test_hypercomplex/test_quaternion.py::TestHamiltonProduct::test_JI_equals_minus_K PASSED [ 50%]
+tests/test_hypercomplex/test_quaternion.py::TestHamiltonProduct::test_non_commutativity PASSED [ 50%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionRotation::test_rotation_matrix_identity PASSED [ 50%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionRotation::test_from_axis_angle PASSED [ 50%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionRotation::test_normalize PASSED [ 50%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionEquality::test_equal_quaternions PASSED [ 51%]
+tests/test_hypercomplex/test_quaternion.py::TestQuaternionEquality::test_different_quaternions PASSED [ 51%]
+tests/test_kernel_compilation.py::test_compilation_consistency PASSED    [ 51%]
+tests/test_linalg.py::TestBasicOperations::test_dot PASSED               [ 51%]
+tests/test_linalg.py::TestBasicOperations::test_inner PASSED             [ 51%]
+tests/test_linalg.py::TestBasicOperations::test_inner_complex PASSED     [ 51%]
+tests/test_linalg.py::TestBasicOperations::test_outer PASSED             [ 51%]
+tests/test_linalg.py::TestBasicOperations::test_norm PASSED              [ 51%]
+tests/test_linalg.py::TestBasicOperations::test_matmul PASSED            [ 52%]
+tests/test_linalg.py::TestDecompositions::test_eig PASSED                [ 52%]
+tests/test_linalg.py::TestDecompositions::test_eigh PASSED               [ 52%]
+tests/test_linalg.py::TestDecompositions::test_svd PASSED                [ 52%]
+tests/test_linalg.py::TestDecompositions::test_qr PASSED                 [ 52%]
+tests/test_linalg.py::TestDecompositions::test_cholesky PASSED           [ 52%]
+tests/test_linalg.py::TestSolvers::test_inv PASSED                       [ 52%]
+tests/test_linalg.py::TestSolvers::test_pinv PASSED                      [ 52%]
+tests/test_linalg.py::TestSolvers::test_solve PASSED                     [ 53%]
+tests/test_linalg.py::TestSolvers::test_det PASSED                       [ 53%]
+tests/test_linalg.py::TestSolvers::test_trace PASSED                     [ 53%]
+tests/test_linalg.py::TestLinalgEdgeCases::test_dot_complex PASSED       [ 53%]
+tests/test_linalg.py::TestLinalgEdgeCases::test_dot_length_mismatch PASSED [ 53%]
+tests/test_linalg.py::TestLinalgEdgeCases::test_inner_length_mismatch PASSED [ 53%]
+tests/test_linalg.py::TestLinalgEdgeCases::test_solve_2d_b PASSED        [ 53%]
+tests/test_neural_networks.py::TestPrimeSyntonyGate::test_gate_creation PASSED [ 53%]
+tests/test_neural_networks.py::TestPrimeSyntonyGate::test_gate_forward_pass PASSED [ 53%]
+tests/test_neural_networks.py::TestPrimeSyntonyGate::test_gate_gradient_flow PASSED [ 54%]
+tests/test_neural_networks.py::TestPrimeSyntonyGate::test_gate_prime_constraint PASSED [ 54%]
+tests/test_neural_networks.py::TestWindingAttention::test_attention_creation PASSED [ 54%]
+tests/test_neural_networks.py::TestWindingAttention::test_attention_forward_pass PASSED [ 54%]
+tests/test_neural_networks.py::TestWindingAttention::test_attention_gradient_flow PASSED [ 54%]
+tests/test_neural_networks.py::TestSRTTransformerBlock::test_transformer_creation PASSED [ 54%]
+tests/test_neural_networks.py::TestSRTTransformerBlock::test_transformer_forward_pass PASSED [ 54%]
+tests/test_neural_networks.py::TestSRTTransformerBlock::test_transformer_gradient_flow PASSED [ 54%]
+tests/test_neural_networks.py::TestSRTTransformerBlock::test_transformer_training_loop PASSED [ 55%]
+tests/test_neural_networks.py::TestDimensionUtilities::test_prime_dimensions PASSED [ 55%]
+tests/test_neural_networks.py::TestDimensionUtilities::test_non_prime_rejection PASSED [ 55%]
+tests/test_physics/test_standard_model.py::TestFermionMasses::test_electron_mass PASSED [ 55%]
+tests/test_physics/test_standard_model.py::TestFermionMasses::test_muon_mass PASSED [ 55%]
+tests/test_physics/test_standard_model.py::TestFermionMasses::test_tau_mass PASSED [ 55%]
+tests/test_physics/test_standard_model.py::TestFermionMasses::test_quark_masses FAILED [ 55%]
+tests/test_physics/test_standard_model.py::TestGaugeSector::test_weinberg_angle PASSED [ 55%]
+tests/test_physics/test_standard_model.py::TestGaugeSector::test_fine_structure PASSED [ 56%]
+tests/test_physics/test_standard_model.py::TestGaugeSector::test_w_mass PASSED [ 56%]
+tests/test_physics/test_standard_model.py::TestGaugeSector::test_z_mass PASSED [ 56%]
+tests/test_physics/test_standard_model.py::TestHiggsSector::test_higgs_mass_tree PASSED [ 56%]
+tests/test_physics/test_standard_model.py::TestHiggsSector::test_higgs_mass_full PASSED [ 56%]
+tests/test_physics/test_standard_model.py::TestHiggsSector::test_self_coupling_enhancement PASSED [ 56%]
+tests/test_physics/test_standard_model.py::TestCKMMatrix::test_V_us PASSED [ 56%]
+tests/test_physics/test_standard_model.py::TestCKMMatrix::test_V_cb PASSED [ 56%]
+tests/test_physics/test_standard_model.py::TestCKMMatrix::test_V_ub PASSED [ 57%]
+tests/test_physics/test_standard_model.py::TestCKMMatrix::test_jarlskog PASSED [ 57%]
+tests/test_physics/test_standard_model.py::TestPMNSMatrix::test_theta_12 PASSED [ 57%]
+tests/test_physics/test_standard_model.py::TestPMNSMatrix::test_theta_23 PASSED [ 57%]
+tests/test_physics/test_standard_model.py::TestPMNSMatrix::test_theta_13 PASSED [ 57%]
+tests/test_physics/test_standard_model.py::TestHadronMasses::test_proton_mass PASSED [ 57%]
+tests/test_physics/test_standard_model.py::TestHadronMasses::test_neutron_proton_diff PASSED [ 57%]
+tests/test_physics/test_standard_model.py::TestHadronMasses::test_pion_mass FAILED [ 57%]
+tests/test_physics/test_standard_model.py::TestHadronMasses::test_meson_pattern FAILED [ 58%]
+tests/test_physics/test_standard_model.py::TestRunningCouplings::test_gut_scale PASSED [ 58%]
+tests/test_physics/test_standard_model.py::TestRunningCouplings::test_alpha_s_running PASSED [ 58%]
+tests/test_physics/test_standard_model.py::TestValidation::test_validate_single PASSED [ 58%]
+tests/test_physics/test_standard_model.py::TestValidation::test_validate_all PASSED [ 58%]
+tests/test_physics/test_standard_model.py::TestStandardModelClass::test_standard_model_init PASSED [ 58%]
+tests/test_physics/test_standard_model.py::TestStandardModelClass::test_all_parameters PASSED [ 58%]
+tests/test_physics/test_standard_model.py::TestStandardModelClass::test_validate PASSED [ 58%]
+tests/test_prime_theory.py::TestPrimeTheory::test_mersenne_primes PASSED [ 59%]
+tests/test_prime_theory.py::TestPrimeTheory::test_fermat_primes PASSED   [ 59%]
+tests/test_prime_theory.py::TestPrimeTheory::test_lucas_numbers PASSED   [ 59%]
+tests/test_prime_theory.py::TestPrimeTheory::test_pisano_periods PASSED  [ 59%]
+tests/test_prime_theory.py::TestPrimeTheory::test_stability_checks PASSED [ 59%]
+tests/test_prime_theory.py::TestPrimeTheory::test_transcendence_gates PASSED [ 59%]
+tests/test_prime_theory.py::TestPrimeTheory::test_stability_barrier PASSED [ 59%]
+tests/test_prime_theory.py::TestPrimeTheory::test_dark_matter_prediction PASSED [ 59%]
+tests/test_prime_theory.py::TestPrimeTheory::test_lucas_dark_boost PASSED [ 60%]
+tests/test_prime_theory.py::TestPrimeTheory::test_prime_sequences PASSED [ 60%]
+tests/test_prime_theory.py::TestPrimeTheory::test_force_count_prediction PASSED [ 60%]
+tests/test_prime_theory.py::TestPrimeTheory::test_matter_generations_prediction PASSED [ 60%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactNearest::test_nearest_exact_phi PASSED [ 60%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactNearest::test_nearest_exact_phi_squared PASSED [ 60%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactNearest::test_nearest_exact_phi_cubed PASSED [ 60%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactNearest::test_nearest_integers PASSED [ 60%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactNearest::test_nearest_error_bound PASSED [ 61%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactNearest::test_nearest_fibonacci_ratios PASSED [ 61%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactSnap::test_snap_basic PASSED [ 61%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactSnap::test_snap_residuals_small PASSED [ 61%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactSnap::test_snap_golden_values PASSED [ 61%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactSnap::test_snap_preserves_order PASSED [ 61%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactRational::test_nearest_rational_higher_precision PASSED [ 61%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactError::test_error_from_exact PASSED [ 61%]
+tests/test_resonant/test_crystallize.py::TestGoldenExactError::test_error_from_approx PASSED [ 61%]
+tests/test_resonant/test_evolver.py::TestRESConfig::test_default_config PASSED [ 62%]
+tests/test_resonant/test_evolver.py::TestRESConfig::test_custom_config PASSED [ 62%]
+tests/test_resonant/test_evolver.py::TestRESConfig::test_config_repr PASSED [ 62%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverConstruction::test_from_template PASSED [ 62%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverConstruction::test_from_template_with_config PASSED [ 62%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverConstruction::test_evolver_repr PASSED [ 62%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverStep::test_single_step PASSED [ 62%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverStep::test_multiple_steps PASSED [ 62%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverStep::test_syntony_tracking PASSED [ 63%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverRun::test_run_with_max_generations PASSED [ 63%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverRun::test_result_contains_history PASSED [ 63%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverRun::test_result_repr PASSED [ 63%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverConvergence::test_convergence_detection PASSED [ 63%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverMutation::test_mutants_are_different PASSED [ 63%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverMutation::test_mutation_preserves_shape PASSED [ 63%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverFiltering::test_survivor_count PASSED [ 63%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverWithGoldenValues::test_golden_ratio_tensor PASSED [ 64%]
+tests/test_resonant/test_evolver.py::TestResonantEvolverWithGoldenValues::test_preserves_golden_structure PASSED [ 64%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalConfig::test_default_retrocausal_config PASSED [ 64%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalConfig::test_custom_retrocausal_config PASSED [ 64%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalConfig::test_to_res_config_conversion PASSED [ 64%]
+tests/test_resonant/test_retrocausal.py::TestRESConfigRetrocausalParameters::test_retrocausal_disabled_by_default PASSED [ 64%]
+tests/test_resonant/test_retrocausal.py::TestRESConfigRetrocausalParameters::test_retrocausal_enabled PASSED [ 64%]
+tests/test_resonant/test_retrocausal.py::TestRESConfigRetrocausalParameters::test_retrocausal_default_parameters PASSED [ 64%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalEvolverCreation::test_create_retrocausal_evolver_basic PASSED [ 65%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalEvolverCreation::test_create_retrocausal_evolver_custom PASSED [ 65%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalEvolverCreation::test_create_standard_evolver PASSED [ 65%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalEvolution::test_retrocausal_evolver_runs PASSED [ 65%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalEvolution::test_retrocausal_vs_standard_basic PASSED [ 65%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalEvolution::test_retrocausal_step_by_step PASSED [ 65%]
+tests/test_resonant/test_retrocausal.py::TestRetrocausalEvolution::test_attractor_parameters_affect_behavior PASSED [ 65%]
+tests/test_resonant/test_retrocausal.py::TestAttractorCapacity::test_zero_capacity_behaves_like_standard PASSED [ 65%]
+tests/test_resonant/test_retrocausal.py::TestAttractorCapacity::test_large_capacity PASSED [ 66%]
+tests/test_resonant/test_retrocausal.py::TestAttractorThreshold::test_high_threshold_fewer_attractors PASSED [ 66%]
+tests/test_resonant/test_retrocausal.py::TestAttractorThreshold::test_low_threshold_more_attractors PASSED [ 66%]
+tests/test_resonant/test_retrocausal.py::TestTemporalDecay::test_high_decay_rate PASSED [ 66%]
+tests/test_resonant/test_retrocausal.py::TestTemporalDecay::test_low_decay_rate PASSED [ 66%]
+tests/test_resonant/test_retrocausal.py::TestCompareConvergence::test_compare_convergence_basic PASSED [ 66%]
+tests/test_resonant/test_retrocausal.py::TestEdgeCases::test_very_small_tensor PASSED [ 66%]
+tests/test_resonant/test_retrocausal.py::TestEdgeCases::test_large_tensor PASSED [ 66%]
+tests/test_resonant/test_retrocausal.py::TestEdgeCases::test_pull_strength_boundary_values PASSED [ 67%]
+tests/test_resonant/test_tensor.py::TestResonantTensorConstruction::test_from_floats PASSED [ 67%]
+tests/test_resonant/test_tensor.py::TestResonantTensorConstruction::test_from_floats_2d PASSED [ 67%]
+tests/test_resonant/test_tensor.py::TestResonantTensorConstruction::test_from_floats_with_mode_norms PASSED [ 67%]
+tests/test_resonant/test_tensor.py::TestResonantTensorConstruction::test_from_floats_with_precision PASSED [ 67%]
+tests/test_resonant/test_tensor.py::TestResonantTensorProperties::test_syntony_range PASSED [ 67%]
+tests/test_resonant/test_tensor.py::TestResonantTensorProperties::test_syntony_constant_mode PASSED [ 67%]
+tests/test_resonant/test_tensor.py::TestResonantTensorProperties::test_phase_initial PASSED [ 67%]
+tests/test_resonant/test_tensor.py::TestResonantTensorProperties::test_repr PASSED [ 68%]
+tests/test_resonant/test_tensor.py::TestResonantTensorLattice::test_to_list PASSED [ 68%]
+tests/test_resonant/test_tensor.py::TestResonantTensorLattice::test_get_lattice PASSED [ 68%]
+tests/test_resonant/test_tensor.py::TestResonantTensorLattice::test_golden_values_preserved PASSED [ 68%]
+tests/test_resonant/test_tensor.py::TestResonantTensorPhaseTransitions::test_wake_flux_values PASSED [ 68%]
+tests/test_resonant/test_tensor.py::TestResonantTensorPhaseTransitions::test_crystallize_from_values PASSED [ 68%]
+tests/test_resonant/test_tensor.py::TestResonantTensorPhaseTransitions::test_cpu_cycle PASSED [ 68%]
+tests/test_resonant/test_tensor.py::TestResonantTensorPhaseTransitions::test_multiple_cpu_cycles PASSED [ 68%]
+tests/test_resonant/test_tensor.py::TestResonantTensorFromGoldenExact::test_from_golden_exact PASSED [ 69%]
+tests/test_resonant/test_tensor.py::TestResonantTensorSyntonyComputation::test_syntony_dc_dominant PASSED [ 69%]
+tests/test_resonant/test_tensor.py::TestResonantTensorSyntonyComputation::test_syntony_high_freq_dominant PASSED [ 69%]
+tests/test_resonant/test_tensor.py::TestResonantTensorSyntonyComputation::test_syntony_zero_signal PASSED [ 69%]
+tests/test_resonant/test_tensor.py::TestResonantTensorEdgeCases::test_single_element PASSED [ 69%]
+tests/test_resonant/test_tensor.py::TestResonantTensorEdgeCases::test_large_values PASSED [ 69%]
+tests/test_resonant/test_tensor.py::TestResonantTensorEdgeCases::test_negative_values PASSED [ 69%]
+tests/test_resonant/test_tensor.py::TestResonantTensorEdgeCases::test_mixed_sign_values PASSED [ 69%]
+tests/test_resonant/test_tensor_wrapper.py::TestConstruction::test_basic_construction PASSED [ 69%]
+tests/test_resonant/test_tensor_wrapper.py::TestConstruction::test_zeros_factory PASSED [ 70%]
+tests/test_resonant/test_tensor_wrapper.py::TestConstruction::test_ones_factory PASSED [ 70%]
+tests/test_resonant/test_tensor_wrapper.py::TestConstruction::test_randn_factory PASSED [ 70%]
+tests/test_resonant/test_tensor_wrapper.py::TestConstruction::test_randn_with_params PASSED [ 70%]
+tests/test_resonant/test_tensor_wrapper.py::TestProperties::test_properties PASSED [ 70%]
+tests/test_resonant/test_tensor_wrapper.py::TestProperties::test_to_floats PASSED [ 70%]
+tests/test_resonant/test_tensor_wrapper.py::TestProperties::test_to_list PASSED [ 70%]
+tests/test_resonant/test_tensor_wrapper.py::TestOperatorOverloading::test_add_tensor PASSED [ 70%]
+tests/test_resonant/test_tensor_wrapper.py::TestOperatorOverloading::test_add_scalar PASSED [ 71%]
+tests/test_resonant/test_tensor_wrapper.py::TestOperatorOverloading::test_mul_tensor PASSED [ 71%]
+tests/test_resonant/test_tensor_wrapper.py::TestOperatorOverloading::test_mul_scalar PASSED [ 71%]
+tests/test_resonant/test_tensor_wrapper.py::TestOperatorOverloading::test_rmul_scalar PASSED [ 71%]
+tests/test_resonant/test_tensor_wrapper.py::TestOperatorOverloading::test_neg PASSED [ 71%]
+tests/test_resonant/test_tensor_wrapper.py::TestOperatorOverloading::test_matmul PASSED [ 71%]
+tests/test_resonant/test_tensor_wrapper.py::TestOperatorOverloading::test_len PASSED [ 71%]
+tests/test_resonant/test_tensor_wrapper.py::TestActivations::test_relu PASSED [ 71%]
+tests/test_resonant/test_tensor_wrapper.py::TestActivations::test_sigmoid PASSED [ 72%]
+tests/test_resonant/test_tensor_wrapper.py::TestActivations::test_softmax PASSED [ 72%]
+tests/test_resonant/test_tensor_wrapper.py::TestPhaseCycles::test_cpu_cycle PASSED [ 72%]
+tests/test_resonant/test_tensor_wrapper.py::TestPhaseCycles::test_wake_and_crystallize PASSED [ 72%]
+tests/test_resonant/test_tensor_wrapper.py::TestPhaseCycles::test_batch_cpu_cycle PASSED [ 72%]
+tests/test_resonant/test_tensor_wrapper.py::TestLinearAlgebra::test_matmul PASSED [ 72%]
+tests/test_resonant/test_tensor_wrapper.py::TestLinearAlgebra::test_add_bias PASSED [ 72%]
+tests/test_resonant/test_tensor_wrapper.py::TestAdvancedOperations::test_concat PASSED [ 72%]
+tests/test_resonant/test_tensor_wrapper.py::TestAdvancedOperations::test_index_select PASSED [ 73%]
+tests/test_resonant/test_tensor_wrapper.py::TestAdvancedOperations::test_mean PASSED [ 73%]
+tests/test_resonant/test_tensor_wrapper.py::TestAdvancedOperations::test_layer_norm PASSED [ 73%]
+tests/test_resonant/test_tensor_wrapper.py::TestGoldenOperations::test_apply_recursion PASSED [ 73%]
+tests/test_resonant/test_tensor_wrapper.py::TestGoldenOperations::test_apply_inverse_recursion PASSED [ 73%]
+tests/test_resonant/test_tensor_wrapper.py::TestGoldenOperations::test_prune_hierarchy PASSED [ 73%]
+tests/test_resonant/test_tensor_wrapper.py::TestTypeAnnotations::test_type_hints PASSED [ 73%]
+tests/test_resonant/test_tensor_wrapper.py::TestRepr::test_repr PASSED   [ 73%]
+tests/test_resonant_matmul.py::test_basic_matmul PASSED                  [ 74%]
+tests/test_resonant_matmul.py::test_matmul_with_golden_ratio PASSED      [ 74%]
+tests/test_resonant_matmul.py::test_matmul_shapes PASSED                 [ 74%]
+tests/test_resonant_matmul.py::test_matmul_operator PASSED               [ 74%]
+tests/test_resonant_matmul.py::test_matmul_syntony PASSED                [ 74%]
+tests/test_srt/test_constants.py::TestSRTConstants::test_torus_dimensions PASSED [ 74%]
+tests/test_srt/test_constants.py::TestSRTConstants::test_e8_roots PASSED [ 74%]
+tests/test_srt/test_constants.py::TestSRTConstants::test_e8_positive_roots PASSED [ 74%]
+tests/test_srt/test_constants.py::TestSRTConstants::test_e6_golden_cone PASSED [ 75%]
+tests/test_srt/test_constants.py::TestSRTConstants::test_d4_kissing PASSED [ 75%]
+tests/test_srt/test_constants.py::TestGoldenConstants::test_phi_numeric PASSED [ 75%]
+tests/test_srt/test_constants.py::TestGoldenConstants::test_phi_squared PASSED [ 75%]
+tests/test_srt/test_constants.py::TestGoldenConstants::test_phi_inverse PASSED [ 75%]
+tests/test_srt/test_constants.py::TestEStarConstant::test_e_star_numeric PASSED [ 75%]
+tests/test_srt/test_constants.py::TestEStarConstant::test_e_star_approximate_value PASSED [ 75%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_creation PASSED [ 75%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_global_bound_is_phi PASSED [ 76%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_vacuum_partition_positive PASSED [ 76%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_evaluate_positive PASSED [ 76%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_evaluate_bounded_by_phi PASSED [ 76%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_ground_state PASSED [ 76%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_superposition_bounded PASSED [ 76%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_thermal_state_bounded PASSED [ 76%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_gradient_returns_dict PASSED [ 76%]
+tests/test_srt/test_functional.py::TestSyntonyFunctional::test_optimize_step PASSED [ 76%]
+tests/test_srt/test_functional.py::TestComputeSyntony::test_compute_syntony PASSED [ 77%]
+tests/test_srt/test_functional.py::TestComputeSyntony::test_compute_syntony_custom_phi PASSED [ 77%]
+tests/test_srt/test_functional.py::TestFunctionalIntegration::test_syntony_with_laplacian PASSED [ 77%]
+tests/test_srt/test_functional.py::TestFunctionalIntegration::test_vacuum_maximizes_syntony PASSED [ 77%]
+tests/test_srt/test_geometry.py::TestWindingState::test_creation PASSED  [ 77%]
+tests/test_srt/test_geometry.py::TestWindingState::test_tuple_access PASSED [ 77%]
+tests/test_srt/test_geometry.py::TestWindingState::test_norm_squared PASSED [ 77%]
+tests/test_srt/test_geometry.py::TestWindingState::test_vacuum_state PASSED [ 77%]
+tests/test_srt/test_geometry.py::TestWindingState::test_inner_product PASSED [ 78%]
+tests/test_srt/test_geometry.py::TestWindingState::test_negation PASSED  [ 78%]
+tests/test_srt/test_geometry.py::TestWindingState::test_addition PASSED  [ 78%]
+tests/test_srt/test_geometry.py::TestWindingState::test_golden_weight PASSED [ 78%]
+tests/test_srt/test_geometry.py::TestWindingState::test_generation PASSED [ 78%]
+tests/test_srt/test_geometry.py::TestWindingState::test_equality PASSED  [ 78%]
+tests/test_srt/test_geometry.py::TestWindingState::test_hashable PASSED  [ 78%]
+tests/test_srt/test_geometry.py::TestWindingState::test_immutable PASSED [ 78%]
+tests/test_srt/test_geometry.py::TestT4Torus::test_creation PASSED       [ 79%]
+tests/test_srt/test_geometry.py::TestT4Torus::test_fourier_mode PASSED   [ 79%]
+tests/test_srt/test_geometry.py::TestT4Torus::test_fourier_mode_vacuum PASSED [ 79%]
+tests/test_srt/test_geometry.py::TestT4Torus::test_enumerate_windings PASSED [ 79%]
+tests/test_srt/test_geometry.py::TestT4Torus::test_enumerate_windings_norm_2 PASSED [ 79%]
+tests/test_srt/test_geometry.py::TestT4Torus::test_coordinate_periodicity PASSED [ 79%]
+tests/test_srt/test_geometry.py::TestGeometryIntegration::test_winding_orthogonality PASSED [ 79%]
+tests/test_srt/test_geometry.py::TestGeometryIntegration::test_norm_squared_equals_inner_product PASSED [ 79%]
+tests/test_srt/test_golden.py::TestGoldenMeasure::test_creation PASSED   [ 80%]
+tests/test_srt/test_golden.py::TestGoldenMeasure::test_vacuum_weight PASSED [ 80%]
+tests/test_srt/test_golden.py::TestGoldenMeasure::test_weight_positive PASSED [ 80%]
+tests/test_srt/test_golden.py::TestGoldenMeasure::test_weight_decreases_with_norm PASSED [ 80%]
+tests/test_srt/test_golden.py::TestGoldenMeasure::test_weight_formula PASSED [ 80%]
+tests/test_srt/test_golden.py::TestGoldenMeasure::test_partition_function_positive PASSED [ 80%]
+tests/test_srt/test_golden.py::TestGoldenMeasure::test_partition_function_bounded PASSED [ 80%]
+tests/test_srt/test_golden.py::TestGoldenRecursionMap::test_creation PASSED [ 80%]
+tests/test_srt/test_golden.py::TestGoldenRecursionMap::test_apply_vacuum PASSED [ 81%]
+tests/test_srt/test_golden.py::TestGoldenRecursionMap::test_apply_formula PASSED [ 81%]
+tests/test_srt/test_golden.py::TestGoldenRecursionMap::test_orbit_contains_start PASSED [ 81%]
+tests/test_srt/test_golden.py::TestGoldenRecursionMap::test_orbit_terminates PASSED [ 81%]
+tests/test_srt/test_golden.py::TestGoldenRecursionMap::test_orbit_increasing_norm PASSED [ 81%]
+tests/test_srt/test_golden.py::TestGoldenRecursionMap::test_fixed_points_contains_vacuum PASSED [ 81%]
+tests/test_srt/test_golden.py::TestGoldenRecursionMap::test_mass_scaling_vacuum PASSED [ 81%]
+tests/test_srt/test_golden.py::TestGoldenRecursionMap::test_mass_scaling_decreases PASSED [ 81%]
+tests/test_srt/test_golden.py::TestGoldenIntegration::test_measure_recursion_compatibility PASSED [ 82%]
+tests/test_srt/test_golden.py::TestGoldenIntegration::test_orbit_weights_decrease PASSED [ 82%]
+tests/test_srt/test_integration.py::TestSRTSystem::test_creation PASSED  [ 82%]
+tests/test_srt/test_integration.py::TestSRTSystem::test_all_components_present PASSED [ 82%]
+tests/test_srt/test_integration.py::TestSRTSystem::test_phi_consistent PASSED [ 82%]
+tests/test_srt/test_integration.py::TestSRTSystem::test_vacuum_state PASSED [ 82%]
+tests/test_srt/test_integration.py::TestSRTSystem::test_verify_e8_count PASSED [ 82%]
+tests/test_srt/test_integration.py::TestSRTSystem::test_verify_golden_cone_count PASSED [ 82%]
+tests/test_srt/test_integration.py::TestSRTSystem::test_verify_d4_kissing PASSED [ 83%]
+tests/test_srt/test_integration.py::TestSRTSystem::test_verify_all PASSED [ 83%]
+tests/test_srt/test_integration.py::TestSRTSystem::test_summary PASSED   [ 83%]
+tests/test_srt/test_integration.py::TestKeyIdentities::test_e8_root_count_240 PASSED [ 83%]
+tests/test_srt/test_integration.py::TestKeyIdentities::test_e8_positive_roots_120 PASSED [ 83%]
+tests/test_srt/test_integration.py::TestKeyIdentities::test_golden_cone_36 PASSED [ 83%]
+tests/test_srt/test_integration.py::TestKeyIdentities::test_d4_kissing_24 PASSED [ 83%]
+tests/test_srt/test_integration.py::TestKeyIdentities::test_e_star_value PASSED [ 83%]
+tests/test_srt/test_integration.py::TestKeyIdentities::test_all_roots_norm_2 PASSED [ 84%]
+tests/test_srt/test_integration.py::TestKeyIdentities::test_syntony_bound PASSED [ 84%]
+tests/test_srt/test_integration.py::TestModuleImports::test_constants_import PASSED [ 84%]
+tests/test_srt/test_integration.py::TestModuleImports::test_geometry_import PASSED [ 84%]
+tests/test_srt/test_integration.py::TestModuleImports::test_golden_import PASSED [ 84%]
+tests/test_srt/test_integration.py::TestModuleImports::test_lattice_import PASSED [ 84%]
+tests/test_srt/test_integration.py::TestModuleImports::test_spectral_import PASSED [ 84%]
+tests/test_srt/test_integration.py::TestModuleImports::test_functional_import PASSED [ 84%]
+tests/test_srt/test_integration.py::TestModuleImports::test_system_import PASSED [ 84%]
+tests/test_srt/test_integration.py::TestCrossModuleConsistency::test_golden_cone_uses_e8 PASSED [ 85%]
+tests/test_srt/test_integration.py::TestCrossModuleConsistency::test_syntony_uses_laplacian PASSED [ 85%]
+tests/test_srt/test_integration.py::TestCrossModuleConsistency::test_heat_kernel_uses_golden_measure PASSED [ 85%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_creation PASSED      [ 85%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_root_count PASSED    [ 85%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_positive_root_count PASSED [ 85%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_all_roots_norm_2 PASSED [ 85%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_type_a_count PASSED  [ 85%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_type_b_count PASSED  [ 86%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_type_a_plus_b_equals_total PASSED [ 86%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_simple_roots_count PASSED [ 86%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_simple_roots_norm PASSED [ 86%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_cartan_matrix_shape PASSED [ 86%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_cartan_matrix_diagonal PASSED [ 86%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_highest_root PASSED  [ 86%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_kissing_number PASSED [ 86%]
+tests/test_srt/test_lattice.py::TestE8Lattice::test_coxeter_number PASSED [ 87%]
+tests/test_srt/test_lattice.py::TestD4Lattice::test_creation PASSED      [ 87%]
+tests/test_srt/test_lattice.py::TestD4Lattice::test_root_count PASSED    [ 87%]
+tests/test_srt/test_lattice.py::TestD4Lattice::test_positive_root_count PASSED [ 87%]
+tests/test_srt/test_lattice.py::TestD4Lattice::test_kissing_number PASSED [ 87%]
+tests/test_srt/test_lattice.py::TestD4Lattice::test_all_roots_norm_2 PASSED [ 87%]
+tests/test_srt/test_lattice.py::TestD4Lattice::test_simple_roots_count PASSED [ 87%]
+tests/test_srt/test_lattice.py::TestD4Lattice::test_coxeter_number PASSED [ 87%]
+tests/test_srt/test_lattice.py::TestGoldenCone::test_creation PASSED     [ 88%]
+tests/test_srt/test_lattice.py::TestGoldenCone::test_root_count PASSED   [ 88%]
+tests/test_srt/test_lattice.py::TestGoldenCone::test_all_roots_in_cone PASSED [ 88%]
+tests/test_srt/test_lattice.py::TestGoldenCone::test_roots_are_e8_roots PASSED [ 88%]
+tests/test_srt/test_lattice.py::TestGoldenCone::test_is_e6_positive_roots PASSED [ 88%]
+tests/test_srt/test_lattice.py::TestQuadraticForm::test_creation PASSED  [ 88%]
+tests/test_srt/test_lattice.py::TestQuadraticForm::test_phi_value PASSED [ 88%]
+tests/test_srt/test_lattice.py::TestQuadraticForm::test_evaluate_returns_float PASSED [ 88%]
+tests/test_srt/test_lattice.py::TestQuadraticForm::test_classify_spacelike PASSED [ 89%]
+tests/test_srt/test_lattice.py::TestQuadraticForm::test_projection_dimensions PASSED [ 89%]
+tests/test_srt/test_lattice.py::TestQuadraticForm::test_is_in_cone_consistent PASSED [ 89%]
+tests/test_srt/test_lattice.py::TestGoldenProjector::test_creation PASSED [ 89%]
+tests/test_srt/test_lattice.py::TestGoldenProjector::test_project_parallel PASSED [ 89%]
+tests/test_srt/test_lattice.py::TestGoldenProjector::test_project_perpendicular PASSED [ 89%]
+tests/test_srt/test_lattice.py::TestLatticeIntegration::test_e8_contains_d4 PASSED [ 89%]
+tests/test_srt/test_lattice.py::TestLatticeIntegration::test_golden_cone_roots_are_e8_roots PASSED [ 89%]
+tests/test_srt/test_neural_networks.py::TestPrimeSyntonyGate::test_gate_creation PASSED [ 90%]
+tests/test_srt/test_neural_networks.py::TestPrimeSyntonyGate::test_gate_forward_pass FAILED [ 90%]
+tests/test_srt/test_neural_networks.py::TestPrimeSyntonyGate::test_material_anomaly_penalty FAILED [ 90%]
+tests/test_srt/test_neural_networks.py::TestPrimeSyntonyGate::test_gate_boost_factors PASSED [ 90%]
+tests/test_srt/test_neural_networks.py::TestWindingAttention::test_attention_creation PASSED [ 90%]
+tests/test_srt/test_neural_networks.py::TestWindingAttention::test_attention_forward PASSED [ 90%]
+tests/test_srt/test_neural_networks.py::TestWindingAttention::test_mersenne_dimension_validation PASSED [ 90%]
+tests/test_srt/test_neural_networks.py::TestWindingAttention::test_attention_with_mask PASSED [ 90%]
+tests/test_srt/test_neural_networks.py::TestSRTTransformerBlock::test_transformer_creation PASSED [ 91%]
+tests/test_srt/test_neural_networks.py::TestSRTTransformerBlock::test_transformer_forward PASSED [ 91%]
+tests/test_srt/test_neural_networks.py::TestSRTTransformerBlock::test_transformer_with_mask PASSED [ 91%]
+tests/test_srt/test_neural_networks.py::TestDimensionUtilities::test_get_stable_dimensions PASSED [ 91%]
+tests/test_srt/test_neural_networks.py::TestDimensionUtilities::test_suggest_network_dimensions FAILED [ 91%]
+tests/test_srt/test_neural_networks.py::TestSRTNNIntegration::test_prime_syntony_gate_gradient_flow PASSED [ 91%]
+tests/test_srt/test_neural_networks.py::TestSRTNNIntegration::test_winding_attention_gradient_flow PASSED [ 91%]
+tests/test_srt/test_neural_networks.py::TestSRTNNIntegration::test_srt_transformer_training PASSED [ 91%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_mersenne_primes PASSED [ 92%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_fermat_primes PASSED [ 92%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_lucas_primes PASSED [ 92%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_lucas_numbers PASSED [ 92%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_pisano_periods PASSED [ 92%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_stable_windings PASSED [ 92%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_stability_barrier PASSED [ 92%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_transcendence_gates PASSED [ 92%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_versal_grip_strength PASSED [ 92%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_prime_sequences FAILED [ 93%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_lucas_dark_boost PASSED [ 93%]
+tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_dark_matter_prediction PASSED [ 93%]
+tests/test_srt/test_prime_theory.py::TestSRTCRTPredictions::test_force_count PASSED [ 93%]
+tests/test_srt/test_prime_theory.py::TestSRTCRTPredictions::test_matter_generations PASSED [ 93%]
+tests/test_srt/test_prime_theory.py::TestSRTCRTPredictions::test_stability_barrier_position PASSED [ 93%]
+tests/test_srt/test_prime_theory.py::TestSRTCRTPredictions::test_dark_matter_mass_range PASSED [ 93%]
+tests/test_srt/test_prime_theory.py::TestSRTCRTPredictions::test_fibonacci_transcendence_gates PASSED [ 93%]
+tests/test_srt/test_prime_theory.py::TestSRTCRTPredictions::test_pisano_self_hooking PASSED [ 94%]
+tests/test_srt/test_spectral.py::TestThetaSeries::test_creation PASSED   [ 94%]
+tests/test_srt/test_spectral.py::TestThetaSeries::test_positive_parameter PASSED [ 94%]
+tests/test_srt/test_spectral.py::TestThetaSeries::test_evaluate_positive PASSED [ 94%]
+tests/test_srt/test_spectral.py::TestThetaSeries::test_evaluate_at_1 PASSED [ 94%]
+tests/test_srt/test_spectral.py::TestThetaSeries::test_functional_equation PASSED [ 94%]
+tests/test_srt/test_spectral.py::TestThetaSeries::test_num_terms PASSED  [ 94%]
+tests/test_srt/test_spectral.py::TestHeatKernel::test_creation PASSED    [ 94%]
+tests/test_srt/test_spectral.py::TestHeatKernel::test_positive_parameter PASSED [ 95%]
+tests/test_srt/test_spectral.py::TestHeatKernel::test_evaluate_positive PASSED [ 95%]
+tests/test_srt/test_spectral.py::TestHeatKernel::test_decreases_with_t PASSED [ 95%]
+tests/test_srt/test_spectral.py::TestHeatKernel::test_long_time_limit PASSED [ 95%]
+tests/test_srt/test_spectral.py::TestHeatKernel::test_eigenvalue_vacuum PASSED [ 95%]
+tests/test_srt/test_spectral.py::TestHeatKernel::test_eigenvalue_positive PASSED [ 95%]
+tests/test_srt/test_spectral.py::TestKnotLaplacian::test_creation PASSED [ 95%]
+tests/test_srt/test_spectral.py::TestKnotLaplacian::test_vacuum_eigenvalue PASSED [ 95%]
+tests/test_srt/test_spectral.py::TestKnotLaplacian::test_non_vacuum_positive PASSED [ 96%]
+tests/test_srt/test_spectral.py::TestKnotLaplacian::test_spectral_gap PASSED [ 96%]
+tests/test_srt/test_spectral.py::TestKnotLaplacian::test_mass_squared PASSED [ 96%]
+tests/test_srt/test_spectral.py::TestKnotLaplacian::test_spectrum_ordered PASSED [ 96%]
+tests/test_srt/test_spectral.py::TestKnotLaplacian::test_heat_kernel_trace PASSED [ 96%]
+tests/test_srt/test_spectral.py::TestKnotLaplacian::test_golden_suppression PASSED [ 96%]
+tests/test_srt/test_spectral.py::TestMobiusRegularizer::test_creation PASSED [ 96%]
+tests/test_srt/test_spectral.py::TestMobiusRegularizer::test_compute_e_star PASSED [ 96%]
+tests/test_srt/test_spectral.py::TestMobiusRegularizer::test_e_star_value PASSED [ 97%]
+tests/test_srt/test_spectral.py::TestMobiusRegularizer::test_mobius_function PASSED [ 97%]
+tests/test_srt/test_spectral.py::TestMobiusRegularizer::test_mertens_function PASSED [ 97%]
+tests/test_srt/test_spectral.py::TestSpectralIntegration::test_heat_kernel_from_laplacian PASSED [ 97%]
+tests/test_srt/test_spectral.py::TestSpectralIntegration::test_theta_heat_relation PASSED [ 97%]
+tests/test_srt_physics.py::TestForceDifferentiation::test_force_hierarchy_creation PASSED [ 97%]
+tests/test_srt_physics.py::TestForceDifferentiation::test_force_count_validation PASSED [ 97%]
+tests/test_srt_physics.py::TestForceDifferentiation::test_force_coupling_constants PASSED [ 97%]
+tests/test_srt_physics.py::TestMatterGenerations::test_matter_generation_creation PASSED [ 98%]
+tests/test_srt_physics.py::TestMatterGenerations::test_matter_generation_count PASSED [ 98%]
+tests/test_srt_physics.py::TestMatterGenerations::test_generation_properties PASSED [ 98%]
+tests/test_srt_physics.py::TestDarkSector::test_dark_sector_creation PASSED [ 98%]
+tests/test_srt_physics.py::TestDarkSector::test_dark_matter_mass PASSED  [ 98%]
+tests/test_srt_physics.py::TestConsciousnessEmergence::test_consciousness_phases PASSED [ 98%]
+tests/test_srt_physics.py::TestConsciousnessEmergence::test_consciousness_threshold PASSED [ 98%]
+tests/test_srt_physics.py::TestPhysicsIntegration::test_universe_simulation PASSED [ 98%]
+tests/test_srt_physics.py::TestPhysicsIntegration::test_prediction_validation PASSED [ 99%]
+tests/test_srt_physics.py::TestPhysicsBenchmarks::test_simulation_speed PASSED [ 99%]
+tests/test_srt_physics.py::TestPhysicsBenchmarks::test_memory_usage PASSED [ 99%]
+tests/test_syntonic_softmax_modes.py::test_learned_mode PASSED           [ 99%]
+tests/test_syntonic_softmax_modes.py::test_provided_mode PASSED          [ 99%]
+tests/test_syntonic_softmax_modes.py::test_identity_mode PASSED          [ 99%]
+tests/test_syntonic_softmax_modes.py::test_error_handling PASSED         [ 99%]
+tests/test_versal_grip.py::test_versal_grip_strength PASSED              [ 99%]
+tests/test_winding_net_pure.py::test_pure_winding_net PASSED             [100%]
+
+=================================== FAILURES ===================================
+__________________ TestF32Support.test_f32_identity_mode_gpu ___________________
+
+self = <test_core.test_syntonic_softmax_phase2.TestF32Support object at 0x790b85ba5700>
+
+    @pytest.mark.skipif(not has_cuda(), reason="CUDA not available")
+    def test_f32_identity_mode_gpu(self):
+        """Test F32 identity mode on GPU (should use GPU kernel, no CPU round-trip)."""
+        data = [1.0, 2.0, 3.0, 4.0, 5.0]
+        x = ResonantTensor(data, [1, 5]).to_device(0)
+    
+        state = SyntonicSoftmaxState(
+            SyntonicSoftmaxMode.Identity,
+            -1,
+            None,
+            1.0
+        )
+    
+        y = state.forward(x, None)
+    
+        # Result should still be on GPU
+        assert y.device_idx() is not None, "Result moved to CPU unexpectedly"
+    
+        probs = y.to_cpu().to_floats()
+    
+        # Verify normalization
+>       assert np.isclose(sum(probs), 1.0, rtol=1e-3), f"Sum = {sum(probs)}"
+E       AssertionError: Sum = 1.0131556174964214
+E       assert np.False_
+E        +  where np.False_ = <function isclose at 0x790b97723570>(1.0131556174964214, 1.0, rtol=0.001)
+E        +    where <function isclose at 0x790b97723570> = np.isclose
+E        +    and   1.0131556174964214 = sum([0.013155617496423133, 0.034441853748631956, 0.09016994374947451, 0.2360679774997898, 0.639320225002102])
+
+tests/test_core/test_syntonic_softmax_phase2.py:150: AssertionError
+______________ TestGPUIdentityMode.test_gpu_identity_matches_cpu _______________
+
+self = <test_core.test_syntonic_softmax_phase2.TestGPUIdentityMode object at 0x790b85bdc110>
+
+    @pytest.mark.skipif(not has_cuda(), reason="CUDA not available")
+    def test_gpu_identity_matches_cpu(self):
+        """Test that GPU identity mode matches CPU results."""
+        data = [1.0, 2.0, 3.0, 4.0, 5.0]
+    
+        # CPU version
+        x_cpu = ResonantTensor(data, [1, 5])
+        state = SyntonicSoftmaxState(
+            SyntonicSoftmaxMode.Identity,
+            -1,
+            None,
+            1.0
+        )
+        y_cpu = state.forward(x_cpu, None)
+        probs_cpu = y_cpu.to_floats()
+    
+        # GPU version
+        x_gpu = ResonantTensor(data, [1, 5]).to_device(0)
+        y_gpu = state.forward(x_gpu, None)
+        probs_gpu = y_gpu.to_cpu().to_floats()
+    
+        # Should match
+>       assert np.allclose(probs_cpu, probs_gpu, rtol=1e-4), \
+            f"CPU: {probs_cpu}, GPU: {probs_gpu}"
+E       AssertionError: CPU: [0.011655802672294158, 0.03168396079956892, 0.08612989782818659, 0.23414859877425442, 0.636214604986975], GPU: [0.013155617496423133, 0.034441853748631956, 0.09016994374947451, 0.2360679774997898, 0.639320225002102]
+E       assert False
+E        +  where False = <function allclose at 0x790b97723430>([0.011655802672294158, 0.03168396079956892, 0.08612989782818659, 0.23414859877425442, 0.636214604986975], [0.013155617496423133, 0.034441853748631956, 0.09016994374947451, 0.2360679774997898, 0.639320225002102], rtol=0.0001)
+E        +    where <function allclose at 0x790b97723430> = np.allclose
+
+tests/test_core/test_syntonic_softmax_phase2.py:231: AssertionError
+_______________ TestPerformance.test_gpu_performance_comparison ________________
+
+self = <test_core.test_syntonic_softmax_phase2.TestPerformance object at 0x790b85bdcbc0>
+
+    @pytest.mark.skipif(not has_cuda(), reason="CUDA not available")
+    def test_gpu_performance_comparison(self):
+        """Compare GPU performance of different modes."""
+        batch_size, num_classes = 100, 1000
+        data = list(np.random.randn(batch_size * num_classes))
+        x = ResonantTensor(data, [batch_size, num_classes]).to_device(0)
+    
+        n_iterations = 100
+    
+        # Identity mode
+        state_identity = SyntonicSoftmaxState(
+            SyntonicSoftmaxMode.Identity, -1, None, 1.0
+        )
+    
+        # Warmup
+        for _ in range(10):
+            _ = state_identity.forward(x, None)
+    
+        start = time.time()
+        for _ in range(n_iterations):
+            _ = state_identity.forward(x, None)
+        identity_time = time.time() - start
+    
+        # Learned mode
+        state_learned = SyntonicSoftmaxState(
+            SyntonicSoftmaxMode.Learned, -1, num_classes, 1.0
+        )
+    
+        # Warmup
+        for _ in range(10):
+>           _ = state_learned.forward(x, None)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           RuntimeError: mode_norms must be on GPU (F32) for CUDA softmax
+
+tests/test_core/test_syntonic_softmax_phase2.py:508: RuntimeError
+_____________________ TestFermionMasses.test_quark_masses ______________________
+
+self = <test_physics.test_standard_model.TestFermionMasses object at 0x790a0253f6b0>
+
+    def test_quark_masses(self):
+        """Light and heavy quark masses."""
+        from syntonic.physics.fermions import (
+            up_mass, down_mass, strange_mass,
+            charm_mass, bottom_mass, top_mass
+        )
+        from syntonic.exact import E_STAR_NUMERIC
+    
+        # Up quark
+        m_u = up_mass()
+>       assert abs(m_u - E_STAR_NUMERIC / 9) < 0.01
+E       assert 0.06087536468862931 < 0.01
+E        +  where 0.06087536468862931 = abs((2.161246855221312 - (19.999099979189474 / 9)))
+
+tests/test_physics/test_standard_model.py:52: AssertionError
+_______________________ TestHadronMasses.test_pion_mass ________________________
+
+self = <test_physics.test_standard_model.TestHadronMasses object at 0x790a025588c0>
+
+    def test_pion_mass(self):
+        """Pion mass = E* × 7."""
+        from syntonic.physics.hadrons import pion_mass
+        from syntonic.exact import E_STAR_NUMERIC
+        m_pi = pion_mass()
+>       assert abs(m_pi - E_STAR_NUMERIC * 7) < 0.01
+E       assert 0.47939349692296673 < 0.01
+E        +  where 0.47939349692296673 = abs((139.51430635740334 - (19.999099979189474 * 7)))
+
+tests/test_physics/test_standard_model.py:210: AssertionError
+_____________________ TestHadronMasses.test_meson_pattern ______________________
+
+self = <test_physics.test_standard_model.TestHadronMasses object at 0x790a02558b90>
+
+    def test_meson_pattern(self):
+        """Meson mass pattern with E*."""
+        from syntonic.physics.hadrons import pion_mass, kaon_mass, d_meson_mass, b_meson_mass
+        from syntonic.exact import E_STAR_NUMERIC
+    
+        # All mesons should follow E* × integer pattern
+>       assert abs(pion_mass() / E_STAR_NUMERIC - 7) < 0.01
+E       assert 0.02397075355500089 < 0.01
+E        +  where 0.02397075355500089 = abs(((139.51430635740334 / 19.999099979189474) - 7))
+E        +    where 139.51430635740334 = <function pion_mass at 0x790a024fc540>()
+
+tests/test_physics/test_standard_model.py:218: AssertionError
+_________________ TestPrimeSyntonyGate.test_gate_forward_pass __________________
+
+self = <test_srt.test_neural_networks.TestPrimeSyntonyGate object at 0x790a02485a30>
+
+    def test_gate_forward_pass(self):
+        """Test forward pass through the gate."""
+        batch_size, seq_len, dim = 2, 10, 7
+        gate = PrimeSyntonyGate(dim)
+    
+        x = torch.randn(batch_size, seq_len, dim)
+        output = gate(x)
+    
+        # Output should have same shape
+        assert output.shape == x.shape
+    
+        # For resonant dimensions, output should be normalized and boosted
+        if gate.is_resonant:
+            # Check that output is normalized (unit vectors)
+            norms = torch.norm(output, dim=-1)
+>           assert torch.allclose(norms, torch.ones_like(norms), atol=1e-6)
+E           assert False
+E            +  where False = <built-in method allclose of type object at 0x790abe97af60>(tensor([[29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344,\n         29.0344, 29.0344],\n        [29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344,\n         29.0344, 29.0344]]), tensor([[1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],\n        [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]]), atol=1e-06)
+E            +    where <built-in method allclose of type object at 0x790abe97af60> = torch.allclose
+E            +    and   tensor([[1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],\n        [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]]) = <built-in method ones_like of type object at 0x790abe97af60>(tensor([[29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344,\n         29.0344, 29.0344],\n        [29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344, 29.0344,\n         29.0344, 29.0344]]))
+E            +      where <built-in method ones_like of type object at 0x790abe97af60> = torch.ones_like
+
+tests/test_srt/test_neural_networks.py:60: AssertionError
+______________ TestPrimeSyntonyGate.test_material_anomaly_penalty ______________
+
+self = <test_srt.test_neural_networks.TestPrimeSyntonyGate object at 0x790a02485400>
+
+    def test_material_anomaly_penalty(self):
+        """Test the material anomaly penalty at dimension 4."""
+        gate_4 = PrimeSyntonyGate(4)
+        gate_3 = PrimeSyntonyGate(3)
+    
+        # Dimension 4 should have reduced boost due to material anomaly
+>       assert gate_4.boost_factor < gate_3.boost_factor
+E       assert 6.168691769624717 < 4.23606797749979
+E        +  where 6.168691769624717 = PrimeSyntonyGate(dim=4, resonant=True, boost=6.169).boost_factor
+E        +  and   4.23606797749979 = PrimeSyntonyGate(dim=3, resonant=True, boost=4.236).boost_factor
+
+tests/test_srt/test_neural_networks.py:68: AssertionError
+____________ TestDimensionUtilities.test_suggest_network_dimensions ____________
+
+self = <test_srt.test_neural_networks.TestDimensionUtilities object at 0x790a02485e20>
+
+    def test_suggest_network_dimensions(self):
+        """Test network dimension suggestions."""
+        input_dim = 10
+        output_dim = 5
+        num_layers = 3
+    
+        dimensions = suggest_network_dimensions(input_dim, output_dim, num_layers)
+    
+        # Should have input + num_layers + output dimensions
+>       assert len(dimensions) == num_layers + 2
+E       assert 4 == (3 + 2)
+E        +  where 4 = len([10, 7, 15, 5])
+
+tests/test_srt/test_neural_networks.py:214: AssertionError
+_____________________ TestPrimeTheory.test_prime_sequences _____________________
+
+self = <test_srt.test_prime_theory.TestPrimeTheory object at 0x790a02487bc0>
+
+    def test_prime_sequences(self):
+        """Test prime sequence generation."""
+        # Mersenne sequence
+        mersenne = core.py_mersenne_sequence(10)
+>       assert 2 in mersenne  # M2
+        ^^^^^^^^^^^^^^^^^^^^
+E       assert 2 in [3, 7, 31, 127]
+
+tests/test_srt/test_prime_theory.py:122: AssertionError
+=============================== warnings summary ===============================
+tests/test_resonant_matmul.py::test_basic_matmul
+  /home/Andrew/miniforge3/lib/python3.12/site-packages/_pytest/python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_resonant_matmul.py::test_basic_matmul returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/test_resonant_matmul.py::test_matmul_with_golden_ratio
+  /home/Andrew/miniforge3/lib/python3.12/site-packages/_pytest/python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_resonant_matmul.py::test_matmul_with_golden_ratio returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/test_resonant_matmul.py::test_matmul_shapes
+  /home/Andrew/miniforge3/lib/python3.12/site-packages/_pytest/python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_resonant_matmul.py::test_matmul_shapes returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/test_resonant_matmul.py::test_matmul_operator
+  /home/Andrew/miniforge3/lib/python3.12/site-packages/_pytest/python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_resonant_matmul.py::test_matmul_operator returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/test_resonant_matmul.py::test_matmul_syntony
+  /home/Andrew/miniforge3/lib/python3.12/site-packages/_pytest/python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_resonant_matmul.py::test_matmul_syntony returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/test_versal_grip.py::test_versal_grip_strength
+  /home/Andrew/miniforge3/lib/python3.12/site-packages/_pytest/python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_versal_grip.py::test_versal_grip_strength returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.12-final-0 _______________
+
+Name                                                                     Stmts   Miss  Cover
+--------------------------------------------------------------------------------------------
+python/syntonic/__init__.py                                                 17      2    88%
+python/syntonic/_version.py                                                  2      0   100%
+python/syntonic/applications/__init__.py                                     7      0   100%
+python/syntonic/applications/biology/__init__.py                             6      0   100%
+python/syntonic/applications/biology/abiogenesis.py                         59     38    36%
+python/syntonic/applications/biology/evolution.py                           38     21    45%
+python/syntonic/applications/biology/genetics.py                            50     24    52%
+python/syntonic/applications/biology/life_topology.py                       24     11    54%
+python/syntonic/applications/biology/metabolism.py                          39     15    62%
+python/syntonic/applications/chemistry/__init__.py                           5      0   100%
+python/syntonic/applications/chemistry/bonding.py                           40     26    35%
+python/syntonic/applications/chemistry/electronegativity.py                 34     19    44%
+python/syntonic/applications/chemistry/molecular.py                         37     22    41%
+python/syntonic/applications/chemistry/periodic_table.py                    60     42    30%
+python/syntonic/applications/condensed_matter/__init__.py                    5      0   100%
+python/syntonic/applications/condensed_matter/band_theory.py                43     25    42%
+python/syntonic/applications/condensed_matter/electrical.py                 37     19    49%
+python/syntonic/applications/condensed_matter/quantum_hall.py               39     22    44%
+python/syntonic/applications/condensed_matter/superconductivity.py          44     23    48%
+python/syntonic/applications/consciousness/__init__.py                       5      0   100%
+python/syntonic/applications/consciousness/gnosis.py                        46     26    43%
+python/syntonic/applications/consciousness/neural.py                        52     24    54%
+python/syntonic/applications/consciousness/qualia.py                        39     17    56%
+python/syntonic/applications/consciousness/threshold.py                     33     15    55%
+python/syntonic/applications/ecology/__init__.py                             5      0   100%
+python/syntonic/applications/ecology/ecosystem.py                           39     25    36%
+python/syntonic/applications/ecology/food_web.py                            51     22    57%
+python/syntonic/applications/ecology/gaia.py                                58     30    48%
+python/syntonic/applications/ecology/succession.py                          55     33    40%
+python/syntonic/applications/thermodynamics/__init__.py                      5      0   100%
+python/syntonic/applications/thermodynamics/dhsr_engine.py                  68     33    51%
+python/syntonic/applications/thermodynamics/entropy.py                      58     44    24%
+python/syntonic/applications/thermodynamics/four_laws.py                    37     12    68%
+python/syntonic/applications/thermodynamics/phase_transitions.py            58     37    36%
+python/syntonic/benchmarks/convergence_benchmark.py                         72      2    97%
+python/syntonic/benchmarks/datasets.py                                      98     11    89%
+python/syntonic/benchmarks/fitness.py                                       82     17    79%
+python/syntonic/core/__init__.py                                             5      0   100%
+python/syntonic/core/device.py                                              41      1    98%
+python/syntonic/core/dtype.py                                               46      3    93%
+python/syntonic/core/state.py                                              523     47    91%
+python/syntonic/crt/__init__.py                                             15      0   100%
+python/syntonic/crt/evolution.py                                           146     17    88%
+python/syntonic/crt/metrics/__init__.py                                      3      0   100%
+python/syntonic/crt/metrics/gnosis.py                                       88     32    64%
+python/syntonic/crt/metrics/syntony.py                                      78      8    90%
+python/syntonic/crt/operators/__init__.py                                    6      0   100%
+python/syntonic/crt/operators/base.py                                       11      3    73%
+python/syntonic/crt/operators/differentiation.py                            54      6    89%
+python/syntonic/crt/operators/harmonization.py                              82      8    90%
+python/syntonic/crt/operators/projectors.py                                137      8    94%
+python/syntonic/crt/operators/recursion.py                                  64     22    66%
+python/syntonic/exact/__init__.py                                           50      0   100%
+python/syntonic/exceptions.py                                               11      0   100%
+python/syntonic/experiments/__init__.py                                      2      2     0%
+python/syntonic/experiments/datasets/__init__.py                             0      0   100%
+python/syntonic/experiments/datasets/winding_datasets.py                    77     77     0%
+python/syntonic/experiments/metrics.py                                     118    118     0%
+python/syntonic/experiments/models/__init__.py                               0      0   100%
+python/syntonic/experiments/models/winding_net_syntonic.py                  98     98     0%
+python/syntonic/experiments/runner.py                                      119    119     0%
+python/syntonic/experiments/validate_syntonic_softmax.py                   126    126     0%
+python/syntonic/hypercomplex/__init__.py                                    17      0   100%
+python/syntonic/linalg/__init__.py                                         164     46    72%
+python/syntonic/nn/__init__.py                                              14      0   100%
+python/syntonic/nn/analysis/__init__.py                                      5      5     0%
+python/syntonic/nn/analysis/archonic_detector.py                           103    103     0%
+python/syntonic/nn/analysis/escape.py                                      146    146     0%
+python/syntonic/nn/analysis/health.py                                      237    237     0%
+python/syntonic/nn/analysis/visualization.py                               189    189     0%
+python/syntonic/nn/architectures/GnosticOuroboros/__init__.py                2      2     0%
+python/syntonic/nn/architectures/GnosticOuroboros/gnostic_ouroboros.py     208    208     0%
+python/syntonic/nn/architectures/GnosticOuroboros/helpers.py                64     64     0%
+python/syntonic/nn/architectures/__init__.py                                10      0   100%
+python/syntonic/nn/architectures/cosmological_block.py                      13     13     0%
+python/syntonic/nn/architectures/embeddings_pure.py                        164    140    15%
+python/syntonic/nn/architectures/syntonic_attention_pure.py                131     98    25%
+python/syntonic/nn/architectures/syntonic_cnn_pure.py                      154    131    15%
+python/syntonic/nn/architectures/syntonic_mlp_pure.py                      170    112    34%
+python/syntonic/nn/architectures/syntonic_transformer_pure.py              187    131    30%
+python/syntonic/nn/benchmarks/__init__.py                                    4      4     0%
+python/syntonic/nn/benchmarks/ablation.py                                  165    165     0%
+python/syntonic/nn/benchmarks/convergence.py                               146    146     0%
+python/syntonic/nn/benchmarks/standard.py                                  158    158     0%
+python/syntonic/nn/golden_gelu.py                                           49     39    20%
+python/syntonic/nn/layers/__init__.py                                        8      0   100%
+python/syntonic/nn/layers/differentiation.py                                89     70    21%
+python/syntonic/nn/layers/gnosis.py                                         43     29    33%
+python/syntonic/nn/layers/harmonization.py                                  88     66    25%
+python/syntonic/nn/layers/normalization.py                                 160    127    21%
+python/syntonic/nn/layers/prime_syntony_gate.py                            107      5    95%
+python/syntonic/nn/layers/recursion.py                                      97     65    33%
+python/syntonic/nn/layers/resonant_linear.py                                75     45    40%
+python/syntonic/nn/layers/resonant_parameter.py                             74     41    45%
+python/syntonic/nn/layers/syntonic_gate.py                                 106     83    22%
+python/syntonic/nn/loss/__init__.py                                          5      0   100%
+python/syntonic/nn/loss/phase_alignment.py                                  85     62    27%
+python/syntonic/nn/loss/regularization.py                                  113     88    22%
+python/syntonic/nn/loss/syntonic_loss.py                                    87     65    25%
+python/syntonic/nn/loss/syntony_metrics.py                                 120     96    20%
+python/syntonic/nn/optim/__init__.py                                         3      0   100%
+python/syntonic/nn/resonant_tensor.py                                      340    157    54%
+python/syntonic/nn/training/__init__.py                                      4      0   100%
+python/syntonic/nn/training/callbacks_pure.py                              186    142    24%
+python/syntonic/nn/training/metrics_pure.py                                159    108    32%
+python/syntonic/nn/training/trainer.py                                     183    135    26%
+python/syntonic/nn/winding/__init__.py                                      11      0   100%
+python/syntonic/nn/winding/dhsr_block.py                                   100     80    20%
+python/syntonic/nn/winding/embedding.py                                     61     45    26%
+python/syntonic/nn/winding/fermat.py                                        17     17     0%
+python/syntonic/nn/winding/fibonacci_hierarchy.py                           55     27    51%
+python/syntonic/nn/winding/lucas.py                                         13     13     0%
+python/syntonic/nn/winding/mersenns.py                                      53     53     0%
+python/syntonic/nn/winding/prime_selection_pure.py                          58     24    59%
+python/syntonic/nn/winding/resonant_dhsr_block.py                          133     60    55%
+python/syntonic/nn/winding/resonant_embedding_pure.py                       67     22    67%
+python/syntonic/nn/winding/syntony_pure.py                                  72     61    15%
+python/syntonic/nn/winding/winding_net_pure.py                             121     65    46%
+python/syntonic/physics/__init__.py                                         40      4    90%
+python/syntonic/physics/bosons/__init__.py                                   3      0   100%
+python/syntonic/physics/bosons/gauge.py                                     72     14    81%
+python/syntonic/physics/bosons/higgs.py                                     43     11    74%
+python/syntonic/physics/constants.py                                        21      6    71%
+python/syntonic/physics/fermions/__init__.py                                27      2    93%
+python/syntonic/physics/fermions/leptons.py                                 35     14    60%
+python/syntonic/physics/fermions/quarks.py                                  36     13    64%
+python/syntonic/physics/fermions/windings.py                                31     14    55%
+python/syntonic/physics/hadrons/__init__.py                                  2      0   100%
+python/syntonic/physics/hadrons/masses.py                                   56     11    80%
+python/syntonic/physics/initialization.py                                   24     24     0%
+python/syntonic/physics/mixing/__init__.py                                   3      0   100%
+python/syntonic/physics/mixing/ckm.py                                       63     22    65%
+python/syntonic/physics/mixing/pmns.py                                      60     13    78%
+python/syntonic/physics/neutrinos/__init__.py                                2      0   100%
+python/syntonic/physics/neutrinos/masses.py                                 57     30    47%
+python/syntonic/physics/running/__init__.py                                  2      0   100%
+python/syntonic/physics/running/rg.py                                       54     21    61%
+python/syntonic/physics/sm_verification.py                                 296    270     9%
+python/syntonic/physics/srt_physics.py                                     157     42    73%
+python/syntonic/physics/topology.py                                         54     45    17%
+python/syntonic/physics/validation/__init__.py                               2      0   100%
+python/syntonic/physics/validation/pdg.py                                   65     36    45%
+python/syntonic/pure/__init__.py                                             0      0   100%
+python/syntonic/pure/resonant_engine_net.py                                 45     45     0%
+python/syntonic/pure/resonant_transformer.py                                76     76     0%
+python/syntonic/pure/winding_encoder.py                                     37     37     0%
+python/syntonic/resonant/__init__.py                                         7      0   100%
+python/syntonic/resonant/retrocausal.py                                     46      2    96%
+python/syntonic/sn/__init__.py                                             210     83    60%
+python/syntonic/srt/__init__.py                                             76      2    97%
+python/syntonic/srt/constants.py                                            20      0   100%
+python/syntonic/srt/corrections/__init__.py                                  2      0   100%
+python/syntonic/srt/corrections/factors.py                                  44     25    43%
+python/syntonic/srt/functional/__init__.py                                   2      0   100%
+python/syntonic/srt/functional/syntony.py                                  127     28    78%
+python/syntonic/srt/geometry/__init__.py                                     4      0   100%
+python/syntonic/srt/geometry/torus.py                                       63     26    59%
+python/syntonic/srt/geometry/winding.py                                     10      0   100%
+python/syntonic/srt/golden/__init__.py                                       4      0   100%
+python/syntonic/srt/golden/measure.py                                       57     24    58%
+python/syntonic/srt/golden/recursion.py                                    114     45    61%
+python/syntonic/srt/lattice/__init__.py                                      5      0   100%
+python/syntonic/srt/lattice/d4.py                                          102     31    70%
+python/syntonic/srt/lattice/e8.py                                          192     69    64%
+python/syntonic/srt/lattice/golden_cone.py                                  98     31    68%
+python/syntonic/srt/lattice/quadratic_form.py                               80     18    78%
+python/syntonic/srt/spectral/__init__.py                                     5      0   100%
+python/syntonic/srt/spectral/heat_kernel.py                                 92     52    43%
+python/syntonic/srt/spectral/knot_laplacian.py                              88     32    64%
+python/syntonic/srt/spectral/mobius.py                                     104     56    46%
+python/syntonic/srt/spectral/theta_series.py                                79     33    58%
+python/syntonic/viz/server.py                                               92     80    13%
+--------------------------------------------------------------------------------------------
+TOTAL                                                                    11826   6727    43%
+=========================== short test summary info ============================
+FAILED tests/test_core/test_syntonic_softmax_phase2.py::TestF32Support::test_f32_identity_mode_gpu
+FAILED tests/test_core/test_syntonic_softmax_phase2.py::TestGPUIdentityMode::test_gpu_identity_matches_cpu
+FAILED tests/test_core/test_syntonic_softmax_phase2.py::TestPerformance::test_gpu_performance_comparison
+FAILED tests/test_physics/test_standard_model.py::TestFermionMasses::test_quark_masses
+FAILED tests/test_physics/test_standard_model.py::TestHadronMasses::test_pion_mass
+FAILED tests/test_physics/test_standard_model.py::TestHadronMasses::test_meson_pattern
+FAILED tests/test_srt/test_neural_networks.py::TestPrimeSyntonyGate::test_gate_forward_pass
+FAILED tests/test_srt/test_neural_networks.py::TestPrimeSyntonyGate::test_material_anomaly_penalty
+FAILED tests/test_srt/test_neural_networks.py::TestDimensionUtilities::test_suggest_network_dimensions
+FAILED tests/test_srt/test_prime_theory.py::TestPrimeTheory::test_prime_sequences
+============ 10 failed, 802 passed, 1 skipped, 6 warnings in 56.76s ============

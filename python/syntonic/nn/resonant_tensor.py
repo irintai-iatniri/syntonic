@@ -366,8 +366,6 @@ class ResonantTensor:
         instance._inner = inner
         instance._device_str = device
         return instance
-
-    def crystallize(self, values: List[float], precision: int) -> float:
         """
         Enter H-phase: snap flux → lattice.
 

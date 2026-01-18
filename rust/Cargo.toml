@@ -13,7 +13,6 @@ crate-type = ["cdylib"]
 default = ["cuda", "cpu"]
 cpu = []
 cuda = ["cudarc"]
-extension-module = ["pyo3/extension-module"]
 rayon = ["dep:rayon"]
 
 [dependencies]

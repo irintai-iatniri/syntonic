@@ -55,13 +55,13 @@ class MersenneStabilityGate(sn.Module):
         # We register it as a buffer so it saves with the model but doesn't update via gradient
         self.register_buffer('stability_factor', ResonantTensor([self.stability], [1]))
 
-    def forward(self, x: ResonantTensor, winding: ResonantTensor, is_inference: bool = False) -> tuple[ResonantTensor, ResonantTensor]:
+    def forward(self, x: ResonantTensor) -> ResonantTensor:
         if self.stability == 1.0:
-            return x, winding
+            return x
         elif self.stability == 0.0:
-            return x.zeros_like(), winding
+            return x.zeros_like()
         else:
-            return x.scalar_mul(self.stability), winding
+            return x.scalar_mul(self.stability)
 
 
 class MersenneHierarchy(FibonacciHierarchy):

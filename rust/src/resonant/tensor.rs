@@ -630,21 +630,6 @@ impl ResonantTensor {
         self.lattice.len()
     }
 
-    /// Get winding depth (Grand Synthesis integration).
-    /// Returns the winding depth based on tensor shape and syntony.
-    /// Used for Pisano hooking in tensor operations.
-    pub fn winding_depth(&self) -> u64 {
-        // For now, derive winding depth from shape and syntony
-        // This is a placeholder - should be set during tensor creation
-        // based on the plane index in GnosticOuroboros
-        if self.shape.len() >= 2 {
-            // Use last dimension as winding indicator
-            (self.shape.last().unwrap() % 100) as u64
-        } else {
-            1
-        }
-    }
-
     /// Check if empty.
     pub fn is_empty(&self) -> bool {
         self.lattice.is_empty()
@@ -941,11 +926,6 @@ impl ResonantTensor {
             }
 
             // Fallback BMM CPU - Perform exact Q(φ) multiplication and addition
-            // Grand Synthesis: Pisano Hooking for tensor interactions
-            let winding_a = self.winding_depth();
-            let winding_b = weights.winding_depth();
-            let grip_strength = crate::resonant::number_theory::versal_grip_strength(winding_a);
-
             // Just loop over batch
             let mut result_lattice = Vec::with_capacity(batch_size_a * m * n);
             for b in 0..batch_size_a {
@@ -963,11 +943,7 @@ impl ResonantTensor {
                             // (B^T)[k, j] = B[j, k].
                             // So we access B at [Batch, row=j, col=l]
                             let val_b = weights.lattice[offset_b + j * k + l];
-
-                            // Apply Pisano hooking
-                            let grip_exact = GoldenExact::find_nearest(grip_strength, 1000);
-                            let hooked_product = val_a * val_b * grip_exact;
-                            sum = sum + hooked_product;
+                            sum = sum + (val_a * val_b);
                         }
                         result_lattice.push(sum);
                     }
@@ -1050,26 +1026,14 @@ impl ResonantTensor {
         // CPU Path (Standard or Broadcast - GoldenExact)
         let mut result_lattice = Vec::with_capacity(m_total * n);
 
-        // Grand Synthesis: Pisano Hooking for tensor interactions
-        // Get winding depths for Pisano period alignment
-        let winding_a = self.winding_depth();
-        let winding_b = weights.winding_depth();
-
-        // Compute versal grip strength (interaction coefficient)
-        let grip_strength = crate::resonant::number_theory::versal_grip_strength(winding_a);
-
-        // Perform exact Q(φ) multiplication and addition with Pisano hooking
+        // Perform exact Q(φ) multiplication and addition
         for m_idx in 0..m_total {
             for n_idx in 0..n {
                 let mut sum = GoldenExact::zero();
                 for k_idx in 0..k {
                     let x_val = self.lattice[m_idx * k + k_idx];
                     let w_val = weights.lattice[n_idx * k + k_idx];
-
-                    // Apply Pisano hooking: multiply by versal grip strength
-                    let grip_exact = GoldenExact::find_nearest(grip_strength, 1000);
-                    let hooked_product = x_val * w_val * grip_exact;
-                    sum = sum + hooked_product;
+                    sum = sum + (x_val * w_val);
                 }
                 result_lattice.push(sum);
             }
@@ -1086,31 +1050,6 @@ impl ResonantTensor {
         *result_shape.last_mut().unwrap() = n;
 
         Self::from_lattice(result_lattice, result_shape, result_norms)
-    }
-
-    /// Resonant matrix multiplication: versal_grip_strength(w_a, w_b) × (A × B)
-    ///
-    /// Applies geometry compatibility damping based on winding indices.
-    /// Only compatible geometries (same Pisano period) produce non-zero grip strength.
-    ///
-    /// Args:
-    ///     weights: Another ResonantTensor (W)
-    ///
-    /// Returns:
-    ///     New ResonantTensor representing grip_strength * (self * weights^T)
-    pub fn resonant_matmul_core(&self, weights: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
-        // First perform regular matrix multiplication
-        let mut result = self.matmul_core(weights)?;
-
-        // Get winding indices from metadata
-        let w_a = self.winding_depth();
-        let w_b = weights.winding_depth();
-
-        // Compute versal grip strength (geometry compatibility coefficient)
-        let grip_strength = crate::resonant::number_theory::versal_grip_strength_2(w_a, w_b);
-
-        // Scale the result by grip strength
-        result.scalar_mul_core(grip_strength)
     }
 
     /// Native bias addition for GoldenExact lattice.
@@ -2239,20 +2178,6 @@ impl ResonantTensor {
     ///     New ResonantTensor representing self * weights^T
     fn matmul(&self, weights: &ResonantTensor) -> PyResult<Self> {
         self.matmul_core(weights).map_err(|e| e.into())
-    }
-
-    /// Resonant matrix multiplication: versal_grip_strength(w_a, w_b) × (A × B)
-    ///
-    /// Applies geometry compatibility damping based on winding indices.
-    /// Only compatible geometries (same Pisano period) produce non-zero grip strength.
-    ///
-    /// Args:
-    ///     weights: Another ResonantTensor (W)
-    ///
-    /// Returns:
-    ///     New ResonantTensor representing grip_strength * (self * weights^T)
-    fn resonant_matmul(&self, weights: &ResonantTensor) -> PyResult<Self> {
-        self.resonant_matmul_core(weights).map_err(|e| e.into())
     }
 
     /// Add bias to the tensor.

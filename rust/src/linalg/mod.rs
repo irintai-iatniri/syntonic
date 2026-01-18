@@ -168,17 +168,6 @@ pub fn py_projection_sum(
     matmul::projection_sum(psi, &proj_vec, &coefficients).map_err(|e| e.into())
 }
 
-/// Resonant matrix multiplication: versal_grip_strength(w_a, w_b) × (A × B)
-///
-/// Applies geometry compatibility damping based on winding indices.
-/// Only compatible geometries (same Pisano period) produce non-zero grip strength.
-/// Uses versal_grip_strength from number theory module.
-#[pyfunction]
-#[pyo3(name = "linalg_resonant_matmul")]
-pub fn py_resonant_matmul(a: &TensorStorage, b: &TensorStorage) -> PyResult<TensorStorage> {
-    matmul::resonant_matmul(a, b).map_err(|e| e.into())
-}
-
 /// Generalized matrix multiply: C = α × op(A) × op(B) + β × C
 ///
 /// BLAS-style GEMM with transpose specification using strings:
