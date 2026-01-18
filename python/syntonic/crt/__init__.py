@@ -137,6 +137,62 @@ STRUCTURE_DIMENSIONS = {
     "HIERARCHY_EXPONENT": hierarchy_exponent(),  # 719
 }
 
+# ============================================================================
+# STRUCTURE_DIMENSIONS Documentation
+# ============================================================================
+"""
+Complete SRT Lie group dimensional hierarchy dictionary.
+
+This dictionary contains all fundamental constants derived from the
+exceptional Lie group geometry underlying SRT theory. Each constant
+has deep physical and mathematical significance:
+
+Critical SRT Constants:
+----------------------
+- E6_POSITIVE (36): Golden Cone cardinality |Φ⁺(E₆)|
+  * Consciousness emergence threshold
+  * Transcendence gate count
+  * Self-reference criticality parameter
+
+- D4_KISSING (24): Consciousness emergence threshold
+  * D₄ kissing number - maximum sphere packings in 4D
+  * D₄ → M₅ gap bridge (24 → 31)
+  * Neural network stability parameter
+
+- COXETER_KISSING (720): Hierarchy scale parameter
+  * Product of E₈ Coxeter (30) × D₄ kissing (24)
+  * Universal SRT scaling constant
+
+Neural Network Applications:
+---------------------------
+- E8_DIM (248): Optimal embedding dimensions for transformers
+- E6_POSITIVE (36): Stable layer sizes in resonance networks
+- D4_KISSING (24): Attention head counts for stable patterns
+- E7_FUNDAMENTAL (56): Memory dimension constraints
+
+Physics Applications:
+--------------------
+- E8_ROOTS (240): Gauge symmetry breaking pattern counting
+- E7_FUNDAMENTAL (56): Supersymmetry goldstino degrees of freedom
+- E6_FUNDAMENTAL (27): Cubic surface theory in algebraic geometry
+- E6_POSITIVE (36): Unification predictions and phase transitions
+
+Mathematical Structure:
+---------------------
+Each Lie group constant derives from the root system geometry:
+- ROOTS: Total number of roots in the root lattice
+- POSITIVE: Roots in the positive Weyl chamber
+- RANK: Dimension of Cartan subalgebra
+- COXETER: Period of Weyl group action
+- FUNDAMENTAL: Dimension of fundamental representation
+
+Example Usage:
+-------------
+>>> from syntonic.crt import STRUCTURE_DIMENSIONS
+>>> golden_cone = STRUCTURE_DIMENSIONS['E6_POSITIVE']  # 36
+>>> consciousness_threshold = STRUCTURE_DIMENSIONS['D4_KISSING']  # 24
+"""
+
 # Evolution
 from syntonic.crt.dhsr_evolution import (
     SyntonyTrajectory,

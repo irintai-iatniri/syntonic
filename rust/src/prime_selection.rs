@@ -158,12 +158,55 @@ pub fn lucas_gap_pressure(n: u64) -> f64 {
 // =============================================================================
 
 /// Get the list of known Fibonacci primes
+///
+/// Returns the complete array of Fibonacci primes, which are prime numbers
+/// that appear as Fibonacci numbers F_n. These primes serve as "transcendence
+/// gates" in SRT theory, marking critical points of ontological phase transitions.
+///
+/// Returns
+/// -------
+/// List[int]
+///     Array of Fibonacci primes: [2, 3, 5, 13, 89, 233, 1597, 28657, 514229, 433494437, 2971215073]
+///
+/// Physical Significance
+/// --------------------
+/// - **Transcendence Gates**: F_n where F_n is prime marks ontological boundaries
+/// - **Consciousness Emergence**: Prime Fibonacci indices correspond to self-reference thresholds
+/// - **Neural Networks**: Prime dimensions for stable resonance patterns
+///
+/// Examples
+/// --------
+/// >>> from syntonic._core import get_fibonacci_primes
+/// >>> primes = get_fibonacci_primes()
+/// >>> primes[:3]  # First three Fibonacci primes
+/// [2, 3, 5]
 #[pyfunction]
 pub fn get_fibonacci_primes() -> Vec<u64> {
     FIBONACCI_PRIMES.to_vec()
 }
 
 /// Get Fibonacci prime at index i (0-indexed)
+///
+/// Returns the i-th Fibonacci prime from the known sequence.
+/// Useful for accessing specific transcendence gates by index.
+///
+/// Parameters
+/// ----------
+/// i : int
+///     Zero-based index into the Fibonacci primes array (0-10)
+///
+/// Returns
+/// -------
+/// int or None
+///     The i-th Fibonacci prime, or None if index is out of bounds
+///
+/// Examples
+/// --------
+/// >>> from syntonic._core import fibonacci_prime
+/// >>> fibonacci_prime(0)  # First Fibonacci prime
+/// 2
+/// >>> fibonacci_prime(3)  # Fourth Fibonacci prime
+/// 13
 #[pyfunction]
 pub fn fibonacci_prime(i: usize) -> Option<u64> {
     FIBONACCI_PRIMES.get(i).copied()

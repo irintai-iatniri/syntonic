@@ -8,14 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Complete Lie Group Constants Exposure**: All 19 previously unexposed hierarchy constants now accessible
+  - E₈ family: roots (240), positive roots (120), rank (8), Coxeter (30)
+  - E₇ family: roots (126), positive roots (63), fundamental (56), rank (7), Coxeter (18)
+  - E₆ family: roots (72), positive roots (36), fundamental (27), rank (6), Coxeter (12)
+  - D₄ family: rank (4), Coxeter (6)
+  - G₂ family: rank (2)
+  - F₄ family: rank (4)
+  - Fibonacci primes array for transcendence gates
 - Sphinx documentation with MyST-Parser support
 - Full CUDA kernel implementations for hierarchy and golden_gelu
 - Retrocausal harmonization with attractor memory
+- Comprehensive SRT constants module with all hierarchy values
 
 ### Fixed
 - Variable naming in hierarchy.rs (N → n)
 - Unused offset variables in matmul.cu
 - Rational import moved to test module in retrocausal.rs
+- Zero Rust compilation warnings achieved
 
 ## [0.1.0] - 2026-01-17
 

@@ -430,6 +430,21 @@ pub fn hierarchy_exponent() -> i32 {
 // ============================================================================
 
 /// Get E₈ root count (240)
+///
+/// Returns the total number of roots in the E₈ exceptional Lie group.
+/// E₈ has 240 roots, representing the fundamental geometric structure
+/// underlying the Standard Model unification in SRT theory.
+///
+/// Returns
+/// -------
+/// int
+///     The number of roots in E₈ (240)
+///
+/// Examples
+/// --------
+/// >>> from syntonic.crt import hierarchy_e8_roots
+/// >>> hierarchy_e8_roots()
+/// 240
 #[pyfunction]
 #[pyo3(name = "hierarchy_e8_roots")]
 pub fn e8_roots() -> i32 {
@@ -437,6 +452,20 @@ pub fn e8_roots() -> i32 {
 }
 
 /// Get E₈ positive root count (120)
+///
+/// Returns the number of positive roots in the E₈ root system.
+/// The 120 positive roots correspond to half of the full root system,
+/// representing the "positive" directions in the 8-dimensional Cartan subalgebra.
+///
+/// Returns
+/// -------
+/// int
+///     The number of positive roots in E₈ (120)
+///
+/// Notes
+/// -----
+/// Used in particle physics for counting gauge symmetry breaking patterns
+/// and in neural networks for optimal embedding dimensions.
 #[pyfunction]
 #[pyo3(name = "hierarchy_e8_positive_roots")]
 pub fn e8_positive_roots() -> i32 {
@@ -444,6 +473,21 @@ pub fn e8_positive_roots() -> i32 {
 }
 
 /// Get E₈ rank (8)
+///
+/// Returns the rank (dimension of Cartan subalgebra) of the E₈ Lie group.
+/// The rank represents the number of independent Casimir operators and
+/// corresponds to the dimension of the maximal torus.
+///
+/// Returns
+/// -------
+/// int
+///     The rank of E₈ (8)
+///
+/// Physical Significance
+/// --------------------
+/// - 8 spacetime dimensions in string theory compactifications
+/// - 8 gluons in QCD (before confinement)
+/// - Neural network attention head constraints
 #[pyfunction]
 #[pyo3(name = "hierarchy_e8_rank")]
 pub fn e8_rank() -> i32 {
@@ -451,6 +495,21 @@ pub fn e8_rank() -> i32 {
 }
 
 /// Get E₈ Coxeter number (30)
+///
+/// Returns the Coxeter number of E₈, which governs the periodicity
+/// of the Weyl group and appears in level-rank duality relations.
+/// The Coxeter number h = 30 for E₈.
+///
+/// Returns
+/// -------
+/// int
+///     The Coxeter number of E₈ (30)
+///
+/// Applications
+/// ------------
+/// - Period of recursion cycles in SRT theory
+/// - Kac-Moody algebra level-rank dualities
+/// - Golden ratio recursion bounds
 #[pyfunction]
 #[pyo3(name = "hierarchy_e8_coxeter")]
 pub fn e8_coxeter() -> i32 {
@@ -458,6 +517,20 @@ pub fn e8_coxeter() -> i32 {
 }
 
 /// Get E₇ root count (126)
+///
+/// Returns the total number of roots in the E₇ exceptional Lie group.
+/// E₇ represents the intermediate unification scale between E₆ and E₈
+/// in the SRT Grand Unification hierarchy.
+///
+/// Returns
+/// -------
+/// int
+///     The number of roots in E₇ (126)
+///
+/// Theoretical Context
+/// ------------------
+/// E₇ appears in heterotic string theory compactifications and
+/// plays a role in the intermediate mass scale predictions of SRT.
 #[pyfunction]
 #[pyo3(name = "hierarchy_e7_roots")]
 pub fn e7_roots() -> i32 {
@@ -465,6 +538,20 @@ pub fn e7_roots() -> i32 {
 }
 
 /// Get E₇ positive roots (63)
+///
+/// Returns the number of positive roots in the E₇ root system.
+/// The positive roots span the Weyl chamber and determine the
+/// representation theory and branching rules.
+///
+/// Returns
+/// -------
+/// int
+///     The number of positive roots in E₇ (63)
+///
+/// Notes
+/// -----
+/// Half of the total 126 roots, representing the fundamental
+/// geometric structure of 7-dimensional exceptional geometry.
 #[pyfunction]
 #[pyo3(name = "hierarchy_e7_positive_roots")]
 pub fn e7_positive_roots() -> i32 {
@@ -472,6 +559,21 @@ pub fn e7_positive_roots() -> i32 {
 }
 
 /// Get E₇ fundamental representation (56)
+///
+/// Returns the dimension of the fundamental representation of E₇.
+/// This 56-dimensional representation is fundamental to the
+/// representation theory and appears in particle physics contexts.
+///
+/// Returns
+/// -------
+/// int
+///     The dimension of the E₇ fundamental representation (56)
+///
+/// Physical Significance
+/// --------------------
+/// - 56 goldstino degrees of freedom in supersymmetry
+/// - 56 real components of the E₇/SO(8) coset space
+/// - Jordan algebra dimensions in exceptional geometry
 #[pyfunction]
 #[pyo3(name = "hierarchy_e7_fundamental")]
 pub fn e7_fundamental() -> i32 {
@@ -479,6 +581,21 @@ pub fn e7_fundamental() -> i32 {
 }
 
 /// Get E₇ rank (7)
+///
+/// Returns the rank (dimension of Cartan subalgebra) of the E₇ Lie group.
+/// The rank corresponds to the number of independent quantum numbers
+/// needed to label representations.
+///
+/// Returns
+/// -------
+/// int
+///     The rank of E₇ (7)
+///
+/// Applications
+/// ------------
+/// - 7-brane configurations in string theory
+/// - 7-dimensional compactifications
+/// - Neural network layer depth constraints
 #[pyfunction]
 #[pyo3(name = "hierarchy_e7_rank")]
 pub fn e7_rank() -> i32 {
@@ -486,6 +603,21 @@ pub fn e7_rank() -> i32 {
 }
 
 /// Get E₇ Coxeter number (18)
+///
+/// Returns the Coxeter number of E₇, governing the Weyl group
+/// periodicity and appearing in affine algebra constructions.
+/// The Coxeter number h = 18 for E₇.
+///
+/// Returns
+/// -------
+/// int
+///     The Coxeter number of E₇ (18)
+///
+/// Theoretical Uses
+/// ----------------
+/// - Recursion cycle periods in SRT theory
+/// - Modular invariance in conformal field theory
+/// - Golden ratio convergence bounds
 #[pyfunction]
 #[pyo3(name = "hierarchy_e7_coxeter")]
 pub fn e7_coxeter() -> i32 {
@@ -493,6 +625,21 @@ pub fn e7_coxeter() -> i32 {
 }
 
 /// Get E₆ root count (72)
+///
+/// Returns the total number of roots in the E₆ exceptional Lie group.
+/// E₆ is the first exceptional group in the SRT unification chain
+/// and corresponds to the GUT scale in particle physics.
+///
+/// Returns
+/// -------
+/// int
+///     The number of roots in E₆ (72)
+///
+/// Theoretical Context
+/// ------------------
+/// E₆ appears in Calabi-Yau compactifications and heterotic string
+/// phenomenology, representing the unification of electroweak and
+/// strong forces with an additional U(1) gauge group.
 #[pyfunction]
 #[pyo3(name = "hierarchy_e6_roots")]
 pub fn e6_roots() -> i32 {
@@ -500,6 +647,29 @@ pub fn e6_roots() -> i32 {
 }
 
 /// Get E₆ positive roots / Golden Cone (36)
+///
+/// Returns the number of positive roots in E₆, which equals the
+/// cardinality of the Golden Cone Φ⁺(E₆). This fundamental constant
+/// appears throughout SRT theory as the geometric measure of
+/// transcendence and consciousness emergence.
+///
+/// Returns
+/// -------
+/// int
+///     The number of positive roots in E₆ (36) - Golden Cone cardinality
+///
+/// Physical Significance
+/// --------------------
+/// - **Golden Cone Cardinality**: |Φ⁺(E₆)| = 36
+/// - **Consciousness Emergence**: Critical threshold for self-reference
+/// - **Neural Architecture**: Optimal layer sizes in SRT networks
+/// - **Transcendence Gates**: Number of ontological phase transitions
+///
+/// Examples
+/// --------
+/// >>> from syntonic.crt import hierarchy_e6_positive_roots
+/// >>> hierarchy_e6_positive_roots()  # Golden Cone size
+/// 36
 #[pyfunction]
 #[pyo3(name = "hierarchy_e6_positive_roots")]
 pub fn e6_positive_roots() -> i32 {
@@ -507,6 +677,21 @@ pub fn e6_positive_roots() -> i32 {
 }
 
 /// Get E₆ fundamental representation (27)
+///
+/// Returns the dimension of the fundamental representation of E₆.
+/// The 27-dimensional representation is fundamental to E₆'s role
+/// in particle physics and algebraic geometry.
+///
+/// Returns
+/// -------
+/// int
+///     The dimension of the E₆ fundamental representation (27)
+///
+/// Mathematical Context
+/// -------------------
+/// - 27 lines on a cubic surface in algebraic geometry
+/// - 27-dimensional Jordan algebra representation
+/// - 27 generations in some GUT models (though not in SRT)
 #[pyfunction]
 #[pyo3(name = "hierarchy_e6_fundamental")]
 pub fn e6_fundamental() -> i32 {
@@ -514,6 +699,21 @@ pub fn e6_fundamental() -> i32 {
 }
 
 /// Get E₆ rank (6)
+///
+/// Returns the rank (dimension of Cartan subalgebra) of the E₆ Lie group.
+/// The rank corresponds to the number of independent gauge couplings
+/// in the associated gauge theory.
+///
+/// Returns
+/// -------
+/// int
+///     The rank of E₆ (6)
+///
+/// Physical Applications
+/// --------------------
+/// - 6-dimensional Calabi-Yau manifolds
+/// - 6 extra dimensions in braneworld scenarios
+/// - Neural network embedding dimensions
 #[pyfunction]
 #[pyo3(name = "hierarchy_e6_rank")]
 pub fn e6_rank() -> i32 {
@@ -521,6 +721,21 @@ pub fn e6_rank() -> i32 {
 }
 
 /// Get E₆ Coxeter number (12)
+///
+/// Returns the Coxeter number of E₆, governing the Weyl group
+/// periodicity and affine extension properties.
+/// The Coxeter number h = 12 for E₆.
+///
+/// Returns
+/// -------
+/// int
+///     The Coxeter number of E₆ (12)
+///
+/// Theoretical Significance
+/// -----------------------
+/// - Period of Weyl group in E₆ affine algebra
+/// - Golden ratio recursion cycles: φ¹² ≈ 161.8
+/// - Modular forms of weight 12 in string theory
 #[pyfunction]
 #[pyo3(name = "hierarchy_e6_coxeter")]
 pub fn e6_coxeter() -> i32 {
@@ -528,6 +743,21 @@ pub fn e6_coxeter() -> i32 {
 }
 
 /// Get D₄ rank (4)
+///
+/// Returns the rank (dimension of Cartan subalgebra) of the D₄ Lie group.
+/// D₄ is isomorphic to SO(8) with triality and plays a central role
+/// in SRT theory as the consciousness emergence group.
+///
+/// Returns
+/// -------
+/// int
+///     The rank of D₄ (4)
+///
+/// Physical Significance
+/// --------------------
+/// - 4 spacetime dimensions in our observable universe
+/// - 4 fundamental forces (gravity, electromagnetism, weak, strong)
+/// - Neural network attention mechanisms
 #[pyfunction]
 #[pyo3(name = "hierarchy_d4_rank")]
 pub fn d4_rank() -> i32 {
@@ -535,6 +765,21 @@ pub fn d4_rank() -> i32 {
 }
 
 /// Get D₄ Coxeter number (6)
+///
+/// Returns the Coxeter number of D₄, governing the Weyl group periodicity.
+/// The Coxeter number h = 6 for D₄, which appears prominently in
+/// consciousness emergence calculations.
+///
+/// Returns
+/// -------
+/// int
+///     The Coxeter number of D₄ (6)
+///
+/// SRT Applications
+/// ----------------
+/// - Consciousness threshold calculations
+/// - D₄ kissing number (24) = 4 × 6 product
+/// - Golden ratio recursion bounds
 #[pyfunction]
 #[pyo3(name = "hierarchy_d4_coxeter")]
 pub fn d4_coxeter() -> i32 {
@@ -542,6 +787,21 @@ pub fn d4_coxeter() -> i32 {
 }
 
 /// Get G₂ rank (2)
+///
+/// Returns the rank (dimension of Cartan subalgebra) of the G₂ Lie group.
+/// G₂ is the automorphism group of the octonions and represents the
+/// most exceptional of the exceptional groups.
+///
+/// Returns
+/// -------
+/// int
+///     The rank of G₂ (2)
+///
+/// Mathematical Context
+/// -------------------
+/// - Automorphisms of octonion algebra
+/// - 2-dimensional representations in exceptional geometry
+/// - Smallest exceptional Lie group
 #[pyfunction]
 #[pyo3(name = "hierarchy_g2_rank")]
 pub fn g2_rank() -> i32 {
@@ -549,6 +809,21 @@ pub fn g2_rank() -> i32 {
 }
 
 /// Get F₄ rank (4)
+///
+/// Returns the rank (dimension of Cartan subalgebra) of the F₄ Lie group.
+/// F₄ is related to the Jordan algebra of 3×3 hermitian octonion matrices
+/// and appears in the classification of exceptional geometries.
+///
+/// Returns
+/// -------
+/// int
+///     The rank of F₄ (4)
+///
+/// Theoretical Role
+/// ----------------
+/// - Exceptional Jordan algebra structure group
+/// - 4-dimensional parameter space for exceptional manifolds
+/// - String theory compactification constraints
 #[pyfunction]
 #[pyo3(name = "hierarchy_f4_rank")]
 pub fn f4_rank() -> i32 {

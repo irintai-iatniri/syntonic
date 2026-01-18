@@ -24,8 +24,8 @@ from typing import List, Optional
 
 # Import syntonic components only
 from syntonic._core import ResonantTensor
-from syntonic.benchmarks.datasets import make_xor, train_test_split
-from syntonic.benchmarks.fitness import ClassificationFitness, FitnessGuidedEvolver
+from .datasets import make_xor, train_test_split
+from .fitness import ClassificationFitness, FitnessGuidedEvolver
 
 # Universal syntony deficit constant
 Q_DEFICIT = 0.027395146920071658

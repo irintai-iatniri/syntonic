@@ -8,12 +8,12 @@ Uses pure Python + ResonantTensor (no PyTorch dependencies).
 """
 
 # Pure Python implementations (no PyTorch)
-from syntonic.nn.training.trainer import (
+from .trainer import (
     RetrocausalTrainer,
     RESTrainingConfig,
     SyntonyTracker,
 )
-from python.syntonic.nn.training.callbacks import (
+from .callbacks import (
     Callback,
     SyntonyCallback,
     ArchonicEarlyStop,
@@ -22,7 +22,7 @@ from python.syntonic.nn.training.callbacks import (
     FitnessPlateauCallback,
     default_callbacks,
 )
-from python.syntonic.nn.training.metrics import (
+from .metrics import (
     TrainingMetrics,
     SyntonyMetrics,
     MetricsAggregator,
