@@ -929,6 +929,48 @@ RUST_LOG=debug python your_script.py
 
 ---
 
+## Documentation
+
+Syntonic includes comprehensive Sphinx-generated API documentation with all classes, functions, and modules documented using Google-style docstrings.
+
+### Building the Documentation
+
+```bash
+cd docs
+pip install -r requirements.txt  # Install Sphinx dependencies
+make html
+```
+
+The generated documentation is located at `docs/_build/html/index.html`.
+
+### Viewing Documentation
+
+```bash
+# Local development server
+cd docs/_build/html
+python -m http.server 8000
+# Then open http://localhost:8000 in your browser
+```
+
+### Documentation Contents
+
+- **Getting Started**: Installation and quickstart guides
+- **API Reference**: Complete API documentation for all modules
+  - `syntonic.core` - State, Device, DType
+  - `syntonic.exact` - GoldenExact, Rational, constants
+  - `syntonic.srt` - Lattices, geometry, spectral theory
+  - `syntonic.crt` - DHSR operators, evolution
+  - `syntonic.physics` - Standard Model predictions
+  - `syntonic.nn` - Neural network layers and training
+- **Theory**: Mathematical foundations (CRT, SRT axioms)
+- **Examples**: Jupyter notebooks and code samples
+
+### Online Documentation
+
+Full documentation is also available at [syntonic.readthedocs.io](https://syntonic.readthedocs.io).
+
+---
+
 ## Theory Documents
 
 Extensive theoretical foundations in `theory/`:

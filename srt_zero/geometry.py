@@ -25,16 +25,35 @@ from .hierarchy import (
 
 
 class GeometricInvariants:
-    """
-    The Definitive Catalog of SRT Geometric Invariants.
-    
+    """The definitive catalog of SRT geometric invariants.
+
+    Provides access to all topological and group-theoretic constants used
+    in Syntony Recursion Theory derivations. These invariants arise from
+    the E₈ → E₇ → E₆ → SM symmetry breaking chain.
+
     Structure:
-    - Fundamental Constants (Seeds)
-    - Group Theory (E8, E6, D4)
-    - The 25-Level Correction Hierarchy
+        - Fundamental Constants: φ (golden ratio), π
+        - Group Theory: E₈, E₆, D₄ dimensions/roots
+        - The 25-Level Correction Hierarchy
+
+    Attributes:
+        phi: Golden ratio ≈ 1.618
+        pi: Circle constant ≈ 3.14159
+        E8_dim: dim(E₈) = 248
+        E8_roots: |E₈ root system| = 240
+        E6_dim: dim(E₆) = 78
+        D4_kissing: K(D₄) = 24 (collapse threshold)
+
+    Examples:
+        >>> geom = GeometricInvariants()
+        >>> print(geom.E8_dim)
+        248
+        >>> print(geom.coxeter_kissing)  # h(E₈) × K(D₄)
+        720
     """
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
+        """Initialize the geometric invariants catalog."""
         # Fundamental Seeds (Local copy for composite calcs)
         self.phi: float = PHI
         self.pi: float = PI
@@ -87,9 +106,19 @@ class GeometricInvariants:
         self.L33_strange: int = (2 * self.h_E8) + 6  # 66
 
     def get_full_hierarchy(self) -> Dict[int, float]:
-        """
-        Returns the map of 25+ geometric correction factors.
-        Used by the MassMiner to perform Deep Resonance Search.
+        """Return the complete 25+ level geometric correction hierarchy.
+
+        Maps hierarchy level indices to their corresponding geometric
+        divisors. Used by the MassMiner for Deep Resonance Search.
+
+        Returns:
+            Dictionary mapping level numbers to divisor values.
+
+        Examples:
+            >>> geom = GeometricInvariants()
+            >>> hierarchy = geom.get_full_hierarchy()
+            >>> print(hierarchy[2])  # Coxeter-Kissing
+            720
         """
         return {
             # TIER 1: Stability & Fundamental Forces
@@ -131,7 +160,19 @@ class GeometricInvariants:
         }
     
     def get_correction_factor(self, level: int) -> float:
-        """Get the divisor for a specific hierarchy level."""
+        """Get the divisor for a specific hierarchy level.
+
+        Args:
+            level: Hierarchy level number (1-102).
+
+        Returns:
+            The geometric divisor for that level, or 1.0 if not defined.
+
+        Examples:
+            >>> geom = GeometricInvariants()
+            >>> geom.get_correction_factor(2)  # Coxeter-Kissing
+            720
+        """
         hierarchy = self.get_full_hierarchy()
         return hierarchy.get(level, 1.0)
 

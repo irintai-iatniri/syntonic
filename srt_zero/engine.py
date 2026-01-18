@@ -149,7 +149,26 @@ ALPHA_INV = 137.035999  # Fine structure constant inverse
 
 
 def get_particle(name: str) -> ParticleConfig:
-    """Helper to get particle config from catalog."""
+    """Retrieve a particle configuration by name from the catalog.
+
+    Performs case-insensitive lookup with normalization of spaces, dashes,
+    underscores, and special characters.
+
+    Args:
+        name: Particle name (e.g., 'proton', 'charm', 'B_meson').
+            Case-insensitive with flexible formatting.
+
+    Returns:
+        ParticleConfig object containing the particle's derivation formula.
+
+    Raises:
+        ValueError: If the particle is not found in the catalog.
+
+    Examples:
+        >>> config = get_particle('proton')
+        >>> config.pdg_value
+        938.272
+    """
     key = name.lower().replace(" ", "_")
     if key in CATALOG:
         return CATALOG[key]
@@ -161,13 +180,39 @@ def get_particle(name: str) -> ParticleConfig:
 
 
 class DerivationEngine:
-    """
-    The core engine that derives particle masses from geometric seeds.
+    """Core engine for deriving particle masses from geometric seeds.
 
-    Uses the complete 60+ level Universal Syntony Correction Hierarchy.
+    The DerivationEngine applies the complete 60+ level Universal Syntony
+    Correction Hierarchy to derive Standard Model particle masses from
+    pure SRT geometry: φ (golden ratio), π, e, and derived constants.
+
+    The engine supports multiple derivation formulas:
+        - E* × N templates for hadrons
+        - Proton-ratio formulas for related particles
+        - Special formulas for top, Higgs, neutrinos
+        - Mixing angles (CKM, PMNS) from geometric ratios
+
+    Attributes:
+        m_proton: Cached proton mass (lazily computed).
+        m_neutron: Cached neutron mass (lazily computed).
+
+    Examples:
+        >>> engine = DerivationEngine()
+        >>> result = engine.derive('proton')
+        >>> print(f"Proton: {result.final_value:.3f} MeV")
+        Proton: 938.272 MeV
+
+        >>> result = engine.derive('charm')
+        >>> print(f"Charm: {result.final_value:.1f} MeV")
+        Charm: 1275.0 MeV
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the derivation engine.
+
+        Creates a new engine with empty caches for proton and neutron masses.
+        These are computed lazily on first access.
+        """
         # Pre-compute proton mass (needed for many formulas)
         self._m_proton: Optional[float] = None
         self._m_neutron: Optional[float] = None
@@ -193,8 +238,22 @@ class DerivationEngine:
     # =========================================================================
 
     def derive_from_config(self, config: ParticleConfig) -> DerivationResult:
-        """
-        Derive a particle's mass/observable from its configuration.
+        """Derive a particle's mass or observable from its configuration.
+
+        Dispatches to the appropriate formula implementation based on the
+        particle's FormulaType. Each formula applies tree-level computation
+        followed by geometric corrections from the hierarchy.
+
+        Args:
+            config: ParticleConfig specifying the derivation formula,
+                base integer N, corrections, and experimental PDG value.
+
+        Returns:
+            DerivationResult containing tree_value, final_value, and
+            a list of correction steps applied.
+
+        Note:
+            For unknown formula types, logs a warning and returns zeros.
         """
         ft = config.formula_type
 
@@ -235,7 +294,31 @@ class DerivationEngine:
             return DerivationResult(tree_value=float(0), final_value=float(0))
 
     def derive(self, particle_name: str) -> DerivationResult:
-        """Derive a particle by name."""
+        """Derive a particle's mass by name.
+
+        Main entry point for particle mass derivation. Looks up the particle
+        in the catalog and applies the appropriate geometric formula.
+
+        Args:
+            particle_name: Name of the particle (e.g., 'proton', 'charm',
+                'W_boson'). Case-insensitive with flexible formatting.
+
+        Returns:
+            DerivationResult with:
+                - tree_value: Mass before corrections
+                - final_value: Mass after all corrections
+                - steps: List of correction steps applied
+                - deviation_percent: Deviation from PDG experimental value
+
+        Raises:
+            ValueError: If particle_name is not in the catalog.
+
+        Examples:
+            >>> engine = DerivationEngine()
+            >>> result = engine.derive('proton')
+            >>> abs(result.final_value - 938.272) < 0.01
+            True
+        """
         config = get_particle(particle_name)
         result = self.derive_from_config(config)
         result.set_experimental(config.pdg_value)
@@ -776,9 +859,36 @@ class DerivationEngine:
 
 
 class MassMiner:
-    """Automated search for E* × N × corrections formulas."""
+    """Automated search for E* × N × corrections formulas.
 
-    def __init__(self, engine: Optional[DerivationEngine] = None):
+    The MassMiner searches the space of possible SRT formulas to find
+    matches for a target mass. It explores combinations of:
+        - Base integers N (half-integer steps from 0.5 to 5000)
+        - Geometric correction factors from the hierarchy
+        - Enhancement (+) and suppression (-) signs
+
+    This is useful for discovering new particle formulas or verifying
+    that observed masses fit the SRT framework.
+
+    Attributes:
+        engine: DerivationEngine instance for computations.
+        possible_integers: List of candidate N values.
+        possible_corrections: List of geometric divisors to try.
+
+    Examples:
+        >>> miner = MassMiner()
+        >>> matches = miner.mine_E_star(938.0, tolerance_percent=0.1)
+        >>> if matches:
+        ...     print(f"Found {len(matches)} matching formulas")
+    """
+
+    def __init__(self, engine: Optional[DerivationEngine] = None) -> None:
+        """Initialize the mass miner.
+
+        Args:
+            engine: Optional DerivationEngine to use. If not provided,
+                a new engine is created.
+        """
         self.engine = engine if engine else DerivationEngine()
         self.possible_integers = [x / 2.0 for x in range(1, 10000)]
         self.possible_corrections = list(GEOMETRIC_DIVISORS.values())
@@ -793,6 +903,31 @@ class MassMiner:
     def mine_E_star(
         self, target_mass_MeV: float, tolerance_percent: float = 0.1
     ) -> List[Dict]:
+        """Search for E* × N × (1 ± q/divisor) formulas matching a target mass.
+
+        Systematically explores the formula space to find combinations of
+        base integer N and correction factors that reproduce the target mass
+        within the specified tolerance.
+
+        Args:
+            target_mass_MeV: Target mass in MeV to search for.
+            tolerance_percent: Maximum allowed deviation as a percentage.
+                Default is 0.1 (meaning 0.1% tolerance).
+
+        Returns:
+            List of matching formula dictionaries, sorted by error. Each dict contains:
+                - integer: The base integer N
+                - correction: String describing the correction (e.g., "q/720.00")
+                - sign: "+" or "-" indicating enhancement or suppression
+                - mass: Computed mass in MeV
+                - error_percent: Deviation from target as percentage
+
+        Examples:
+            >>> miner = MassMiner()
+            >>> matches = miner.mine_E_star(125250, tolerance_percent=0.5)
+            >>> for m in matches[:3]:
+            ...     print(f"E* × {m['integer']} × (1 {m['sign']} {m['correction']})")
+        """
         matches = []
         tolerance = target_mass_MeV * tolerance_percent / 100
         q_val = float(Q)

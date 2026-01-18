@@ -16,32 +16,54 @@ DEFAULT_RESULTS_FILE = DEFAULT_RESULTS_DIR / "derivations.json"
 
 @dataclass
 class SRTConfig:
-    """Configuration settings for SRT calculations."""
-    
+    """Configuration settings for SRT calculations.
+
+    Controls precision, tolerances, output format, and result persistence
+    for the derivation engine and mass miner.
+
+    Attributes:
+        decimal_places: Precision for arbitrary-precision arithmetic.
+        exact_threshold: Maximum deviation (%) to classify as EXACT.
+        pass_threshold: Maximum deviation (%) to classify as PASS.
+        mining_tolerance: Tolerance (%) for mass mining searches.
+        max_base_integer: Maximum N value for E* × N formula search.
+        output_format: Output format ("text", "json", or "latex").
+        verbose: Enable detailed logging output.
+        save_results: Whether to persist results to file.
+        results_file: Path for saving derivation results.
+        show_tree_values: Display tree-level (uncorrected) values.
+        show_corrections: Display correction step details.
+        precision_digits: Decimal digits for display formatting.
+
+    Examples:
+        >>> config = SRTConfig(verbose=True, output_format="json")
+        >>> set_config(config)
+    """
+
     # Precision settings
     decimal_places: int = 512
-    
+
     # Validation tolerances
     exact_threshold: float = 0.01      # <0.01% = EXACT
     pass_threshold: float = 0.5        # <0.5% = PASS
-    
+
     # Mining settings
     mining_tolerance: float = 0.05     # 5% tolerance for mining
     max_base_integer: int = 1000       # Maximum N to try in E*×N formulas
-    
+
     # Output settings
     output_format: Literal["text", "json", "latex"] = "text"
     verbose: bool = False
     save_results: bool = True
     results_file: Path = field(default_factory=lambda: DEFAULT_RESULTS_FILE)
-    
+
     # Display settings
     show_tree_values: bool = True
     show_corrections: bool = True
     precision_digits: int = 4          # Digits for display
-    
-    def __post_init__(self):
-        """Ensure results directory exists."""
+
+    def __post_init__(self) -> None:
+        """Ensure results directory exists after initialization."""
         if self.save_results:
             self.results_file.parent.mkdir(parents=True, exist_ok=True)
     
@@ -84,12 +106,28 @@ config = SRTConfig()
 
 
 def get_config() -> SRTConfig:
-    """Get the global configuration."""
+    """Get the current global configuration.
+
+    Returns:
+        The active SRTConfig instance used by the derivation engine.
+
+    Examples:
+        >>> cfg = get_config()
+        >>> print(cfg.precision_digits)
+        4
+    """
     return config
 
 
-def set_config(new_config: SRTConfig):
-    """Set the global configuration."""
+def set_config(new_config: SRTConfig) -> None:
+    """Set the global configuration.
+
+    Args:
+        new_config: SRTConfig instance to use for all derivations.
+
+    Examples:
+        >>> set_config(SRTConfig(verbose=True))
+    """
     global config
     config = new_config
 
