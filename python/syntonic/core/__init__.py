@@ -25,7 +25,7 @@ from syntonic._core import (
     RESConfig,
     RESResult,
     ResonantEvolver,
-    # Syntonic Softmax
+    SyntonicSoftmax,
     SyntonicSoftmaxMode,
     SyntonicSoftmaxState,
     syntonic_softmax,

@@ -7,7 +7,7 @@ D̂[x] = x + ReLU(W_D·x + b_D)
 - W_D weights serve as αᵢ coupling analogs
 - Increases representational complexity (Fire/novelty)
 
-NO PYTORCH OR NUMPY DEPENDENCIES - Pure Rust backend.
+ - Pure Rust backend.
 
 Source: CRT.md §12.2
 """

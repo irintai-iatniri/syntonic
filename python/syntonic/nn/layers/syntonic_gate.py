@@ -4,7 +4,7 @@ Syntonic Gate: Adaptive mixing based on local syntony.
 Gate = σ(W_g·[x, H(D(x))])
 Output = Gate · H(D(x)) + (1 - Gate) · x
 
-NO PYTORCH OR NUMPY DEPENDENCIES - Pure Rust backend.
+ - Pure Rust backend.
 
 Source: CRT.md §7.1
 """

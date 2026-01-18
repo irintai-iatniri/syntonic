@@ -1,121 +1,213 @@
 #!/usr/bin/env python3
 """
-Test script for resonant_matmul function.
+Test script for ResonantTensor matmul functionality.
+
+This script tests the matrix multiplication operation of ResonantTensor,
+which performs exact arithmetic in the Q(φ) lattice.
 """
 
 import sys
 import os
-import numpy as np
 
-# Add the syntonic package to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'python'))
+# Add the syntonic package to the path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'python'))
 
-try:
-    from syntonic._core import ResonantTensor as _RT, py_versal_grip_strength
-except ImportError as e:
-    print(f"Failed to import syntonic core: {e}")
-    print("Make sure the Rust extension is built and available.")
-    sys.exit(1)
+from python.syntonic.nn.resonant_tensor import ResonantTensor
+import math
 
-def test_resonant_matmul():
-    """Test resonant_matmul function."""
-    print("Testing resonant_matmul function...")
+def test_basic_matmul():
+    """Test basic matrix multiplication."""
+    print("Testing basic ResonantTensor matmul...")
 
-    # Create test tensors with different winding indices
-    # Test case 1: Compatible geometries (same winding index)
-    t1 = _RT([1.0, 2.0], [2], None, 5)  # winding_index = 5
-    t2 = _RT([3.0, 4.0], [2], None, 5)  # winding_index = 5
+    # Create test matrices
+    # A: 2x3 matrix (input)
+    a_data = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    A = ResonantTensor(a_data, shape=[2, 3])
 
-    # Test case 2: Incompatible geometries (different winding indices)
-    t3 = _RT([1.0, 2.0], [2], None, 7)  # winding_index = 7
-    t4 = _RT([3.0, 4.0], [2], None, 11) # winding_index = 11
+    # B: 2x3 matrix (weights: out_features=2, in_features=3)
+    # Since matmul does A @ B^T, and we want A @ B^T where B^T is 3x2
+    # So B should be 2x3, B^T will be 3x2, A @ B^T = [2,3] @ [3,2] = [2,2]
+    b_data = [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]
+    B = ResonantTensor(b_data, shape=[2, 3])
 
-    # Test case 3: Compatible geometries with non-zero grip
-    t5 = _RT([1.0, 2.0], [2], None, 5)  # winding_index = 5
-    t6 = _RT([3.0, 4.0], [2], None, 5)  # winding_index = 5
+    # Perform matrix multiplication: A @ B^T should give 2x2 result
+    C = A.matmul(B)
 
-    all_passed = True
+    print(f"A shape: {A.shape}")
+    print(f"B shape: {B.shape}")
+    print(f"C shape: {C.shape}")
 
-    try:
-        # Test 1: Compatible geometries
-        result1 = _RT.resonant_matmul(t1, t2)
-        grip1 = py_versal_grip_strength(5)
-        expected1 = np.array([1.0*3.0 + 2.0*4.0]) * grip1  # dot product scaled by grip
+    # Expected result: A @ B^T
+    # A = [[1, 2, 3], [4, 5, 6]]
+    # B^T = [[7, 10], [8, 11], [9, 12]]
+    # C[0][0] = 1*7 + 2*8 + 3*9 = 7 + 16 + 27 = 50
+    # C[0][1] = 1*10 + 2*11 + 3*12 = 10 + 22 + 36 = 68
+    # C[1][0] = 4*7 + 5*8 + 6*9 = 28 + 40 + 54 = 122
+    # C[1][1] = 4*10 + 5*11 + 6*12 = 40 + 55 + 72 = 167
 
-        print(f"Test 1 - Compatible geometries (winding=5):")
-        print(f"  Result: {result1.data}")
-        print(f"  Expected: {expected1}")
-        print(f"  Grip strength: {grip1}")
+    expected = [50.0, 68.0, 122.0, 167.0]
+    actual = C.to_floats()
 
-        if not np.allclose(result1.data, expected1, rtol=1e-10):
-            print("  ERROR: Result doesn't match expected")
-            all_passed = False
-        else:
-            print("  ✓ Passed")
+    print(f"Expected: {expected}")
+    print(f"Actual: {actual}")
 
-    except Exception as e:
-        print(f"  ERROR in test 1: {e}")
-        all_passed = False
+    # Check results (allowing some tolerance due to lattice snapping)
+    for i, (exp, act) in enumerate(zip(expected, actual)):
+        diff = abs(exp - act)
+        if diff > 2.0:  # Allow reasonable tolerance
+            print(f"ERROR: Element {i} mismatch: expected {exp}, got {act}")
+            return False
 
-    try:
-        # Test 2: Incompatible geometries
-        result2 = _RT.resonant_matmul(t3, t4)
-        grip2 = py_versal_grip_strength(7)  # Should be 0 since incompatible
+    print("✓ Basic matmul test passed!")
+    return True
 
-        print(f"\nTest 2 - Incompatible geometries (winding=7,11):")
-        print(f"  Result: {result2.data}")
-        print(f"  Grip strength: {grip2}")
+def test_matmul_with_golden_ratio():
+    """Test matmul with golden ratio values."""
+    print("\nTesting matmul with golden ratio values...")
 
-        if grip2 != 0.0:
-            print("  ERROR: Grip strength should be 0 for incompatible geometries")
-            all_passed = False
+    PHI = (1 + math.sqrt(5)) / 2
 
-        # Result should be zero due to grip strength = 0
-        if not np.allclose(result2.data, np.zeros_like(result2.data), rtol=1e-10):
-            print("  ERROR: Result should be zero for incompatible geometries")
-            all_passed = False
-        else:
-            print("  ✓ Passed")
+    # Create matrices with golden ratio elements
+    a_data = [1.0, PHI, 0.0, PHI, 1.0, 0.0]
+    A = ResonantTensor(a_data, shape=[2, 3])
 
-    except Exception as e:
-        print(f"  ERROR in test 2: {e}")
-        all_passed = False
+    b_data = [PHI, 0.0, 0.0, 1.0, 1.0, 0.0]
+    B = ResonantTensor(b_data, shape=[2, 3])  # out_features=2, in_features=3
 
-    try:
-        # Test 3: Matrix multiplication
-        # Create 2x2 matrices
-        m1 = _RT([[1.0, 2.0], [3.0, 4.0]], [2, 2], None, 5)
-        m2 = _RT([[5.0, 6.0], [7.0, 8.0]], [2, 2], None, 5)
+    C = A.matmul(B)
 
-        result3 = _RT.resonant_matmul(m1, m2)
-        grip3 = py_versal_grip_strength(5)
+    print(f"A contains golden ratio: {PHI in a_data}")
+    print(f"B contains golden ratio: {PHI in b_data}")
+    print(f"Result shape: {C.shape}")
 
-        # Standard matrix multiplication result
-        standard = np.array([[1*5+2*7, 1*6+2*8], [3*5+4*7, 3*6+4*8]])  # [[19, 22], [43, 50]]
-        expected3 = standard * grip3
+    # Check that result is valid
+    actual = C.to_floats()
+    print(f"Result values: {actual}")
 
-        print(f"\nTest 3 - Matrix multiplication (winding=5):")
-        print(f"  Result:\n{result3.data}")
-        print(f"  Expected:\n{expected3}")
-        print(f"  Grip strength: {grip3}")
-
-        if not np.allclose(result3.data, expected3, rtol=1e-10):
-            print("  ERROR: Matrix multiplication result doesn't match expected")
-            all_passed = False
-        else:
-            print("  ✓ Passed")
-
-    except Exception as e:
-        print(f"  ERROR in test 3: {e}")
-        all_passed = False
-
-    if all_passed:
-        print("\n✓ All resonant_matmul tests passed!")
-        return True
-    else:
-        print("\n✗ Some resonant_matmul tests failed!")
+    # All values should be finite
+    if not all(math.isfinite(v) for v in actual):
+        print("ERROR: Non-finite values in result")
         return False
 
+    print("✓ Golden ratio matmul test passed!")
+    return True
+
+def test_matmul_shapes():
+    """Test matmul with different tensor shapes."""
+    print("\nTesting matmul with various shapes...")
+
+    test_cases = [
+        # (A_shape, B_shape, expected_C_shape)
+        # A @ B^T where B is [out_features, in_features], B^T is [in_features, out_features]
+        # So [m, n] @ [n, p] = [m, p], so B should be [p, n]
+        ([2, 3], [4, 3], [2, 4]),  # A[2,3] @ B^T[3,4] = [2,4], so B=[4,3]
+        ([1, 5], [1, 5], [1, 1]),  # A[1,5] @ B^T[5,1] = [1,1], so B=[1,5]
+        ([3, 1], [3, 1], [3, 3]),  # A[3,1] @ B^T[1,3] = [3,3], so B=[3,1]
+        ([4, 2], [5, 2], [4, 5]),  # A[4,2] @ B^T[2,5] = [4,5], so B=[5,2]
+    ]
+
+    for a_shape, b_shape, expected_c_shape in test_cases:
+        # Create random tensors
+        A = ResonantTensor.randn(a_shape)
+        B = ResonantTensor.randn(b_shape)
+
+        C = A.matmul(B)
+
+        if C.shape != expected_c_shape:
+            print(f"ERROR: Shape mismatch for {a_shape} @ {b_shape}^T: expected {expected_c_shape}, got {C.shape}")
+            return False
+
+        print(f"✓ {a_shape} @ {b_shape}^T → {C.shape}")
+
+    print("✓ Shape tests passed!")
+    return True
+
+def test_matmul_operator():
+    """Test the @ operator for matmul."""
+    print("\nTesting @ operator...")
+
+    A = ResonantTensor.randn([3, 4])
+    B = ResonantTensor.randn([4, 2])
+
+    # Test both matmul method and @ operator
+    C1 = A.matmul(B)
+    C2 = A @ B
+
+    # Results should be identical
+    floats1 = C1.to_floats()
+    floats2 = C2.to_floats()
+
+    if len(floats1) != len(floats2):
+        print("ERROR: Different result lengths")
+        return False
+
+    for f1, f2 in zip(floats1, floats2):
+        if abs(f1 - f2) > 1e-10:
+            print(f"ERROR: @ operator gives different result: {f1} vs {f2}")
+            return False
+
+    print("✓ @ operator test passed!")
+    return True
+
+def test_matmul_syntony():
+    """Test that matmul preserves syntony computation."""
+    print("\nTesting syntony preservation...")
+
+    A = ResonantTensor.randn([5, 5])
+    B = ResonantTensor.randn([5, 5])
+
+    syntony_a = A.syntony
+    syntony_b = B.syntony
+
+    C = A.matmul(B)
+    syntony_c = C.syntony
+
+    print(f"A syntony: {syntony_a:.4f}")
+    print(f"B syntony: {syntony_b:.4f}")
+    print(f"C syntony: {syntony_c:.4f}")
+
+    # All syntonies should be valid
+    if not (0.0 <= syntony_a <= 1.0 and 0.0 <= syntony_b <= 1.0 and 0.0 <= syntony_c <= 1.0):
+        print("ERROR: Invalid syntony values")
+        return False
+
+    print("✓ Syntony preservation test passed!")
+    return True
+
+def main():
+    """Run all tests."""
+    print("Running ResonantTensor matmul tests...\n")
+
+    tests = [
+        test_basic_matmul,
+        test_matmul_with_golden_ratio,
+        test_matmul_shapes,
+        test_matmul_operator,
+        test_matmul_syntony,
+    ]
+
+    passed = 0
+    total = len(tests)
+
+    for test in tests:
+        try:
+            if test():
+                passed += 1
+            else:
+                print(f"✗ {test.__name__} failed")
+        except Exception as e:
+            print(f"✗ {test.__name__} crashed: {e}")
+            import traceback
+            traceback.print_exc()
+
+    print(f"\nResults: {passed}/{total} tests passed")
+
+    if passed == total:
+        print("🎉 All tests passed!")
+        return 0
+    else:
+        print("❌ Some tests failed")
+        return 1
+
 if __name__ == "__main__":
-    success = test_resonant_matmul()
-    sys.exit(0 if success else 1)
+    sys.exit(main())

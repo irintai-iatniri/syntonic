@@ -4,7 +4,7 @@ Syntonic Normalization: Golden-ratio aware normalization layers.
 These normalization layers incorporate golden ratio structure
 for more natural regularization.
 
-NO PYTORCH OR NUMPY DEPENDENCIES - Pure Rust backend.
+ - Pure Rust backend.
 
 Source: CRT.md §7.1
 """

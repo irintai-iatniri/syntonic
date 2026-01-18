@@ -19,7 +19,7 @@ from syntonic.core.dtype import DType, float64, float32, complex128, int64, get_
 from syntonic.core.device import Device, cpu
 
 if TYPE_CHECKING:
-    from syntonic.crt.evolution import SyntonyTrajectory
+    from python.syntonic.crt.dhsr_evolution import SyntonyTrajectory
 
 # Type aliases
 ArrayLike = Union[Sequence, 'State']

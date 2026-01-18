@@ -5,7 +5,7 @@ R_layer(x) = H_layer(D_layer(x))
 
 Complete DHSR cycle as a single neural block.
 
-NO PYTORCH OR NUMPY DEPENDENCIES - Pure Rust backend.
+ - Pure Rust backend.
 
 Source: CRT.md §12.2
 """

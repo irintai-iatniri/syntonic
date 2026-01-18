@@ -8,7 +8,6 @@ This module implements a complete DHSR cycle using the Rust backend:
 4. R-phase: Recursion (golden scaling)
 5. Blockchain: Temporal state recording
 
-NO PYTORCH OR NUMPY DEPENDENCIES.
 """
 
 from __future__ import annotations
@@ -19,7 +18,7 @@ from typing import Tuple, List, Optional
 import syntonic.sn as sn
 from syntonic._core import ResonantTensor
 from syntonic.nn.layers.resonant_linear import ResonantLinear
-from syntonic.nn.winding.prime_selection_pure import PurePrimeSelectionLayer
+from python.syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
 
 PHI = (1 + math.sqrt(5)) / 2
 PHI_INV = 1 / PHI

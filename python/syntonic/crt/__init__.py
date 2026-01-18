@@ -63,7 +63,7 @@ from syntonic.crt.metrics import (
 )
 
 # Evolution
-from syntonic.crt.evolution import (
+from python.syntonic.crt.dhsr_evolution import (
     SyntonyTrajectory,
     DHSREvolver,
     default_evolver,

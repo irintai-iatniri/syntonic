@@ -4,7 +4,7 @@ Winding State Embedding - Maps winding states to neural embeddings.
 This module provides WindingStateEmbedding, which maps discrete T^4 winding
 states |n₇, n₈, n₉, n₁₀⟩ to continuous learned embeddings using the Rust backend.
 
-NO PYTORCH OR NUMPY DEPENDENCIES.
+.
 """
 
 from __future__ import annotations

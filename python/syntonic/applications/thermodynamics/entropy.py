@@ -9,7 +9,6 @@ Where p(n) follows the Golden Measure: μ(n) ∝ exp(-|n|²/φ)
 from __future__ import annotations
 from typing import Dict, Tuple, List
 import math
-
 from syntonic.exact import PHI_NUMERIC
 
 

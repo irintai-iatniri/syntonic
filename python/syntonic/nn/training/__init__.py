@@ -13,7 +13,7 @@ from syntonic.nn.training.trainer import (
     RESTrainingConfig,
     SyntonyTracker,
 )
-from syntonic.nn.training.callbacks_pure import (
+from python.syntonic.nn.training.callbacks import (
     Callback,
     SyntonyCallback,
     ArchonicEarlyStop,
@@ -22,7 +22,7 @@ from syntonic.nn.training.callbacks_pure import (
     FitnessPlateauCallback,
     default_callbacks,
 )
-from syntonic.nn.training.metrics_pure import (
+from python.syntonic.nn.training.metrics import (
     TrainingMetrics,
     SyntonyMetrics,
     MetricsAggregator,

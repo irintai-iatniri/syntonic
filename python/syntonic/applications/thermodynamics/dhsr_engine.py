@@ -16,9 +16,7 @@ from typing import Optional, TYPE_CHECKING
 import math
 
 from syntonic.exact import PHI, PHI_NUMERIC, Q_DEFICIT_NUMERIC
-
-if TYPE_CHECKING:
-    from syntonic.core import State
+from syntonic.core import State
 
 
 @dataclass

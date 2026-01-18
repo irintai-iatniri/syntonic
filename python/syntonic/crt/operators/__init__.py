@@ -31,6 +31,18 @@ from syntonic.crt.operators.recursion import (
     RecursionOperator,
     default_recursion_operator,
 )
+from syntonic.crt.operators.syntony import (
+    SyntonyComputer,
+    syntony_entropy,
+    syntony_spectral,
+    syntony_quick,
+)
+
+from syntonic.crt.operators.gnosis import (
+    GnosisComputer,
+    default_gnosis_computer,
+    K_D4,
+)
 
 __all__ = [
     'OperatorBase',
@@ -45,4 +57,11 @@ __all__ = [
     'default_harmonization_operator',
     'RecursionOperator',
     'default_recursion_operator',
+    'SyntonyComputer',
+    'syntony_entropy',
+    'syntony_spectral',
+    'syntony_quick',
+    'GnosisComputer',
+    'default_gnosis_computer',
+    'K_D4',
 ]

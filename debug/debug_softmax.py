@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from python.syntonic._core import ResonantTensor, SyntonicSoftmaxState, SyntonicSoftmaxMode
-import numpy as np
 
 # Create test tensor
 data = [1.0, 2.0, 3.0, 4.0, 5.0]

@@ -1,6 +1,6 @@
 """
 PureWindingEncoder: Maps winding states to resonant embeddings.
-Strictly zero dependencies on PyTorch or NumPy.
+
 """
 
 from syntonic._core import ResonantTensor, GoldenExact, enumerate_windings, WindingState

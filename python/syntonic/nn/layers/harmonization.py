@@ -7,7 +7,7 @@ Harmonization Layer: Ĥ operator in neural network form.
 - Tanh stabilizes toward syntony projection
 - Creates coherence and integration (Whispers)
 
-NO PYTORCH OR NUMPY DEPENDENCIES - Pure Rust backend.
+ - Pure Rust backend.
 
 Source: CRT.md §12.2
 """

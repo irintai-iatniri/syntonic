@@ -1,6 +1,6 @@
 """
 WindingEngine: A pure Resonant-Winding Engine implementation.
-Strictly zero dependencies on PyTorch or NumPy.
+
 """
 
 from syntonic._core import ResonantTensor, GoldenExact

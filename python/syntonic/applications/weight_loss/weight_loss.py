@@ -6,7 +6,7 @@ from typing import List, Tuple
 
 # --- SYNTONIC IMPORTS ---
 import syntonic as syn
-from syntonic.nn.architectures.syntonic_mlp_pure import PureSyntonicMLP
+from python.syntonic.nn.architectures.syntonic_mlp import PureSyntonicMLP
 from syntonic.nn.training.trainer import RetrocausalTrainer, RESTrainingConfig
 from syntonic.nn.resonant_tensor import ResonantTensor
 

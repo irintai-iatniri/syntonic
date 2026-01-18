@@ -32,7 +32,7 @@ except ImportError:
 
 # Use sn (syntonic network) instead of torch.nn
 import syntonic.sn as sn
-from syntonic.nn.winding.prime_selection_pure import PurePrimeSelectionLayer
+from python.syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
 
 PHI = (1 + math.sqrt(5)) / 2  # Golden ratio
 PHI_INV = 1 / PHI  # φ^-1 ≈ 0.618

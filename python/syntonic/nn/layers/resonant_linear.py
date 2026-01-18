@@ -5,7 +5,7 @@ This module implements ResonantLinear, a pure Rust-backed linear layer
 using ResonantTensor for weights and bias. All parameters natively
 inhabit the golden field Q(φ).
 
-NO PYTORCH OR NUMPY DEPENDENCIES.
+.
 """
 
 from __future__ import annotations

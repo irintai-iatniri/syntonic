@@ -4,7 +4,7 @@ Resonant Parameter - Pure Rust-backed learnable parameter.
 This module provides ResonantParameter, a wrapper around ResonantTensor
 that provides a learnable parameter interface without PyTorch.
 
-NO PYTORCH OR NUMPY DEPENDENCIES.
+.
 """
 
 from __future__ import annotations

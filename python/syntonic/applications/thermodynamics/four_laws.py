@@ -13,9 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
-
-if TYPE_CHECKING:
-    from syntonic.srt.geometry import WindingState
+from syntonic.srt.geometry import WindingState
 
 
 class SyntonicLaws:
