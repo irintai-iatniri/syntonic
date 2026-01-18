@@ -29,6 +29,7 @@ KERNELS=(
     "golden_batch_norm"
     "syntonic_softmax"
     "golden_ops"
+    "golden_gelu"
     "e8_projection"
     "heat_kernel"
     "dhsr"
@@ -37,6 +38,12 @@ KERNELS=(
     "core_ops"
     "elementwise"
     "matmul"
+    "hierarchy"
+    "prime_selection"
+    "prime_ops"
+    "gnosis"
+    "conv_ops"
+    "winding_ops"
 )
 
 # Print colored message

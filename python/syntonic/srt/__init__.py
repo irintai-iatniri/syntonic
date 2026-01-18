@@ -91,6 +91,30 @@ from syntonic.srt.lattice import (
     compute_Q,
 )
 
+# Prime selection
+from syntonic.srt.fermat_forces import (
+    fermat_number,
+    is_fermat_prime,
+    get_force_spectrum,
+    validate_force_existence,
+)
+
+from syntonic.srt.mersenne_matter import (
+    mersenne_number,
+    is_mersenne_prime,
+    get_generation_spectrum,
+    validate_generation_stability,
+    generation_barrier_explanation,
+)
+
+from syntonic.srt.lucas_shadow import (
+    lucas_number,
+    shadow_phase,
+    is_lucas_prime,
+    dark_matter_mass_prediction,
+    get_shadow_spectrum,
+)
+
 # Spectral
 from syntonic.srt.spectral import (
     ThetaSeries,
@@ -257,11 +281,19 @@ class SRTSystem:
             Dict of identity names to (expected, actual, passed) tuples
         """
         return {
-            'E8_roots': (240, len(self._e8.roots), self.verify_e8_count()),
-            'E8_positive': (120, len(self._e8.positive_roots), len(self._e8.positive_roots) == 120),
-            'golden_cone': (36, len(self._golden_cone.roots), self.verify_golden_cone_count()),
-            'D4_kissing': (24, self._d4.kissing_number, self.verify_d4_kissing()),
-            'syntony_bound': (self._phi, self._syntony.global_bound, True),
+            "E8_roots": (240, len(self._e8.roots), self.verify_e8_count()),
+            "E8_positive": (
+                120,
+                len(self._e8.positive_roots),
+                len(self._e8.positive_roots) == 120,
+            ),
+            "golden_cone": (
+                36,
+                len(self._golden_cone.roots),
+                self.verify_golden_cone_count(),
+            ),
+            "D4_kissing": (24, self._d4.kissing_number, self.verify_d4_kissing()),
+            "syntony_bound": (self._phi, self._syntony.global_bound, True),
         }
 
     def summary(self) -> str:
@@ -310,61 +342,76 @@ def create_srt_system(
 
 __all__ = [
     # Constants
-    'PHI',
-    'PHI_SQUARED',
-    'PHI_INVERSE',
-    'PHI_NUMERIC',
-    'E_STAR_NUMERIC',
-    'Q_DEFICIT_NUMERIC',
-    'STRUCTURE_DIMENSIONS',
-    'TORUS_DIMENSIONS',
-    'E8_ROOTS',
-    'E8_POSITIVE_ROOTS',
-    'E6_GOLDEN_CONE',
-    'D4_KISSING',
+    "PHI",
+    "PHI_SQUARED",
+    "PHI_INVERSE",
+    "PHI_NUMERIC",
+    "E_STAR_NUMERIC",
+    "Q_DEFICIT_NUMERIC",
+    "STRUCTURE_DIMENSIONS",
+    "TORUS_DIMENSIONS",
+    "E8_ROOTS",
+    "E8_POSITIVE_ROOTS",
+    "E6_GOLDEN_CONE",
+    "D4_KISSING",
     # Corrections
-    'CorrectionFactors',
-    'correction_factors',
+    "CorrectionFactors",
+    "correction_factors",
     # Geometry
-    'WindingState',
-    'winding_state',
-    'T4Torus',
-    't4_torus',
+    "WindingState",
+    "winding_state",
+    "T4Torus",
+    "t4_torus",
     # Golden
-    'GoldenMeasure',
-    'golden_measure',
-    'GoldenRecursionMap',
-    'golden_recursion_map',
+    "GoldenMeasure",
+    "golden_measure",
+    "GoldenRecursionMap",
+    "golden_recursion_map",
     # Lattice
-    'D4Root',
-    'D4Lattice',
-    'd4_lattice',
-    'K_D4',
-    'E8Root',
-    'E8Lattice',
-    'e8_lattice',
-    'GoldenProjector',
-    'golden_projector',
-    'GoldenCone',
-    'golden_cone',
-    'QuadraticForm',
-    'quadratic_form',
-    'compute_Q',
+    "D4Root",
+    "D4Lattice",
+    "d4_lattice",
+    "K_D4",
+    "E8Root",
+    "E8Lattice",
+    "e8_lattice",
+    "GoldenProjector",
+    "golden_projector",
+    "GoldenCone",
+    "golden_cone",
+    "QuadraticForm",
+    "quadratic_form",
+    "compute_Q",
+    # Prime selection
+    "fermat_number",
+    "is_fermat_prime",
+    "get_force_spectrum",
+    "validate_force_existence",
+    "mersenne_number",
+    "is_mersenne_prime",
+    "get_generation_spectrum",
+    "validate_generation_stability",
+    "generation_barrier_explanation",
+    "lucas_number",
+    "shadow_phase",
+    "is_lucas_prime",
+    "dark_matter_mass_prediction",
+    "get_shadow_spectrum",
     # Spectral
-    'ThetaSeries',
-    'theta_series',
-    'HeatKernel',
-    'heat_kernel',
-    'KnotLaplacian',
-    'knot_laplacian',
-    'MobiusRegularizer',
-    'mobius_regularizer',
-    'compute_e_star',
+    "ThetaSeries",
+    "theta_series",
+    "HeatKernel",
+    "heat_kernel",
+    "KnotLaplacian",
+    "knot_laplacian",
+    "MobiusRegularizer",
+    "mobius_regularizer",
+    "compute_e_star",
     # Functional
-    'SyntonyFunctional',
-    'syntony_functional',
-    'compute_syntony',
+    "SyntonyFunctional",
+    "syntony_functional",
+    "compute_syntony",
     # System
-    'SRTSystem',
-    'create_srt_system',
+    "SRTSystem",
+    "create_srt_system",
 ]

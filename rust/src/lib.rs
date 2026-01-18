@@ -1,10 +1,12 @@
 use pyo3::prelude::*;
 
 mod exact;
+mod gnosis;
 mod golden_gelu;
 mod hierarchy;
 mod hypercomplex;
 mod linalg;
+mod prime_selection;
 mod resonant;
 mod spectral;
 mod tensor;
@@ -30,6 +32,10 @@ use winding::{
     count_windings, enumerate_windings, enumerate_windings_by_norm, enumerate_windings_exact_norm,
     WindingState, WindingStateIterator,
 };
+
+// Prime selection and gnosis
+use gnosis::register_gnosis;
+use prime_selection::register_prime_selection;
 
 // Spectral operations
 use spectral::{
@@ -321,6 +327,16 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hierarchy::compute_e_star_n, m)?)?;
     m.add_function(wrap_pyfunction!(hierarchy::apply_chain, m)?)?;
     m.add_function(wrap_pyfunction!(hierarchy::init_divisors, m)?)?;
+    // Extended hierarchy corrections
+    m.add_function(wrap_pyfunction!(hierarchy::apply_e7_correction, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        hierarchy::apply_collapse_threshold_correction,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        hierarchy::apply_coxeter_kissing_correction,
+        m
+    )?)?;
 
     // === GoldenGELU Activation ===
     m.add_function(wrap_pyfunction!(golden_gelu::golden_gelu_forward, m)?)?;
@@ -425,20 +441,56 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_standard_mode_norms, m)?)?;
 
     // === SRT/CRT Prime Theory Functions ===
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_mersenne_prime, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_fermat_prime, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_lucas_prime, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_mersenne_prime,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_fermat_prime,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_lucas_prime,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_lucas_number, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_pisano_period, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_stable_winding, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_get_stability_barrier, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_is_transcendence_gate, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_versal_grip_strength, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_mersenne_sequence, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_fermat_sequence, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_pisano_period,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_stable_winding,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_get_stability_barrier,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_is_transcendence_gate,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_versal_grip_strength,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_mersenne_sequence,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_fermat_sequence,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_lucas_primes, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_lucas_dark_boost, m)?)?;
-    m.add_function(wrap_pyfunction!(resonant::py_wrappers::py_predict_dark_matter_mass, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_lucas_dark_boost,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(
+        resonant::py_wrappers::py_predict_dark_matter_mass,
+        m
+    )?)?;
 
     // === Crystallization Functions ===
     m.add_function(wrap_pyfunction!(py_crystallize_with_dwell_legacy, m)?)?;
@@ -516,6 +568,12 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(py_mm_gemm, m)?)?;
     m.add_function(wrap_pyfunction!(py_mm_q_corrected_direct, m)?)?;
     m.add_function(wrap_pyfunction!(py_q_correction_scalar, m)?)?;
+
+    // === Prime Selection Rules ===
+    register_prime_selection(m)?;
+
+    // === Gnosis/Consciousness Module ===
+    register_gnosis(m)?;
 
     Ok(())
 }

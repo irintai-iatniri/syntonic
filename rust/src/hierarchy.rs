@@ -20,6 +20,51 @@ fn e_star() -> f64 {
     std::f64::consts::E.powf(std::f64::consts::PI) - std::f64::consts::PI
 }
 
+// ============================================================================
+// Extended Structure Dimensions (E₈ → E₇ → E₆ → SM Chain)
+// ============================================================================
+
+// E₈ Family
+pub const E8_DIM: i32 = 248;
+pub const E8_ROOTS: i32 = 240;
+pub const E8_POSITIVE_ROOTS: i32 = 120;
+pub const E8_RANK: i32 = 8;
+pub const E8_COXETER: i32 = 30;
+
+// E₇ Family (Intermediate Unification Scale)
+pub const E7_DIM: i32 = 133;
+pub const E7_ROOTS: i32 = 126;
+pub const E7_POSITIVE_ROOTS: i32 = 63;
+pub const E7_FUNDAMENTAL: i32 = 56;
+pub const E7_RANK: i32 = 7;
+pub const E7_COXETER: i32 = 18;
+
+// E₆ Family
+pub const E6_DIM: i32 = 78;
+pub const E6_ROOTS: i32 = 72;
+pub const E6_POSITIVE_ROOTS: i32 = 36;
+pub const E6_FUNDAMENTAL: i32 = 27;
+pub const E6_RANK: i32 = 6;
+pub const E6_COXETER: i32 = 12;
+
+// D₄ Family (SO(8) with Triality)
+pub const D4_DIM: i32 = 28;
+pub const D4_KISSING: i32 = 24; // Collapse threshold!
+pub const D4_RANK: i32 = 4;
+pub const D4_COXETER: i32 = 6;
+
+// G₂ (Octonion Automorphisms)
+pub const G2_DIM: i32 = 14;
+pub const G2_RANK: i32 = 2;
+
+// F₄ (Jordan Algebra Structure)
+pub const F4_DIM: i32 = 52;
+pub const F4_RANK: i32 = 4;
+
+// Coxeter-Kissing Products
+pub const COXETER_KISSING_720: i32 = E8_COXETER * D4_KISSING; // 30 × 24 = 720
+pub const HIERARCHY_EXPONENT: i32 = COXETER_KISSING_720 - 1; // 719
+
 use pyo3::prelude::*;
 
 // =============================================================================
@@ -276,6 +321,108 @@ pub fn apply_chain(
         outputs.push(val);
     }
     Ok(outputs)
+}
+
+// ============================================================================
+// Extended Correction Factor Functions
+// ============================================================================
+
+/// Apply correction with E₇ structure
+#[pyfunction]
+#[pyo3(name = "hierarchy_apply_e7_correction")]
+pub fn apply_e7_correction(value: f64, structure_index: i32) -> f64 {
+    let divisor = match structure_index {
+        0 => E7_DIM,            // 133
+        1 => E7_ROOTS,          // 126
+        2 => E7_POSITIVE_ROOTS, // 63
+        3 => E7_FUNDAMENTAL,    // 56
+        4 => E7_RANK,           // 7
+        5 => E7_COXETER,        // 18
+        _ => return value,      // No correction
+    };
+
+    value * (1.0 + Q_DEFICIT / (divisor as f64))
+}
+
+/// Apply D₄ collapse threshold correction
+#[pyfunction]
+#[pyo3(name = "hierarchy_apply_collapse_threshold_correction")]
+pub fn apply_collapse_threshold_correction(value: f64) -> f64 {
+    value * (1.0 + Q_DEFICIT / (D4_KISSING as f64))
+}
+
+/// Apply Coxeter-Kissing product correction (720)
+#[pyfunction]
+#[pyo3(name = "hierarchy_apply_coxeter_kissing_correction")]
+pub fn apply_coxeter_kissing_correction(value: f64) -> f64 {
+    value * (1.0 + Q_DEFICIT / (COXETER_KISSING_720 as f64))
+}
+
+// ============================================================================
+// Extended Hierarchy Constant Access Functions
+// ============================================================================
+
+/// Get E₈ dimension (248)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e8_dim")]
+pub fn e8_dim() -> i32 {
+    E8_DIM
+}
+
+/// Get E₇ dimension (133)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e7_dim")]
+pub fn e7_dim() -> i32 {
+    E7_DIM
+}
+
+/// Get E₆ dimension (78)
+#[pyfunction]
+#[pyo3(name = "hierarchy_e6_dim")]
+pub fn e6_dim() -> i32 {
+    E6_DIM
+}
+
+/// Get D₄ dimension (28)
+#[pyfunction]
+#[pyo3(name = "hierarchy_d4_dim")]
+pub fn d4_dim() -> i32 {
+    D4_DIM
+}
+
+/// Get D₄ kissing number (24) - consciousness threshold
+#[pyfunction]
+#[pyo3(name = "hierarchy_d4_kissing")]
+pub fn d4_kissing() -> i32 {
+    D4_KISSING
+}
+
+/// Get G₂ dimension (14)
+#[pyfunction]
+#[pyo3(name = "hierarchy_g2_dim")]
+pub fn g2_dim() -> i32 {
+    G2_DIM
+}
+
+/// Get F₄ dimension (52)
+#[pyfunction]
+#[pyo3(name = "hierarchy_f4_dim")]
+pub fn f4_dim() -> i32 {
+    F4_DIM
+}
+
+/// Get Coxeter-Kissing product (720)
+#[pyfunction]
+#[pyo3(name = "hierarchy_coxeter_kissing_720")]
+pub fn coxeter_kissing_720() -> i32 {
+    COXETER_KISSING_720
+}
+
+/// Get hierarchy exponent (719)
+#[pyfunction]
+#[pyo3(name = "hierarchy_exponent")]
+pub fn hierarchy_exponent() -> i32 {
+    HIERARCHY_EXPONENT
 }
 
 /// Initialize geometric divisors in constant memory

@@ -142,6 +142,76 @@ const PTX_GOLDEN_GELU_SM86: &str = include_str!("../../kernels/ptx/golden_gelu_s
 #[cfg(feature = "cuda")]
 const PTX_GOLDEN_GELU_SM90: &str = include_str!("../../kernels/ptx/golden_gelu_sm90.ptx");
 
+// Prime Selection PTX (4 compute capabilities) - Fermat/Mersenne/Lucas number theory
+#[cfg(feature = "cuda")]
+const PTX_PRIME_SELECTION_SM75: &str = include_str!("../../kernels/ptx/prime_selection_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_PRIME_SELECTION_SM80: &str = include_str!("../../kernels/ptx/prime_selection_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_PRIME_SELECTION_SM86: &str = include_str!("../../kernels/ptx/prime_selection_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_PRIME_SELECTION_SM90: &str = include_str!("../../kernels/ptx/prime_selection_sm90.ptx");
+
+// Prime Ops PTX (4 compute capabilities) - Additional prime computations
+#[cfg(feature = "cuda")]
+const PTX_PRIME_OPS_SM75: &str = include_str!("../../kernels/ptx/prime_ops_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_PRIME_OPS_SM80: &str = include_str!("../../kernels/ptx/prime_ops_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_PRIME_OPS_SM86: &str = include_str!("../../kernels/ptx/prime_ops_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_PRIME_OPS_SM90: &str = include_str!("../../kernels/ptx/prime_ops_sm90.ptx");
+
+// Gnosis PTX (4 compute capabilities) - Consciousness/Gnosis metrics
+#[cfg(feature = "cuda")]
+const PTX_GNOSIS_SM75: &str = include_str!("../../kernels/ptx/gnosis_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_GNOSIS_SM80: &str = include_str!("../../kernels/ptx/gnosis_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_GNOSIS_SM86: &str = include_str!("../../kernels/ptx/gnosis_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_GNOSIS_SM90: &str = include_str!("../../kernels/ptx/gnosis_sm90.ptx");
+
+// Winding Ops PTX (4 compute capabilities)
+#[cfg(feature = "cuda")]
+const PTX_WINDING_OPS_SM75: &str = include_str!("../../kernels/ptx/winding_ops_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_WINDING_OPS_SM80: &str = include_str!("../../kernels/ptx/winding_ops_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_WINDING_OPS_SM86: &str = include_str!("../../kernels/ptx/winding_ops_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_WINDING_OPS_SM90: &str = include_str!("../../kernels/ptx/winding_ops_sm90.ptx");
+
+// Elementwise PTX (4 compute capabilities)
+#[cfg(feature = "cuda")]
+const PTX_ELEMENTWISE_SM75: &str = include_str!("../../kernels/ptx/elementwise_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_ELEMENTWISE_SM80: &str = include_str!("../../kernels/ptx/elementwise_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_ELEMENTWISE_SM86: &str = include_str!("../../kernels/ptx/elementwise_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_ELEMENTWISE_SM90: &str = include_str!("../../kernels/ptx/elementwise_sm90.ptx");
+
+// Core Ops PTX (4 compute capabilities)
+#[cfg(feature = "cuda")]
+const PTX_CORE_OPS_SM75: &str = include_str!("../../kernels/ptx/core_ops_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_CORE_OPS_SM80: &str = include_str!("../../kernels/ptx/core_ops_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_CORE_OPS_SM86: &str = include_str!("../../kernels/ptx/core_ops_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_CORE_OPS_SM90: &str = include_str!("../../kernels/ptx/core_ops_sm90.ptx");
+
+// Conv Ops PTX (4 compute capabilities)
+#[cfg(feature = "cuda")]
+const PTX_CONV_OPS_SM75: &str = include_str!("../../kernels/ptx/conv_ops_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_CONV_OPS_SM80: &str = include_str!("../../kernels/ptx/conv_ops_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_CONV_OPS_SM86: &str = include_str!("../../kernels/ptx/conv_ops_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_CONV_OPS_SM90: &str = include_str!("../../kernels/ptx/conv_ops_sm90.ptx");
+
 // =============================================================================
 // Kernel Function Lists
 // =============================================================================
@@ -399,6 +469,104 @@ const GOLDEN_GELU_FUNCS: &[&str] = &[
     "batched_golden_gelu_f64",
 ];
 
+/// Prime selection kernel functions (Fermat/Mersenne/Lucas)
+#[cfg(feature = "cuda")]
+const PRIME_SELECTION_FUNCS: &[&str] = &[
+    "fermat_numbers_kernel",
+    "is_fermat_prime_kernel",
+    "mersenne_numbers_kernel",
+    "lucas_lehmer_kernel",
+    "lucas_numbers_kernel",
+    "shadow_phase_kernel",
+    "lucas_boost_kernel",
+    "lucas_extended_kernel",
+    "fibonacci_lucas_kernel",
+    "apply_hierarchy_correction_kernel",
+    "apply_suppression_kernel",
+];
+
+/// Prime ops kernel functions
+#[cfg(feature = "cuda")]
+const PRIME_OPS_FUNCS: &[&str] = &[
+    "mersenne_prime_check_kernel",
+    "fermat_prime_check_kernel",
+    "lucas_prime_check_kernel",
+    "pisano_period_kernel",
+];
+
+/// Gnosis kernel functions (consciousness metrics)
+#[cfg(feature = "cuda")]
+const GNOSIS_FUNCS: &[&str] = &[
+    "is_conscious_kernel",
+    "gnosis_score_kernel",
+    "creativity_kernel",
+    "consciousness_probability_kernel",
+    "dhsr_gnosis_step_kernel",
+];
+
+/// Winding ops kernel functions
+#[cfg(feature = "cuda")]
+const WINDING_OPS_FUNCS: &[&str] = &[
+    "compute_winding_number_kernel",
+    "winding_distance_kernel",
+    "winding_norm_kernel",
+];
+
+/// Elementwise kernel functions
+#[cfg(feature = "cuda")]
+const ELEMENTWISE_FUNCS: &[&str] = &[
+    "add_f64",
+    "add_f32",
+    "sub_f64",
+    "sub_f32",
+    "mul_f64",
+    "mul_f32",
+    "div_f64",
+    "div_f32",
+    "neg_f64",
+    "neg_f32",
+    "abs_f64",
+    "abs_f32",
+    "sqrt_f64",
+    "sqrt_f32",
+    "exp_f64",
+    "exp_f32",
+    "log_f64",
+    "log_f32",
+    "sin_f64",
+    "cos_f64",
+    "tanh_f64",
+    "sigmoid_f64",
+    "relu_f64",
+    "relu_f32",
+];
+
+/// Core ops kernel functions
+#[cfg(feature = "cuda")]
+const CORE_OPS_FUNCS: &[&str] = &[
+    "sum_f64",
+    "sum_f32",
+    "mean_f64",
+    "mean_f32",
+    "max_f64",
+    "min_f64",
+    "reduce_sum_f64",
+    "reduce_mean_f64",
+    "layer_norm_f64",
+    "dropout_f64",
+];
+
+/// Conv ops kernel functions  
+#[cfg(feature = "cuda")]
+const CONV_OPS_FUNCS: &[&str] = &[
+    "conv1d_f64",
+    "conv1d_f32",
+    "conv2d_f64",
+    "conv2d_f32",
+    "conv1d_backward_f64",
+    "conv2d_backward_f64",
+];
+
 // =============================================================================
 // PTX Selection Based on Compute Capability
 // =============================================================================
@@ -571,6 +739,104 @@ fn select_golden_gelu_ptx(major: i32, minor: i32) -> &'static str {
     }
 }
 
+#[cfg(feature = "cuda")]
+fn select_prime_selection_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_PRIME_SELECTION_SM90
+    } else if cc >= 86 {
+        PTX_PRIME_SELECTION_SM86
+    } else if cc >= 80 {
+        PTX_PRIME_SELECTION_SM80
+    } else {
+        PTX_PRIME_SELECTION_SM75
+    }
+}
+
+#[cfg(feature = "cuda")]
+fn select_prime_ops_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_PRIME_OPS_SM90
+    } else if cc >= 86 {
+        PTX_PRIME_OPS_SM86
+    } else if cc >= 80 {
+        PTX_PRIME_OPS_SM80
+    } else {
+        PTX_PRIME_OPS_SM75
+    }
+}
+
+#[cfg(feature = "cuda")]
+fn select_gnosis_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_GNOSIS_SM90
+    } else if cc >= 86 {
+        PTX_GNOSIS_SM86
+    } else if cc >= 80 {
+        PTX_GNOSIS_SM80
+    } else {
+        PTX_GNOSIS_SM75
+    }
+}
+
+#[cfg(feature = "cuda")]
+fn select_winding_ops_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_WINDING_OPS_SM90
+    } else if cc >= 86 {
+        PTX_WINDING_OPS_SM86
+    } else if cc >= 80 {
+        PTX_WINDING_OPS_SM80
+    } else {
+        PTX_WINDING_OPS_SM75
+    }
+}
+
+#[cfg(feature = "cuda")]
+fn select_elementwise_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_ELEMENTWISE_SM90
+    } else if cc >= 86 {
+        PTX_ELEMENTWISE_SM86
+    } else if cc >= 80 {
+        PTX_ELEMENTWISE_SM80
+    } else {
+        PTX_ELEMENTWISE_SM75
+    }
+}
+
+#[cfg(feature = "cuda")]
+fn select_core_ops_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_CORE_OPS_SM90
+    } else if cc >= 86 {
+        PTX_CORE_OPS_SM86
+    } else if cc >= 80 {
+        PTX_CORE_OPS_SM80
+    } else {
+        PTX_CORE_OPS_SM75
+    }
+}
+
+#[cfg(feature = "cuda")]
+fn select_conv_ops_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_CONV_OPS_SM90
+    } else if cc >= 86 {
+        PTX_CONV_OPS_SM86
+    } else if cc >= 80 {
+        PTX_CONV_OPS_SM80
+    } else {
+        PTX_CONV_OPS_SM75
+    }
+}
+
 // =============================================================================
 // Kernel Loading
 // =============================================================================
@@ -684,6 +950,37 @@ fn validate_kernels_for_device(device: &Arc<CudaDevice>) -> PyResult<Vec<String>
         select_golden_gelu_ptx(major, minor),
         "golden_gelu",
         GOLDEN_GELU_FUNCS,
+    )?;
+    check_module(
+        select_prime_selection_ptx(major, minor),
+        "prime_selection",
+        PRIME_SELECTION_FUNCS,
+    )?;
+    check_module(
+        select_prime_ops_ptx(major, minor),
+        "prime_ops",
+        PRIME_OPS_FUNCS,
+    )?;
+    check_module(select_gnosis_ptx(major, minor), "gnosis", GNOSIS_FUNCS)?;
+    check_module(
+        select_winding_ops_ptx(major, minor),
+        "winding_ops",
+        WINDING_OPS_FUNCS,
+    )?;
+    check_module(
+        select_elementwise_ptx(major, minor),
+        "elementwise",
+        ELEMENTWISE_FUNCS,
+    )?;
+    check_module(
+        select_core_ops_ptx(major, minor),
+        "core_ops",
+        CORE_OPS_FUNCS,
+    )?;
+    check_module(
+        select_conv_ops_ptx(major, minor),
+        "conv_ops",
+        CONV_OPS_FUNCS,
     )?;
 
     Ok(missing)

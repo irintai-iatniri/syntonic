@@ -6,12 +6,50 @@
 #include <cuda.h>
 
 // =============================================================================
+// Helper Device Functions (forward declarations and implementations)
+// =============================================================================
+
+/// Compute Lucas number L_n using device function
+__device__ unsigned long long compute_lucas_number_dev(unsigned long long n) {
+    if (n == 0) return 2;
+    if (n == 1) return 1;
+    if (n == 2) return 3;
+
+    unsigned long long a = 1;  // L1 = 1
+    unsigned long long b = 3;  // L2 = 3
+
+    for (unsigned long long i = 3; i <= n; i++) {
+        unsigned long long temp = a + b;
+        a = b;
+        b = temp;
+    }
+
+    return b;
+}
+
+/// Simple primality test for u64 on device
+__device__ bool is_prime_u64_dev(unsigned long long n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+    if (n % 2 == 0 || n % 3 == 0) return false;
+
+    unsigned long long i = 5;
+    while (i * i <= n) {
+        if (n % i == 0 || n % (i + 2) == 0) {
+            return false;
+        }
+        i += 6;
+    }
+    return true;
+}
+
+// =============================================================================
 // Mersenne Prime Checking Kernel
 // =============================================================================
 
 /// Check if 2^p - 1 is prime using GPU acceleration
 /// Uses Lucas-Lehmer primality test for Mersenne numbers
-__global__ void mersenne_prime_check_kernel(
+extern "C" __global__ void mersenne_prime_check_kernel(
     const unsigned int* p_values,    // Array of p exponents to check
     bool* results,                   // Output: prime status for each p
     size_t num_checks                // Number of p values to check
@@ -53,7 +91,7 @@ __global__ void mersenne_prime_check_kernel(
 // =============================================================================
 
 /// Check if 2^(2^n) + 1 is prime
-__global__ void fermat_prime_check_kernel(
+extern "C" __global__ void fermat_prime_check_kernel(
     const unsigned int* n_values,    // Array of Fermat indices
     bool* results,                   // Output: prime status
     size_t num_checks
@@ -79,7 +117,7 @@ __global__ void fermat_prime_check_kernel(
 // =============================================================================
 
 /// Check if Lucas number L_n is prime
-__global__ void lucas_prime_check_kernel(
+extern "C" __global__ void lucas_prime_check_kernel(
     const unsigned long long* n_values,
     bool* results,
     size_t num_checks
@@ -90,11 +128,11 @@ __global__ void lucas_prime_check_kernel(
     unsigned long long n = n_values[idx];
 
     // Compute Lucas number L_n = φ^n + (1-φ)^n
-    // Using integer arithmetic approximation
-    unsigned long long lucas_n = compute_lucas_number(n);
+    // Using integer arithmetic
+    unsigned long long lucas_n = compute_lucas_number_dev(n);
 
-    // Simple primality test (would be enhanced in production)
-    results[idx] = is_prime_u128_kernel(lucas_n);
+    // Simple primality test
+    results[idx] = is_prime_u64_dev(lucas_n);
 }
 
 // =============================================================================
@@ -102,7 +140,7 @@ __global__ void lucas_prime_check_kernel(
 // =============================================================================
 
 /// Compute Pisano period π(p) for prime p
-__global__ void pisano_period_kernel(
+extern "C" __global__ void pisano_period_kernel(
     const unsigned long long* p_values,
     unsigned long long* periods,
     size_t num_primes
@@ -151,43 +189,8 @@ __global__ void pisano_period_kernel(
     }
 }
 
-// =============================================================================
-// Helper Device Functions
-// =============================================================================
-
-/// Compute Lucas number L_n using device function
-__device__ unsigned long long compute_lucas_number(unsigned long long n) {
-    if (n == 0) return 2;
-    if (n == 1) return 1;
-    if (n == 2) return 3;
-
-    unsigned long long a = 1;  // L1 = 1
-    unsigned long long b = 3;  // L2 = 3
-
-    for (unsigned long long i = 3; i <= n; i++) {
-        unsigned long long temp = a + b;
-        a = b;
-        b = temp;
-    }
-
-    return b;
-}
-
-/// Simple primality test for u128 on device
-__device__ bool is_prime_u128_kernel(unsigned long long n) {
-    if (n <= 1) return false;
-    if (n <= 3) return true;
-    if (n % 2 == 0 || n % 3 == 0) return false;
-
-    unsigned long long i = 5;
-    while (i * i <= n) {
-        if (n % i == 0 || n % (i + 2) == 0) {
-            return false;
-        }
-        i += 6;
-    }
-    return true;
-}
+// Note: Helper device functions (compute_lucas_number_dev, is_prime_u64_dev) 
+// are defined at the top of this file.
 
 // =============================================================================
 // Kernel Launch Wrappers (would be implemented in Rust)
