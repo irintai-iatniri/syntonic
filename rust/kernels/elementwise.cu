@@ -239,3 +239,119 @@ extern "C" __global__ void exp_c128(double *out, const double *a, int n) {
         out[idx+1] = exp_re * sin_im;
     }
 }
+
+// ============================================================================
+// Toroidal Math Functions (T⁴ Geometry)
+// ============================================================================
+
+/**
+ * Toroidal sine function for winding phase calculations
+ * sin(θ) where θ represents position on T⁴ torus
+ */
+extern "C" __global__ void sin_toroidal_f64(double *out, const double *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        // Normalize to [0, 2π] for toroidal geometry
+        double theta = fmod(a[i], 2.0 * M_PI);
+        if (theta < 0) theta += 2.0 * M_PI;
+        out[i] = sin(theta);
+    }
+}
+
+extern "C" __global__ void sin_toroidal_f32(float *out, const float *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        float theta = fmodf(a[i], 2.0f * M_PI);
+        if (theta < 0) theta += 2.0f * M_PI;
+        out[i] = sinf(theta);
+    }
+}
+
+/**
+ * Toroidal cosine function for winding phase calculations
+ */
+extern "C" __global__ void cos_toroidal_f64(double *out, const double *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        double theta = fmod(a[i], 2.0 * M_PI);
+        if (theta < 0) theta += 2.0 * M_PI;
+        out[i] = cos(theta);
+    }
+}
+
+extern "C" __global__ void cos_toroidal_f32(float *out, const float *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        float theta = fmodf(a[i], 2.0f * M_PI);
+        if (theta < 0) theta += 2.0f * M_PI;
+        out[i] = cosf(theta);
+    }
+}
+
+/**
+ * Toroidal atan2 function for phase angle calculations on T⁴
+ * Returns angle in [0, 2π] range for toroidal topology
+ */
+extern "C" __global__ void atan2_toroidal_f64(double *out, const double *y, const double *x, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        double angle = atan2(y[i], x[i]);
+        // Normalize to [0, 2π] for toroidal geometry
+        if (angle < 0) angle += 2.0 * M_PI;
+        out[i] = angle;
+    }
+}
+
+extern "C" __global__ void atan2_toroidal_f32(float *out, const float *y, const float *x, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        float angle = atan2f(y[i], x[i]);
+        if (angle < 0) angle += 2.0f * M_PI;
+        out[i] = angle;
+    }
+}
+
+// ============================================================================
+// Golden Exponentials (Consciousness Growth Functions)
+// ============================================================================
+
+/**
+ * Golden exponential: φ^x - Natural growth function of consciousness
+ * This represents the exponential growth pattern observed in biological
+ * and conscious systems, following the golden ratio scaling.
+ */
+extern "C" __global__ void phi_exp_f64(double *out, const double *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        // φ^x = φ * (φ^x) but computed efficiently
+        double phi = 1.618033988749895;
+        out[i] = pow(phi, a[i]);
+    }
+}
+
+extern "C" __global__ void phi_exp_f32(float *out, const float *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        float phi = 1.6180339887f;
+        out[i] = powf(phi, a[i]);
+    }
+}
+
+/**
+ * Inverse golden exponential: φ^(-x)
+ */
+extern "C" __global__ void phi_exp_inv_f64(double *out, const double *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        double phi = 1.618033988749895;
+        out[i] = pow(phi, -a[i]);
+    }
+}
+
+extern "C" __global__ void phi_exp_inv_f32(float *out, const float *a, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        float phi = 1.6180339887f;
+        out[i] = powf(phi, -a[i]);
+    }
+}

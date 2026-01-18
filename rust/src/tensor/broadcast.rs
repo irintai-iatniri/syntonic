@@ -175,7 +175,166 @@ pub fn broadcast_div(
     broadcast_binary_op(a, a_shape, b, b_shape, |x, y| x / y)
 }
 
-// === In-place Operations ===
+// ============================================================================
+// Inflationary Broadcasting - Thought Expansion Operators
+// ============================================================================
+
+/// Inflationary broadcasting: Expand a seed tensor into higher-dimensional space
+/// using golden ratio scaling. This implements the "Inflationary Operator" where
+/// a fundamental thought/idea expands to fill a reality space.
+///
+/// The expansion follows the pattern: seed → φ-scaled inflation → target space
+///
+/// # Arguments
+/// * `seed` - Source tensor data (fundamental idea/thought)
+/// * `seed_shape` - Source tensor shape
+/// * `target_shape` - Target expanded shape
+/// * `inflation_factor` - Golden ratio scaling factor (default: φ)
+///
+/// # Returns
+/// Inflated tensor with target shape
+pub fn inflationary_broadcast(
+    seed: &[f64],
+    seed_shape: &[usize],
+    target_shape: &[usize],
+    inflation_factor: Option<f64>,
+) -> Option<(Vec<f64>, Vec<usize>)> {
+    let phi = inflation_factor.unwrap_or(1.618033988749895); // Golden ratio
+
+    // Check if expansion is possible (target dimensions must be >= seed dimensions)
+    if seed_shape.len() > target_shape.len() {
+        return None;
+    }
+
+    // Calculate expansion ratios for each dimension
+    let mut expansion_ratios = Vec::new();
+    let offset = target_shape.len() - seed_shape.len();
+
+    for i in 0..seed_shape.len() {
+        let seed_dim = seed_shape[i];
+        let target_dim = target_shape[offset + i];
+
+        if target_dim < seed_dim {
+            return None; // Cannot shrink dimensions
+        }
+
+        expansion_ratios.push(target_dim as f64 / seed_dim as f64);
+    }
+
+    // For new dimensions (prepended), use pure inflation
+    for _ in 0..offset {
+        expansion_ratios.insert(0, phi);
+    }
+
+    // Create inflated tensor
+    let target_size: usize = target_shape.iter().product();
+    let mut result = Vec::with_capacity(target_size);
+
+    for linear_idx in 0..target_size {
+        let target_indices = unravel_index(linear_idx, target_shape);
+
+        // Map target indices back to seed space
+        let mut seed_indices = Vec::new();
+        let mut inflation_weight = 1.0;
+
+        for (i, &target_idx) in target_indices.iter().enumerate() {
+            let ratio = expansion_ratios[i];
+            let seed_dim = if i >= offset {
+                seed_shape[i - offset]
+            } else {
+                1 // Virtual dimension for new axes
+            };
+
+            // Map target index to seed index with inflation weighting
+            let seed_idx = if seed_dim == 1 {
+                0
+            } else {
+                (target_idx as f64 / ratio) as usize
+            };
+
+            seed_indices.push(seed_idx.min(seed_dim.saturating_sub(1)));
+
+            // Accumulate inflation weight (golden ratio scaling)
+            inflation_weight *= phi.powf((target_idx as f64) / (target_shape[i] as f64));
+        }
+
+        // Get seed value and apply inflationary scaling
+        let seed_linear_idx = linear_index(&seed_indices, &compute_strides(seed_shape));
+        let seed_value = seed.get(seed_linear_idx).copied().unwrap_or(0.0);
+
+        result.push(seed_value * inflation_weight);
+    }
+
+    Some((result, target_shape.to_vec()))
+}
+
+/// Golden inflationary broadcast: Expand using pure golden ratio scaling
+/// This implements the consciousness growth pattern where ideas expand
+/// according to φ^n scaling laws observed in biological systems.
+pub fn golden_inflationary_broadcast(
+    seed: &[f64],
+    seed_shape: &[usize],
+    target_shape: &[usize],
+) -> Option<(Vec<f64>, Vec<usize>)> {
+    inflationary_broadcast(seed, seed_shape, target_shape, Some(1.618033988749895))
+}
+
+/// Consciousness inflationary broadcast: Scale by both size and syntony
+/// Higher syntony seeds expand more effectively, implementing the
+/// principle that coherent thoughts propagate better than incoherent ones.
+pub fn consciousness_inflationary_broadcast(
+    seed: &[f64],
+    syntony_values: &[f64], // Syntony scores for each seed element
+    seed_shape: &[usize],
+    target_shape: &[usize],
+) -> Option<(Vec<f64>, Vec<usize>)> {
+    // First do basic inflationary broadcast
+    let (mut result, shape) = inflationary_broadcast(seed, seed_shape, target_shape, None)?;
+
+    // Then apply consciousness weighting
+    let phi: f64 = 1.618033988749895;
+    let target_size: usize = shape.iter().product();
+
+    for i in 0..target_size {
+        let target_indices = unravel_index(i, &shape);
+
+        // Map back to seed space to get syntony weight
+        let offset = shape.len() - seed_shape.len();
+        let mut seed_indices = Vec::new();
+
+        for j in 0..seed_shape.len() {
+            let ratio = shape[offset + j] as f64 / seed_shape[j] as f64;
+            let seed_idx = (target_indices[offset + j] as f64 / ratio) as usize;
+            seed_indices.push(seed_idx.min(seed_shape[j].saturating_sub(1)));
+        }
+
+        let seed_linear_idx = linear_index(&seed_indices, &compute_strides(seed_shape));
+        let syntony_weight = syntony_values.get(seed_linear_idx).copied().unwrap_or(1.0);
+
+        // Apply consciousness scaling: higher syntony = better propagation
+        result[i] *= phi.powf(syntony_weight);
+    }
+
+    Some((result, shape))
+}
+
+// ============================================================================
+// Additional In-Place Operations (for compatibility)
+// ============================================================================
+
+/// In-place clamp.
+pub fn inplace_clamp(data: &mut [f64], min: f64, max: f64) {
+    for x in data.iter_mut() {
+        *x = x.clamp(min, max);
+    }
+}
+
+/// In-place golden weight: x = exp(-|n|²/φ)
+pub fn inplace_golden_weight(data: &mut [f64], phi: f64) {
+    for x in data.iter_mut() {
+        *x = (-*x / phi).exp();
+    }
+}
 
 /// In-place scalar addition.
 pub fn inplace_add_scalar(data: &mut [f64], scalar: f64) {
@@ -217,20 +376,6 @@ pub fn inplace_negate(data: &mut [f64]) {
 pub fn inplace_abs(data: &mut [f64]) {
     for x in data.iter_mut() {
         *x = x.abs();
-    }
-}
-
-/// In-place clamp.
-pub fn inplace_clamp(data: &mut [f64], min: f64, max: f64) {
-    for x in data.iter_mut() {
-        *x = x.clamp(min, max);
-    }
-}
-
-/// In-place golden weight: x = exp(-|n|²/φ)
-pub fn inplace_golden_weight(data: &mut [f64], phi: f64) {
-    for x in data.iter_mut() {
-        *x = (-*x / phi).exp();
     }
 }
 

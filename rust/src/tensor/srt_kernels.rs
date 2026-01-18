@@ -300,6 +300,19 @@ const DHSR_FUNCS: &[&str] = &[
     "compute_gnosis_f32",
     "verify_dh_partition_f32",
     "dhsr_multi_cycle_c128",
+    "harmonize_history_kernel_f32",
+    "harmonize_history_kernel_f64",
+    "archonic_filter_kernel_f32",
+    "archonic_filter_kernel_f64",
+    "entropy_kernel_f32",
+    "entropy_kernel_f64",
+    "syntony_metric_kernel_f32",
+    "syntony_metric_kernel_f64",
+    "gnosis_mask_kernel_f32",
+    "gnosis_mask_kernel_f64",
+    "adaptive_gnosis_mask_kernel_f32",
+    "fractal_gnosis_mask_kernel_f32",
+    "temporal_gnosis_mask_kernel_f32",
 ];
 
 /// DHSR gravity functions
@@ -541,6 +554,18 @@ const ELEMENTWISE_FUNCS: &[&str] = &[
     "sigmoid_f64",
     "relu_f64",
     "relu_f32",
+    // Toroidal math functions (T⁴ geometry)
+    "sin_toroidal_f64",
+    "sin_toroidal_f32",
+    "cos_toroidal_f64",
+    "cos_toroidal_f32",
+    "atan2_toroidal_f64",
+    "atan2_toroidal_f32",
+    // Golden exponentials (consciousness growth)
+    "phi_exp_f64",
+    "phi_exp_f32",
+    "phi_exp_inv_f64",
+    "phi_exp_inv_f32",
 ];
 
 /// Core ops kernel functions
@@ -869,14 +894,114 @@ fn get_compute_capability(device: &Arc<CudaDevice>) -> (i32, i32) {
     (major, minor)
 }
 
-/// Ensure all SRT kernels are loaded for the given device
+// ============================================================================
+// Retrocausal Harmonization Kernel Declarations
+// ============================================================================
+
 #[cfg(feature = "cuda")]
-pub fn ensure_srt_kernels_loaded(device: &Arc<CudaDevice>) -> PyResult<()> {
-    // In cudarc 0.18.2, modules are loaded on-demand from PTX source
-    // No global caching by name exists, so this function is a no-op
-    // We just access the device ordinal to ensure the reference is valid
-    let _ = device.ordinal();
-    Ok(())
+extern "C" {
+    fn harmonize_history_kernel_f32(
+        input_tensor: *const f32,
+        syntony_gradient: *const f32,
+        future_syntony: *const f32,
+        output_tensor: *mut f32,
+        tensor_size: i32,
+        retrocausal_pull: f32,
+        gnosis_threshold: f32,
+    );
+
+    fn harmonize_history_kernel_f64(
+        input_tensor: *const f64,
+        syntony_gradient: *const f64,
+        future_syntony: *const f64,
+        output_tensor: *mut f64,
+        tensor_size: i32,
+        retrocausal_pull: f64,
+        gnosis_threshold: f64,
+    );
+
+    fn archonic_filter_kernel_f32(
+        raw_gradients: *const f32,
+        current_state: *const f32,
+        filtered_gradients: *mut f32,
+        tensor_size: i32,
+        golden_attractor_strength: f32,
+        corruption_threshold: f32,
+    );
+
+    fn archonic_filter_kernel_f64(
+        raw_gradients: *const f64,
+        current_state: *const f64,
+        filtered_gradients: *mut f64,
+        tensor_size: i32,
+        golden_attractor_strength: f64,
+        corruption_threshold: f64,
+    );
+
+    // Toroidal math functions
+    fn sin_toroidal_f64(out: *mut f64, a: *const f64, n: i32);
+    fn sin_toroidal_f32(out: *mut f32, a: *const f32, n: i32);
+    fn cos_toroidal_f64(out: *mut f64, a: *const f64, n: i32);
+    fn cos_toroidal_f32(out: *mut f32, a: *const f32, n: i32);
+    fn atan2_toroidal_f64(out: *mut f64, y: *const f64, x: *const f64, n: i32);
+    fn atan2_toroidal_f32(out: *mut f32, y: *const f32, x: *const f32, n: i32);
+
+    // Golden exponentials
+    fn phi_exp_f64(out: *mut f64, a: *const f64, n: i32);
+    fn phi_exp_f32(out: *mut f32, a: *const f32, n: i32);
+    fn phi_exp_inv_f64(out: *mut f64, a: *const f64, n: i32);
+    fn phi_exp_inv_f32(out: *mut f32, a: *const f32, n: i32);
+
+    // Thermodynamic measures
+    fn entropy_kernel_f64(out: *mut f64, values: *const f64, n: i32);
+    fn entropy_kernel_f32(out: *mut f32, values: *const f32, n: i32);
+    fn syntony_metric_kernel_f64(out: *mut f64, tensor: *const f64, n: i32);
+    fn syntony_metric_kernel_f32(out: *mut f32, tensor: *const f32, n: i32);
+
+    // Gnosis masking kernels
+    fn gnosis_mask_kernel_f32(
+        input: *const f32,
+        syntony: *const f32,
+        output: *mut f32,
+        size: i32,
+        threshold: f32,
+        strength: f32,
+    );
+    fn gnosis_mask_kernel_f64(
+        input: *const f64,
+        syntony: *const f64,
+        output: *mut f64,
+        size: i32,
+        threshold: f64,
+        strength: f64,
+    );
+    fn adaptive_gnosis_mask_kernel_f32(
+        input: *const f32,
+        syntony: *const f32,
+        output: *mut f32,
+        size: i32,
+        adaptability: f32,
+        ratio: f32,
+    );
+    fn fractal_gnosis_mask_kernel_f32(
+        input: *const f32,
+        syntony: *const f32,
+        output: *mut f32,
+        size: i32,
+        levels: i32,
+        threshold: f32,
+        scale: f32,
+    );
+    fn temporal_gnosis_mask_kernel_f32(
+        input: *const f32,
+        syntony: *const f32,
+        prev: *const f32,
+        output: *mut f32,
+        size: i32,
+        threshold: f32,
+        memory: f32,
+        rate: f32,
+    );
 }
 
 /// Validate that listed SRT kernels are present in the PTX modules for a device.

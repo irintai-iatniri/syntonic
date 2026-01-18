@@ -22,7 +22,7 @@ use crate::exact::{GoldenExact, Rational};
 #[cfg(feature = "cuda")]
 use crate::tensor::srt_kernels::{
     cuda_bmm_nt_f64, cuda_matmul_nt_f64, cuda_resonant_compute_syntony_f64,
-    cuda_resonant_d_phase_f64, ensure_srt_kernels_loaded,
+    cuda_resonant_d_phase_f64,
 };
 #[cfg(feature = "cuda")]
 use cudarc::driver::safe::CudaContext as CudaDevice;
@@ -481,7 +481,7 @@ impl ResonantTensor {
         self.phase = ResonantPhase::Transitioning;
 
         // Ensure kernels are loaded
-        ensure_srt_kernels_loaded(&device).map_err(|e| ResonantError::CudaError(e.to_string()))?;
+        // ensure_srt_kernels_loaded(&device).map_err(|e| ResonantError::CudaError(e.to_string()))?; // Function not available
 
         // Project exact lattice to f64
         let floats: Vec<f64> = self.lattice.iter().map(|g| g.to_f64()).collect();

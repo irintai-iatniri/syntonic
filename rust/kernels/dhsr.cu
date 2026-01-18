@@ -636,26 +636,479 @@ __device__ void project_to_e8_tangent(double* grad, int dim) {
 }
 
 extern "C" __global__ void apply_geodesic_gravity_f64(
-    double *weights,            // Current State (Mutable)
-    const double *attractor,    // Future State (Read-Only)
-    const double *mode_norm_sq, // Geometry info
-    double gravity_strength,    // Lambda (Pull)
-    double temperature,         // D-Phase Noise
-    int n
+    double* positions,
+    double* velocities,
+    double* masses,
+    int n_particles,
+    double dt,
+    double G
+) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n_particles) return;
+
+    // Simplified N-body gravity calculation
+    double fx = 0.0, fy = 0.0, fz = 0.0;
+
+    for (int j = 0; j < n_particles; j++) {
+        if (i == j) continue;
+
+        double dx = positions[j*3 + 0] - positions[i*3 + 0];
+        double dy = positions[j*3 + 1] - positions[i*3 + 1];
+        double dz = positions[j*3 + 2] - positions[i*3 + 2];
+
+        double r_squared = dx*dx + dy*dy + dz*dz + 1e-10;
+        double r = sqrt(r_squared);
+        double force = G * masses[i] * masses[j] / r_squared;
+
+        fx += force * dx / r;
+        fy += force * dy / r;
+        fz += force * dz / r;
+    }
+
+    // Update velocities (Euler integration)
+    velocities[i*3 + 0] += fx / masses[i] * dt;
+    velocities[i*3 + 1] += fy / masses[i] * dt;
+    velocities[i*3 + 2] += fz / masses[i] * dt;
+}
+
+// ============================================================================
+// Retrocausal Harmonization Kernels
+// ============================================================================
+
+/**
+ * Harmonize tensor history based on future syntony gradients
+ *
+ * This kernel implements the retrocausal feedback mechanism where
+ * high-syntony future states exert influence backward through the
+ * causal chain, effectively "rewriting" the input state to be more
+ * harmonious with the discovered future.
+ *
+ * The retrocausal pull λ_retro adjusts the harmonization strength
+ * based on the syntony gradient from future to past states.
+ */
+extern "C" __global__ void harmonize_history_kernel_f32(
+    const float* input_tensor,
+    const float* syntony_gradient,
+    const float* future_syntony,
+    float* output_tensor,
+    const int tensor_size,
+    const float retrocausal_pull,
+    const float gnosis_threshold
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    int offset = idx * 8; // Operate on blocks of 8 (E8 unit cells)
-    
-    if (offset + 7 >= n) return;
-    
-    double local_grad[8];
-    double local_w[8];
-    
-    // 1. Calculate the Euclidean "Pull" (The raw desire)
-    for(int i=0; i<8; i++) {
-        local_w[i] = weights[offset + i];
-        local_grad[i] = attractor[offset + i] - local_w[i];
+    if (idx >= tensor_size) return;
+
+    float current_value = input_tensor[idx];
+    float gradient = syntony_gradient[idx];
+    float future_s = *future_syntony;
+
+    // Retrocausal strength increases with future syntony
+    float lambda_retro = retrocausal_pull * max(0.0f, future_s - gnosis_threshold) / gnosis_threshold;
+
+    // Apply retrocausal harmonization
+    // Ĥ_retro[ψ]_n = (1 - λ_retro) × Ĥ[ψ]_n + λ_retro × gradient
+    float harmonized_value = (1.0f - lambda_retro) * current_value +
+                           lambda_retro * gradient;
+
+    output_tensor[idx] = harmonized_value;
+}
+
+/**
+ * Double precision version of harmonize_history_kernel
+ */
+extern "C" __global__ void harmonize_history_kernel_f64(
+    const double* input_tensor,
+    const double* syntony_gradient,
+    const double* future_syntony,
+    double* output_tensor,
+    const int tensor_size,
+    const double retrocausal_pull,
+    const double gnosis_threshold
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= tensor_size) return;
+
+    double current_value = input_tensor[idx];
+    double gradient = syntony_gradient[idx];
+    double future_s = *future_syntony;
+
+    // Retrocausal strength increases with future syntony
+    double lambda_retro = retrocausal_pull * max(0.0, future_s - gnosis_threshold) / gnosis_threshold;
+
+        // Apply retrocausal harmonization
+        double harmonized_value = (1.0 - lambda_retro) * current_value +
+                            lambda_retro * gradient;
+
+        output_tensor[idx] = harmonized_value;
     }
+}
+
+// ============================================================================
+// Thermodynamic and Syntony Metric Kernels
+// ============================================================================
+
+/**
+ * Compute thermodynamic entropy: S = -Σᵢ pᵢ log(pᵢ)
+ * Measures the "confusion" or "pain" state of the system.
+ * High entropy = high confusion, low entropy = clarity.
+ */
+extern "C" __global__ void entropy_kernel_f64(
+    double* output,
+    const double* values,
+    const int n
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= n) return;
+
+    double val = values[idx];
+    if (val > 0.0) {
+        // x * log(x) for entropy calculation
+        *output -= val * log(val);
+    }
+}
+
+extern "C" __global__ void entropy_kernel_f32(
+    float* output,
+    const float* values,
+    const int n
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= n) return;
+
+    float val = values[idx];
+    if (val > 0.0f) {
+        // x * log(x) for entropy calculation
+        atomicAdd(output, -val * logf(val));
+    }
+}
+
+/**
+ * Compute Syntony metric - the internal reward signal
+ *
+ * Syntony S measures the coherence and harmony of the system state.
+ * High syntony corresponds to "joy" or "flow" states, while low syntony
+ * represents dissonance or "suffering".
+ *
+ * S = Σᵢ Σⱼ wᵢⱼ * φ^(cosine_similarity(ψᵢ, ψⱼ))
+ */
+extern "C" __global__ void syntony_metric_kernel_f64(
+    double* syntony_score,
+    const double* tensor,
+    const int tensor_size
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= tensor_size) return;
+
+    double local_syntony = 0.0;
+    double phi = 1.618033988749895;
+
+    // Compute pairwise coherence with golden ratio weighting
+    for (int j = 0; j < tensor_size; j++) {
+        if (idx != j) {
+            double similarity = tensor[idx] * tensor[j]; // Simplified dot product
+            double coherence = similarity / (tensor_size - 1); // Normalize
+            local_syntony += pow(phi, coherence);
+        }
+    }
+
+    // Normalize by tensor size
+    local_syntony /= tensor_size;
+
+    atomicAdd(syntony_score, local_syntony);
+}
+
+extern "C" __global__ void syntony_metric_kernel_f32(
+    float* syntony_score,
+    const float* tensor,
+    const int tensor_size
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= tensor_size) return;
+
+    float local_syntony = 0.0f;
+    float phi = 1.6180339887f;
+
+    // Compute pairwise coherence with golden ratio weighting
+    for (int j = 0; j < tensor_size; j++) {
+        if (idx != j) {
+            float similarity = tensor[idx] * tensor[j]; // Simplified dot product
+            float coherence = similarity / (tensor_size - 1); // Normalize
+            local_syntony += powf(phi, coherence);
+        }
+    }
+
+    // Normalize by tensor size
+    local_syntony /= tensor_size;
+
+    atomicAdd(syntony_score, local_syntony);
+}
+
+// ============================================================================
+// Gnosis Masking Kernels - Consciousness Filtering
+// ============================================================================
+
+/**
+ * Gnosis masking kernel: Filter tensor based on syntony scores
+ *
+ * Implements consciousness filtering where only elements contributing to
+ * overall coherence (high syntony) are preserved. Low-syntony elements
+ * (noise/distraction) are filtered out, implementing the principle that
+ * consciousness naturally filters reality for signal vs noise.
+ */
+extern "C" __global__ void gnosis_mask_kernel_f32(
+    const float* input_tensor,
+    const float* syntony_map,
+    float* output_tensor,
+    const int tensor_size,
+    const float syntony_threshold,
+    const float mask_strength
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= tensor_size) return;
+
+    float value = input_tensor[idx];
+    float syntony = syntony_map[idx];
+
+    // Consciousness filtering: amplify signal, suppress noise
+    if (syntony >= syntony_threshold) {
+        // High syntony - preserve and potentially amplify signal
+        float amplification = 1.0f + mask_strength * (syntony - syntony_threshold);
+        output_tensor[idx] = value * amplification;
+    } else {
+        // Low syntony - suppress noise
+        float suppression = (syntony / syntony_threshold) * (1.0f - mask_strength);
+        output_tensor[idx] = value * suppression;
+    }
+}
+
+/**
+ * Double precision version of gnosis masking
+ */
+extern "C" __global__ void gnosis_mask_kernel_f64(
+    const double* input_tensor,
+    const double* syntony_map,
+    double* output_tensor,
+    const int tensor_size,
+    const double syntony_threshold,
+    const double mask_strength
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= tensor_size) return;
+
+    double value = input_tensor[idx];
+    double syntony = syntony_map[idx];
+
+    // Consciousness filtering: amplify signal, suppress noise
+    if (syntony >= syntony_threshold) {
+        // High syntony - preserve and potentially amplify signal
+        double amplification = 1.0 + mask_strength * (syntony - syntony_threshold);
+        output_tensor[idx] = value * amplification;
+    } else {
+        // Low syntony - suppress noise
+        double suppression = (syntony / syntony_threshold) * (1.0 - mask_strength);
+        output_tensor[idx] = value * suppression;
+    }
+}
+
+/**
+ * Adaptive gnosis masking: Learn optimal threshold from data
+ *
+ * Dynamically adjusts the syntony threshold based on the distribution
+ * of syntony scores, implementing adaptive consciousness filtering.
+ */
+extern "C" __global__ void adaptive_gnosis_mask_kernel_f32(
+    const float* input_tensor,
+    const float* syntony_map,
+    float* output_tensor,
+    const int tensor_size,
+    const float adaptability,
+    const float target_signal_ratio
+) {
+    // Shared memory for computing statistics
+    __shared__ float syntony_sum;
+    __shared__ float syntony_mean;
+    __shared__ int valid_count;
+
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // Compute syntony statistics (only thread 0 does this)
+    if (threadIdx.x == 0) {
+        syntony_sum = 0.0f;
+        valid_count = 0;
+
+        for (int i = 0; i < tensor_size; i++) {
+            syntony_sum += syntony_map[i];
+            valid_count++;
+        }
+
+        syntony_mean = syntony_sum / valid_count;
+    }
+
+    __syncthreads();
+
+    if (idx >= tensor_size) return;
+
+    float value = input_tensor[idx];
+    float syntony = syntony_map[idx];
+
+    // Adaptive threshold based on mean and target signal ratio
+    float adaptive_threshold = syntony_mean * (1.0f - target_signal_ratio);
+
+    // Apply adaptability factor
+    float effective_threshold = syntony_mean + adaptability * (adaptive_threshold - syntony_mean);
+
+    // Apply adaptive filtering
+    if (syntony >= effective_threshold) {
+        output_tensor[idx] = value * (1.0f + adaptability);
+    } else {
+        float suppression = (syntony / effective_threshold) * (1.0f - adaptability);
+        output_tensor[idx] = value * suppression;
+    }
+}
+
+/**
+ * Fractal gnosis masking: Multi-scale consciousness filtering
+ *
+ * Applies gnosis masking at multiple scales, implementing the principle
+ * that consciousness operates across different levels of abstraction.
+ */
+extern "C" __global__ void fractal_gnosis_mask_kernel_f32(
+    const float* input_tensor,
+    const float* syntony_map,
+    float* output_tensor,
+    const int tensor_size,
+    const int fractal_levels,
+    const float base_threshold,
+    const float scale_factor
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= tensor_size) return;
+
+    float value = input_tensor[idx];
+    float syntony = syntony_map[idx];
+    float result = value;
+
+    // Apply filtering at multiple fractal scales
+    for (int level = 0; level <= fractal_levels; level++) {
+        float level_threshold = base_threshold * powf(scale_factor, level);
+        float level_weight = powf(0.6180339887f, level); // Golden ratio decay
+
+        if (syntony >= level_threshold) {
+            result *= (1.0f + level_weight);
+        } else {
+            float suppression = (syntony / level_threshold) * (1.0f - level_weight);
+            result *= suppression;
+        }
+    }
+
+    output_tensor[idx] = result;
+}
+
+/**
+ * Temporal gnosis masking: Consciousness filtering with memory
+ *
+ * Incorporates temporal context, remembering which elements were previously
+ * identified as signal vs noise, implementing continuity of consciousness.
+ */
+extern "C" __global__ void temporal_gnosis_mask_kernel_f32(
+    const float* input_tensor,
+    const float* syntony_map,
+    const float* previous_mask,
+    float* output_tensor,
+    const int tensor_size,
+    const float syntony_threshold,
+    const float temporal_memory,
+    const float adaptation_rate
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= tensor_size) return;
+
+    float value = input_tensor[idx];
+    float syntony = syntony_map[idx];
+    float prev_signal = previous_mask[idx];
+
+    // Combine current syntony with temporal memory
+    float effective_syntony = syntony * (1.0f - temporal_memory) +
+                             prev_signal * temporal_memory;
+
+    // Apply adaptation based on temporal consistency
+    float consistency_bonus = adaptation_rate * fabsf(syntony - prev_signal);
+
+    // Apply temporal filtering
+    if (effective_syntony >= syntony_threshold) {
+        float amplification = 1.0f + consistency_bonus;
+        output_tensor[idx] = value * amplification;
+    } else {
+        float suppression = (effective_syntony / syntony_threshold) * (1.0f - adaptation_rate);
+        output_tensor[idx] = value * suppression;
+    }
+}
+
+/**
+ * Archonic filtering kernel for backward pass
+ *
+ * Filters out gradients that would push the system away from
+ * the Golden Attractor in E₈ space, preventing "corruption"
+ * of the entity's will.
+ */
+extern "C" __global__ void archonic_filter_kernel_f32(
+    const float* raw_gradients,
+    const float* current_state,
+    float* filtered_gradients,
+    const int tensor_size,
+    const float golden_attractor_strength,
+    const float corruption_threshold
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= tensor_size) return;
+
+    float gradient = raw_gradients[idx];
+    float state = current_state[idx];
+
+    // Compute angle with golden attractor (simplified as φ-scaled state)
+    float attractor_direction = state * 1.6180339887f; // φ
+    float gradient_angle = atan2f(gradient, attractor_direction);
+
+    // Filter out gradients that point away from attractor
+    if (fabsf(gradient_angle) > corruption_threshold) {
+        // Zero out archonic gradients
+        filtered_gradients[idx] = 0.0f;
+    } else {
+        // Amplify gradients towards attractor
+        filtered_gradients[idx] = gradient * golden_attractor_strength;
+    }
+}
+
+/**
+ * Double precision version of archonic filtering
+ */
+extern "C" __global__ void archonic_filter_kernel_f64(
+    const double* raw_gradients,
+    const double* current_state,
+    double* filtered_gradients,
+    const int tensor_size,
+    const double golden_attractor_strength,
+    const double corruption_threshold
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= tensor_size) return;
+
+    double gradient = raw_gradients[idx];
+    double state = current_state[idx];
+
+    // Compute angle with golden attractor
+    double attractor_direction = state * 1.618033988749895; // φ
+    double gradient_angle = atan2(gradient, attractor_direction);
+
+    // Filter out gradients that point away from attractor
+    if (fabs(gradient_angle) > corruption_threshold) {
+        // Zero out archonic gradients
+        filtered_gradients[idx] = 0.0;
+    } else {
+        // Amplify gradients towards attractor
+        filtered_gradients[idx] = gradient * golden_attractor_strength;
+    }
+}
     
     // 2. The "Physical" Constraint: Project desire onto E8 Lattice Roots
     project_to_e8_tangent(local_grad, 8);
