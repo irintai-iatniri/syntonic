@@ -337,6 +337,16 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
         hierarchy::apply_coxeter_kissing_correction,
         m
     )?)?;
+    // Extended hierarchy constants
+    m.add_function(wrap_pyfunction!(hierarchy::e8_dim, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e7_dim, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::e6_dim, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::d4_dim, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::d4_kissing, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::g2_dim, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::f4_dim, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::coxeter_kissing_720, m)?)?;
+    m.add_function(wrap_pyfunction!(hierarchy::hierarchy_exponent, m)?)?;
 
     // === GoldenGELU Activation ===
     m.add_function(wrap_pyfunction!(golden_gelu::golden_gelu_forward, m)?)?;
