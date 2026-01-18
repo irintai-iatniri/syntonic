@@ -95,6 +95,10 @@ autodoc_typehints = 'description'
 autodoc_class_signature = 'separated'
 autosummary_generate = True
 
+# Mock the Rust extension module for ReadTheDocs builds
+# This allows documentation to build without the compiled extension
+autodoc_mock_imports = ['syntonic._core']
+
 # MyST-Parser settings (for Markdown support)
 myst_enable_extensions = [
     'amsmath',
