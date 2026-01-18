@@ -1,0 +1,57 @@
+/* Custom CSS for Syntonic documentation */
+
+/* Golden ratio colors */
+:root {
+    --golden-primary: #c9a227;
+    --golden-secondary: #f4e3a0;
+    --golden-dark: #8b6914;
+}
+
+/* Header styling */
+.wy-side-nav-search {
+    background-color: var(--golden-dark);
+}
+
+/* Code blocks */
+.highlight {
+    background: #f8f8f8;
+}
+
+/* Math blocks */
+.math {
+    font-size: 1.1em;
+}
+
+/* Tables */
+table.docutils {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table.docutils td, table.docutils th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+table.docutils tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table.docutils th {
+    background-color: var(--golden-primary);
+    color: white;
+}
+
+/* Admonitions */
+.admonition.note {
+    border-left-color: var(--golden-primary);
+}
+
+/* Links */
+a {
+    color: var(--golden-dark);
+}
+
+a:hover {
+    color: var(--golden-primary);
+}

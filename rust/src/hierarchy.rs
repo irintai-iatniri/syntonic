@@ -194,7 +194,7 @@ pub fn apply_suppression(values: Vec<f64>, suppression_type: i32) -> PyResult<Ve
 #[pyfunction]
 #[pyo3(name = "hierarchy_compute_e_star_n")]
 pub fn compute_e_star_n(
-    N: Vec<f64>,
+    n: Vec<f64>,
     divisors: Vec<f64>,
     signs: Vec<i32>,
     n_corrections_per_value: usize,
@@ -204,14 +204,14 @@ pub fn compute_e_star_n(
             "divisors and signs must have same length",
         ));
     }
-    if divisors.len() != N.len() * n_corrections_per_value {
+    if divisors.len() != n.len() * n_corrections_per_value {
         return Err(pyo3::exceptions::PyValueError::new_err(
             "divisors length must equal N.len() * n_corrections_per_value",
         ));
     }
 
-    let mut outputs = Vec::with_capacity(N.len());
-    for (i, &n_val) in N.iter().enumerate() {
+    let mut outputs = Vec::with_capacity(n.len());
+    for (i, &n_val) in n.iter().enumerate() {
         let mut value = e_star() * n_val;
 
         for j in 0..n_corrections_per_value {

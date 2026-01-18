@@ -372,6 +372,33 @@ const MATMUL_FUNCS: &[&str] = &[
     "complex_reciprocal_c128",
 ];
 
+/// Hierarchy correction kernel functions
+#[cfg(feature = "cuda")]
+const HIERARCHY_FUNCS: &[&str] = &[
+    "apply_correction_f64",
+    "apply_correction_f32",
+    "apply_correction_uniform_f64",
+    "apply_special_correction_f64",
+    "apply_winding_instability_f64",
+    "apply_recursion_penalty_f64",
+    "apply_double_inverse_f64",
+    "apply_fixed_point_penalty_f64",
+    "apply_correction_chain_f64",
+    "compute_e_star_n_f64",
+    "apply_correction_by_name_f64",
+    "compute_phi_powers_f64",
+];
+
+/// Golden GELU activation kernel functions
+#[cfg(feature = "cuda")]
+const GOLDEN_GELU_FUNCS: &[&str] = &[
+    "golden_gelu_f64",
+    "golden_gelu_f32",
+    "golden_gelu_backward_f64",
+    "golden_gelu_backward_f32",
+    "batched_golden_gelu_f64",
+];
+
 // =============================================================================
 // PTX Selection Based on Compute Capability
 // =============================================================================
@@ -516,6 +543,34 @@ fn select_matmul_ptx(major: i32, minor: i32) -> &'static str {
     }
 }
 
+#[cfg(feature = "cuda")]
+fn select_hierarchy_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_HIERARCHY_SM90
+    } else if cc >= 86 {
+        PTX_HIERARCHY_SM86
+    } else if cc >= 80 {
+        PTX_HIERARCHY_SM80
+    } else {
+        PTX_HIERARCHY_SM75
+    }
+}
+
+#[cfg(feature = "cuda")]
+fn select_golden_gelu_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_GOLDEN_GELU_SM90
+    } else if cc >= 86 {
+        PTX_GOLDEN_GELU_SM86
+    } else if cc >= 80 {
+        PTX_GOLDEN_GELU_SM80
+    } else {
+        PTX_GOLDEN_GELU_SM75
+    }
+}
+
 // =============================================================================
 // Kernel Loading
 // =============================================================================
@@ -620,6 +675,16 @@ fn validate_kernels_for_device(device: &Arc<CudaDevice>) -> PyResult<Vec<String>
         SYNTONIC_SOFTMAX_FUNCS,
     )?;
     check_module(select_matmul_ptx(major, minor), "matmul", MATMUL_FUNCS)?;
+    check_module(
+        select_hierarchy_ptx(major, minor),
+        "hierarchy",
+        HIERARCHY_FUNCS,
+    )?;
+    check_module(
+        select_golden_gelu_ptx(major, minor),
+        "golden_gelu",
+        GOLDEN_GELU_FUNCS,
+    )?;
 
     Ok(missing)
 }

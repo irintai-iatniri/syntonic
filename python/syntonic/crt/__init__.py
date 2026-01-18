@@ -49,10 +49,6 @@ from syntonic.crt.operators import (
     default_harmonization_operator,
     RecursionOperator,
     default_recursion_operator,
-)
-
-# Metrics
-from syntonic.crt.metrics import (
     SyntonyComputer,
     syntony_entropy,
     syntony_spectral,
@@ -166,7 +162,6 @@ __all__ = [
     'default_harmonization_operator',
     'RecursionOperator',
     'default_recursion_operator',
-    # Metrics
     'SyntonyComputer',
     'syntony_entropy',
     'syntony_spectral',

@@ -23,20 +23,6 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-numpy = [
-    "numpy>=1.24.0",
-]
-scipy = [
-    "numpy>=1.24.0",
-    "scipy>=1.10.0",
-]
-torch = [
-    "torch>=2.0.0",
-]
-all = [
-    "numpy>=1.24.0",
-    "scipy>=1.10.0",
-]
 dev = [
     "pytest>=7.0",
     "pytest-cov",
@@ -44,9 +30,7 @@ dev = [
     "black",
     "ruff",
     "mypy",
-    "numpy>=1.24.0",
-    "scipy>=1.10.0",
-]
+    ]
 docs = [
     "sphinx>=6.0",
     "myst-parser",

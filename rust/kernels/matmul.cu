@@ -535,17 +535,6 @@ extern "C" __global__ void bmm_nt_f64(
 
     if (batch >= batch_size || row >= M || col >= N) return;
 
-    int a_offset = batch * M * K;
-    int b_offset = batch * K * N; // Note: B is [K, N] logically if not transposed, 
-                                // but here B is actually [N, K] physically for (B^T). 
-                                // So B memory layout is [N, K] rows.
-                                // Access B[col, k] which is B[col * K + k].
-    
-    // Correct logic for BMM_NT:
-    // A input is [Batch, M, K]
-    // B input is [Batch, N, K]
-    // C output is [Batch, M, N]
-    
     // Offsets
     int a_batch_offset = batch * M * K;
     int b_batch_offset = batch * N * K;

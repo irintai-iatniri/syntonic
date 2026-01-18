@@ -30,7 +30,6 @@ use super::attractor::AttractorMemory;
 use super::tensor::ResonantTensor;
 use super::ResonantError;
 use crate::exact::golden::GoldenExact;
-use crate::exact::Rational;
 
 /// Apply harmonization with attractor-guided retrocausal influence.
 ///
@@ -201,6 +200,7 @@ fn compute_golden_weight(mode_norm_sq: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::exact::Rational;
 
     #[test]
     fn test_standard_harmonization() {

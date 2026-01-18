@@ -22,7 +22,6 @@ import time
 from syntonic.viz.server import launch_background_thread, update_monitor
 from syntonic.viz import server as viz_server
 from syntonic._core import (
-    # ResonantTensor,  <-- Moved to separate import
     ResonantEvolver,
     RESConfig,
     RESResult,
