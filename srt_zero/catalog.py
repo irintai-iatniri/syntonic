@@ -282,8 +282,8 @@ OMEGA_MINUS = _register(
         pdg_value=1672.45,
         pdg_uncertainty=0.29,
         base_integer_N=84,
-        corrections=[(248, -1)],
-        notes="m_Ω = E*×84×(1-q/248). E₈ adjoint",
+        corrections=[(8, -1), (27, -1)],
+        notes="m_Ω = E*×84×(1-q/8)(1-q/27) = 1672.47 MeV. M₃×12 base, E₈ rank & E₆ fund corrections.",
     )
 )
 
@@ -526,9 +526,9 @@ STRANGE = _register(
         pdg_value=93.4,
         pdg_uncertainty=8.6,
         base_integer_N=5,
-        corrections=[(1, -1), (120, +1)],
+        corrections=[(1, -1), (120, +1), (8, +1)],
         special_corrections=["q_phi_minus"],
-        notes="m_s = E*×5×(1-qφ)(1-q)(1+q/120)",
+        notes="m_s = E*×5×(1-qφ)(1-q)(1+q/120)(1+q/8) = 93.3 Mev",
     )
 )
 

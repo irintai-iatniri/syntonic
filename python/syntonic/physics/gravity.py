@@ -18,11 +18,13 @@ Source: Grand Synthesis §8.3
 
 from typing import Tuple, Optional, Dict, Any
 import math
-from syntonic._core import (
+from syntonic.exact import PHI_NUMERIC as PHI
+# Derived constants
+PHI_INV = 1.0 / PHI
+
+from syntonic.srt import (
     lucas_gap_pressure,
     fibonacci_resonance_boost,
-    PHI,
-    PHI_INV,
 )
 
 

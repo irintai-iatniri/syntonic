@@ -18,6 +18,7 @@ from syntonic.nn.layers.resonant_linear import ResonantLinear
 from syntonic.nn.layers.normalization import SyntonicNorm
 from syntonic.physics import hooking_coefficient, golden_resonance, e8_root_alignment
 from syntonic.resonant.retrocausal import create_retrocausal_evolver
+from .winding_chain import WindingChain
 
 from .helpers import (
     compute_tensor_norm,
@@ -248,11 +249,13 @@ class GnosticOuroboros(sn.Module):
         x_token: ResonantTensor,
         winding_init: ResonantTensor,
         injection_plane: int = 1,
-        is_training: bool = False
+        is_training: bool = False,
+        chain: WindingChain = WindingChain(DIM)
     ):
         x = x_token
         winding = winding_init
         syntony_history = []
+        x = chain(x, winding)
 
         # Variable Injection: Start at specified plane
         for i, module in enumerate(list(self.scale_modules)[injection_plane-1:]):

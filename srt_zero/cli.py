@@ -118,21 +118,16 @@ def cmd_validate(args: argparse.Namespace) -> int:
     print(f"φ  = {float(PHI):.15f}")
     
     results_data = []
-    particles = list(CATALOG.keys())
+    results_data = []
     
-    # Filter to unique particles (remove aliases)
-    if args.unique:
-        seen = set()
-        unique_particles = []
-        for name in particles:
-            config = get_particle(name)
-            # Use (name, pdg_value) as unique key
-            key = (config.name, config.pdg_value)
-            if key not in seen:
-                seen.add(key)
-                unique_particles.append(name)
-        particles = unique_particles
-        print(f"\n(Showing {len(particles)} unique particles, excluding aliases)")
+    if hasattr(args, 'all') and args.all:
+        # Show everything including aliases
+        particles = sorted(list(CATALOG.keys()))
+        print(f"\n(Showing {len(particles)} entries including aliases)")
+    else:
+        # Default: Unique particles only
+        particles = list_particles()
+        print(f"\n(Showing {len(particles)} unique particles)")
     
     print(f"\n{'Particle':<15} {'Predicted':>12} {'PDG':>12} {'Error':>10} {'Status':>8}")
     print("-" * 60)

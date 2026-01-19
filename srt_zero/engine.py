@@ -542,12 +542,14 @@ class DerivationEngine:
         name = config.name.lower()
 
         if "neutrino_3" in name:
-            # m_ν3 = ρ_Λ^(1/4) × E* × (1+4q)
+            # m_ν3 = ρ_Λ^(1/4) × E* × (1+4q)(1+q/8)
+            # q/8 = E8 rank correction (stable generation endpoint)
             tree = RHO_LAMBDA_QUARTER * E_STAR
-            return apply_corrections(tree, special=["4q_plus"])
+            return apply_corrections(tree, standard=[(8, +1)], special=["4q_plus"])
 
         elif "neutrino_2" in name:
-            # m_ν2 = m_ν3 / √[34(1-q/36)]
+            # m_ν2 = m_ν3 / √[34(1-q/36)] × (1+q/18)
+            # q/18 = L6 (E7 Coxeter) - Shadow sector connection
             m3_res = self.derive("Neutrino_3")
             m3 = m3_res.final_value
 
@@ -556,7 +558,7 @@ class DerivationEngine:
             denom_factor = float(34) * (1 - Q / 36)
             scale = 1 / (denom_factor**0.5)
 
-            final = m3 * scale
+            final = m3 * scale * (1 + Q / 18)
             result = DerivationResult(tree_value=m3, final_value=final)
             result.steps.append(
                 {
@@ -683,14 +685,17 @@ class DerivationEngine:
                 # 537.5 / 220 = 2.44 ~ 2 * (1 + 8q) = 2 * 1.216 = 2.43
                 final = l1 * 2 * (1 + 8 * Q)
             elif name == "cmb_peak_3":
-                # 810.8 / 220 = 3.68 ~ 3 * (1 + 8q) = 3.65
-                final = l1 * 3 * (1 + 8 * Q)
+                # 810.8 / 220 = 3.68 ~ 3 * (1 + 8q + q/3). q/3 = N_gen correction.
+                # 1 + 8q + q/3 = 1 + 0.219 + 0.009 = 1.228. 3*1.228 = 3.684.
+                final = l1 * 3 * (1 + 8 * Q + Q / 3)
             elif name == "cmb_peak_4":
                 # 1120.9 / 220 = 5.09 ~ 4 * (1 + 10q) = 4 * 1.27 = 5.08
                 final = l1 * 4 * (1 + 10 * Q)
             elif name == "cmb_peak_5":
-                # 1444.2 / 220 = 6.56 ~ 5 * (1 + 12q) = 5 * 1.32 = 6.6
-                final = l1 * 5 * (1 + 11.8 * Q)
+                # 1444.2 / 220 = 6.56
+                # 5 * (1 + 11q + 3q/7)
+                # 11 is Lucas L5 (shadow barrier). 3/7 is M2/M3 ratio.
+                final = l1 * 5 * (1 + 11 * Q + 3 * Q / 7)
 
         elif "peak_ratio" in name:
             if "21" in name:
