@@ -9,21 +9,30 @@ SRT-specific: mm_phi, phi_bracket, mm_corrected, mm_golden_weighted, etc.
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, Union
 
-from syntonic.core.state import State
-from syntonic.core.dtype import float64, complex128
-from syntonic.exceptions import LinAlgError
+from typing import Optional, Tuple, Union
+
 from syntonic.core import (
-    linalg_mm, linalg_mm_add,
-    linalg_mm_tn, linalg_mm_nt, linalg_mm_tt,
-    linalg_mm_hn, linalg_mm_nh,
-    linalg_bmm,
-    linalg_mm_phi, linalg_phi_bracket, linalg_phi_antibracket,
-    linalg_mm_corrected, linalg_mm_golden_phase, linalg_mm_golden_weighted,
-    linalg_projection_sum,
     Structure,
+    linalg_bmm,
+    linalg_mm,
+    linalg_mm_add,
+    linalg_mm_corrected,
+    linalg_mm_golden_phase,
+    linalg_mm_golden_weighted,
+    linalg_mm_hn,
+    linalg_mm_nh,
+    linalg_mm_nt,
+    linalg_mm_phi,
+    linalg_mm_tn,
+    linalg_mm_tt,
+    linalg_phi_antibracket,
+    linalg_phi_bracket,
+    linalg_projection_sum,
 )
+from syntonic.core.dtype import complex128, float64
+from syntonic.core.state import State
+from syntonic.exceptions import LinAlgError
 
 
 def matmul(a: State, b: State) -> State:
@@ -39,7 +48,7 @@ def dot(a: State, b: State) -> float:
         raise LinAlgError("Vectors must have same length for dot product")
 
     # Handle complex numbers
-    if a.dtype.name == 'complex128' or b.dtype.name == 'complex128':
+    if a.dtype.name == "complex128" or b.dtype.name == "complex128":
         result = sum(x * y for x, y in zip(a_flat, b_flat))
         return result
     return float(sum(x * y for x, y in zip(a_flat, b_flat)))
@@ -52,7 +61,7 @@ def inner(a: State, b: State) -> Union[float, complex]:
     if len(a_flat) != len(b_flat):
         raise LinAlgError("Vectors must have same length for inner product")
 
-    if a.dtype.name == 'complex128':
+    if a.dtype.name == "complex128":
         # Conjugate first argument
         return sum(x.conjugate() * y for x, y in zip(a_flat, b_flat))
     return float(sum(x * y for x, y in zip(a_flat, b_flat)))
@@ -133,9 +142,13 @@ def svd(a: State, full_matrices: bool = True) -> Tuple[State, State, State]:
     m, n = a.shape[0], a.shape[1]
     k = min(m, n)
 
-    u = _state_from_storage(u_storage, a.dtype, a.device, (m, m) if full_matrices else (m, k))
+    u = _state_from_storage(
+        u_storage, a.dtype, a.device, (m, m) if full_matrices else (m, k)
+    )
     s = _state_from_storage(s_storage, float64, a.device, (k,))
-    vh = _state_from_storage(vh_storage, a.dtype, a.device, (n, n) if full_matrices else (k, n))
+    vh = _state_from_storage(
+        vh_storage, a.dtype, a.device, (n, n) if full_matrices else (k, n)
+    )
     return u, s, vh
 
 
@@ -187,7 +200,7 @@ def pinv(a: State) -> State:
     # Invert non-zero singular values
     s_flat = s.to_list()
     tol = max(a.shape) * max(abs(x) for x in s_flat) * 1e-15
-    s_inv = [1.0/x if abs(x) > tol else 0.0 for x in s_flat]
+    s_inv = [1.0 / x if abs(x) > tol else 0.0 for x in s_flat]
 
     # Build S^+ matrix (n x m) - transpose of diagonal matrix with inverted singular values
     s_inv_mat = [0.0] * (n * m)
@@ -259,6 +272,7 @@ def logm(a: State) -> State:
 # SRT-Specific Matrix Operations (Rust backend)
 # =============================================================================
 
+
 def mm(a: State, b: State) -> State:
     """
     Core matrix multiplication via Rust linalg backend.
@@ -270,7 +284,9 @@ def mm(a: State, b: State) -> State:
     return _state_from_storage(result, a.dtype, a.device, (m, n))
 
 
-def mm_add(a: State, b: State, c: State, alpha: float = 1.0, beta: float = 1.0) -> State:
+def mm_add(
+    a: State, b: State, c: State, alpha: float = 1.0, beta: float = 1.0
+) -> State:
     """
     GEMM: General Matrix-Matrix multiplication.
 
@@ -443,42 +459,42 @@ def projection_sum(psi: State, projectors: list, coefficients: list) -> State:
 
 __all__ = [
     # Basic operations
-    'matmul',
-    'dot',
-    'inner',
-    'outer',
-    'norm',
+    "matmul",
+    "dot",
+    "inner",
+    "outer",
+    "norm",
     # Decompositions
-    'eig',
-    'eigh',
-    'svd',
-    'qr',
-    'cholesky',
+    "eig",
+    "eigh",
+    "svd",
+    "qr",
+    "cholesky",
     # Inverses and solvers
-    'inv',
-    'pinv',
-    'det',
-    'trace',
-    'solve',
+    "inv",
+    "pinv",
+    "det",
+    "trace",
+    "solve",
     # Matrix functions
-    'expm',
-    'logm',
+    "expm",
+    "logm",
     # SRT-specific operations (Rust backend)
-    'mm',
-    'mm_add',
-    'mm_tn',
-    'mm_nt',
-    'mm_tt',
-    'mm_hn',
-    'mm_nh',
-    'bmm',
-    'mm_phi',
-    'phi_bracket',
-    'phi_antibracket',
-    'mm_corrected',
-    'mm_golden_phase',
-    'mm_golden_weighted',
-    'projection_sum',
+    "mm",
+    "mm_add",
+    "mm_tn",
+    "mm_nt",
+    "mm_tt",
+    "mm_hn",
+    "mm_nh",
+    "bmm",
+    "mm_phi",
+    "phi_bracket",
+    "phi_antibracket",
+    "mm_corrected",
+    "mm_golden_phase",
+    "mm_golden_weighted",
+    "projection_sum",
     # Structure enum for correction factors
-    'Structure',
+    "Structure",
 ]

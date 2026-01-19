@@ -15,12 +15,12 @@ Functions:
 
 from syntonic.srt.functional.syntony import (
     SyntonyFunctional,
-    syntony_functional,
     compute_syntony,
+    syntony_functional,
 )
 
 __all__ = [
-    'SyntonyFunctional',
-    'syntony_functional',
-    'compute_syntony',
+    "SyntonyFunctional",
+    "syntony_functional",
+    "compute_syntony",
 ]

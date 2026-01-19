@@ -8,11 +8,10 @@ Protein folding resolves Levinthal's paradox via φ-contraction.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
 import math
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
-from syntonic.core import State
 
 
 class EvolutionaryDirectionality:
@@ -33,7 +32,9 @@ class EvolutionaryDirectionality:
         'Asymptotic syntony: S* = φ - q ≈ 1.5906'
     """
 
-    def fitness_function(self, syntony: float, energy: float, temperature: float) -> float:
+    def fitness_function(
+        self, syntony: float, energy: float, temperature: float
+    ) -> float:
         """
         Syntony-weighted fitness function.
 
@@ -177,7 +178,7 @@ class ProteinFolding:
         Returns:
             Number of conformations (can be astronomical)
         """
-        return 3.0 ** n_residues
+        return 3.0**n_residues
 
     def recursion_steps(self, n_residues: int) -> int:
         """
@@ -209,7 +210,7 @@ class ProteinFolding:
         """
         naive = self.naive_conformations(n_residues)
         steps = self.recursion_steps(n_residues)
-        reduction = PHI_NUMERIC ** steps
+        reduction = PHI_NUMERIC**steps
         return naive / reduction
 
     def folding_time_estimate(self, n_residues: int) -> str:

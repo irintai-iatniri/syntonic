@@ -12,7 +12,7 @@ All functions return (X, y) tuples as pure Python lists (no NumPy).
 
 import math
 import random
-from typing import Tuple, Optional, List
+from typing import List, Optional, Tuple
 
 
 class PureRNG:
@@ -26,8 +26,10 @@ class PureRNG:
         if len(size) == 1:
             return [self.rng.uniform(low, high) for _ in range(size[0])]
         elif len(size) == 2:
-            return [[self.rng.uniform(low, high) for _ in range(size[1])]
-                    for _ in range(size[0])]
+            return [
+                [self.rng.uniform(low, high) for _ in range(size[1])]
+                for _ in range(size[0])
+            ]
         else:
             raise ValueError(f"Unsupported size dimension: {len(size)}")
 
@@ -36,8 +38,10 @@ class PureRNG:
         if len(size) == 1:
             return [self.rng.gauss(mean, std) for _ in range(size[0])]
         elif len(size) == 2:
-            return [[self.rng.gauss(mean, std) for _ in range(size[1])]
-                    for _ in range(size[0])]
+            return [
+                [self.rng.gauss(mean, std) for _ in range(size[1])]
+                for _ in range(size[0])
+            ]
         else:
             raise ValueError(f"Unsupported size dimension: {len(size)}")
 
@@ -94,7 +98,9 @@ def full(n: int, value: float) -> List[float]:
     return [float(value)] * n
 
 
-def add_noise_2d(X: List[List[float]], noise_matrix: List[List[float]]) -> List[List[float]]:
+def add_noise_2d(
+    X: List[List[float]], noise_matrix: List[List[float]]
+) -> List[List[float]]:
     """Add noise to a 2D list in-place."""
     for i in range(len(X)):
         for j in range(len(X[i])):
@@ -174,15 +180,9 @@ def make_moons(
     y2 = [0.5 - math.sin(t) for t in theta2]
 
     # Combine
-    X = vstack([
-        column_stack(x1, y1),
-        column_stack(x2, y2)
-    ])
+    X = vstack([column_stack(x1, y1), column_stack(x2, y2)])
 
-    y = hstack([
-        zeros(n_samples_per_class),
-        ones(n_samples - n_samples_per_class)
-    ])
+    y = hstack([zeros(n_samples_per_class), ones(n_samples - n_samples_per_class)])
     y = [int(label) for label in y]
 
     # Shuffle
@@ -228,15 +228,14 @@ def make_circles(
     # Outer circle
     theta_outer = rng.uniform(0, 2 * math.pi, (n_outer,))
     X_outer = column_stack(
-        [math.cos(t) for t in theta_outer],
-        [math.sin(t) for t in theta_outer]
+        [math.cos(t) for t in theta_outer], [math.sin(t) for t in theta_outer]
     )
 
     # Inner circle
     theta_inner = rng.uniform(0, 2 * math.pi, (n_inner,))
     X_inner = column_stack(
         [factor * math.cos(t) for t in theta_inner],
-        [factor * math.sin(t) for t in theta_inner]
+        [factor * math.sin(t) for t in theta_inner],
     )
 
     # Combine
@@ -293,7 +292,9 @@ def make_spiral(
         # Radius increases with angle
         n_points = n_per_class if c < n_classes - 1 else n_samples - c * n_per_class
         theta = [t + offset for t in linspace(0, 3 * math.pi, n_points)]
-        r = [t / (3 * math.pi) for t in linspace(0, 3 * math.pi, n_points)]  # Normalized radius [0, 1]
+        r = [
+            t / (3 * math.pi) for t in linspace(0, 3 * math.pi, n_points)
+        ]  # Normalized radius [0, 1]
 
         x = [r[i] * math.cos(theta[i]) for i in range(n_points)]
         y_coord = [r[i] * math.sin(theta[i]) for i in range(n_points)]
@@ -347,7 +348,7 @@ def make_golden_sequence(
 
     for i in range(2, n_samples):
         # Exact golden recurrence with small perturbation
-        fib[i] = fib[i-1] + fib[i-2]
+        fib[i] = fib[i - 1] + fib[i - 2]
 
     # Normalize to [0, 1] range
     max_val = max(fib)

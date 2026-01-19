@@ -40,17 +40,17 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import Optional, List, Tuple
+
 import math
 import random
+from typing import List, Optional
 
 import syntonic.sn as sn
-from syntonic.nn.resonant_tensor import ResonantTensor
-from syntonic.nn.layers import SyntonicNorm
-
 from python.syntonic.nn.architectures.syntonic_attention import (
     PureMultiHeadSyntonicAttention,
 )
+from syntonic.nn.layers import SyntonicNorm
+from syntonic.nn.resonant_tensor import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 PHI_INV = 1 / PHI
@@ -63,7 +63,7 @@ def _gelu_rt(x: ResonantTensor) -> ResonantTensor:
     sqrt_2_pi = math.sqrt(2.0 / math.pi)
     result = []
     for v in data:
-        inner = sqrt_2_pi * (v + 0.044715 * v ** 3)
+        inner = sqrt_2_pi * (v + 0.044715 * v**3)
         gelu = 0.5 * v * (1.0 + math.tanh(inner))
         result.append(gelu)
     shape = x.shape
@@ -74,7 +74,7 @@ def _gelu_rt(x: ResonantTensor) -> ResonantTensor:
 class PureDHTransformerLayer(sn.Module):
     """
     Transformer layer with D→H structure.
-    
+
     Pure Python + ResonantTensor implementation.
 
     Standard transformer layer components:
@@ -94,7 +94,7 @@ class PureDHTransformerLayer(sn.Module):
         d_ff: int = 256,
         dropout: float = 0.1,
         precision: int = 100,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize DH transformer layer.
@@ -120,8 +120,8 @@ class PureDHTransformerLayer(sn.Module):
         )
 
         # FFN weights (shape [out, in] for matmul which does A @ W^T)
-        self.ffn_w1 = sn.Parameter([d_ff, d_model], init='kaiming', device=device)
-        self.ffn_w2 = sn.Parameter([d_model, d_ff], init='kaiming', device=device)
+        self.ffn_w1 = sn.Parameter([d_ff, d_model], init="kaiming", device=device)
+        self.ffn_w2 = sn.Parameter([d_model, d_ff], init="kaiming", device=device)
 
         # Normalization layers (golden-ratio aware)
         self.norm1 = SyntonicNorm(d_model, device=device)
@@ -182,7 +182,7 @@ class PureDHTransformerLayer(sn.Module):
 class PureSyntonicTransformerEncoder(sn.Module):
     """
     Stack of DH transformer encoder layers.
-    
+
     Pure Python + ResonantTensor implementation.
 
     Example:
@@ -199,7 +199,7 @@ class PureSyntonicTransformerEncoder(sn.Module):
         d_ff: int = 256,
         dropout: float = 0.1,
         precision: int = 100,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize encoder stack.
@@ -215,10 +215,14 @@ class PureSyntonicTransformerEncoder(sn.Module):
         """
         super().__init__()
 
-        self.layers = sn.ModuleList([
-            PureDHTransformerLayer(d_model, n_heads, d_ff, dropout, precision, device=device)
-            for _ in range(n_layers)
-        ])
+        self.layers = sn.ModuleList(
+            [
+                PureDHTransformerLayer(
+                    d_model, n_heads, d_ff, dropout, precision, device=device
+                )
+                for _ in range(n_layers)
+            ]
+        )
         self.n_layers = n_layers
         self.device = device
 
@@ -244,7 +248,7 @@ class PureSyntonicTransformerEncoder(sn.Module):
 class PureSyntonicTransformer(sn.Module):
     """
     Simple encoder-only syntonic transformer.
-    
+
     For classification or embedding tasks.
 
     Example:
@@ -262,7 +266,7 @@ class PureSyntonicTransformer(sn.Module):
         output_dim: int = 10,
         dropout: float = 0.1,
         precision: int = 100,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize syntonic transformer.
@@ -289,7 +293,9 @@ class PureSyntonicTransformer(sn.Module):
         )
 
         # Output projection (shape [out, in] for matmul which does A @ W^T)
-        self.output_proj = sn.Parameter([output_dim, d_model], init='kaiming', device=device)
+        self.output_proj = sn.Parameter(
+            [output_dim, d_model], init="kaiming", device=device
+        )
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
@@ -308,16 +314,14 @@ class PureSyntonicTransformer(sn.Module):
         data = encoded.to_floats()
         shape = encoded.shape
         seq_len, d_model = shape
-        
+
         pooled = []
         for d in range(d_model):
             col_sum = sum(data[s * d_model + d] for s in range(seq_len))
             pooled.append(col_sum / seq_len)
-        
+
         pooled_rt = ResonantTensor(
-            pooled, [1, d_model],
-            [float(i * i) for i in range(d_model)],
-            self.precision
+            pooled, [1, d_model], [float(i * i) for i in range(d_model)], self.precision
         )
 
         # Project to output
@@ -362,9 +366,9 @@ class PureSyntonicTransformerLM(sn.Module):
         max_seq_len: int = 512,
         dropout: float = 0.1,
         precision: int = 100,
-        embedding_type: str = 'winding',  # 'winding', 'learned', 'syntonic'
+        embedding_type: str = "winding",  # 'winding', 'learned', 'syntonic'
         use_golden_pe: bool = True,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize language model.
@@ -394,20 +398,20 @@ class PureSyntonicTransformerLM(sn.Module):
 
         # Import embedding classes
         from python.syntonic.nn.architectures.embeddings import (
-            PureWindingEmbedding,
-            PureSyntonicEmbedding,
             PurePositionalEncoding,
+            PureSyntonicEmbedding,
+            PureWindingEmbedding,
         )
 
         # Token embedding
-        if embedding_type == 'winding':
+        if embedding_type == "winding":
             self.token_embedding = PureWindingEmbedding(
                 num_embeddings=vocab_size,
                 embedding_dim=d_model,
                 num_windings=8,
                 device=device,
             )
-        elif embedding_type == 'syntonic':
+        elif embedding_type == "syntonic":
             self.token_embedding = PureSyntonicEmbedding(
                 num_embeddings=vocab_size,
                 embedding_dim=d_model,
@@ -444,7 +448,9 @@ class PureSyntonicTransformerLM(sn.Module):
         )
 
         # Output projection to vocabulary (shape [out, in] for matmul)
-        self.output_proj = sn.Parameter([vocab_size, d_model], init='kaiming', device=device)
+        self.output_proj = sn.Parameter(
+            [vocab_size, d_model], init="kaiming", device=device
+        )
 
     def forward(self, token_indices: List[int]) -> ResonantTensor:
         """
@@ -533,7 +539,7 @@ if __name__ == "__main__":
     print(f"  Input:  {x.shape}")
     print(f"  Output: {logits.shape}")
     print(f"  Model syntony: {model.syntony:.4f}")
-    print(f"  Note: Output is average-pooled over sequence dimension")
+    print("  Note: Output is average-pooled over sequence dimension")
     print("  ✓ Pass")
 
     # Test 4: Language Model (with winding embeddings)
@@ -547,7 +553,7 @@ if __name__ == "__main__":
         n_layers=2,
         d_ff=64,
         max_seq_len=128,
-        embedding_type='winding',
+        embedding_type="winding",
     )
 
     # Test with token indices
@@ -571,7 +577,7 @@ if __name__ == "__main__":
         n_heads=2,
         n_layers=1,
         d_ff=32,
-        embedding_type='syntonic',
+        embedding_type="syntonic",
     )
 
     tokens2 = [1, 5, 10]

@@ -11,10 +11,11 @@ From SRT theory: "Hadrons follow prime or prime-composite structure."
 """
 
 from __future__ import annotations
+
 from typing import List
 
-from syntonic._core import ResonantTensor
 import syntonic.sn as sn
+from syntonic._core import ResonantTensor
 
 
 class PurePrimeSelectionLayer(sn.Module):
@@ -98,7 +99,9 @@ class PurePrimeSelectionLayer(sn.Module):
         # Determine batch structure
         if len(x.shape) == 1:
             # 1D tensor
-            filtered_data = [x_floats[i] * self.prime_mask[i] for i in range(len(x_floats))]
+            filtered_data = [
+                x_floats[i] * self.prime_mask[i] for i in range(len(x_floats))
+            ]
         elif len(x.shape) == 2:
             # 2D tensor (batch, dim)
             batch_size, dim = x.shape
@@ -132,7 +135,7 @@ class PurePrimeSelectionLayer(sn.Module):
 
     def __repr__(self) -> str:
         n_primes = sum(self.prime_mask)
-        return f'PurePrimeSelectionLayer(dim={self.dim}, active_indices={int(n_primes)}/{self.dim})'
+        return f"PurePrimeSelectionLayer(dim={self.dim}, active_indices={int(n_primes)}/{self.dim})"
 
 
 if __name__ == "__main__":

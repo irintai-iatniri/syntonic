@@ -24,18 +24,22 @@ Example:
     >>> y_exact = model.forward_exact(windings)
 """
 
-from syntonic.nn.winding.embedding import WindingStateEmbedding
-from syntonic.nn.winding.fibonacci_hierarchy import FibonacciHierarchy
-from python.syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer as PrimeSelectionLayer
-from python.syntonic.nn.winding.syntony import PureWindingSyntonyComputer as WindingSyntonyComputer
-from syntonic.nn.winding.dhsr_block import WindingDHSRBlock
-from syntonic.nn.winding.resonant_dhsr_block import ResonantWindingDHSRBlock
-from python.syntonic.nn.winding.winding_net import PureWindingNet as WindingNet
+from python.syntonic.nn.winding.resonant_embedding import PureResonantWindingEmbedding
 
 # Pure (PyTorch-free) versions
 from python.syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
+from python.syntonic.nn.winding.prime_selection import (
+    PurePrimeSelectionLayer as PrimeSelectionLayer,
+)
 from python.syntonic.nn.winding.syntony import PureWindingSyntonyComputer
-from python.syntonic.nn.winding.resonant_embedding import PureResonantWindingEmbedding
+from python.syntonic.nn.winding.syntony import (
+    PureWindingSyntonyComputer as WindingSyntonyComputer,
+)
+from python.syntonic.nn.winding.winding_net import PureWindingNet as WindingNet
+from syntonic.nn.winding.dhsr_block import WindingDHSRBlock
+from syntonic.nn.winding.embedding import WindingStateEmbedding
+from syntonic.nn.winding.fibonacci_hierarchy import FibonacciHierarchy
+from syntonic.nn.winding.resonant_dhsr_block import ResonantWindingDHSRBlock
 
 __all__ = [
     "WindingStateEmbedding",
@@ -50,4 +54,3 @@ __all__ = [
     "PureWindingSyntonyComputer",
     "PureResonantWindingEmbedding",
 ]
-

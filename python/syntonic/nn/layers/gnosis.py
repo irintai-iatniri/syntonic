@@ -15,39 +15,39 @@ the input achieves high Gnosis (high resonance + high complexity).
 """
 
 from __future__ import annotations
-from typing import Optional, Tuple, Union
+
 import math
+from typing import Optional, Tuple
 
 import syntonic.sn as sn
 from syntonic.nn.resonant_tensor import ResonantTensor
-from syntonic.nn.layers.resonant_linear import ResonantLinear
 
 
 class GnosisLayer(sn.Module):
     """
     Independent Gnostic Module.
-    
+
     Maintains a persistent 'knowledge' state that is updated via
     Gnostic Resonance rather than just gradient descent.
-    
+
     Update Rule (conceptual):
         G = Syntony(x) * Complexity(x)
         Knowledge_new = Knowledge_old * (1 - αG) + x * αG
-        
+
     Where α is the learning rate / retention rate.
     """
-    
+
     def __init__(
         self,
         features: int,
         retention_rate: float = 0.1,
         threshold: float = 0.5,
         decay: float = 0.01,
-        device: str = 'cpu'
+        device: str = "cpu",
     ):
         """
         Initialize Gnosis Layer.
-        
+
         Args:
             features: Dimension of the knowledge state.
             retention_rate: Max rate at which new info is integrated (lambda).
@@ -61,45 +61,41 @@ class GnosisLayer(sn.Module):
         self.threshold = threshold
         self.decay = decay
         self.device = device
-        
+
         self.register_buffer(
-            'knowledge', 
-            ResonantTensor.zeros([1, features]).to(device)
+            "knowledge", ResonantTensor.zeros([1, features]).to(device)
         )
-        
+
     def forward(
-        self, 
-        x: ResonantTensor, 
-        base_state: Optional[ResonantTensor] = None
+        self, x: ResonantTensor, base_state: Optional[ResonantTensor] = None
     ) -> Tuple[ResonantTensor, float]:
         """
         Forward pass: Assess Gnosis and Update Memory.
-        
+
         Args:
             x: Input candidate information [batch, features]
             base_state: Optional reference state to measure complexity against
-                        (e.g. the input before Differentiation). 
+                        (e.g. the input before Differentiation).
                         If None, uses zero/mean.
-                        
+
         Returns:
             output: The input x (passed through) or the retrieved Knowledge.
             gnosis_score: The calculated Gnosis metric.
         """
         syntony = x.syntony if x.syntony is not None else self._estimate_syntony(x)
-        
+
         complexity = self._calculate_complexity(x, base_state)
-        
+
         gnosis = syntony * complexity
-        
+
         if self.training:
             self._update_knowledge(x, gnosis)
 
-        
         return x, gnosis
 
     def _estimate_syntony(self, x: ResonantTensor) -> float:
         """
-        Estimate syntony if not provided. 
+        Estimate syntony if not provided.
         Uses simple variance/entropy heuristic or coherence check.
         For now, returns a placeholder or uses the exact recursive syntony if valid.
         """
@@ -107,25 +103,23 @@ class GnosisLayer(sn.Module):
         return 0.5
 
     def _calculate_complexity(
-        self, 
-        x: ResonantTensor, 
-        base: Optional[ResonantTensor]
+        self, x: ResonantTensor, base: Optional[ResonantTensor]
     ) -> float:
         """
         Calculate Complexity (Information Density / Entropy).
         """
         # Convert to float for metric calculation
         x_f = x.to_floats()
-        
+
         if base is not None:
-             base_f = base.to_floats()
-             diff_sum = sum((a - b)**2 for a, b in zip(x_f, base_f))
-             return math.sqrt(diff_sum) / (len(x_f) + 1e-9)
+            base_f = base.to_floats()
+            diff_sum = sum((a - b) ** 2 for a, b in zip(x_f, base_f))
+            return math.sqrt(diff_sum) / (len(x_f) + 1e-9)
         else:
             # Absolute complexity: Variance / Entropy
             # Standard deviation of the signal
             mean = sum(x_f) / len(x_f)
-            var = sum((a - mean)**2 for a in x_f) / len(x_f)
+            var = sum((a - mean) ** 2 for a in x_f) / len(x_f)
             return math.sqrt(var)
 
     def _update_knowledge(self, x: ResonantTensor, gnosis: float):
@@ -140,7 +134,7 @@ class GnosisLayer(sn.Module):
         # rate = base_rate * (G - threshold)
         rate = self.retention_rate * (gnosis - self.threshold)
         rate = max(0.0, min(1.0, rate))
-        
+
         pass  # Placeholder: In a real run, we would perform the state update here.
 
     def retrieve(self) -> ResonantTensor:
@@ -148,5 +142,7 @@ class GnosisLayer(sn.Module):
         return self.knowledge
 
     def __repr__(self):
-        return (f"GnosisLayer(features={self.features}, "
-                f"threshold={self.threshold}, retention={self.retention_rate})")
+        return (
+            f"GnosisLayer(features={self.features}, "
+            f"threshold={self.threshold}, retention={self.retention_rate})"
+        )

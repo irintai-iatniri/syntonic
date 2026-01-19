@@ -9,8 +9,9 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import Optional, Tuple, List, Dict
+
 import math
+from typing import Dict, List, Optional
 
 from syntonic._core import ResonantTensor
 
@@ -42,11 +43,11 @@ def compute_activation_syntony(
     # Numerator: how much D changed x
     diff_change = x_diff.elementwise_add(x_input.negate())
     diff_norm = math.sqrt(diff_change.var() * _tensor_size(diff_change))
-    
+
     # Denominator: how much H corrected D
     harm_correction = x_diff.elementwise_add(x_harm.negate())
     harm_norm = math.sqrt(harm_correction.var() * _tensor_size(harm_correction))
-    
+
     # Syntony
     S = 1.0 - diff_norm / (harm_norm + epsilon)
     return max(0.0, min(1.0, S))
@@ -62,26 +63,26 @@ def _tensor_size(t: ResonantTensor) -> int:
 
 def aggregate_syntonies(
     layer_syntonies: List[float],
-    method: str = 'mean',
+    method: str = "mean",
 ) -> float:
     """
     Aggregate layer syntonies into global syntony.
-    
+
     Args:
         layer_syntonies: Per-layer syntony values
         method: Aggregation method ('mean', 'min', 'geometric')
-    
+
     Returns:
         Global syntony
     """
     if not layer_syntonies:
         return 0.5  # Default mid-syntony
-    
-    if method == 'mean':
+
+    if method == "mean":
         return sum(layer_syntonies) / len(layer_syntonies)
-    elif method == 'min':
+    elif method == "min":
         return min(layer_syntonies)
-    elif method == 'geometric':
+    elif method == "geometric":
         product = 1.0
         for s in layer_syntonies:
             product *= max(s, 1e-10)
@@ -123,7 +124,7 @@ class SyntonyTracker:
         """
         self.history.append(global_syntony)
         if len(self.history) > self.window_size * 10:
-            self.history = self.history[-self.window_size * 10:]
+            self.history = self.history[-self.window_size * 10 :]
 
         if layer_syntonies:
             for i, s in enumerate(layer_syntonies):
@@ -131,14 +132,16 @@ class SyntonyTracker:
                     self.layer_histories[i] = []
                 self.layer_histories[i].append(s)
                 if len(self.layer_histories[i]) > self.window_size * 10:
-                    self.layer_histories[i] = self.layer_histories[i][-self.window_size * 10:]
+                    self.layer_histories[i] = self.layer_histories[i][
+                        -self.window_size * 10 :
+                    ]
 
     @property
     def mean_syntony(self) -> float:
         """Mean syntony over window."""
         if not self.history:
             return 0.0
-        window = self.history[-self.window_size:]
+        window = self.history[-self.window_size :]
         return sum(window) / len(window)
 
     @property
@@ -150,7 +153,7 @@ class SyntonyTracker:
         half_window = self.window_size // 2
         if len(self.history) > self.window_size:
             recent = self.history[-half_window:]
-            earlier = self.history[-self.window_size:-half_window]
+            earlier = self.history[-self.window_size : -half_window]
         else:
             mid = len(self.history) // 2
             recent = self.history[mid:]
@@ -166,7 +169,7 @@ class SyntonyTracker:
         """Syntony variance over window."""
         if len(self.history) < 2:
             return 0.0
-        window = self.history[-self.window_size:]
+        window = self.history[-self.window_size :]
         mean = sum(window) / len(window)
         return sum((s - mean) ** 2 for s in window) / len(window)
 
@@ -194,21 +197,19 @@ class SyntonyTracker:
 
         target = S_TARGET - 0.1
         return (
-            variance_S > threshold and
-            abs(trend) < threshold / 10 and
-            mean_S < target
+            variance_S > threshold and abs(trend) < threshold / 10 and mean_S < target
         )
 
     def get_layer_stats(self, layer_idx: int) -> Dict[str, float]:
         """Get statistics for a specific layer."""
         if layer_idx not in self.layer_histories:
-            return {'mean': 0.0, 'variance': 0.0, 'trend': 0.0}
+            return {"mean": 0.0, "variance": 0.0, "trend": 0.0}
 
         history = self.layer_histories[layer_idx]
         if not history:
-            return {'mean': 0.0, 'variance': 0.0, 'trend': 0.0}
+            return {"mean": 0.0, "variance": 0.0, "trend": 0.0}
 
-        window = history[-self.window_size:]
+        window = history[-self.window_size :]
         mean = sum(window) / len(window)
         variance = sum((s - mean) ** 2 for s in window) / len(window)
 
@@ -216,11 +217,15 @@ class SyntonyTracker:
             mid = len(window) // 2
             recent = window[mid:]
             earlier = window[:mid]
-            trend = sum(recent) / len(recent) - sum(earlier) / len(earlier) if earlier else 0.0
+            trend = (
+                sum(recent) / len(recent) - sum(earlier) / len(earlier)
+                if earlier
+                else 0.0
+            )
         else:
             trend = 0.0
 
-        return {'mean': mean, 'variance': variance, 'trend': trend}
+        return {"mean": mean, "variance": variance, "trend": trend}
 
     def reset(self):
         """Reset tracker."""
@@ -235,24 +240,24 @@ PureSyntonyTracker = SyntonyTracker
 if __name__ == "__main__":
     """Test pure syntony metrics."""
     print("Testing Pure Syntony Metrics...")
-    
+
     # Test aggregation
     layer_syntonies = [0.7, 0.8, 0.9]
-    global_S = aggregate_syntonies(layer_syntonies, 'mean')
+    global_S = aggregate_syntonies(layer_syntonies, "mean")
     print(f"Aggregated syntony (mean): {global_S:.4f}")
-    
-    global_S_geo = aggregate_syntonies(layer_syntonies, 'geometric')
+
+    global_S_geo = aggregate_syntonies(layer_syntonies, "geometric")
     print(f"Aggregated syntony (geometric): {global_S_geo:.4f}")
-    
+
     # Test tracker
     tracker = SyntonyTracker(window_size=20)
     for i in range(50):
         syntony = 0.5 + 0.01 * i  # Improving
         tracker.update(syntony)
-    
+
     print(f"Mean syntony: {tracker.mean_syntony:.4f}")
     print(f"Syntony trend: {tracker.syntony_trend:.4f}")
     print(f"Variance: {tracker.variance:.6f}")
     print(f"Is archonic: {tracker.is_archonic()}")
-    
+
     print("✅ Pure Syntony Metrics test passed!")

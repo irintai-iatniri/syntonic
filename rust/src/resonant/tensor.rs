@@ -804,6 +804,13 @@ impl ResonantTensor {
         let rank_a = self.shape.len();
         let rank_b = weights.shape.len();
 
+        if rank_a < 2 {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Input tensor must be at least 2D for matmul, got {:?}",
+                self.shape
+            )));
+        }
+
         let k_a = *self.shape.last().unwrap();
         // Weights is arguably [Out, In] (Rank 2) or [Batch, ..., Out, In] (Rank > 2)
         // If weights is Rank < 2, fail.
@@ -1330,6 +1337,54 @@ impl ResonantTensor {
         Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
     }
 
+    /// Sine: sin(x).
+    ///
+    /// Converts to floats, applies sin, snaps back to Q(φ) lattice.
+    pub fn sin_core(&self, precision: i64) -> Result<ResonantTensor, ResonantError> {
+        let floats = self.to_floats_core();
+        let result_floats: Vec<f64> = floats.iter().map(|&x| x.sin()).collect();
+        let result_lattice = snap_to_lattice(&result_floats, precision);
+        let result_norms = self.mode_norm_sq.clone();
+
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
+    /// Cosine: cos(x).
+    ///
+    /// Converts to floats, applies cos, snaps back to Q(φ) lattice.
+    pub fn cos_core(&self, precision: i64) -> Result<ResonantTensor, ResonantError> {
+        let floats = self.to_floats_core();
+        let result_floats: Vec<f64> = floats.iter().map(|&x| x.cos()).collect();
+        let result_lattice = snap_to_lattice(&result_floats, precision);
+        let result_norms = self.mode_norm_sq.clone();
+
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
+    /// Power: x^exponent.
+    ///
+    /// Converts to floats, applies pow, snaps back to Q(φ) lattice.
+    pub fn pow_core(&self, exponent: f64, precision: i64) -> Result<ResonantTensor, ResonantError> {
+        let floats = self.to_floats_core();
+        let result_floats: Vec<f64> = floats.iter().map(|&x| x.powf(exponent)).collect();
+        let result_lattice = snap_to_lattice(&result_floats, precision);
+        let result_norms = self.mode_norm_sq.clone();
+
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
+    /// Square root: sqrt(x).
+    ///
+    /// Converts to floats, applies sqrt, snaps back to Q(φ) lattice.
+    pub fn sqrt_core(&self, precision: i64) -> Result<ResonantTensor, ResonantError> {
+        let floats = self.to_floats_core();
+        let result_floats: Vec<f64> = floats.iter().map(|&x| x.sqrt()).collect();
+        let result_lattice = snap_to_lattice(&result_floats, precision);
+        let result_norms = self.mode_norm_sq.clone();
+
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
     /// Softmax activation along a specified dimension.
     ///
     /// Computes softmax(x_i) = exp(x_i) / sum(exp(x_j)) for all j in that dimension.
@@ -1627,6 +1682,684 @@ impl ResonantTensor {
             result_shape.push(1);
         }
         Self::from_lattice(lattice, result_shape, mode_norm_sq)
+    }
+
+    /// Sum reduction along a dimension.
+    ///
+    /// Computes sum of elements along specified dimension, preserving Q(φ) lattice.
+    pub fn sum_core(
+        &self,
+        dim: Option<usize>,
+        keepdim: bool,
+        precision: i64,
+    ) -> Result<ResonantTensor, ResonantError> {
+        if self.is_empty() {
+            return Err(ResonantError::ShapeMismatch(
+                "Sum on empty tensor".to_string(),
+            ));
+        }
+
+        let ndim = self.shape.len();
+        let axis = match dim {
+            Some(d) if d < ndim => Some(d),
+            Some(d) => {
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Dimension {} out of bounds for {}-D tensor",
+                    d, ndim
+                )))
+            }
+            None => None,
+        };
+
+        // Global sum
+        if axis.is_none() {
+            let total: f64 = self.lattice.iter().map(|g| g.to_f64()).sum();
+            let lattice = vec![GoldenExact::find_nearest(total, precision)];
+            let mode_norm_sq = vec![0.0];
+            return Self::from_lattice(lattice, vec![1], mode_norm_sq);
+        }
+
+        let axis = axis.unwrap();
+        let outer: usize = self.shape[..axis].iter().product::<usize>().max(1);
+        let inner: usize = self.shape[axis + 1..].iter().product::<usize>().max(1);
+        let axis_len = self.shape[axis];
+
+        let mut outputs = Vec::with_capacity(outer * inner);
+
+        for outer_idx in 0..outer {
+            for inner_idx in 0..inner {
+                let mut acc = 0.0;
+                for axis_idx in 0..axis_len {
+                    let idx = outer_idx * axis_len * inner + axis_idx * inner + inner_idx;
+                    acc += self.lattice[idx].to_f64();
+                }
+                outputs.push(acc);
+            }
+        }
+
+        let mut result_shape = if keepdim {
+            let mut shape = self.shape.clone();
+            shape[axis] = 1;
+            shape
+        } else {
+            let mut shape = self.shape.clone();
+            shape.remove(axis);
+            if shape.is_empty() {
+                vec![1]
+            } else {
+                shape
+            }
+        };
+
+        let mode_norm_sq: Vec<f64> = (0..outputs.len()).map(|i| (i as f64).powi(2)).collect();
+        let lattice = snap_to_lattice(&outputs, precision);
+        if result_shape.is_empty() {
+            result_shape.push(1);
+        }
+        Self::from_lattice(lattice, result_shape, mode_norm_sq)
+    }
+
+    /// Max reduction along a dimension.
+    ///
+    /// Finds maximum element along specified dimension.
+    pub fn max_core(
+        &self,
+        dim: Option<usize>,
+        keepdim: bool,
+        precision: i64,
+    ) -> Result<ResonantTensor, ResonantError> {
+        if self.is_empty() {
+            return Err(ResonantError::ShapeMismatch(
+                "Max on empty tensor".to_string(),
+            ));
+        }
+
+        let ndim = self.shape.len();
+        let axis = match dim {
+            Some(d) if d < ndim => Some(d),
+            Some(d) => {
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Dimension {} out of bounds for {}-D tensor",
+                    d, ndim
+                )))
+            }
+            None => None,
+        };
+
+        // Global max
+        if axis.is_none() {
+            let max_val = self
+                .lattice
+                .iter()
+                .map(|g| g.to_f64())
+                .fold(f64::NEG_INFINITY, |a, b| a.max(b));
+            let lattice = vec![GoldenExact::find_nearest(max_val, precision)];
+            let mode_norm_sq = vec![0.0];
+            return Self::from_lattice(lattice, vec![1], mode_norm_sq);
+        }
+
+        let axis = axis.unwrap();
+        let outer: usize = self.shape[..axis].iter().product::<usize>().max(1);
+        let inner: usize = self.shape[axis + 1..].iter().product::<usize>().max(1);
+        let axis_len = self.shape[axis];
+
+        let mut outputs = Vec::with_capacity(outer * inner);
+
+        for outer_idx in 0..outer {
+            for inner_idx in 0..inner {
+                let mut max_val = f64::NEG_INFINITY;
+                for axis_idx in 0..axis_len {
+                    let idx = outer_idx * axis_len * inner + axis_idx * inner + inner_idx;
+                    max_val = max_val.max(self.lattice[idx].to_f64());
+                }
+                outputs.push(max_val);
+            }
+        }
+
+        let mut result_shape = if keepdim {
+            let mut shape = self.shape.clone();
+            shape[axis] = 1;
+            shape
+        } else {
+            let mut shape = self.shape.clone();
+            shape.remove(axis);
+            if shape.is_empty() {
+                vec![1]
+            } else {
+                shape
+            }
+        };
+
+        let mode_norm_sq: Vec<f64> = (0..outputs.len()).map(|i| (i as f64).powi(2)).collect();
+        let lattice = snap_to_lattice(&outputs, precision);
+        if result_shape.is_empty() {
+            result_shape.push(1);
+        }
+        Self::from_lattice(lattice, result_shape, mode_norm_sq)
+    }
+
+    /// Min reduction along a dimension.
+    ///
+    /// Finds minimum element along specified dimension.
+    pub fn min_core(
+        &self,
+        dim: Option<usize>,
+        keepdim: bool,
+        precision: i64,
+    ) -> Result<ResonantTensor, ResonantError> {
+        if self.is_empty() {
+            return Err(ResonantError::ShapeMismatch(
+                "Min on empty tensor".to_string(),
+            ));
+        }
+
+        let ndim = self.shape.len();
+        let axis = match dim {
+            Some(d) if d < ndim => Some(d),
+            Some(d) => {
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Dimension {} out of bounds for {}-D tensor",
+                    d, ndim
+                )))
+            }
+            None => None,
+        };
+
+        // Global min
+        if axis.is_none() {
+            let min_val = self
+                .lattice
+                .iter()
+                .map(|g| g.to_f64())
+                .fold(f64::INFINITY, |a, b| a.min(b));
+            let lattice = vec![GoldenExact::find_nearest(min_val, precision)];
+            let mode_norm_sq = vec![0.0];
+            return Self::from_lattice(lattice, vec![1], mode_norm_sq);
+        }
+
+        let axis = axis.unwrap();
+        let outer: usize = self.shape[..axis].iter().product::<usize>().max(1);
+        let inner: usize = self.shape[axis + 1..].iter().product::<usize>().max(1);
+        let axis_len = self.shape[axis];
+
+        let mut outputs = Vec::with_capacity(outer * inner);
+
+        for outer_idx in 0..outer {
+            for inner_idx in 0..inner {
+                let mut min_val = f64::INFINITY;
+                for axis_idx in 0..axis_len {
+                    let idx = outer_idx * axis_len * inner + axis_idx * inner + inner_idx;
+                    min_val = min_val.min(self.lattice[idx].to_f64());
+                }
+                outputs.push(min_val);
+            }
+        }
+
+        let mut result_shape = if keepdim {
+            let mut shape = self.shape.clone();
+            shape[axis] = 1;
+            shape
+        } else {
+            let mut shape = self.shape.clone();
+            shape.remove(axis);
+            if shape.is_empty() {
+                vec![1]
+            } else {
+                shape
+            }
+        };
+
+        let mode_norm_sq: Vec<f64> = (0..outputs.len()).map(|i| (i as f64).powi(2)).collect();
+        let lattice = snap_to_lattice(&outputs, precision);
+        if result_shape.is_empty() {
+            result_shape.push(1);
+        }
+        Self::from_lattice(lattice, result_shape, mode_norm_sq)
+    }
+
+    /// Product reduction along a dimension.
+    ///
+    /// Computes product of elements along specified dimension.
+    pub fn prod_core(
+        &self,
+        dim: Option<usize>,
+        keepdim: bool,
+        precision: i64,
+    ) -> Result<ResonantTensor, ResonantError> {
+        if self.is_empty() {
+            return Err(ResonantError::ShapeMismatch(
+                "Prod on empty tensor".to_string(),
+            ));
+        }
+
+        let ndim = self.shape.len();
+        let axis = match dim {
+            Some(d) if d < ndim => Some(d),
+            Some(d) => {
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Dimension {} out of bounds for {}-D tensor",
+                    d, ndim
+                )))
+            }
+            None => None,
+        };
+
+        // Global product
+        if axis.is_none() {
+            let product: f64 = self.lattice.iter().map(|g| g.to_f64()).product();
+            let lattice = vec![GoldenExact::find_nearest(product, precision)];
+            let mode_norm_sq = vec![0.0];
+            return Self::from_lattice(lattice, vec![1], mode_norm_sq);
+        }
+
+        let axis = axis.unwrap();
+        let outer: usize = self.shape[..axis].iter().product::<usize>().max(1);
+        let inner: usize = self.shape[axis + 1..].iter().product::<usize>().max(1);
+        let axis_len = self.shape[axis];
+
+        let mut outputs = Vec::with_capacity(outer * inner);
+
+        for outer_idx in 0..outer {
+            for inner_idx in 0..inner {
+                let mut acc = 1.0;
+                for axis_idx in 0..axis_len {
+                    let idx = outer_idx * axis_len * inner + axis_idx * inner + inner_idx;
+                    acc *= self.lattice[idx].to_f64();
+                }
+                outputs.push(acc);
+            }
+        }
+
+        let mut result_shape = if keepdim {
+            let mut shape = self.shape.clone();
+            shape[axis] = 1;
+            shape
+        } else {
+            let mut shape = self.shape.clone();
+            shape.remove(axis);
+            if shape.is_empty() {
+                vec![1]
+            } else {
+                shape
+            }
+        };
+
+        let mode_norm_sq: Vec<f64> = (0..outputs.len()).map(|i| (i as f64).powi(2)).collect();
+        let lattice = snap_to_lattice(&outputs, precision);
+        if result_shape.is_empty() {
+            result_shape.push(1);
+        }
+        Self::from_lattice(lattice, result_shape, mode_norm_sq)
+    }
+
+    /// Norm reduction along a dimension.
+    ///
+    /// Computes p-norm along specified dimension.
+    pub fn norm_core(
+        &self,
+        p: f64,
+        dim: Option<usize>,
+        keepdim: bool,
+        precision: i64,
+    ) -> Result<ResonantTensor, ResonantError> {
+        if self.is_empty() {
+            return Err(ResonantError::ShapeMismatch(
+                "Norm on empty tensor".to_string(),
+            ));
+        }
+
+        let ndim = self.shape.len();
+        let axis = match dim {
+            Some(d) if d < ndim => Some(d),
+            Some(d) => {
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Dimension {} out of bounds for {}-D tensor",
+                    d, ndim
+                )))
+            }
+            None => None,
+        };
+
+        // Global norm
+        if axis.is_none() {
+            let norm_val: f64 = self
+                .lattice
+                .iter()
+                .map(|g| g.to_f64().abs().powf(p))
+                .sum::<f64>()
+                .powf(1.0 / p);
+            let lattice = vec![GoldenExact::find_nearest(norm_val, precision)];
+            let mode_norm_sq = vec![0.0];
+            return Self::from_lattice(lattice, vec![1], mode_norm_sq);
+        }
+
+        let axis = axis.unwrap();
+        let outer: usize = self.shape[..axis].iter().product::<usize>().max(1);
+        let inner: usize = self.shape[axis + 1..].iter().product::<usize>().max(1);
+        let axis_len = self.shape[axis];
+
+        let mut outputs = Vec::with_capacity(outer * inner);
+
+        for outer_idx in 0..outer {
+            for inner_idx in 0..inner {
+                let mut acc = 0.0;
+                for axis_idx in 0..axis_len {
+                    let idx = outer_idx * axis_len * inner + axis_idx * inner + inner_idx;
+                    acc += self.lattice[idx].to_f64().abs().powf(p);
+                }
+                outputs.push(acc.powf(1.0 / p));
+            }
+        }
+
+        let mut result_shape = if keepdim {
+            let mut shape = self.shape.clone();
+            shape[axis] = 1;
+            shape
+        } else {
+            let mut shape = self.shape.clone();
+            shape.remove(axis);
+            if shape.is_empty() {
+                vec![1]
+            } else {
+                shape
+            }
+        };
+
+        let mode_norm_sq: Vec<f64> = (0..outputs.len()).map(|i| (i as f64).powi(2)).collect();
+        let lattice = snap_to_lattice(&outputs, precision);
+        if result_shape.is_empty() {
+            result_shape.push(1);
+        }
+        Self::from_lattice(lattice, result_shape, mode_norm_sq)
+    }
+
+    /// Masked select using a boolean mask.
+    ///
+    /// Selects elements where mask is true, flattening the result.
+    pub fn masked_select_core(
+        &self,
+        mask: &ResonantTensor,
+    ) -> Result<ResonantTensor, ResonantError> {
+        if self.shape != mask.shape {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Mask shape {:?} doesn't match tensor shape {:?}",
+                mask.shape, self.shape
+            )));
+        }
+
+        let mut selected_lattice = Vec::new();
+        let mut selected_norms = Vec::new();
+
+        for i in 0..self.lattice.len() {
+            // Check if mask value is "true" (non-zero)
+            if mask.lattice[i].to_f64().abs() > 1e-10 {
+                selected_lattice.push(self.lattice[i]);
+                selected_norms.push(self.mode_norm_sq[i]);
+            }
+        }
+
+        let result_shape = vec![selected_lattice.len()];
+        Self::from_lattice(selected_lattice, result_shape, selected_norms)
+    }
+
+    /// Gather elements along a dimension using indices.
+    ///
+    /// This is more general than index_select - allows arbitrary indexing.
+    pub fn gather_core(
+        &self,
+        dim: usize,
+        index: &ResonantTensor,
+    ) -> Result<ResonantTensor, ResonantError> {
+        let ndim = self.shape.len();
+        if dim >= ndim {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Dimension {} out of bounds for {}-D tensor",
+                dim, ndim
+            )));
+        }
+
+        if index.shape.len() != self.shape.len() {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Index tensor must have same number of dimensions as source tensor"
+            )));
+        }
+
+        // For now, implement a simple case where index has same shape as self
+        if index.shape != self.shape {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Index tensor shape {:?} doesn't match source shape {:?}",
+                index.shape, self.shape
+            )));
+        }
+
+        let mut result_lattice = Vec::with_capacity(self.lattice.len());
+        let mut result_norms = Vec::with_capacity(self.mode_norm_sq.len());
+
+        // Calculate strides for source tensor
+        let mut strides = vec![1; ndim];
+        for i in (0..ndim - 1).rev() {
+            strides[i] = strides[i + 1] * self.shape[i + 1];
+        }
+
+        for i in 0..index.lattice.len() {
+            let idx_val = index.lattice[i].to_f64() as usize;
+            if idx_val >= self.shape[dim] {
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Index {} out of bounds for dimension {} with size {}",
+                    idx_val, dim, self.shape[dim]
+                )));
+            }
+
+            // Calculate coordinates for this element
+            let mut coords = vec![0; ndim];
+            let mut remaining = i;
+            for d in 0..ndim {
+                coords[d] = remaining / strides[d];
+                remaining %= strides[d];
+            }
+
+            // Replace the target dimension with the index value
+            coords[dim] = idx_val;
+
+            // Calculate flat index in source
+            let flat_idx = coords
+                .iter()
+                .zip(strides.iter())
+                .map(|(c, s)| c * s)
+                .sum::<usize>();
+            result_lattice.push(self.lattice[flat_idx]);
+            result_norms.push(self.mode_norm_sq[flat_idx]);
+        }
+
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
+    /// Scatter values into a tensor along a dimension.
+    ///
+    /// This is the inverse of gather.
+    pub fn scatter_core(
+        &mut self,
+        dim: usize,
+        index: &ResonantTensor,
+        src: &ResonantTensor,
+    ) -> Result<(), ResonantError> {
+        let ndim = self.shape.len();
+        if dim >= ndim {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Dimension {} out of bounds for {}-D tensor",
+                dim, ndim
+            )));
+        }
+
+        if index.shape != src.shape {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Index shape {:?} doesn't match source shape {:?}",
+                index.shape, src.shape
+            )));
+        }
+
+        // Calculate strides for destination tensor
+        let mut strides = vec![1; ndim];
+        for i in (0..ndim - 1).rev() {
+            strides[i] = strides[i + 1] * self.shape[i + 1];
+        }
+
+        for i in 0..index.lattice.len() {
+            let idx_val = index.lattice[i].to_f64() as usize;
+            if idx_val >= self.shape[dim] {
+                return Err(ResonantError::ShapeMismatch(format!(
+                    "Index {} out of bounds for dimension {} with size {}",
+                    idx_val, dim, self.shape[dim]
+                )));
+            }
+
+            // Calculate coordinates for this element
+            let mut coords = vec![0; ndim];
+            let mut remaining = i;
+            for d in 0..ndim {
+                coords[d] = remaining / strides[d];
+                remaining %= strides[d];
+            }
+
+            // Replace the target dimension with the index value
+            coords[dim] = idx_val;
+
+            // Calculate flat index in destination
+            let flat_idx = coords
+                .iter()
+                .zip(strides.iter())
+                .map(|(c, s)| c * s)
+                .sum::<usize>();
+            self.lattice[flat_idx] = src.lattice[i];
+        }
+
+        Ok(())
+    }
+
+    /// Element-wise comparison: equal.
+    pub fn eq_core(&self, other: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
+        if self.shape != other.shape {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Shape mismatch: {:?} vs {:?}",
+                self.shape, other.shape
+            )));
+        }
+
+        let mut result_lattice = Vec::with_capacity(self.lattice.len());
+        for i in 0..self.lattice.len() {
+            let a = self.lattice[i].to_f64();
+            let b = other.lattice[i].to_f64();
+            let eq = if (a - b).abs() < 1e-10 { 1.0 } else { 0.0 };
+            result_lattice.push(GoldenExact::find_nearest(eq, 10)); // Low precision for boolean
+        }
+
+        let result_norms = vec![0.0; result_lattice.len()];
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
+    /// Element-wise comparison: not equal.
+    pub fn ne_core(&self, other: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
+        if self.shape != other.shape {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Shape mismatch: {:?} vs {:?}",
+                self.shape, other.shape
+            )));
+        }
+
+        let mut result_lattice = Vec::with_capacity(self.lattice.len());
+        for i in 0..self.lattice.len() {
+            let a = self.lattice[i].to_f64();
+            let b = other.lattice[i].to_f64();
+            let ne = if (a - b).abs() >= 1e-10 { 1.0 } else { 0.0 };
+            result_lattice.push(GoldenExact::find_nearest(ne, 10));
+        }
+
+        let result_norms = vec![0.0; result_lattice.len()];
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
+    /// Element-wise comparison: less than.
+    pub fn lt_core(&self, other: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
+        if self.shape != other.shape {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Shape mismatch: {:?} vs {:?}",
+                self.shape, other.shape
+            )));
+        }
+
+        let mut result_lattice = Vec::with_capacity(self.lattice.len());
+        for i in 0..self.lattice.len() {
+            let a = self.lattice[i].to_f64();
+            let b = other.lattice[i].to_f64();
+            let lt = if a < b { 1.0 } else { 0.0 };
+            result_lattice.push(GoldenExact::find_nearest(lt, 10));
+        }
+
+        let result_norms = vec![0.0; result_lattice.len()];
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
+    /// Element-wise comparison: less than or equal.
+    pub fn le_core(&self, other: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
+        if self.shape != other.shape {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Shape mismatch: {:?} vs {:?}",
+                self.shape, other.shape
+            )));
+        }
+
+        let mut result_lattice = Vec::with_capacity(self.lattice.len());
+        for i in 0..self.lattice.len() {
+            let a = self.lattice[i].to_f64();
+            let b = other.lattice[i].to_f64();
+            let le = if a <= b { 1.0 } else { 0.0 };
+            result_lattice.push(GoldenExact::find_nearest(le, 10));
+        }
+
+        let result_norms = vec![0.0; result_lattice.len()];
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
+    /// Element-wise comparison: greater than.
+    pub fn gt_core(&self, other: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
+        if self.shape != other.shape {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Shape mismatch: {:?} vs {:?}",
+                self.shape, other.shape
+            )));
+        }
+
+        let mut result_lattice = Vec::with_capacity(self.lattice.len());
+        for i in 0..self.lattice.len() {
+            let a = self.lattice[i].to_f64();
+            let b = other.lattice[i].to_f64();
+            let gt = if a > b { 1.0 } else { 0.0 };
+            result_lattice.push(GoldenExact::find_nearest(gt, 10));
+        }
+
+        let result_norms = vec![0.0; result_lattice.len()];
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
+    }
+
+    /// Element-wise comparison: greater than or equal.
+    pub fn ge_core(&self, other: &ResonantTensor) -> Result<ResonantTensor, ResonantError> {
+        if self.shape != other.shape {
+            return Err(ResonantError::ShapeMismatch(format!(
+                "Shape mismatch: {:?} vs {:?}",
+                self.shape, other.shape
+            )));
+        }
+
+        let mut result_lattice = Vec::with_capacity(self.lattice.len());
+        for i in 0..self.lattice.len() {
+            let a = self.lattice[i].to_f64();
+            let b = other.lattice[i].to_f64();
+            let ge = if a >= b { 1.0 } else { 0.0 };
+            result_lattice.push(GoldenExact::find_nearest(ge, 10));
+        }
+
+        let result_norms = vec![0.0; result_lattice.len()];
+        Self::from_lattice(result_lattice, self.shape.clone(), result_norms)
     }
 
     /// Concatenate tensors along a specified dimension.
@@ -2169,6 +2902,65 @@ impl ResonantTensor {
         Self::zeros(shape, precision)
     }
 
+    /// Create a ResonantTensor directly on GPU from floats.
+    ///
+    /// This bypasses the CPU creation → GPU transfer for better performance.
+    ///
+    /// Args:
+    ///     data: List of floating-point values
+    ///     shape: Shape of the tensor
+    ///     device_idx: CUDA device index (default: 0)
+    ///     mode_norm_sq: Precomputed |n|² for each mode (optional)
+    ///     precision: Maximum coefficient for golden lattice (default: 100)
+    ///
+    /// Returns:
+    ///     A new ResonantTensor in Crystallized phase on GPU
+    #[cfg(feature = "cuda")]
+    #[staticmethod]
+    #[pyo3(signature = (data, shape, device_idx=0, mode_norm_sq=None, precision=100))]
+    fn from_floats_cuda(
+        data: Vec<f64>,
+        shape: Vec<usize>,
+        device_idx: usize,
+        mode_norm_sq: Option<Vec<f64>>,
+        precision: i64,
+    ) -> PyResult<Self> {
+        // Get CUDA device
+        let device = crate::tensor::cuda::device_manager::get_device(device_idx).map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("CUDA device error: {}", e))
+        })?;
+
+        // Create on CPU first (we need the lattice for GPU operations)
+        let mode_norms =
+            mode_norm_sq.unwrap_or_else(|| (0..data.len()).map(|i| (i as f64).powi(2)).collect());
+        let mut tensor = Self::from_floats(&data, shape, mode_norms, precision).map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("Tensor creation error: {:?}", e))
+        })?;
+
+        // Move directly to GPU by initializing flux
+        tensor.wake_flux(device).map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("GPU initialization error: {:?}", e))
+        })?;
+
+        Ok(tensor)
+    }
+
+    /// Create a ResonantTensor directly on GPU from floats (fallback for non-CUDA builds).
+    #[cfg(not(feature = "cuda"))]
+    #[staticmethod]
+    #[pyo3(signature = (_data, _shape, _device_idx=0, _mode_norm_sq=None, _precision=100))]
+    fn from_floats_cuda(
+        _data: Vec<f64>,
+        _shape: Vec<usize>,
+        _device_idx: usize,
+        _mode_norm_sq: Option<Vec<f64>>,
+        _precision: i64,
+    ) -> PyResult<Self> {
+        Err(pyo3::exceptions::PyRuntimeError::new_err(
+            "CUDA support not compiled",
+        ))
+    }
+
     /// Matrix multiplication: self @ weights.
     ///
     /// Args:
@@ -2449,6 +3241,34 @@ impl ResonantTensor {
         self.exp_core(prec).map_err(|e| e.into())
     }
 
+    /// Sine function.
+    #[pyo3(signature = (precision=None))]
+    fn sin(&self, precision: Option<i64>) -> PyResult<Self> {
+        let prec = precision.unwrap_or(self.precision);
+        self.sin_core(prec).map_err(|e| e.into())
+    }
+
+    /// Cosine function.
+    #[pyo3(signature = (precision=None))]
+    fn cos(&self, precision: Option<i64>) -> PyResult<Self> {
+        let prec = precision.unwrap_or(self.precision);
+        self.cos_core(prec).map_err(|e| e.into())
+    }
+
+    /// Power function.
+    #[pyo3(signature = (exponent, precision=None))]
+    fn pow(&self, exponent: f64, precision: Option<i64>) -> PyResult<Self> {
+        let prec = precision.unwrap_or(self.precision);
+        self.pow_core(exponent, prec).map_err(|e| e.into())
+    }
+
+    /// Square root.
+    #[pyo3(signature = (precision=None))]
+    fn sqrt(&self, precision: Option<i64>) -> PyResult<Self> {
+        let prec = precision.unwrap_or(self.precision);
+        self.sqrt_core(prec).map_err(|e| e.into())
+    }
+
     /// Applies softmax normalization along a specified dimension.
     ///
     /// Uses numerically stable computation: exp(x_i - max(x)) / sum(exp(x_j - max(x)))
@@ -2616,24 +3436,91 @@ impl ResonantTensor {
     /// Variance reduction along an optional dimension (population variance).
     #[pyo3(signature = (dim=None, keepdim=false, precision=None))]
     fn var(&self, dim: Option<i32>, keepdim: bool, precision: Option<i64>) -> PyResult<Self> {
-        let ndim = self.shape.len() as i32;
-        let axis = match dim {
-            Some(d) if d < 0 => {
-                let adj = ndim + d;
-                if adj < 0 {
-                    return Err(ResonantError::ShapeMismatch(format!(
-                        "Dimension {} out of bounds for {}-D tensor",
-                        d, ndim
-                    ))
-                    .into());
-                }
-                Some(adj as usize)
-            }
-            Some(d) => Some(d as usize),
-            None => None,
-        };
         let prec = precision.unwrap_or(self.precision);
+        let axis = dim.map(|d| d as usize);
         self.var_core(axis, keepdim, prec).map_err(|e| e.into())
+    }
+
+    #[pyo3(signature = (dim=None, keepdim=false, precision=None))]
+    fn sum(&self, dim: Option<i32>, keepdim: bool, precision: Option<i64>) -> PyResult<Self> {
+        let prec = precision.unwrap_or(self.precision);
+        let axis = dim.map(|d| d as usize);
+        self.sum_core(axis, keepdim, prec).map_err(|e| e.into())
+    }
+
+    #[pyo3(signature = (dim=None, keepdim=false, precision=None))]
+    fn max(&self, dim: Option<i32>, keepdim: bool, precision: Option<i64>) -> PyResult<Self> {
+        let prec = precision.unwrap_or(self.precision);
+        let axis = dim.map(|d| d as usize);
+        self.max_core(axis, keepdim, prec).map_err(|e| e.into())
+    }
+
+    #[pyo3(signature = (dim=None, keepdim=false, precision=None))]
+    fn min(&self, dim: Option<i32>, keepdim: bool, precision: Option<i64>) -> PyResult<Self> {
+        let prec = precision.unwrap_or(self.precision);
+        let axis = dim.map(|d| d as usize);
+        self.min_core(axis, keepdim, prec).map_err(|e| e.into())
+    }
+
+    #[pyo3(signature = (dim=None, keepdim=false, precision=None))]
+    fn prod(&self, dim: Option<i32>, keepdim: bool, precision: Option<i64>) -> PyResult<Self> {
+        let prec = precision.unwrap_or(self.precision);
+        let axis = dim.map(|d| d as usize);
+        self.prod_core(axis, keepdim, prec).map_err(|e| e.into())
+    }
+
+    #[pyo3(signature = (p=2.0, dim=None, keepdim=false, precision=None))]
+    fn norm(
+        &self,
+        p: f64,
+        dim: Option<i32>,
+        keepdim: bool,
+        precision: Option<i64>,
+    ) -> PyResult<Self> {
+        let prec = precision.unwrap_or(self.precision);
+        let axis = dim.map(|d| d as usize);
+        self.norm_core(p, axis, keepdim, prec).map_err(|e| e.into())
+    }
+
+    fn masked_select(&self, mask: &ResonantTensor) -> PyResult<Self> {
+        self.masked_select_core(mask).map_err(|e| e.into())
+    }
+
+    fn gather(&self, dim: usize, index: &ResonantTensor) -> PyResult<Self> {
+        self.gather_core(dim, index).map_err(|e| e.into())
+    }
+
+    fn scatter(
+        &mut self,
+        dim: usize,
+        index: &ResonantTensor,
+        src: &ResonantTensor,
+    ) -> PyResult<()> {
+        self.scatter_core(dim, index, src).map_err(|e| e.into())
+    }
+
+    fn __eq__(&self, other: &ResonantTensor) -> PyResult<Self> {
+        self.eq_core(other).map_err(|e| e.into())
+    }
+
+    fn __ne__(&self, other: &ResonantTensor) -> PyResult<Self> {
+        self.ne_core(other).map_err(|e| e.into())
+    }
+
+    fn __lt__(&self, other: &ResonantTensor) -> PyResult<Self> {
+        self.lt_core(other).map_err(|e| e.into())
+    }
+
+    fn __le__(&self, other: &ResonantTensor) -> PyResult<Self> {
+        self.le_core(other).map_err(|e| e.into())
+    }
+
+    fn __gt__(&self, other: &ResonantTensor) -> PyResult<Self> {
+        self.gt_core(other).map_err(|e| e.into())
+    }
+
+    fn __ge__(&self, other: &ResonantTensor) -> PyResult<Self> {
+        self.ge_core(other).map_err(|e| e.into())
     }
 
     // =========================================================================

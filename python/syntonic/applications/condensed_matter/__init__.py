@@ -27,21 +27,21 @@ Example:
 from syntonic.applications.condensed_matter.band_theory import (
     BandStructure,
 )
-from syntonic.applications.condensed_matter.superconductivity import (
-    Superconductivity,
-    CooperPair,
+from syntonic.applications.condensed_matter.electrical import (
+    ElectricalQuantities,
 )
 from syntonic.applications.condensed_matter.quantum_hall import (
     QuantumHallEffect,
 )
-from syntonic.applications.condensed_matter.electrical import (
-    ElectricalQuantities,
+from syntonic.applications.condensed_matter.superconductivity import (
+    CooperPair,
+    Superconductivity,
 )
 
 __all__ = [
-    'BandStructure',
-    'Superconductivity',
-    'CooperPair',
-    'QuantumHallEffect',
-    'ElectricalQuantities',
+    "BandStructure",
+    "Superconductivity",
+    "CooperPair",
+    "QuantumHallEffect",
+    "ElectricalQuantities",
 ]

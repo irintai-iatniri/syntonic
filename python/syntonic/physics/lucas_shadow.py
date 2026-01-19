@@ -5,10 +5,9 @@ Implements dark sector predictions via Lucas sequence.
 """
 
 from syntonic.srt.prime_selection import (
-    LUCAS_PRIMES,
+    dark_matter_mass_prediction,
     lucas_number,
     shadow_phase,
-    dark_matter_mass_prediction,
 )
 
 

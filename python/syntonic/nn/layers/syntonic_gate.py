@@ -10,8 +10,9 @@ Source: CRT.md §7.1
 """
 
 from __future__ import annotations
-from typing import Optional
+
 import math
+from typing import Optional
 
 from syntonic._core import ResonantTensor
 from syntonic.nn.layers.resonant_linear import ResonantLinear
@@ -44,7 +45,9 @@ class SyntonicGate:
         [32, 256]
     """
 
-    def __init__(self, d_model: int, hidden_dim: Optional[int] = None, device: str = 'cpu'):
+    def __init__(
+        self, d_model: int, hidden_dim: Optional[int] = None, device: str = "cpu"
+    ):
         """
         Initialize syntonic gate.
 
@@ -93,7 +96,9 @@ class SyntonicGate:
 
         return output
 
-    def get_gate_values(self, x: ResonantTensor, x_processed: ResonantTensor) -> ResonantTensor:
+    def get_gate_values(
+        self, x: ResonantTensor, x_processed: ResonantTensor
+    ) -> ResonantTensor:
         """Return gate values for analysis."""
         # Concatenate
         concat = ResonantTensor.concat([x, x_processed], dim=-1)
@@ -107,7 +112,7 @@ class SyntonicGate:
         return gate
 
     def __repr__(self) -> str:
-        return f'SyntonicGate(d_model={self.d_model}, device={self.device})'
+        return f"SyntonicGate(d_model={self.d_model}, device={self.device})"
 
 
 class AdaptiveGate:
@@ -132,7 +137,7 @@ class AdaptiveGate:
         syntony_temp: float = 1.0,
         min_gate: float = 0.1,
         max_gate: float = 0.9,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize adaptive gate.
@@ -151,11 +156,15 @@ class AdaptiveGate:
         self.device = device
 
         # Gate network: [x, x_diff, x_harm] -> gate
-        self.gate_linear1 = ResonantLinear(d_model * 3, d_model, bias=True, device=device)
+        self.gate_linear1 = ResonantLinear(
+            d_model * 3, d_model, bias=True, device=device
+        )
         self.gate_linear2 = ResonantLinear(d_model, d_model, bias=True, device=device)
 
         # Syntony estimator: [x, x_diff, x_harm] -> syntony ∈ [0, 1]
-        self.syntony_linear1 = ResonantLinear(d_model * 3, d_model // 2, bias=True, device=device)
+        self.syntony_linear1 = ResonantLinear(
+            d_model * 3, d_model // 2, bias=True, device=device
+        )
         self.syntony_linear2 = ResonantLinear(d_model // 2, 1, bias=True, device=device)
 
     def forward(
@@ -241,7 +250,7 @@ class AdaptiveGate:
         return output
 
     def __repr__(self) -> str:
-        return f'AdaptiveGate(d_model={self.d_model}, temp={self.syntony_temp}, gate_range=[{self.min_gate}, {self.max_gate}])'
+        return f"AdaptiveGate(d_model={self.d_model}, temp={self.syntony_temp}, gate_range=[{self.min_gate}, {self.max_gate}])"
 
 
 if __name__ == "__main__":
@@ -268,14 +277,18 @@ if __name__ == "__main__":
 
     # Get gate values
     gate_vals = gate.get_gate_values(x, x_processed)
-    print(f"Gate values (mean): {sum(gate_vals.to_floats()) / len(gate_vals.to_floats()):.4f}")
+    print(
+        f"Gate values (mean): {sum(gate_vals.to_floats()) / len(gate_vals.to_floats()):.4f}"
+    )
 
     print("\nTesting AdaptiveGate...")
     adaptive_gate = AdaptiveGate(4, syntony_temp=1.0)
     print(f"Adaptive gate: {adaptive_gate}")
 
     x_diff = ResonantTensor([0.8, 1.6, 2.4, 3.2, 4.0, 4.8, 5.6, 6.4], [2, 4])
-    y_adaptive, syntony_est = adaptive_gate.forward(x, x_diff, x_processed, return_syntony=True)
+    y_adaptive, syntony_est = adaptive_gate.forward(
+        x, x_diff, x_processed, return_syntony=True
+    )
     print(f"Adaptive output syntony: {y_adaptive.syntony:.4f}")
     print(f"Estimated syntony: {syntony_est:.4f}")
 

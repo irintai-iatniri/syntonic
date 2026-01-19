@@ -8,11 +8,11 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import Optional, Dict, Any, List, TYPE_CHECKING, Callable
-import math
+
 import json
+import math
 from pathlib import Path
-from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from syntonic.nn.training.trainer import RetrocausalTrainer
@@ -25,21 +25,21 @@ S_TARGET = PHI - Q_DEFICIT
 class Callback:
     """Base class for training callbacks."""
 
-    def on_train_begin(self, trainer: 'RetrocausalTrainer'):
+    def on_train_begin(self, trainer: "RetrocausalTrainer"):
         """Called at start of training."""
         pass
 
-    def on_train_end(self, trainer: 'RetrocausalTrainer'):
+    def on_train_end(self, trainer: "RetrocausalTrainer"):
         """Called at end of training."""
         pass
 
-    def on_generation_begin(self, trainer: 'RetrocausalTrainer', generation: int):
+    def on_generation_begin(self, trainer: "RetrocausalTrainer", generation: int):
         """Called at start of each generation (replaces epoch)."""
         pass
 
     def on_generation_end(
         self,
-        trainer: 'RetrocausalTrainer',
+        trainer: "RetrocausalTrainer",
         generation: int,
         metrics: Dict[str, float],
     ):
@@ -82,18 +82,18 @@ class SyntonyCallback(Callback):
 
     def on_generation_end(
         self,
-        trainer: 'RetrocausalTrainer',
+        trainer: "RetrocausalTrainer",
         generation: int,
         metrics: Dict[str, float],
     ):
         """Record syntony at end of generation."""
-        syntony = metrics.get('syntony', 0.0)
+        syntony = metrics.get("syntony", 0.0)
 
         record = {
-            'generation': generation,
-            'syntony': syntony,
-            'fitness': metrics.get('fitness', 0.0),
-            'accuracy': metrics.get('accuracy', 0.0),
+            "generation": generation,
+            "syntony": syntony,
+            "fitness": metrics.get("fitness", 0.0),
+            "accuracy": metrics.get("accuracy", 0.0),
         }
         self.history.append(record)
 
@@ -106,15 +106,19 @@ class SyntonyCallback(Callback):
         if self.verbose and (generation + 1) % self.log_interval == 0:
             gap = self.target_syntony - syntony
             status = "↑" if syntony > self.target_syntony - 0.1 else "↓"
-            print(f"Gen {generation+1}: S={syntony:.4f} (target gap: {gap:.4f}) {status}")
+            print(
+                f"Gen {generation+1}: S={syntony:.4f} (target gap: {gap:.4f}) {status}"
+            )
 
-    def on_train_end(self, trainer: 'RetrocausalTrainer'):
+    def on_train_end(self, trainer: "RetrocausalTrainer"):
         """Print summary at end of training."""
         if self.verbose and self.history:
             final = self.history[-1]
-            print(f"\nTraining complete:")
+            print("\nTraining complete:")
             print(f"  Final syntony: {final['syntony']:.4f}")
-            print(f"  Best syntony: {self._best_syntony:.4f} (gen {self._best_generation + 1})")
+            print(
+                f"  Best syntony: {self._best_syntony:.4f} (gen {self._best_generation + 1})"
+            )
             print(f"  Target: {self.target_syntony:.4f}")
 
     @property
@@ -128,9 +132,11 @@ class SyntonyCallback(Callback):
         if len(self.history) < 10:
             return 0.0
 
-        recent = [h['syntony'] for h in self.history[-10:]]
+        recent = [h["syntony"] for h in self.history[-10:]]
         mid = len(recent) // 2
-        return sum(recent[mid:]) / len(recent[mid:]) - sum(recent[:mid]) / len(recent[:mid])
+        return sum(recent[mid:]) / len(recent[mid:]) - sum(recent[:mid]) / len(
+            recent[:mid]
+        )
 
 
 class ArchonicEarlyStop(Callback):
@@ -180,12 +186,12 @@ class ArchonicEarlyStop(Callback):
 
     def on_generation_end(
         self,
-        trainer: 'RetrocausalTrainer',
+        trainer: "RetrocausalTrainer",
         generation: int,
         metrics: Dict[str, float],
     ):
         """Check for archonic pattern at end of generation."""
-        syntony = metrics.get('syntony', 0.0)
+        syntony = metrics.get("syntony", 0.0)
         self._syntony_history.append(syntony)
 
         # Check improvement
@@ -209,7 +215,9 @@ class ArchonicEarlyStop(Callback):
             elif self._no_improvement_count >= self.patience:
                 self._should_stop = True
                 if self.verbose:
-                    print(f"⛔ Early stopping: archonic pattern for {self.patience} gens")
+                    print(
+                        f"⛔ Early stopping: archonic pattern for {self.patience} gens"
+                    )
 
     def _detect_archonic(self) -> bool:
         """Detect archonic cycling pattern."""
@@ -226,20 +234,23 @@ class ArchonicEarlyStop(Callback):
 
         # Check for no trend (stuck)
         mid = len(recent) // 2
-        trend = sum(recent[mid:]) / len(recent[mid:]) - sum(recent[:mid]) / len(recent[:mid])
+        trend = sum(recent[mid:]) / len(recent[mid:]) - sum(recent[:mid]) / len(
+            recent[:mid]
+        )
 
         return abs(trend) < self.min_improvement
 
-    def _trigger_escape(self, trainer: 'RetrocausalTrainer'):
+    def _trigger_escape(self, trainer: "RetrocausalTrainer"):
         """Inject noise to escape archonic pattern (pure Python version)."""
         import random
-        if hasattr(trainer, 'weights') and trainer.weights is not None:
+
+        if hasattr(trainer, "weights") and trainer.weights is not None:
             # Get weight data and add noise
             data = trainer.weights.to_list()
             noise_scale = self.escape_noise_scale
             noisy = [v + random.gauss(0, noise_scale) for v in data]
             # Update via evolver if available
-            if hasattr(trainer, 'evolver') and trainer.evolver is not None:
+            if hasattr(trainer, "evolver") and trainer.evolver is not None:
                 # The evolver will handle the next mutation
                 pass
 
@@ -291,48 +302,54 @@ class SyntonyCheckpoint(Callback):
 
     def on_generation_end(
         self,
-        trainer: 'RetrocausalTrainer',
+        trainer: "RetrocausalTrainer",
         generation: int,
         metrics: Dict[str, float],
     ):
         """Save checkpoint if criteria met."""
-        syntony = metrics.get('syntony', 0.0)
+        syntony = metrics.get("syntony", 0.0)
 
         # Save best
-        if self.save_best and syntony > self._best_syntony and syntony > self.min_syntony:
+        if (
+            self.save_best
+            and syntony > self._best_syntony
+            and syntony > self.min_syntony
+        ):
             self._best_syntony = syntony
-            self._save_checkpoint(trainer, generation, syntony, 'best_model.json')
+            self._save_checkpoint(trainer, generation, syntony, "best_model.json")
 
         # Regular interval save
         if (generation + 1) % self.save_interval == 0:
             self._save_checkpoint(
-                trainer, generation, syntony, f'checkpoint_gen_{generation+1}.json'
+                trainer, generation, syntony, f"checkpoint_gen_{generation+1}.json"
             )
 
     def _save_checkpoint(
         self,
-        trainer: 'RetrocausalTrainer',
+        trainer: "RetrocausalTrainer",
         generation: int,
         syntony: float,
         filename: str,
     ):
         """Save weights to JSON file."""
         path = self.save_dir / filename
-        
+
         # Get weights as list
         weights_data = []
-        if hasattr(trainer, 'weights') and trainer.weights is not None:
+        if hasattr(trainer, "weights") and trainer.weights is not None:
             weights_data = trainer.weights.to_list()
-        
+
         checkpoint = {
-            'generation': generation,
-            'syntony': syntony,
-            'fitness': getattr(trainer, '_best_fitness', 0.0),
-            'weights': weights_data,
-            'shape': list(trainer.weights.shape()) if hasattr(trainer, 'weights') else [],
+            "generation": generation,
+            "syntony": syntony,
+            "fitness": getattr(trainer, "_best_fitness", 0.0),
+            "weights": weights_data,
+            "shape": (
+                list(trainer.weights.shape()) if hasattr(trainer, "weights") else []
+            ),
         }
-        
-        with open(path, 'w') as f:
+
+        with open(path, "w") as f:
             json.dump(checkpoint, f, indent=2)
 
 
@@ -367,42 +384,42 @@ class MetricsLogger(Callback):
 
     def on_generation_end(
         self,
-        trainer: 'RetrocausalTrainer',
+        trainer: "RetrocausalTrainer",
         generation: int,
         metrics: Dict[str, float],
     ):
         """Log metrics at end of generation."""
         log_entry = {
-            'generation': generation,
-            'metrics': dict(metrics),
+            "generation": generation,
+            "metrics": dict(metrics),
         }
 
         # Weight statistics
-        if self.include_weights and hasattr(trainer, 'weights'):
+        if self.include_weights and hasattr(trainer, "weights"):
             weights = trainer.weights.to_list()
             if weights:
                 mean_w = sum(weights) / len(weights)
                 var_w = sum((w - mean_w) ** 2 for w in weights) / len(weights)
                 max_w = max(abs(w) for w in weights)
-                log_entry['weight_norm_mean'] = math.sqrt(var_w)
-                log_entry['weight_max'] = max_w
+                log_entry["weight_norm_mean"] = math.sqrt(var_w)
+                log_entry["weight_max"] = max_w
 
         self.logs.append(log_entry)
 
-    def on_train_end(self, trainer: 'RetrocausalTrainer'):
+    def on_train_end(self, trainer: "RetrocausalTrainer"):
         """Save logs to file."""
-        with open(self.log_path, 'w') as f:
+        with open(self.log_path, "w") as f:
             json.dump(self.logs, f, indent=2)
 
 
 class FitnessPlateauCallback(Callback):
     """
     Detect fitness plateau and adjust evolution parameters.
-    
+
     When fitness stops improving, increases mutation rate or
     population diversity to escape local optima.
     """
-    
+
     def __init__(
         self,
         patience: int = 10,
@@ -412,7 +429,7 @@ class FitnessPlateauCallback(Callback):
     ):
         """
         Initialize plateau callback.
-        
+
         Args:
             patience: Generations without improvement
             min_delta: Minimum fitness improvement
@@ -423,41 +440,43 @@ class FitnessPlateauCallback(Callback):
         self.min_delta = min_delta
         self.mutation_boost = mutation_boost
         self.verbose = verbose
-        
-        self._best_fitness = float('-inf')
+
+        self._best_fitness = float("-inf")
         self._no_improvement = 0
         self._boosts_applied = 0
-    
+
     def on_generation_end(
         self,
-        trainer: 'RetrocausalTrainer',
+        trainer: "RetrocausalTrainer",
         generation: int,
         metrics: Dict[str, float],
     ):
         """Check for plateau and boost if needed."""
-        fitness = metrics.get('fitness', 0.0)
-        
+        fitness = metrics.get("fitness", 0.0)
+
         if fitness > self._best_fitness + self.min_delta:
             self._best_fitness = fitness
             self._no_improvement = 0
         else:
             self._no_improvement += 1
-        
+
         if self._no_improvement >= self.patience:
             self._apply_boost(trainer, generation)
             self._no_improvement = 0
-    
-    def _apply_boost(self, trainer: 'RetrocausalTrainer', generation: int):
+
+    def _apply_boost(self, trainer: "RetrocausalTrainer", generation: int):
         """Apply mutation boost to escape plateau."""
         self._boosts_applied += 1
-        
+
         if self.verbose:
-            print(f"🔄 Plateau detected at gen {generation + 1}, applying boost #{self._boosts_applied}")
-        
+            print(
+                f"🔄 Plateau detected at gen {generation + 1}, applying boost #{self._boosts_applied}"
+            )
+
         # Boost mutation if evolver is accessible
-        if hasattr(trainer, 'evolver') and trainer.evolver is not None:
+        if hasattr(trainer, "evolver") and trainer.evolver is not None:
             evolver = trainer.evolver
-            if hasattr(evolver, 'mutation_rate'):
+            if hasattr(evolver, "mutation_rate"):
                 evolver.mutation_rate *= self.mutation_boost
 
 
@@ -469,12 +488,12 @@ def default_callbacks(
 ) -> List[Callback]:
     """
     Create a default set of callbacks.
-    
+
     Args:
         save_dir: Directory for checkpoints (optional)
         log_path: Path for metrics log (optional)
         verbose: Print updates
-    
+
     Returns:
         List of callbacks
     """
@@ -483,11 +502,11 @@ def default_callbacks(
         ArchonicEarlyStop(patience=20, verbose=verbose),
         FitnessPlateauCallback(patience=10, verbose=verbose),
     ]
-    
+
     if save_dir:
         callbacks.append(SyntonyCheckpoint(save_dir, save_best=True))
-    
+
     if log_path:
         callbacks.append(MetricsLogger(log_path))
-    
+
     return callbacks

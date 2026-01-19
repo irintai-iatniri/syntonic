@@ -8,12 +8,13 @@ that provides a learnable parameter interface without PyTorch.
 """
 
 from __future__ import annotations
+
 import math
 import random
 from typing import List, Optional
 
-from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic._core import GoldenExact
+from syntonic.nn.resonant_tensor import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 
@@ -32,7 +33,7 @@ class ResonantParameter:
         shape: List[int],
         mode_norm_sq: Optional[List[float]] = None,
         precision: int = 100,
-        device: str = 'cpu'
+        device: str = "cpu",
     ):
         """
         Initialize ResonantParameter.
@@ -47,16 +48,16 @@ class ResonantParameter:
         self.precision = precision
         self.device = device
         self._shape = shape
-        
+
         if mode_norm_sq is None:
             mode_norm_sq = [float(i**2) for i in range(len(data))]
-        
+
         self._tensor = ResonantTensor(
             data=data,
             shape=shape,
             mode_norm_sq=mode_norm_sq,
             precision=precision,
-            device=device
+            device=device,
         )
 
     @classmethod
@@ -95,14 +96,14 @@ class ResonantParameter:
     def mutate(self, mutation_rate: float = 0.1, magnitude: int = 1):
         """
         Mutate the parameter for evolutionary training (RES).
-        
+
         Args:
             mutation_rate: Probability of mutating each element
             magnitude: Maximum change in lattice coefficients
         """
         lattice = self._tensor.to_lattice()
         new_lattice = []
-        
+
         for g in lattice:
             if random.random() < mutation_rate:
                 da = random.randint(-magnitude, magnitude)
@@ -111,18 +112,17 @@ class ResonantParameter:
                 new_lattice.append(new_g)
             else:
                 new_lattice.append(g)
-        
-        self._tensor = ResonantTensor.from_golden_exact(
-            new_lattice, self._shape
-        ).to(self.device)
+
+        self._tensor = ResonantTensor.from_golden_exact(new_lattice, self._shape).to(
+            self.device
+        )
 
     def clone(self) -> "ResonantParameter":
         """Create a copy of this parameter."""
         return ResonantParameter.from_tensor(
-            ResonantTensor.from_golden_exact(
-                self._tensor.to_lattice(),
-                self._shape
-            ).to(self.device)
+            ResonantTensor.from_golden_exact(self._tensor.to_lattice(), self._shape).to(
+                self.device
+            )
         )
 
     def cpu_cycle(self, noise_scale: float = 0.01):
@@ -133,18 +133,18 @@ class ResonantParameter:
         """Move parameter to device."""
         if self.device == device:
             return self
-        
+
         self.device = device
         self._tensor = self._tensor.to(device)
         return self
 
     def cuda(self, device_id: int = 0) -> "ResonantParameter":
         """Move to CUDA."""
-        return self.to(f'cuda:{device_id}')
+        return self.to(f"cuda:{device_id}")
 
     def cpu(self) -> "ResonantParameter":
         """Move to CPU."""
-        return self.to('cpu')
+        return self.to("cpu")
 
     def __repr__(self):
         return f"ResonantParameter(shape={self._shape}, device={self.device}, syntony={self.syntony:.4f})"
@@ -153,18 +153,18 @@ class ResonantParameter:
 if __name__ == "__main__":
     # Test the pure ResonantParameter
     print("Testing ResonantParameter...")
-    
+
     data = [random.gauss(0, 1) for _ in range(16)]
     param = ResonantParameter(data, [4, 4])
     print(f"Parameter: {param}")
     print(f"Initial syntony: {param.syntony:.4f}")
-    
+
     # Mutate
     param.mutate(mutation_rate=0.3, magnitude=1)
     print(f"After mutation: syntony={param.syntony:.4f}")
-    
+
     # Clone
     cloned = param.clone()
     print(f"Cloned: {cloned}")
-    
+
     print("SUCCESS")

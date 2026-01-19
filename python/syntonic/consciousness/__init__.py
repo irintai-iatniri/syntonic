@@ -8,11 +8,11 @@ based on SRT mathematics.
 from syntonic.consciousness.gnosis import (
     COLLAPSE_THRESHOLD,
     GNOSIS_GAP,
-    is_conscious,
-    gnosis_score,
     compute_creativity,
-    optimal_gnosis_target,
     consciousness_probability,
+    gnosis_score,
+    is_conscious,
+    optimal_gnosis_target,
 )
 
 __all__ = [

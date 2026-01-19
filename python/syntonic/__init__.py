@@ -17,88 +17,14 @@ Basic Usage:
     >>> evolved = psi.differentiate().harmonize()
 """
 
-from syntonic._version import __version__, __version_info__
-
-# Core classes and functions
-from syntonic.nn.resonant_tensor import ResonantTensor
-from syntonic.core import (
-    # State class
-    State,
-    state,
-    # ResonantTensor,  # Use Python wrapper from syntonic.nn instead
-    RESConfig,
-    RESResult,
-    ResonantEvolver,
-    # Data types
-    DType,
-    float32,
-    float64,
-    complex64,
-    complex128,
-    int32,
-    int64,
-    winding,
-    get_dtype,
-    promote_dtypes,
-    # Devices
-    Device,
-    cpu,
-    cuda,
-    cuda_is_available,
-    cuda_device_count,
-    srt_transfer_stats,
-    srt_reserve_memory,
-    srt_wait_for_resonance,
-    srt_pool_stats,
-    srt_memory_resonance,
-    _debug_stress_pool_take,
-    device,
-)
-
-# Exceptions
-from syntonic.exceptions import (
-    SyntonicError,
-    DeviceError,
-    DTypeError,
-    ShapeError,
-    LinAlgError,
-)
-
 # Linear algebra submodule
-from syntonic import linalg
-
 # Hypercomplex numbers submodule
-from syntonic import hypercomplex
-from syntonic.hypercomplex import (
-    Quaternion,
-    Octonion,
-    quaternion,
-    octonion,
-)
-
 # Exact arithmetic submodule
-from syntonic import exact
-from syntonic.exact import (
-    GoldenExact,
-    Rational,
-    PHI,
-    PHI_SQUARED,
-    PHI_INVERSE,
-    PHI_NUMERIC,
-    E_STAR_NUMERIC,
-    Q_DEFICIT_NUMERIC,
-    STRUCTURE_DIMENSIONS,
-    fibonacci,
-    lucas,
-    correction_factor,
-    golden_number,
-)
-
 # CRT Core submodule
-from syntonic import crt
-
 # SRT submodule (spectral and geometry)
-from syntonic import srt
+# Applications submodule
+from syntonic import applications, crt, exact, hypercomplex, linalg, srt
+from syntonic._version import __version__, __version_info__
 
 # Prime Selection (SRT/CRT Physics) - temporarily disabled
 # from syntonic.srt.prime_selection import (
@@ -109,23 +35,85 @@ from syntonic import srt
 #     mersenne_number,
 #     lucas_number,
 # )
-
 # Consciousness/Gnosis
 from syntonic.consciousness.gnosis import (
     COLLAPSE_THRESHOLD,
-    is_conscious,
     gnosis_score,
+    is_conscious,
+)
+from syntonic.core import (
+    # Devices
+    Device,
+    # Data types
+    DType,
+    # ResonantTensor,  # Use Python wrapper from syntonic.nn instead
+    RESConfig,
+    ResonantEvolver,
+    RESResult,
+    # State class
+    State,
+    _debug_stress_pool_take,
+    complex64,
+    complex128,
+    cpu,
+    cuda,
+    cuda_device_count,
+    cuda_is_available,
+    device,
+    float32,
+    float64,
+    get_dtype,
+    int32,
+    int64,
+    promote_dtypes,
+    srt_memory_resonance,
+    srt_pool_stats,
+    srt_reserve_memory,
+    srt_transfer_stats,
+    srt_wait_for_resonance,
+    state,
+    winding,
 )
 
 # Extended Hierarchy
 from syntonic.crt.extended_hierarchy import (
-    apply_e7_correction,
     apply_collapse_threshold,
     apply_coxeter_kissing,
+    apply_e7_correction,
+)
+from syntonic.exact import (
+    E_STAR_NUMERIC,
+    PHI,
+    PHI_INVERSE,
+    PHI_NUMERIC,
+    PHI_SQUARED,
+    Q_DEFICIT_NUMERIC,
+    STRUCTURE_DIMENSIONS,
+    GoldenExact,
+    Rational,
+    correction_factor,
+    fibonacci,
+    golden_number,
+    lucas,
 )
 
-# Applications submodule
-from syntonic import applications
+# Exceptions
+from syntonic.exceptions import (
+    DeviceError,
+    DTypeError,
+    LinAlgError,
+    ShapeError,
+    SyntonicError,
+)
+from syntonic.hypercomplex import (
+    Octonion,
+    Quaternion,
+    octonion,
+    quaternion,
+)
+
+# Core classes and functions
+from syntonic.nn.resonant_tensor import ResonantTensor
 
 # Neural Networks submodule (optional, may require PyTorch)
 try:

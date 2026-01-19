@@ -21,35 +21,32 @@ Functions:
     compute_e_star() - Quick E* computation
 """
 
+from syntonic.srt.spectral.heat_kernel import (
+    HeatKernel,
+    heat_kernel,
+)
+from syntonic.srt.spectral.knot_laplacian import (
+    KnotLaplacian,
+    knot_laplacian,
+)
+from syntonic.srt.spectral.mobius import (
+    MobiusRegularizer,
+    compute_e_star,
+    mobius_regularizer,
+)
 from syntonic.srt.spectral.theta_series import (
     ThetaSeries,
     theta_series,
 )
 
-from syntonic.srt.spectral.heat_kernel import (
-    HeatKernel,
-    heat_kernel,
-)
-
-from syntonic.srt.spectral.knot_laplacian import (
-    KnotLaplacian,
-    knot_laplacian,
-)
-
-from syntonic.srt.spectral.mobius import (
-    MobiusRegularizer,
-    mobius_regularizer,
-    compute_e_star,
-)
-
 __all__ = [
-    'ThetaSeries',
-    'theta_series',
-    'HeatKernel',
-    'heat_kernel',
-    'KnotLaplacian',
-    'knot_laplacian',
-    'MobiusRegularizer',
-    'mobius_regularizer',
-    'compute_e_star',
+    "ThetaSeries",
+    "theta_series",
+    "HeatKernel",
+    "heat_kernel",
+    "KnotLaplacian",
+    "knot_laplacian",
+    "MobiusRegularizer",
+    "mobius_regularizer",
+    "compute_e_star",
 ]

@@ -6,10 +6,11 @@ Gnosis Transitions: Phase transitions between Gnosis layers (0→1→2→3)
 """
 
 from __future__ import annotations
-from typing import Dict, Any
-import math
 
-from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
+import math
+from typing import Any, Dict
+
+from syntonic.exact import PHI_NUMERIC
 
 
 class TemporalCrystallization:
@@ -120,20 +121,20 @@ class GnosisTransition:
     """
 
     THRESHOLDS = {
-        1: math.pi,       # Abiogenesis: life threshold
-        2: 2 * math.pi,   # Sentience threshold
-        3: 3 * math.pi,   # Consciousness threshold (also requires K = 24)
+        1: math.pi,  # Abiogenesis: life threshold
+        2: 2 * math.pi,  # Sentience threshold
+        3: 3 * math.pi,  # Consciousness threshold (also requires K = 24)
     }
 
     KISSING_NUMBER = 24  # K(D₄) - required for Layer 3
 
     LAYER_NAMES = {
-        0: 'Matter',
-        1: 'Life',
-        2: 'Sentience',
-        3: 'Consciousness',
-        4: 'Theory of Mind',
-        5: 'Universal',
+        0: "Matter",
+        1: "Life",
+        2: "Sentience",
+        3: "Consciousness",
+        4: "Theory of Mind",
+        5: "Universal",
     }
 
     def gnosis_layer(self, Tv_sum: float, delta_S: float = 0) -> int:
@@ -168,7 +169,7 @@ class GnosisTransition:
         Returns:
             Layer name
         """
-        return self.LAYER_NAMES.get(layer, f'Layer {layer}')
+        return self.LAYER_NAMES.get(layer, f"Layer {layer}")
 
     def threshold_for_layer(self, layer: int) -> float:
         """
@@ -197,12 +198,12 @@ class GnosisTransition:
 
         if current >= 3:
             return {
-                'current_layer': current,
-                'current_name': self.layer_name(current),
-                'next_layer': None,
-                'phase_progress': 1.0,
-                'k_progress': 1.0,
-                'at_maximum': True,
+                "current_layer": current,
+                "current_name": self.layer_name(current),
+                "next_layer": None,
+                "phase_progress": 1.0,
+                "k_progress": 1.0,
+                "at_maximum": True,
             }
 
         next_layer = current + 1
@@ -210,21 +211,23 @@ class GnosisTransition:
         current_threshold = self.threshold_for_layer(current) if current > 0 else 0
 
         phase_range = next_threshold - current_threshold
-        phase_progress = (Tv_sum - current_threshold) / phase_range if phase_range > 0 else 1.0
+        phase_progress = (
+            (Tv_sum - current_threshold) / phase_range if phase_range > 0 else 1.0
+        )
 
         # K progress only matters for Layer 3
         k_progress = min(delta_S / self.KISSING_NUMBER, 1.0) if next_layer == 3 else 1.0
 
         return {
-            'current_layer': current,
-            'current_name': self.layer_name(current),
-            'next_layer': next_layer,
-            'next_name': self.layer_name(next_layer),
-            'phase_progress': phase_progress,
-            'phase_needed': next_threshold - Tv_sum,
-            'k_progress': k_progress,
-            'k_needed': max(0, self.KISSING_NUMBER - delta_S) if next_layer == 3 else 0,
-            'at_maximum': False,
+            "current_layer": current,
+            "current_name": self.layer_name(current),
+            "next_layer": next_layer,
+            "next_name": self.layer_name(next_layer),
+            "phase_progress": phase_progress,
+            "phase_needed": next_threshold - Tv_sum,
+            "k_progress": k_progress,
+            "k_needed": max(0, self.KISSING_NUMBER - delta_S) if next_layer == 3 else 0,
+            "at_maximum": False,
         }
 
     def transition_energy(self, from_layer: int, to_layer: int) -> float:

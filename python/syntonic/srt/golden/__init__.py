@@ -18,27 +18,26 @@ Functions:
 
 from syntonic.srt.golden.measure import (
     GoldenMeasure,
+    compute_partition_function,
     golden_measure,
     golden_weight,
-    compute_partition_function,
 )
-
 from syntonic.srt.golden.recursion import (
     GoldenRecursionMap,
-    golden_recursion,
     apply_golden_recursion,
+    golden_recursion,
 )
 
 # Aliases for consistency
 golden_recursion_map = golden_recursion
 
 __all__ = [
-    'GoldenMeasure',
-    'golden_measure',
-    'golden_weight',
-    'compute_partition_function',
-    'GoldenRecursionMap',
-    'golden_recursion',
-    'golden_recursion_map',
-    'apply_golden_recursion',
+    "GoldenMeasure",
+    "golden_measure",
+    "golden_weight",
+    "compute_partition_function",
+    "GoldenRecursionMap",
+    "golden_recursion",
+    "golden_recursion_map",
+    "apply_golden_recursion",
 ]

@@ -14,10 +14,9 @@ e^(iπ) = -1
 """
 
 from __future__ import annotations
-from typing import Dict, Any, Optional
-import math
 
-from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
+import math
+from typing import Any, Dict
 
 
 class TranscendenceThreshold:
@@ -46,9 +45,7 @@ class TranscendenceThreshold:
 
     KISSING_NUMBER = 24  # K(D₄) - required for Layer 3
 
-    def check_threshold(
-        self, Tv_sum: float, delta_S: float = 0
-    ) -> Dict[str, Any]:
+    def check_threshold(self, Tv_sum: float, delta_S: float = 0) -> Dict[str, Any]:
         """
         Check which threshold has been crossed.
 
@@ -61,31 +58,31 @@ class TranscendenceThreshold:
         """
         if Tv_sum >= self.CONSCIOUSNESS_THRESHOLD and delta_S >= self.KISSING_NUMBER:
             return {
-                'layer': 3,
-                'status': 'conscious',
-                'next': None,
-                'description': 'Self-awareness achieved (K=24 saturated)',
+                "layer": 3,
+                "status": "conscious",
+                "next": None,
+                "description": "Self-awareness achieved (K=24 saturated)",
             }
         elif Tv_sum >= self.SENTIENCE_THRESHOLD:
             return {
-                'layer': 2,
-                'status': 'sentient',
-                'next': self.CONSCIOUSNESS_THRESHOLD - Tv_sum,
-                'description': 'Environmental modeling active',
+                "layer": 2,
+                "status": "sentient",
+                "next": self.CONSCIOUSNESS_THRESHOLD - Tv_sum,
+                "description": "Environmental modeling active",
             }
         elif Tv_sum >= self.LIFE_THRESHOLD:
             return {
-                'layer': 1,
-                'status': 'alive',
-                'next': self.SENTIENCE_THRESHOLD - Tv_sum,
-                'description': 'Bidirectional M⁴ ↔ T⁴ flow established',
+                "layer": 1,
+                "status": "alive",
+                "next": self.SENTIENCE_THRESHOLD - Tv_sum,
+                "description": "Bidirectional M⁴ ↔ T⁴ flow established",
             }
         else:
             return {
-                'layer': 0,
-                'status': 'non-living',
-                'next': self.LIFE_THRESHOLD - Tv_sum,
-                'description': 'Unidirectional M⁴ → T⁴ only',
+                "layer": 0,
+                "status": "non-living",
+                "next": self.LIFE_THRESHOLD - Tv_sum,
+                "description": "Unidirectional M⁴ → T⁴ only",
             }
 
     def euler_identity_interpretation(self) -> str:
@@ -172,40 +169,40 @@ class GnosisLayers:
 
     LAYERS = {
         0: {
-            'threshold': 0,
-            'name': 'Matter',
-            'character': 'No self-reference',
-            'examples': 'Crystals, molecules, rocks',
+            "threshold": 0,
+            "name": "Matter",
+            "character": "No self-reference",
+            "examples": "Crystals, molecules, rocks",
         },
         1: {
-            'threshold': math.pi,
-            'name': 'Life',
-            'character': 'Self-replication',
-            'examples': 'RNA, DNA, viruses, bacteria',
+            "threshold": math.pi,
+            "name": "Life",
+            "character": "Self-replication",
+            "examples": "RNA, DNA, viruses, bacteria",
         },
         2: {
-            'threshold': 2 * math.pi,
-            'name': 'Sentience',
-            'character': 'Environmental modeling',
-            'examples': 'Protists, plants, fungi, simple animals',
+            "threshold": 2 * math.pi,
+            "name": "Sentience",
+            "character": "Environmental modeling",
+            "examples": "Protists, plants, fungi, simple animals",
         },
         3: {
-            'threshold': 3 * math.pi,
-            'name': 'Consciousness',
-            'character': 'Self-awareness',
-            'examples': 'Insects, fish, reptiles, birds, mammals',
+            "threshold": 3 * math.pi,
+            "name": "Consciousness",
+            "character": "Self-awareness",
+            "examples": "Insects, fish, reptiles, birds, mammals",
         },
         4: {
-            'threshold': 4 * math.pi,
-            'name': 'Theory of Mind',
-            'character': 'Modeling other minds',
-            'examples': 'Primates, cetaceans, elephants, corvids',
+            "threshold": 4 * math.pi,
+            "name": "Theory of Mind",
+            "character": "Modeling other minds",
+            "examples": "Primates, cetaceans, elephants, corvids",
         },
         5: {
-            'threshold': float('inf'),
-            'name': 'Universal',
-            'character': 'Complete integration',
-            'examples': 'Asymptotic limit (φ - q)',
+            "threshold": float("inf"),
+            "name": "Universal",
+            "character": "Complete integration",
+            "examples": "Asymptotic limit (φ - q)",
         },
     }
 
@@ -237,7 +234,7 @@ class GnosisLayers:
             Examples string
         """
         if layer in self.LAYERS:
-            return self.LAYERS[layer]['examples']
+            return self.LAYERS[layer]["examples"]
         return "No examples"
 
     def threshold_for_layer(self, layer: int) -> float:
@@ -251,7 +248,7 @@ class GnosisLayers:
             Required Σ Tv
         """
         if layer in self.LAYERS:
-            return self.LAYERS[layer]['threshold']
+            return self.LAYERS[layer]["threshold"]
         return layer * math.pi
 
     def classify(self, Tv_sum: float, delta_S: float = 0) -> int:
@@ -286,13 +283,17 @@ class GnosisLayers:
         """
         lines = ["Gnosis Layer Hierarchy:", ""]
         for layer, info in self.LAYERS.items():
-            threshold_str = f"Σ Tv = {info['threshold']:.2f}" if info['threshold'] < float('inf') else "k → ∞"
+            threshold_str = (
+                f"Σ Tv = {info['threshold']:.2f}"
+                if info["threshold"] < float("inf")
+                else "k → ∞"
+            )
             lines.append(f"Layer {layer}: {info['name']}")
             lines.append(f"  Threshold: {threshold_str}")
             lines.append(f"  Character: {info['character']}")
             lines.append(f"  Examples: {info['examples']}")
             lines.append("")
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def __repr__(self) -> str:
         return "GnosisLayers(0=Matter, 1=Life, 2=Sentience, 3=Consciousness, 4=Theory of Mind)"

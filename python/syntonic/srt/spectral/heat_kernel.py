@@ -17,18 +17,24 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, List, Iterator
-import math
-import cmath
 
-from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
-from syntonic.srt.geometry.winding import WindingState, winding_state, enumerate_windings_by_norm
+import math
+from typing import List, Optional, Tuple
+
 from syntonic.core import (
     heat_kernel_trace as _heat_kernel_trace,
+)
+from syntonic.core import (
     heat_kernel_weighted as _heat_kernel_weighted,
-    heat_kernel_derivative as _heat_kernel_derivative,
-    spectral_zeta as _spectral_zeta,
+)
+from syntonic.core import (
     spectral_zeta_weighted as _spectral_zeta_weighted,
+)
+from syntonic.exact import PHI
+from syntonic.srt.geometry.winding import (
+    WindingState,
+    enumerate_windings_by_norm,
+    winding_state,
 )
 
 # Base eigenvalue for standard Laplacian on T⁴: λₙ = 4π²|n|²
@@ -174,7 +180,7 @@ class HeatKernel:
         a2 = 0.0
 
         coeffs = [a0, a1, a2][:terms]
-        expansion = sum(c * (t ** k) for k, c in enumerate(coeffs))
+        expansion = sum(c * (t**k) for k, c in enumerate(coeffs))
 
         return prefactor * expansion
 
@@ -225,7 +231,7 @@ class HeatKernel:
                 if regularize:
                     continue  # Skip zero mode
                 else:
-                    return complex(float('inf'), 0.0)
+                    return complex(float("inf"), 0.0)
 
             w = self.golden_weight(n)
             total += w * (lambda_n ** (-s))
@@ -250,7 +256,9 @@ class HeatKernel:
 
         return math.exp(-zeta_prime.real)
 
-    def integrated_heat_kernel(self, t_min: float, t_max: float, steps: int = 100) -> float:
+    def integrated_heat_kernel(
+        self, t_min: float, t_max: float, steps: int = 100
+    ) -> float:
         """
         Compute ∫[t_min, t_max] K(t) dt numerically.
 
@@ -271,7 +279,9 @@ class HeatKernel:
 
         return total
 
-    def eigenvalue_density(self, lambda_max: float, bins: int = 50) -> List[Tuple[float, int]]:
+    def eigenvalue_density(
+        self, lambda_max: float, bins: int = 50
+    ) -> List[Tuple[float, int]]:
         """
         Compute eigenvalue density histogram.
 
@@ -306,7 +316,8 @@ class HeatKernel:
             Tuple of (count, expected, relative_error)
         """
         count = sum(
-            1 for n in self._windings
+            1
+            for n in self._windings
             if self.eigenvalue(n) <= lambda_max and self.eigenvalue(n) > 0
         )
 

@@ -12,8 +12,9 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import Optional, List, Tuple
+
 import math
+from typing import List, Optional, Tuple
 
 import syntonic.sn as sn
 from syntonic.nn.resonant_tensor import ResonantTensor
@@ -33,7 +34,7 @@ def _conv1d_pure(
 ) -> Tuple[List[float], int]:
     """
     Pure Python 1D convolution.
-    
+
     Args:
         x: Flattened input (seq_len * in_channels)
         seq_len: Input sequence length
@@ -43,20 +44,20 @@ def _conv1d_pure(
         out_channels: Number of output channels
         stride: Convolution stride
         padding: Padding size
-    
+
     Returns:
         (output_data, output_seq_len)
     """
     # Calculate output length
     out_len = (seq_len + 2 * padding - kernel_size) // stride + 1
-    
+
     output = []
-    
+
     for oc in range(out_channels):
         for i in range(out_len):
             val = 0.0
             pos = i * stride - padding
-            
+
             for k in range(kernel_size):
                 input_pos = pos + k
                 if 0 <= input_pos < seq_len:
@@ -67,16 +68,16 @@ def _conv1d_pure(
                         k_idx = oc * (in_channels * kernel_size) + ic * kernel_size + k
                         if x_idx < len(x) and k_idx < len(kernel):
                             val += x[x_idx] * kernel[k_idx]
-            
+
             output.append(val)
-    
+
     return output, out_len
 
 
 class PureSyntonicConv1d(sn.Module):
     """
     1D convolution with DHSR processing.
-    
+
     Pure Python + ResonantTensor implementation.
 
     Example:
@@ -93,7 +94,7 @@ class PureSyntonicConv1d(sn.Module):
         stride: int = 1,
         padding: int = 1,
         precision: int = 100,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize syntonic 1D convolution.
@@ -119,13 +120,11 @@ class PureSyntonicConv1d(sn.Module):
 
         # Kernel weights
         self.kernel = sn.Parameter(
-            [out_channels, in_channels, kernel_size],
-            init='kaiming',
-            device=device
+            [out_channels, in_channels, kernel_size], init="kaiming", device=device
         )
-        
+
         # Bias
-        self.bias = sn.Parameter([out_channels], init='zeros', device=device)
+        self.bias = sn.Parameter([out_channels], init="zeros", device=device)
 
         self._syntony: Optional[float] = None
 
@@ -142,37 +141,44 @@ class PureSyntonicConv1d(sn.Module):
         x_data = x.to_floats()
         shape = x.shape
         seq_len = shape[0]
-        
+
         kernel_data = self.kernel.to_list()
         bias_data = self.bias.to_list()
-        
+
         # Perform convolution
         output_data, out_len = _conv1d_pure(
-            x_data, seq_len, self.in_channels,
-            kernel_data, self.kernel_size,
-            self.out_channels, self.stride, self.padding
+            x_data,
+            seq_len,
+            self.in_channels,
+            kernel_data,
+            self.kernel_size,
+            self.out_channels,
+            self.stride,
+            self.padding,
         )
-        
+
         # Add bias
         for i, val in enumerate(output_data):
             oc = i % self.out_channels
             output_data[i] = val + bias_data[oc]
-        
+
         # Apply ReLU
         output_data = [max(0.0, v) for v in output_data]
-        
+
         # Reshape to (out_len, out_channels)
         # Currently (out_channels, out_len), need to transpose
         reshaped = []
         for i in range(out_len):
             for oc in range(self.out_channels):
                 reshaped.append(output_data[oc * out_len + i])
-        
+
         mode_norms = [float(i * i) for i in range(len(reshaped))]
-        output = ResonantTensor(reshaped, [out_len, self.out_channels], mode_norms, self.precision)
-        
+        output = ResonantTensor(
+            reshaped, [out_len, self.out_channels], mode_norms, self.precision
+        )
+
         self._syntony = output.syntony
-        
+
         return output
 
     @property
@@ -184,7 +190,7 @@ class PureSyntonicConv1d(sn.Module):
 class PureSyntonicConv2d(sn.Module):
     """
     2D convolution with DHSR processing.
-    
+
     Uses Rust backend for efficient convolution.
     """
 
@@ -196,7 +202,7 @@ class PureSyntonicConv2d(sn.Module):
         stride: int = 1,
         padding: int = 1,
         precision: int = 100,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize syntonic 2D convolution.
@@ -223,13 +229,13 @@ class PureSyntonicConv2d(sn.Module):
         # Kernel weights [out_channels, kernel_h, kernel_w, in_channels]
         self.kernel = sn.Parameter(
             [out_channels, kernel_size, kernel_size, in_channels],
-            init='kaiming',
-            device=device
+            init="kaiming",
+            device=device,
         )
-        
+
         # Bias
-        self.bias = sn.Parameter([out_channels], init='zeros', device=device)
-        
+        self.bias = sn.Parameter([out_channels], init="zeros", device=device)
+
         self._syntony: Optional[float] = None
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
@@ -243,28 +249,35 @@ class PureSyntonicConv2d(sn.Module):
             Output (batch, out_h, out_w, out_channels)
         """
         from syntonic._core import py_conv2d
-        
+
         x_data = x.to_floats()
         shape = x.shape
-        
+
         # Add batch dim if needed
         if len(shape) == 3:
             h, w, c = shape
             input_shape = [1, h, w, c]
         else:
             input_shape = list(shape)
-        
+
         kernel_data = self.kernel.to_list()
-        kernel_shape = [self.out_channels, self.kernel_size, self.kernel_size, self.in_channels]
-        
+        kernel_shape = [
+            self.out_channels,
+            self.kernel_size,
+            self.kernel_size,
+            self.in_channels,
+        ]
+
         # Perform convolution
         output_data, out_shape = py_conv2d(
-            x_data, input_shape,
-            kernel_data, kernel_shape,
+            x_data,
+            input_shape,
+            kernel_data,
+            kernel_shape,
             (self.stride, self.stride),
-            (self.padding, self.padding)
+            (self.padding, self.padding),
         )
-        
+
         # Add bias
         bias_data = self.bias.to_list()
         batch, oh, ow, oc = out_shape
@@ -274,15 +287,15 @@ class PureSyntonicConv2d(sn.Module):
                     for c in range(oc):
                         idx = b * (oh * ow * oc) + h * (ow * oc) + w * oc + c
                         output_data[idx] += bias_data[c]
-        
+
         # Apply ReLU
         output_data = [max(0.0, v) for v in output_data]
-        
+
         mode_norms = [float(i * i) for i in range(len(output_data))]
         output = ResonantTensor(output_data, out_shape, mode_norms, self.precision)
-        
+
         self._syntony = output.syntony
-        
+
         return output
 
     @property
@@ -294,7 +307,7 @@ class PureSyntonicConv2d(sn.Module):
 class PureSyntonicCNN1d(sn.Module):
     """
     Simple 1D CNN for sequence classification.
-    
+
     Pure Python + ResonantTensor implementation.
 
     Architecture:
@@ -315,7 +328,7 @@ class PureSyntonicCNN1d(sn.Module):
         hidden_channels: List[int] = [64, 128],
         kernel_size: int = 3,
         precision: int = 100,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize 1D syntonic CNN.
@@ -332,18 +345,25 @@ class PureSyntonicCNN1d(sn.Module):
 
         self.precision = precision
         self.device = device
-        
+
         # Build conv layers
         self.convs = sn.ModuleList()
         ch = in_channels
         for out_ch in hidden_channels:
-            self.convs.append(PureSyntonicConv1d(
-                ch, out_ch, kernel_size, padding=kernel_size // 2, precision=precision, device=device
-            ))
+            self.convs.append(
+                PureSyntonicConv1d(
+                    ch,
+                    out_ch,
+                    kernel_size,
+                    padding=kernel_size // 2,
+                    precision=precision,
+                    device=device,
+                )
+            )
             ch = out_ch
-        
+
         # Classifier
-        self.classifier = sn.Parameter([ch, num_classes], init='kaiming', device=device)
+        self.classifier = sn.Parameter([ch, num_classes], init="kaiming", device=device)
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
@@ -358,26 +378,27 @@ class PureSyntonicCNN1d(sn.Module):
         # Apply convolutions
         for conv in self.convs:
             x = conv(x)
-        
+
         # Global average pooling
         data = x.to_floats()
         shape = x.shape
         seq_len, channels = shape
-        
+
         pooled = []
         for c in range(channels):
             col_sum = sum(data[s * channels + c] for s in range(seq_len))
             pooled.append(col_sum / seq_len)
-        
+
         pooled_rt = ResonantTensor(
-            pooled, [1, channels],
+            pooled,
+            [1, channels],
             [float(i * i) for i in range(channels)],
-            self.precision
+            self.precision,
         )
-        
+
         # Classifier
         logits = pooled_rt.matmul(self.classifier.tensor)
-        
+
         return logits
 
     @property
@@ -389,45 +410,45 @@ class PureSyntonicCNN1d(sn.Module):
 
 if __name__ == "__main__":
     import random
-    
+
     print("=" * 70)
     print("Pure Syntonic CNN Test")
     print("=" * 70)
-    
+
     in_channels = 16
     seq_len = 20
-    
+
     # Create random input
     data = [random.gauss(0, 0.5) for _ in range(seq_len * in_channels)]
     mode_norms = [float(i * i) for i in range(len(data))]
     x = ResonantTensor(data, [seq_len, in_channels], mode_norms, 100)
-    
+
     print(f"\nInput shape: {x.shape}")
     print(f"Input syntony: {x.syntony:.4f}")
-    
+
     # Test 1D conv
     conv = PureSyntonicConv1d(in_channels=in_channels, out_channels=32, kernel_size=3)
     y = conv(x)
-    
-    print(f"\n1D Conv:")
+
+    print("\n1D Conv:")
     print(f"  Output shape: {y.shape}")
     print(f"  Layer syntony: {conv.syntony:.4f}")
-    
+
     # Test full 1D CNN
     model = PureSyntonicCNN1d(
         in_channels=in_channels, num_classes=5, hidden_channels=[32, 64]
     )
     logits = model(x)
-    
-    print(f"\n1D CNN:")
+
+    print("\n1D CNN:")
     print(f"  Logits shape: {logits.shape}")
     print(f"  Model syntony: {model.syntony:.4f}")
-    
+
     # Test 2D conv stub
-    print(f"\n2D Conv (stub):")
+    print("\n2D Conv (stub):")
     conv2d = PureSyntonicConv2d(3, 64, kernel_size=3)
-    print(f"  Created (API only, forward raises NotImplementedError)")
-    
+    print("  Created (API only, forward raises NotImplementedError)")
+
     print("\n" + "=" * 70)
     print("✓ Pure Syntonic CNN (1D) verified! 2D requires CUDA kernels.")
     print("=" * 70)

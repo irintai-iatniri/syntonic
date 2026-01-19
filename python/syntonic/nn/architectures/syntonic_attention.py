@@ -11,8 +11,9 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import Optional, Tuple, List
+
 import math
+from typing import List, Optional, Tuple
 
 import syntonic.sn as sn
 from syntonic.nn.resonant_tensor import ResonantTensor
@@ -24,7 +25,7 @@ PHI_INV = 1 / PHI
 class PureSyntonicAttention(sn.Module):
     """
     Scaled dot-product attention with syntony tracking.
-    
+
     Pure Python + ResonantTensor implementation.
 
     Example:
@@ -66,19 +67,35 @@ class PureSyntonicAttention(sn.Module):
         Compute attention with syntony tracking.
 
         Args:
-            query: Query tensor (seq_q, d_model)
-            key: Key tensor (seq_k, d_model)
-            value: Value tensor (seq_k, d_model)
+            query: Query tensor (seq_q, d_model) or (d_model,) for single sequence
+            key: Key tensor (seq_k, d_model) or (d_model,) for single sequence
+            value: Value tensor (seq_k, d_model) or (d_model,) for single sequence
 
         Returns:
             (output, attention_syntony)
         """
+        # Handle 1D tensors (single sequence case)
+        original_1d = False
+        if len(query.shape) == 1:
+            original_1d = True
+            d_model = query.shape[0]
+            # Reshape 1D to 2D: [d_model] -> [1, d_model]
+            query = query.view([1, d_model])
+            key = key.view([1, d_model]) if len(key.shape) == 1 else key
+            value = value.view([1, d_model]) if len(value.shape) == 1 else value
+
+        # Ensure minimum 2D for attention computation
+        if len(query.shape) < 2 or len(key.shape) < 2 or len(value.shape) < 2:
+            raise ValueError(
+                f"Attention requires at least 2D tensors. Got shapes: query={query.shape}, key={key.shape}, value={value.shape}"
+            )
+
         # Attention scores: Q @ K^T / sqrt(d)
         # ResonantTensor.matmul(B) computes A @ B^T
         # query: [..., S, D], key: [..., S, D]
         # query.matmul(key) -> query @ key^T -> [..., S, S]
         scores = query.matmul(key)
-        
+
         # Scale
         scores = scores.scalar_mul(1.0 / self.scale)
 
@@ -92,8 +109,10 @@ class PureSyntonicAttention(sn.Module):
         attention_data = attention.to_floats()
         seq_q = attention.shape[-2]
         seq_k = attention.shape[-1]
-        
-        self._attention_syntony = self._compute_attention_syntony(attention_data, seq_q, seq_k)
+
+        self._attention_syntony = self._compute_attention_syntony(
+            attention_data, seq_q, seq_k
+        )
 
         # Apply attention to values: Attn @ V
         # attention: [..., S, S], value: [..., S, D]
@@ -102,9 +121,18 @@ class PureSyntonicAttention(sn.Module):
         # So we need X^T = value => X = value^T
         output = attention.matmul(value.transpose(-2, -1))
 
+        # If original input was 1D, reshape back to 1D output
+        if original_1d and len(output.shape) > 1:
+            # For single sequence attention, output should be [d_model]
+            # output shape is [1, d_model], we want [d_model]
+            d_model_out = output.shape[-1]
+            output = output.view([d_model_out])
+
         return output, self._attention_syntony
 
-    def _compute_attention_syntony(self, attention_data: List[float], seq_q: int, seq_k: int) -> float:
+    def _compute_attention_syntony(
+        self, attention_data: List[float], seq_q: int, seq_k: int
+    ) -> float:
         """
         Compute syntony of attention pattern.
 
@@ -113,17 +141,17 @@ class PureSyntonicAttention(sn.Module):
         """
         eps = 1e-10
         total_entropy = 0.0
-        
+
         for i in range(seq_q):
             row = attention_data[i * seq_k : (i + 1) * seq_k]
             entropy = -sum(p * math.log(p + eps) for p in row)
             total_entropy += entropy
-        
+
         avg_entropy = total_entropy / seq_q if seq_q > 0 else 0.0
         max_entropy = math.log(seq_k) if seq_k > 1 else 1.0
         normalized_entropy = avg_entropy / max_entropy
         syntony = 1.0 - normalized_entropy
-        
+
         return max(0.0, min(1.0, syntony))
 
     @property
@@ -135,7 +163,7 @@ class PureSyntonicAttention(sn.Module):
 class PureMultiHeadSyntonicAttention(sn.Module):
     """
     Multi-head attention with DHSR structure.
-    
+
     Pure Python + ResonantTensor implementation.
 
     Example:
@@ -150,7 +178,7 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         n_heads: int = 8,
         dropout: float = 0.1,
         precision: int = 100,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize multi-head syntonic attention.
@@ -175,13 +203,13 @@ class PureMultiHeadSyntonicAttention(sn.Module):
 
         # Projections as Parameters
         # Uses sn.Parameter which wraps ResonantTensor
-        self.q_proj = sn.Parameter([d_model, d_model], init='kaiming', device=device)
-        self.k_proj = sn.Parameter([d_model, d_model], init='kaiming', device=device)
-        self.v_proj = sn.Parameter([d_model, d_model], init='kaiming', device=device)
-        self.out_proj = sn.Parameter([d_model, d_model], init='kaiming', device=device)
+        self.q_proj = sn.Parameter([d_model, d_model], init="kaiming", device=device)
+        self.k_proj = sn.Parameter([d_model, d_model], init="kaiming", device=device)
+        self.v_proj = sn.Parameter([d_model, d_model], init="kaiming", device=device)
+        self.out_proj = sn.Parameter([d_model, d_model], init="kaiming", device=device)
 
         self.dropout = sn.Dropout(dropout)
-        
+
         self._head_syntonies: List[float] = []
 
     def forward(
@@ -201,35 +229,44 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         Returns:
             Output tensor (seq_q, d_model)
         """
+        # Fix for 1D inputs: treat as single-sequence batch-1
+        original_1d = len(query.shape) == 1
+        if original_1d:
+            query = query.view([1, query.shape[0]])
+        if len(key.shape) == 1:
+            key = key.view([1, key.shape[0]])
+        if len(value.shape) == 1:
+            value = value.view([1, value.shape[0]])
+
         batch_size = query.shape[0] if len(query.shape) > 2 else 1
         seq_q = query.shape[0] if len(query.shape) == 2 else query.shape[1]
         seq_k = key.shape[0] if len(key.shape) == 2 else key.shape[1]
-        
+
         # Project Q, K, V
         # If input is 3D [Batch, Seq, Dim], we need to handle it.
         # ResonantTensor matmul: X @ W^T
         # query: [..., Dim], W_q: [Dim, Dim] (parameter kept as [Out, In])
-        
+
         q = query.matmul(self.q_proj.tensor)
         k = key.matmul(self.k_proj.tensor)
         v = value.matmul(self.v_proj.tensor)
-        
+
         # Reshape for heads: [Batch, Seq, Heads, HeadDim]
         # Since we use 2D/3D flattening often, let's assume we reshape to split last dim
-        
+
         # New shape: [Batch, Seq, Heads, HeadDim]
         # Or if 2D: [Seq, Heads, HeadDim]
         base_shape = q.shape[:-1]
         new_shape = list(base_shape) + [self.n_heads, self.d_head]
-        
+
         q = q.view(new_shape)
         k = k.view(new_shape)
         v = v.view(new_shape)
-        
+
         # Transpose for attention: [Batch, Heads, Seq, HeadDim]
         # Permute: (0, 2, 1, 3) for 4D
-        is_batched = (len(new_shape) == 4)
-        
+        is_batched = len(new_shape) == 4
+
         if is_batched:
             q = q.permute([0, 2, 1, 3])
             k = k.permute([0, 2, 1, 3])
@@ -244,7 +281,7 @@ class PureMultiHeadSyntonicAttention(sn.Module):
 
         # Process heads using BMM (Rust-backend accelerated)
         # Q, K, V are permuted to [Batch, Heads, Seq, HeadDim] (or 3D equivalent)
-        
+
         # 1. Attention Scores: Q @ K^T
         # ResonantTensor.matmul(B) computes A @ B^T
         # So q.matmul(k) computes per-head, per-batch attention scores
@@ -267,13 +304,13 @@ class PureMultiHeadSyntonicAttention(sn.Module):
             scores.softmax(precision=self.precision)
 
         attn = scores
-        
+
         # 2. Output Projection: Attn @ V
         # We need Result = Attn @ V
         # matmul(B) does A @ B^T
         # So providing B = V^T results in A @ (V^T)^T = A @ V
         output_heads = attn.matmul(v.transpose(-2, -1))
-        
+
         # Shape is now [..., Heads, Seq, HeadDim]
 
         # Permute back to [..., Seq, Heads, HeadDim]
@@ -285,16 +322,21 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         # Contiguous/Reshape back to [..., d_model]
         # output_heads is now [..., Seq, Heads, HeadDim]
         # view -> [..., Seq, Heads*HeadDim] = [..., Seq, d_model]
-        
+
         final_shape = list(base_shape) + [self.d_model]
         output = output_heads.view(final_shape)
-        
+
         # Final projection
         output = output.matmul(self.out_proj.tensor)
-        
+
+        # Convert back to 1D if original input was 1D
+        if original_1d and len(output.shape) > 1:
+            # Output shape is [1, d_model], convert to [d_model]
+            output = output.view([output.shape[-1]])
+
         # Syntony tracking
         self._head_syntonies = [output.syntony]
-        
+
         return output
 
     @property
@@ -307,35 +349,35 @@ class PureMultiHeadSyntonicAttention(sn.Module):
 
 if __name__ == "__main__":
     import random
-    
+
     print("=" * 70)
     print("Pure Syntonic Attention Test")
     print("=" * 70)
-    
+
     d_model = 32
     seq_len = 8
-    
+
     # Create random input
     # Shape [seq_len, d_model]
     data = [random.gauss(0, 0.5) for _ in range(seq_len * d_model)]
     x = ResonantTensor(data, [seq_len, d_model])
-    
+
     print(f"\nInput shape: {x.shape}")
     print(f"Input syntony: {x.syntony:.4f}")
-    
+
     # Test single-head attention
     attn = PureSyntonicAttention(d_model=d_model)
     output, syntony = attn(x, x, x)
-    
-    print(f"\nSingle-head attention:")
+
+    print("\nSingle-head attention:")
     print(f"  Output shape: {output.shape}")
     print(f"  Attention syntony: {syntony:.4f}")
-    
+
     # Test multi-head attention
     mha = PureMultiHeadSyntonicAttention(d_model=d_model, n_heads=4)
     output = mha(x, x, x)
-    
-    print(f"\nMulti-head attention:")
+
+    print("\nMulti-head attention:")
     print(f"  Output shape: {output.shape}")
     print(f"  Syntony: {mha.syntony:.4f}")
 
@@ -343,12 +385,12 @@ if __name__ == "__main__":
     print("\nTesting Slicing:")
     print(f"  x[0] shape: {x[0].shape}")
     print(f"  x[0:2] shape: {x[0:2].shape}")
-    
+
     # Verify slicing integrity
     x_slice = x[0:2]
     assert x_slice.shape == [2, d_model]
     print("  Slicing verification passed")
-    
+
     print("\n" + "=" * 70)
     print("✓ Pure Syntonic Attention and Tensor Features verified!")
     print("=" * 70)

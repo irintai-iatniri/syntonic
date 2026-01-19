@@ -19,17 +19,25 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, Iterator, List
-import math
 
-from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
-from syntonic.srt.lattice import NULL_VECTORS, QuadraticForm
-from syntonic.srt.geometry.winding import WindingState, winding_state, enumerate_windings_by_norm
+import math
+from typing import Optional, Tuple
+
 from syntonic.core import (
-    theta_series_evaluate as _theta_series_evaluate,
-    theta_series_weighted as _theta_series_weighted,
     theta_series_derivative as _theta_series_derivative,
 )
+from syntonic.core import (
+    theta_series_evaluate as _theta_series_evaluate,
+)
+from syntonic.core import (
+    theta_series_weighted as _theta_series_weighted,
+)
+from syntonic.exact import PHI
+from syntonic.srt.geometry.winding import (
+    WindingState,
+    enumerate_windings_by_norm,
+)
+from syntonic.srt.lattice import NULL_VECTORS, QuadraticForm
 
 
 class ThetaSeries:

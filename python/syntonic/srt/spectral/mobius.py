@@ -19,10 +19,11 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, List, Callable
-import math
 
-from syntonic.exact import PHI, PHI_NUMERIC, E_STAR_NUMERIC, GoldenExact
+import math
+from typing import Callable, List, Optional, Tuple
+
+from syntonic.exact import E_STAR_NUMERIC, PHI
 
 
 def mobius(n: int) -> int:
@@ -122,7 +123,9 @@ class MobiusRegularizer:
         """Maximum terms in sums."""
         return self._max_terms
 
-    def mobius_sum(self, f: Callable[[int], float], max_n: Optional[int] = None) -> float:
+    def mobius_sum(
+        self, f: Callable[[int], float], max_n: Optional[int] = None
+    ) -> float:
         """
         Compute Möbius sum Σ_{n=1}^N μ(n)·f(n).
 
@@ -233,7 +236,7 @@ class MobiusRegularizer:
         for n in range(1, terms + 1):
             mu_n = self._mobius_cache.get(n, mobius(n))
             if mu_n != 0:
-                exp_term = math.exp(-math.pi / (self._phi ** n))
+                exp_term = math.exp(-math.pi / (self._phi**n))
                 total += mu_n / n * exp_term
 
         return self._phi * total + math.exp(math.pi) - math.pi
@@ -306,7 +309,7 @@ class MobiusRegularizer:
             return []
         sieve = [True] * (n + 1)
         sieve[0] = sieve[1] = False
-        for i in range(2, int(n ** 0.5) + 1):
+        for i in range(2, int(n**0.5) + 1):
             if sieve[i]:
                 for j in range(i * i, n + 1, i):
                     sieve[j] = False

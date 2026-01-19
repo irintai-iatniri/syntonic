@@ -12,9 +12,10 @@ Source: CRT.md §10, §12.2
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any
+
 import math
+from dataclasses import dataclass
+from typing import Any, Dict, List
 
 PHI = (1 + math.sqrt(5)) / 2
 Q_DEFICIT = 0.027395146920
@@ -102,9 +103,9 @@ def detect_archonic_pattern(
     # 2. High variance (cycling)
     # 3. Low trend (stuck)
     is_archonic = (
-        target_gap > min_gap and
-        variance > variance_threshold and
-        abs(trend) < trend_threshold
+        target_gap > min_gap
+        and variance > variance_threshold
+        and abs(trend) < trend_threshold
     )
 
     if not is_archonic:
@@ -116,14 +117,19 @@ def detect_archonic_pattern(
         )
 
     # Compute severity (0-1)
-    severity = min(1.0, (
-        0.4 * (target_gap / S_TARGET) +
-        0.3 * min(1.0, variance / variance_threshold) +
-        0.3 * (1.0 - abs(trend) / trend_threshold)
-    ))
+    severity = min(
+        1.0,
+        (
+            0.4 * (target_gap / S_TARGET)
+            + 0.3 * min(1.0, variance / variance_threshold)
+            + 0.3 * (1.0 - abs(trend) / trend_threshold)
+        ),
+    )
 
     # Determine duration (how long has this been archonic?)
-    duration = _compute_archonic_duration(syntony_history, variance_threshold, trend_threshold)
+    duration = _compute_archonic_duration(
+        syntony_history, variance_threshold, trend_threshold
+    )
 
     # Generate recommendation
     recommendation = _generate_recommendation(severity, duration, variance, trend)
@@ -150,7 +156,7 @@ def _compute_archonic_duration(
 
     duration = 0
     for end in range(len(history), 20, -10):
-        window = history[max(0, end-50):end]
+        window = history[max(0, end - 50) : end]
         if len(window) < 20:
             break
 
@@ -158,9 +164,15 @@ def _compute_archonic_duration(
         var_S = sum((s - mean_S) ** 2 for s in window) / len(window)
 
         mid = len(window) // 2
-        trend = sum(window[mid:]) / len(window[mid:]) - sum(window[:mid]) / len(window[:mid])
+        trend = sum(window[mid:]) / len(window[mid:]) - sum(window[:mid]) / len(
+            window[:mid]
+        )
 
-        if var_S > var_threshold and abs(trend) < trend_threshold and mean_S < S_TARGET - 0.1:
+        if (
+            var_S > var_threshold
+            and abs(trend) < trend_threshold
+            and mean_S < S_TARGET - 0.1
+        ):
             duration += 10
         else:
             break
@@ -294,9 +306,9 @@ class ArchonicDetector:
     def get_summary(self) -> Dict[str, Any]:
         """Get detector summary."""
         return {
-            'total_steps': len(self._history),
-            'archonic_steps': self._total_archonic_steps,
-            'archonic_fraction': self.archonic_fraction,
-            'alert_count': self._alert_count,
-            'current_syntony': self._history[-1] if self._history else None,
+            "total_steps": len(self._history),
+            "archonic_steps": self._total_archonic_steps,
+            "archonic_fraction": self.archonic_fraction,
+            "alert_count": self._alert_count,
+            "current_syntony": self._history[-1] if self._history else None,
         }

@@ -12,13 +12,14 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import Optional, List
-import math
 
-from syntonic.nn.resonant_tensor import ResonantTensor
+import math
+from typing import List, Optional
+
 from syntonic.nn.layers import HarmonizationLayer, SyntonicNorm
 from syntonic.nn.layers.resonant_linear import ResonantLinear
 from syntonic.nn.layers.resonant_parameter import ResonantParameter
+from syntonic.nn.resonant_tensor import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 PHI_INV = 1 / PHI
@@ -65,7 +66,9 @@ class PurePositionalEncoding:
         # Precompute positional encodings
         self.pe_cache = self._compute_pe(max_len, d_model, use_golden)
 
-    def _compute_pe(self, max_len: int, d_model: int, use_golden: bool) -> List[List[float]]:
+    def _compute_pe(
+        self, max_len: int, d_model: int, use_golden: bool
+    ) -> List[List[float]]:
         """Precompute positional encoding table."""
         pe = []
 
@@ -133,7 +136,7 @@ class PurePositionalEncoding:
         return ResonantTensor(output_data, x.shape, device=x.device)
 
     def __repr__(self) -> str:
-        return f'PurePositionalEncoding(d_model={self.d_model}, max_len={self.max_len}, golden={self.use_golden})'
+        return f"PurePositionalEncoding(d_model={self.d_model}, max_len={self.max_len}, golden={self.use_golden})"
 
 
 class PureWindingEmbedding:
@@ -161,7 +164,7 @@ class PureWindingEmbedding:
         embedding_dim: int,
         num_windings: int = 8,
         learnable: bool = False,  # Not supported in pure version
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize winding embedding.
@@ -236,7 +239,9 @@ class PureWindingEmbedding:
 
         # Shape: (batch * seq_len, 2 * num_windings)
         winding_dim = 2 * self.num_windings
-        winding_tensor = ResonantTensor(all_features, [len(flat_indices), winding_dim], device=self.device)
+        winding_tensor = ResonantTensor(
+            all_features, [len(flat_indices), winding_dim], device=self.device
+        )
 
         # Project to embedding dimension
         embeddings = self.projection.forward(winding_tensor)
@@ -251,7 +256,7 @@ class PureWindingEmbedding:
         return embeddings
 
     def __repr__(self) -> str:
-        return f'PureWindingEmbedding(vocab={self.num_embeddings}, embed_dim={self.embedding_dim}, windings={self.num_windings})'
+        return f"PureWindingEmbedding(vocab={self.num_embeddings}, embed_dim={self.embedding_dim}, windings={self.num_windings})"
 
 
 class PureSyntonicEmbedding:
@@ -278,7 +283,7 @@ class PureSyntonicEmbedding:
         padding_idx: Optional[int] = None,
         harmonize: bool = True,
         scale_by_sqrt_dim: bool = True,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize syntonic embedding.
@@ -304,13 +309,13 @@ class PureSyntonicEmbedding:
         for i in range(num_embeddings * embedding_dim):
             # Simple random initialization (Gaussian approximation using central limit)
             # In production, would use proper random number generation
-            val = (sum([(i * 7919 + j * 104729) % 1000 / 1000.0 for j in range(12)]) - 6.0) * std
+            val = (
+                sum([(i * 7919 + j * 104729) % 1000 / 1000.0 for j in range(12)]) - 6.0
+            ) * std
             embedding_data.append(val)
 
         self.embedding_table = ResonantParameter(
-            embedding_data,
-            [num_embeddings, embedding_dim],
-            device=device
+            embedding_data, [num_embeddings, embedding_dim], device=device
         )
 
         if harmonize:
@@ -341,7 +346,9 @@ class PureSyntonicEmbedding:
                 end = start + self.embedding_dim
                 embedding_data.extend(table_floats[start:end])
 
-        embeddings = ResonantTensor(embedding_data, [len(token_indices), self.embedding_dim], device=self.device)
+        embeddings = ResonantTensor(
+            embedding_data, [len(token_indices), self.embedding_dim], device=self.device
+        )
 
         # Scale by sqrt(dim) for stable attention
         if self.scale_by_sqrt_dim:
@@ -356,16 +363,16 @@ class PureSyntonicEmbedding:
         return embeddings
 
     def __repr__(self) -> str:
-        return f'PureSyntonicEmbedding(vocab={self.num_embeddings}, embed_dim={self.embedding_dim})'
+        return f"PureSyntonicEmbedding(vocab={self.num_embeddings}, embed_dim={self.embedding_dim})"
 
 
 if __name__ == "__main__":
     # Test the pure embeddings
     from syntonic.nn.resonant_tensor import ResonantTensor
 
-    print("="*70)
+    print("=" * 70)
     print("Testing PurePositionalEncoding...")
-    print("="*70)
+    print("=" * 70)
 
     pe = PurePositionalEncoding(d_model=8, max_len=100, use_golden=True)
     print(f"Positional encoding: {pe}")
@@ -381,11 +388,13 @@ if __name__ == "__main__":
     x_pe_3d = pe.forward(x_3d)
     print(f"Batched output shape: {x_pe_3d.shape}, syntony: {x_pe_3d.syntony:.4f}")
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("Testing PureWindingEmbedding...")
-    print("="*70)
+    print("=" * 70)
 
-    winding_embed = PureWindingEmbedding(num_embeddings=100, embedding_dim=16, num_windings=4)
+    winding_embed = PureWindingEmbedding(
+        num_embeddings=100, embedding_dim=16, num_windings=4
+    )
     print(f"Winding embedding: {winding_embed}")
     print(f"Coprime windings: {winding_embed.windings}")
 
@@ -394,17 +403,19 @@ if __name__ == "__main__":
     embeddings = winding_embed.forward(tokens)
     print(f"Embeddings shape: {embeddings.shape}, syntony: {embeddings.syntony:.4f}")
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("Testing PureSyntonicEmbedding...")
-    print("="*70)
+    print("=" * 70)
 
-    syntonic_embed = PureSyntonicEmbedding(num_embeddings=50, embedding_dim=16, harmonize=True)
+    syntonic_embed = PureSyntonicEmbedding(
+        num_embeddings=50, embedding_dim=16, harmonize=True
+    )
     print(f"Syntonic embedding: {syntonic_embed}")
 
     tokens2 = [1, 5, 10]
     embeddings2 = syntonic_embed.forward(tokens2)
     print(f"Embeddings shape: {embeddings2.shape}, syntony: {embeddings2.syntony:.4f}")
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SUCCESS - All pure embedding classes working!")
-    print("="*70)
+    print("=" * 70)

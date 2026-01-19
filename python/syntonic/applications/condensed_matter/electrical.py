@@ -9,7 +9,6 @@ Electrical Quantities from SRT geometry.
 """
 
 from __future__ import annotations
-import math
 
 from syntonic.exact import PHI_NUMERIC
 
@@ -86,7 +85,7 @@ class ElectricalQuantities:
             Resistance
         """
         if mobility <= 0:
-            return float('inf')
+            return float("inf")
         return decoherence / mobility
 
     def diode_threshold(self) -> float:
@@ -148,7 +147,7 @@ class ElectricalQuantities:
             Current
         """
         if R <= 0:
-            return float('inf')
+            return float("inf")
         return V / R
 
     def power(self, V: float, I: float) -> float:

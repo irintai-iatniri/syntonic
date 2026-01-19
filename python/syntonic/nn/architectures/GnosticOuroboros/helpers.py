@@ -6,15 +6,16 @@ pure ResonantTensor equivalents.
 """
 
 from __future__ import annotations
+
 import math
 import random
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from syntonic.nn.resonant_tensor import ResonantTensor
 
 
-def compute_tensor_norm(tensor: 'ResonantTensor') -> float:
+def compute_tensor_norm(tensor: "ResonantTensor") -> float:
     """
     Compute Frobenius norm of a tensor.
 
@@ -62,7 +63,7 @@ def create_identity_mask(n: int) -> List[List[bool]]:
     return [[i != j for j in range(n)] for i in range(n)]
 
 
-def extract_column(tensor: 'ResonantTensor', col: int) -> 'ResonantTensor':
+def extract_column(tensor: "ResonantTensor", col: int) -> "ResonantTensor":
     """
     Extract single column from 2D tensor.
 
@@ -85,7 +86,7 @@ def extract_column(tensor: 'ResonantTensor', col: int) -> 'ResonantTensor':
     return ResonantTensor(col_data, [batch_size, 1])
 
 
-def extract_columns(tensor: 'ResonantTensor', cols: List[int]) -> 'ResonantTensor':
+def extract_columns(tensor: "ResonantTensor", cols: List[int]) -> "ResonantTensor":
     """
     Extract multiple columns from 2D tensor.
 
@@ -111,10 +112,10 @@ def extract_columns(tensor: 'ResonantTensor', cols: List[int]) -> 'ResonantTenso
 
 
 def broadcast_multiply(
-    tensor: 'ResonantTensor',
-    weights: 'ResonantTensor',
+    tensor: "ResonantTensor",
+    weights: "ResonantTensor",
     weight_col: int,
-) -> 'ResonantTensor':
+) -> "ResonantTensor":
     """
     Multiply tensor by a broadcast weight column.
 
@@ -146,7 +147,7 @@ def broadcast_multiply(
     return ResonantTensor(result_data, tensor.shape)
 
 
-def tensor_clone(tensor: 'ResonantTensor') -> 'ResonantTensor':
+def tensor_clone(tensor: "ResonantTensor") -> "ResonantTensor":
     """
     Create a deep copy of a tensor.
 
@@ -163,7 +164,7 @@ def tensor_clone(tensor: 'ResonantTensor') -> 'ResonantTensor':
     return ResonantTensor(tensor.to_floats(), list(tensor.shape))
 
 
-def randn_like(tensor: 'ResonantTensor', scale: float = 1.0) -> 'ResonantTensor':
+def randn_like(tensor: "ResonantTensor", scale: float = 1.0) -> "ResonantTensor":
     """
     Create random tensor with same shape as input.
 
@@ -186,7 +187,7 @@ def randn_like(tensor: 'ResonantTensor', scale: float = 1.0) -> 'ResonantTensor'
     return ResonantTensor(data, list(tensor.shape))
 
 
-def tensor_add_scalar(tensor: 'ResonantTensor', scalar: float) -> 'ResonantTensor':
+def tensor_add_scalar(tensor: "ResonantTensor", scalar: float) -> "ResonantTensor":
     """
     Add scalar to all elements of tensor.
 
@@ -203,7 +204,7 @@ def tensor_add_scalar(tensor: 'ResonantTensor', scalar: float) -> 'ResonantTenso
     return ResonantTensor(data, list(tensor.shape))
 
 
-def zeros_like(tensor: 'ResonantTensor') -> 'ResonantTensor':
+def zeros_like(tensor: "ResonantTensor") -> "ResonantTensor":
     """
     Create zero tensor with same shape as input.
 
@@ -225,14 +226,14 @@ def zeros_like(tensor: 'ResonantTensor') -> 'ResonantTensor':
 
 
 __all__ = [
-    'compute_tensor_norm',
-    'tensor_argmax',
-    'create_identity_mask',
-    'extract_column',
-    'extract_columns',
-    'broadcast_multiply',
-    'tensor_clone',
-    'randn_like',
-    'tensor_add_scalar',
-    'zeros_like',
+    "compute_tensor_norm",
+    "tensor_argmax",
+    "create_identity_mask",
+    "extract_column",
+    "extract_columns",
+    "broadcast_multiply",
+    "tensor_clone",
+    "randn_like",
+    "tensor_add_scalar",
+    "zeros_like",
 ]

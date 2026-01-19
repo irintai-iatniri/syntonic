@@ -13,14 +13,15 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Tuple, List, Optional, TYPE_CHECKING
+
 import math
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from syntonic.exact import PHI_NUMERIC
 from syntonic.srt.lattice.quadratic_form import QuadraticForm
 
 if TYPE_CHECKING:
-    from syntonic.srt.lattice.e8 import E8Root, E8Lattice
+    from syntonic.srt.lattice.e8 import E8Lattice, E8Root
 
 
 class GoldenProjector:
@@ -146,7 +147,7 @@ class GoldenCone:
 
     def __init__(
         self,
-        e8_lattice: Optional['E8Lattice'] = None,
+        e8_lattice: Optional["E8Lattice"] = None,
         phi: Optional[float] = None,
         tolerance: float = 1e-10,
     ):
@@ -173,7 +174,7 @@ class GoldenCone:
         # Filter all 240 roots to those in golden cone (gives 36)
         self._roots = self._filter_cone_roots()
 
-    def _filter_cone_roots(self) -> List['E8Root']:
+    def _filter_cone_roots(self) -> List["E8Root"]:
         """Filter all E8 roots to those in the golden cone (36 roots)."""
         cone_roots = []
         for root in self._e8.roots:  # All 240 roots, not just positive
@@ -182,7 +183,7 @@ class GoldenCone:
         return cone_roots
 
     @property
-    def roots(self) -> List['E8Root']:
+    def roots(self) -> List["E8Root"]:
         """36 E8 roots in the golden cone."""
         return self._roots.copy()
 
@@ -201,7 +202,7 @@ class GoldenCone:
         """The quadratic form Q."""
         return self._Q
 
-    def is_in_cone(self, root: 'E8Root') -> bool:
+    def is_in_cone(self, root: "E8Root") -> bool:
         """
         Test if root satisfies all cone constraints.
 
@@ -214,7 +215,7 @@ class GoldenCone:
         v = root.to_float()
         return self._Q.is_in_cone(v, self._tolerance)
 
-    def filter_roots(self, roots: List['E8Root']) -> List['E8Root']:
+    def filter_roots(self, roots: List["E8Root"]) -> List["E8Root"]:
         """
         Filter a list of roots to only those in the cone.
 
@@ -226,7 +227,7 @@ class GoldenCone:
         """
         return [r for r in roots if self.is_in_cone(r)]
 
-    def cone_Q_values(self) -> List[Tuple['E8Root', float]]:
+    def cone_Q_values(self) -> List[Tuple["E8Root", float]]:
         """
         Get roots with their Q values.
 
@@ -249,9 +250,9 @@ class GoldenCone:
                 in_cone.append(root)
             else:
                 out_of_cone.append(root)
-        return {'in_cone': in_cone, 'out_of_cone': out_of_cone}
+        return {"in_cone": in_cone, "out_of_cone": out_of_cone}
 
-    def boundary_roots(self, tolerance: float = 1e-8) -> List['E8Root']:
+    def boundary_roots(self, tolerance: float = 1e-8) -> List["E8Root"]:
         """
         Find roots on or near the cone boundary (Q approx 0).
 
@@ -302,7 +303,7 @@ def golden_projector(phi: Optional[float] = None) -> GoldenProjector:
 
 
 def golden_cone(
-    e8: Optional['E8Lattice'] = None,
+    e8: Optional["E8Lattice"] = None,
     phi: Optional[float] = None,
 ) -> GoldenCone:
     """

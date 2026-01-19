@@ -9,20 +9,20 @@ by the Rust backend via from_list/to_list data transfer.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Sequence, Union, Optional, Tuple, List
-import math
-import cmath
-import random
 
-from syntonic._core import TensorStorage, cuda_is_available, cuda_device_count
-from syntonic.core.dtype import DType, float64, float32, complex128, int64, get_dtype
+import math
+import random
+from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Tuple, Union
+
+from syntonic._core import TensorStorage, cuda_is_available
 from syntonic.core.device import Device, cpu
+from syntonic.core.dtype import DType, complex128, float64, get_dtype
 
 if TYPE_CHECKING:
-    from python.syntonic.crt.dhsr_evolution import SyntonyTrajectory
+    pass
 
 # Type aliases
-ArrayLike = Union[Sequence, 'State']
+ArrayLike = Union[Sequence, "State"]
 ShapeLike = Union[int, Tuple[int, ...]]
 
 
@@ -36,6 +36,7 @@ def _flatten(data: Any, depth: int = 0) -> Tuple[List, List[int]]:
     # Handle numpy arrays
     try:
         import numpy as np
+
         if isinstance(data, np.ndarray):
             # Convert numpy array to nested list structure first
             if data.ndim == 0:
@@ -81,7 +82,7 @@ def _unflatten(flat: List, shape: List[int]) -> Any:
     if len(shape) == 0:
         return flat[0] if flat else 0.0  # pragma: no cover
     if len(shape) == 1:
-        return flat[:shape[0]]
+        return flat[: shape[0]]
 
     # Compute subshape size
     subshape = shape[1:]
@@ -131,7 +132,14 @@ class State:
         >>> result = psi.differentiate().harmonize()
     """
 
-    __slots__ = ('_storage', '_dtype', '_device', '_shape', '_syntony_cache', '_gnosis_cache')
+    __slots__ = (
+        "_storage",
+        "_dtype",
+        "_device",
+        "_shape",
+        "_syntony_cache",
+        "_gnosis_cache",
+    )
 
     def __init__(
         self,
@@ -161,10 +169,7 @@ class State:
                 self._dtype = data._dtype
                 self._shape = data._shape
                 self._storage = TensorStorage.from_list(
-                    flat,
-                    list(self._shape),
-                    self._dtype.name,
-                    self._device.name
+                    flat, list(self._shape), self._dtype.name, self._device.name
                 )
                 return
 
@@ -179,7 +184,9 @@ class State:
                 for s in self._shape:
                     expected_size *= s
                 if len(flat_data) != expected_size:
-                    raise ValueError(f"Data length {len(flat_data)} doesn't match shape {self._shape}")
+                    raise ValueError(
+                        f"Data length {len(flat_data)} doesn't match shape {self._shape}"
+                    )
             else:
                 self._shape = tuple(computed_shape)
 
@@ -195,18 +202,13 @@ class State:
             # Create storage via Rust backend - pass data directly
             # Rust handles complex numbers natively via PyO3
             self._storage = TensorStorage.from_list(
-                flat_data,
-                list(self._shape),
-                self._dtype.name,
-                self._device.name
+                flat_data, list(self._shape), self._dtype.name, self._device.name
             )
         elif shape is not None:
             self._dtype = dtype or float64
             self._shape = shape if isinstance(shape, tuple) else (shape,)
             self._storage = TensorStorage.zeros(
-                list(self._shape),
-                self._dtype.name,
-                self._device.name
+                list(self._shape), self._dtype.name, self._device.name
             )
         else:
             raise ValueError("Either data or shape must be provided")
@@ -295,29 +297,33 @@ class State:
         """
         try:
             import numpy as np
+
             flat = self.to_list()
-            if self._dtype.name == 'complex128':
+            if self._dtype.name == "complex128":
                 arr = np.array(flat, dtype=np.complex128)
-            elif self._dtype.name == 'float32':
+            elif self._dtype.name == "float32":
                 arr = np.array(flat, dtype=np.float32)  # pragma: no cover
-            elif self._dtype.name == 'int64':
+            elif self._dtype.name == "int64":
                 arr = np.array(flat, dtype=np.int64)  # pragma: no cover
             else:
                 arr = np.array(flat, dtype=np.float64)
             return arr.reshape(self._shape)
         except ImportError:  # pragma: no cover
-            raise ImportError("NumPy not installed. Use to_list() or tolist() for NumPy-free operation.")
+            raise ImportError(
+                "NumPy not installed. Use to_list() or tolist() for NumPy-free operation."
+            )
 
     def torch(self):
         """Convert to PyTorch tensor."""
         try:
             import torch
+
             flat = self.to_list()
-            if self._dtype.name == 'complex128':
+            if self._dtype.name == "complex128":
                 t = torch.tensor(flat, dtype=torch.complex128)  # pragma: no cover
-            elif self._dtype.name == 'float32':
+            elif self._dtype.name == "float32":
                 t = torch.tensor(flat, dtype=torch.float32)  # pragma: no cover
-            elif self._dtype.name == 'int64':
+            elif self._dtype.name == "int64":
                 t = torch.tensor(flat, dtype=torch.int64)  # pragma: no cover
             else:
                 t = torch.tensor(flat, dtype=torch.float64)
@@ -325,23 +331,23 @@ class State:
         except ImportError:  # pragma: no cover
             raise ImportError("PyTorch not installed")
 
-    def cuda(self, device_id: int = 0) -> 'State':
+    def cuda(self, device_id: int = 0) -> "State":
         """Move to CUDA device."""
         if not cuda_is_available():
             raise RuntimeError("CUDA not available")
         if self._device.is_cuda and self._device.index == device_id:
             return self
-        new_storage = self._storage.to_device(f'cuda:{device_id}')
+        new_storage = self._storage.to_device(f"cuda:{device_id}")
         new_state = object.__new__(State)
         new_state._storage = new_storage
         new_state._dtype = self._dtype
         new_state._shape = self._shape
-        new_state._device = Device('cuda', device_id)
+        new_state._device = Device("cuda", device_id)
         new_state._syntony_cache = None
         new_state._gnosis_cache = None
         return new_state
 
-    def cuda_async(self, device_id: int = 0, wait: bool = True) -> 'State':
+    def cuda_async(self, device_id: int = 0, wait: bool = True) -> "State":
         """Move to CUDA using SRT-optimized async transfer.
 
         When `wait` is True (default), waits for transfer completion.
@@ -357,18 +363,19 @@ class State:
         # Optionally ensure device sync (already synced in Rust path)
         if wait:
             from syntonic.core import TensorStorage
+
             TensorStorage.sync_cuda_device(device_id)
 
         new_state = object.__new__(State)
         new_state._storage = new_storage
         new_state._dtype = self._dtype
         new_state._shape = self._shape
-        new_state._device = Device('cuda', device_id)
+        new_state._device = Device("cuda", device_id)
         new_state._syntony_cache = None
         new_state._gnosis_cache = None
         return new_state
 
-    def cpu_async(self, wait: bool = True) -> 'State':
+    def cpu_async(self, wait: bool = True) -> "State":
         """Move to CPU using SRT-optimized async transfer.
 
         When `wait` is True (default), waits for transfer completion.
@@ -384,6 +391,7 @@ class State:
         # Optionally ensure device sync (already synced in Rust path)
         if wait:
             from syntonic.core import TensorStorage
+
             TensorStorage.sync_cuda_device(device_id)
 
         new_state = object.__new__(State)
@@ -395,11 +403,11 @@ class State:
         new_state._gnosis_cache = None
         return new_state
 
-    def cpu(self) -> 'State':
+    def cpu(self) -> "State":
         """Move to CPU."""
         if self._device.is_cpu:
             return self
-        new_storage = self._storage.to_device('cpu')
+        new_storage = self._storage.to_device("cpu")
         new_state = object.__new__(State)
         new_state._storage = new_storage
         new_state._dtype = self._dtype
@@ -409,7 +417,7 @@ class State:
         new_state._gnosis_cache = None
         return new_state
 
-    def to(self, device: Device) -> 'State':
+    def to(self, device: Device) -> "State":
         """Move to specified device."""
         if device.is_cuda:
             return self.cuda(device.index or 0)
@@ -417,47 +425,47 @@ class State:
 
     # ========== Arithmetic Operations ==========
 
-    def __add__(self, other) -> 'State':
+    def __add__(self, other) -> "State":
         if isinstance(other, State):
             new_storage = self._storage.add(other._storage)
         else:
             new_storage = self._storage.add_scalar(float(other))
         return self._with_storage(new_storage)
 
-    def __radd__(self, other) -> 'State':
+    def __radd__(self, other) -> "State":
         return self.__add__(other)
 
-    def __sub__(self, other) -> 'State':
+    def __sub__(self, other) -> "State":
         if isinstance(other, State):
             new_storage = self._storage.sub(other._storage)
         else:
             new_storage = self._storage.sub_scalar(float(other))
         return self._with_storage(new_storage)
 
-    def __rsub__(self, other) -> 'State':
+    def __rsub__(self, other) -> "State":
         return (-self).__add__(other)
 
-    def __mul__(self, other) -> 'State':
+    def __mul__(self, other) -> "State":
         if isinstance(other, State):
             new_storage = self._storage.mul(other._storage)
         else:
             new_storage = self._storage.mul_scalar(float(other))
         return self._with_storage(new_storage)
 
-    def __rmul__(self, other) -> 'State':
+    def __rmul__(self, other) -> "State":
         return self.__mul__(other)
 
-    def __truediv__(self, other) -> 'State':
+    def __truediv__(self, other) -> "State":
         if isinstance(other, State):
             new_storage = self._storage.div(other._storage)
         else:
             new_storage = self._storage.div_scalar(float(other))
         return self._with_storage(new_storage)
 
-    def __neg__(self) -> 'State':
+    def __neg__(self) -> "State":
         return self._with_storage(self._storage.neg())
 
-    def __matmul__(self, other: 'State') -> 'State':
+    def __matmul__(self, other: "State") -> "State":
         """Matrix multiplication."""
         new_storage = self._storage.matmul(other._storage)
         # Compute result shape for matmul
@@ -467,13 +475,13 @@ class State:
             new_shape = tuple(new_storage.shape)  # pragma: no cover
         return self._with_storage(new_storage, shape=new_shape)
 
-    def __pow__(self, n: int) -> 'State':
+    def __pow__(self, n: int) -> "State":
         """Element-wise power."""
         flat = self.to_list()
-        if self._dtype.name == 'complex128':
-            powered = [x ** n for x in flat]
+        if self._dtype.name == "complex128":
+            powered = [x**n for x in flat]
         else:
-            powered = [x ** n for x in flat]
+            powered = [x**n for x in flat]
         return State(powered, dtype=self._dtype, device=self._device, shape=self._shape)
 
     # ========== Reduction Operations ==========
@@ -490,54 +498,57 @@ class State:
         """
         return float(self._storage.norm(ord))
 
-    def normalize(self) -> 'State':
+    def normalize(self) -> "State":
         """Return normalized state (unit norm)."""
         from syntonic.exceptions import SyntonicError
+
         n = self.norm()
         if n == 0:
             raise SyntonicError("Cannot normalize zero state")
         return self / n
 
-    def sum(self, axis: Optional[int] = None, out=None, **kwargs) -> Union[float, 'State']:
+    def sum(
+        self, axis: Optional[int] = None, out=None, **kwargs
+    ) -> Union[float, "State"]:
         """Sum elements."""
         flat = self.to_list()
         if axis is None:
-            if self._dtype.name == 'complex128':
+            if self._dtype.name == "complex128":
                 return sum(flat)
             return float(sum(flat))
         # Sum along axis - implemented in pure Python
         return self._reduce_axis(axis, lambda vals: sum(vals))
 
-    def mean(self, axis: Optional[int] = None) -> Union[float, 'State']:
+    def mean(self, axis: Optional[int] = None) -> Union[float, "State"]:
         """Mean of elements."""
         flat = self.to_list()
         if axis is None:
-            if self._dtype.name == 'complex128':
+            if self._dtype.name == "complex128":
                 return sum(flat) / len(flat)
             return float(sum(flat)) / len(flat)
         return self._reduce_axis(axis, lambda vals: sum(vals) / len(vals))
 
-    def max(self, axis: Optional[int] = None) -> Union[float, 'State']:
+    def max(self, axis: Optional[int] = None) -> Union[float, "State"]:
         """Maximum element."""
         flat = self.to_list()
         if axis is None:
-            if self._dtype.name == 'complex128':
+            if self._dtype.name == "complex128":
                 # For complex, max by magnitude
                 return max(flat, key=lambda x: abs(x))
             return float(max(flat))
         return self._reduce_axis(axis, lambda vals: max(vals))
 
-    def min(self, axis: Optional[int] = None) -> Union[float, 'State']:
+    def min(self, axis: Optional[int] = None) -> Union[float, "State"]:
         """Minimum element."""
         flat = self.to_list()
         if axis is None:
-            if self._dtype.name == 'complex128':
+            if self._dtype.name == "complex128":
                 # For complex, min by magnitude
                 return min(flat, key=lambda x: abs(x))
             return float(min(flat))
         return self._reduce_axis(axis, lambda vals: min(vals))
 
-    def _reduce_axis(self, axis: int, reducer) -> 'State':
+    def _reduce_axis(self, axis: int, reducer) -> "State":
         """Apply reduction along an axis."""
         nested = self.tolist()
         if axis < 0:
@@ -551,7 +562,12 @@ class State:
         result = self._reduce_recursive(nested, axis, 0, reducer)
         flat, _ = _flatten(result)
 
-        return State(flat, dtype=self._dtype, device=self._device, shape=tuple(new_shape) if new_shape else (1,))
+        return State(
+            flat,
+            dtype=self._dtype,
+            device=self._device,
+            shape=tuple(new_shape) if new_shape else (1,),
+        )
 
     def _reduce_recursive(self, data, axis, current_depth, reducer):
         """Recursively reduce along axis."""
@@ -564,7 +580,9 @@ class State:
                 for i in range(num_elements):
                     column = [row[i] if isinstance(row, list) else row for row in data]
                     if isinstance(column[0], list):
-                        result.append(self._reduce_recursive(column, 0, 0, reducer))  # pragma: no cover
+                        result.append(
+                            self._reduce_recursive(column, 0, 0, reducer)
+                        )  # pragma: no cover
                     else:
                         result.append(reducer(column))
                 return result
@@ -572,47 +590,50 @@ class State:
                 return reducer(data)
         else:
             # Recurse deeper
-            return [self._reduce_recursive(item, axis, current_depth + 1, reducer) for item in data]
+            return [
+                self._reduce_recursive(item, axis, current_depth + 1, reducer)
+                for item in data
+            ]
 
-    def abs(self) -> 'State':
+    def abs(self) -> "State":
         """Element-wise absolute value."""
         return self._with_storage(self._storage.abs())
 
-    def exp(self) -> 'State':
+    def exp(self) -> "State":
         """Element-wise exponential."""
         return self._with_storage(self._storage.exp())
 
-    def log(self) -> 'State':
+    def log(self) -> "State":
         """Element-wise natural logarithm."""
         return self._with_storage(self._storage.log())
 
-    def sin(self) -> 'State':
+    def sin(self) -> "State":
         """Element-wise sine."""
         return self._with_storage(self._storage.sin())
 
-    def cos(self) -> 'State':
+    def cos(self) -> "State":
         """Element-wise cosine."""
         return self._with_storage(self._storage.cos())
 
-    def sqrt(self) -> 'State':
+    def sqrt(self) -> "State":
         """Element-wise square root."""
         return self._with_storage(self._storage.sqrt())
 
-    def tanh(self) -> 'State':
+    def tanh(self) -> "State":
         """Element-wise hyperbolic tangent."""
         return self._with_storage(self._storage.tanh())
 
-    def sigmoid(self) -> 'State':
+    def sigmoid(self) -> "State":
         """Element-wise sigmoid: 1/(1 + exp(-x))."""
         return self._with_storage(self._storage.sigmoid())
 
-    def relu(self) -> 'State':
+    def relu(self) -> "State":
         """Element-wise ReLU: max(0, x)."""
         return self._with_storage(self._storage.relu())
 
-    def exp_golden(self) -> 'State':
+    def exp_golden(self) -> "State":
         """Golden exponential: exp(-x/φ).
-        
+
         Used for computing golden measure weights w(n) = exp(-|n|²/φ).
         This is the unique optimal measure from SRT Axiom 4.
         """
@@ -620,20 +641,20 @@ class State:
 
     def layer_norm(
         self,
-        weight: Optional['State'] = None,
-        bias: Optional['State'] = None,
+        weight: Optional["State"] = None,
+        bias: Optional["State"] = None,
         eps: float = 1e-5,
         golden_target: bool = True,
-    ) -> 'State':
+    ) -> "State":
         """Layer normalization with optional golden target variance.
-        
+
         Args:
             weight: Optional scale parameter (gamma)
             bias: Optional shift parameter (beta)
             eps: Numerical stability epsilon
             golden_target: If True, normalize to variance = 1/φ ≈ 0.618
                           (SRT syntonic equilibrium)
-        
+
         Returns:
             Normalized state
         """
@@ -648,17 +669,17 @@ class State:
         p: float = 0.5,
         training: bool = True,
         seed: Optional[int] = None,
-    ) -> 'State':
+    ) -> "State":
         """Apply dropout regularization.
-        
+
         Uses inverted dropout: active units scaled by 1/(1-p).
         At inference (training=False), returns identity.
-        
+
         Args:
             p: Dropout probability (0 ≤ p < 1)
             training: Whether in training mode
             seed: Optional RNG seed for reproducibility
-        
+
         Returns:
             State with dropout applied
         """
@@ -666,21 +687,21 @@ class State:
 
     # ========== Complex Operations ==========
 
-    def conj(self) -> 'State':
+    def conj(self) -> "State":
         """Complex conjugate."""
         return self._with_storage(self._storage.conj())
 
-    def real(self) -> 'State':
+    def real(self) -> "State":
         """Real part."""
-        if self._dtype.name != 'complex128':
+        if self._dtype.name != "complex128":
             return self
         flat = self.to_list()
         real_flat = [x.real for x in flat]
         return State(real_flat, dtype=float64, device=self._device, shape=self._shape)
 
-    def imag(self) -> 'State':
+    def imag(self) -> "State":
         """Imaginary part."""
-        if self._dtype.name != 'complex128':
+        if self._dtype.name != "complex128":
             flat = [0.0] * self.size
             return State(flat, dtype=float64, device=self._device, shape=self._shape)
         flat = self.to_list()
@@ -688,20 +709,20 @@ class State:
         return State(imag_flat, dtype=float64, device=self._device, shape=self._shape)
 
     @property
-    def T(self) -> 'State':
+    def T(self) -> "State":
         """Transpose."""
         new_storage = self._storage.transpose()
         new_shape = tuple(reversed(self._shape))
         return self._with_storage(new_storage, shape=new_shape)
 
     @property
-    def H(self) -> 'State':
+    def H(self) -> "State":
         """Conjugate transpose (Hermitian adjoint)."""
         return self.conj().T
 
     # ========== Shape Operations ==========
 
-    def reshape(self, *shape) -> 'State':
+    def reshape(self, *shape) -> "State":
         """Reshape state."""
         if len(shape) == 1 and isinstance(shape[0], (list, tuple)):
             shape = tuple(shape[0])
@@ -726,24 +747,28 @@ class State:
         for s in new_shape:
             total *= s
         if total != self.size:
-            raise ValueError(f"Cannot reshape size {self.size} to shape {tuple(new_shape)}")
+            raise ValueError(
+                f"Cannot reshape size {self.size} to shape {tuple(new_shape)}"
+            )
 
         # Create new state with same flat data but different shape
         flat = self.to_list()
-        return State(flat, dtype=self._dtype, device=self._device, shape=tuple(new_shape))
+        return State(
+            flat, dtype=self._dtype, device=self._device, shape=tuple(new_shape)
+        )
 
-    def flatten(self) -> 'State':
+    def flatten(self) -> "State":
         """Flatten to 1D."""
         return self.reshape(-1)
 
-    def squeeze(self) -> 'State':
+    def squeeze(self) -> "State":
         """Remove dimensions of size 1."""
         new_shape = tuple(s for s in self._shape if s != 1)
         if not new_shape:
             new_shape = (1,)
         return self.reshape(new_shape)
 
-    def unsqueeze(self, dim: int) -> 'State':
+    def unsqueeze(self, dim: int) -> "State":
         """Add dimension of size 1."""
         new_shape = list(self._shape)
         if dim < 0:
@@ -753,7 +778,7 @@ class State:
 
     # ========== DHSR Operations ==========
 
-    def differentiate(self, alpha: float = 0.1) -> 'State':
+    def differentiate(self, alpha: float = 0.1) -> "State":
         """
         Apply differentiation operator D-hat.
 
@@ -769,7 +794,7 @@ class State:
         new_storage = self._storage.differentiate(alpha)
         return self._with_storage(new_storage)
 
-    def harmonize(self, strength: float = 0.618, gamma: float = 0.0) -> 'State':
+    def harmonize(self, strength: float = 0.618, gamma: float = 0.0) -> "State":
         """
         Apply harmonization operator H-hat.
 
@@ -786,7 +811,7 @@ class State:
         new_storage = self._storage.harmonize(strength, gamma)
         return self._with_storage(new_storage)
 
-    def recurse(self, alpha: float = 0.1, strength: float = 0.618) -> 'State':
+    def recurse(self, alpha: float = 0.1, strength: float = 0.618) -> "State":
         """
         Apply recursion operator R-hat = H-hat compose D-hat.
 
@@ -803,12 +828,14 @@ class State:
 
     # ========== Indexing ==========
 
-    def __getitem__(self, key) -> 'State':
+    def __getitem__(self, key) -> "State":
         nested = self.tolist()
         result = nested[key]
         if isinstance(result, list):
             flat, shape = _flatten(result)
-            return State(flat, dtype=self._dtype, device=self._device, shape=tuple(shape))
+            return State(
+                flat, dtype=self._dtype, device=self._device, shape=tuple(shape)
+            )
         else:
             # Single element
             return State([result], dtype=self._dtype, device=self._device, shape=(1,))
@@ -823,10 +850,7 @@ class State:
 
         # Pass data directly to Rust - it handles all types
         self._storage = TensorStorage.from_list(
-            flat,
-            list(self._shape),
-            self._dtype.name,
-            self._device.name
+            flat, list(self._shape), self._dtype.name, self._device.name
         )
         self._invalidate_caches()
 
@@ -859,7 +883,7 @@ class State:
         storage: TensorStorage,
         device: Optional[Device] = None,
         shape: Optional[Tuple[int, ...]] = None,
-    ) -> 'State':
+    ) -> "State":
         """Create new State with given storage."""
         new_state = object.__new__(State)
         new_state._storage = storage
@@ -878,44 +902,47 @@ class State:
     # ========== Class Methods ==========
 
     @classmethod
-    def from_list(cls, data: List, shape: Tuple[int, ...], **kwargs) -> 'State':
+    def from_list(cls, data: List, shape: Tuple[int, ...], **kwargs) -> "State":
         """Create State from flat list with explicit shape."""
         state = cls.__new__(cls)
         state._shape = shape
-        state._device = kwargs.get('device', cpu)
-        state._dtype = kwargs.get('dtype', float64)
+        state._device = kwargs.get("device", cpu)
+        state._dtype = kwargs.get("dtype", float64)
         state._syntony_cache = None
         state._gnosis_cache = None
 
         # Pass data directly to Rust - it handles all types
         state._storage = TensorStorage.from_list(
-            data,
-            list(shape),
-            state._dtype.name,
-            state._device.name
+            data, list(shape), state._dtype.name, state._device.name
         )
         return state
 
     @classmethod
-    def from_numpy(cls, arr, **kwargs) -> 'State':
+    def from_numpy(cls, arr, **kwargs) -> "State":
         """Create State from NumPy array."""
         try:
             import numpy as np
+
             flat = arr.flatten().tolist()
             shape = arr.shape
 
             # Infer dtype
             if np.issubdtype(arr.dtype, np.complexfloating):
-                dtype = kwargs.get('dtype', complex128)
+                dtype = kwargs.get("dtype", complex128)
             else:
-                dtype = kwargs.get('dtype', float64)
+                dtype = kwargs.get("dtype", float64)
 
-            return cls(flat, dtype=dtype, shape=shape, **{k: v for k, v in kwargs.items() if k != 'dtype'})
+            return cls(
+                flat,
+                dtype=dtype,
+                shape=shape,
+                **{k: v for k, v in kwargs.items() if k != "dtype"},
+            )
         except ImportError:  # pragma: no cover
             raise ImportError("NumPy not installed")
 
     @classmethod
-    def from_torch(cls, tensor, **kwargs) -> 'State':  # pragma: no cover
+    def from_torch(cls, tensor, **kwargs) -> "State":  # pragma: no cover
         """Create State from PyTorch tensor."""
         flat = tensor.detach().cpu().flatten().tolist()
         shape = tuple(tensor.shape)
@@ -923,6 +950,7 @@ class State:
 
 
 # ========== Factory Function ==========
+
 
 def state(
     data: Optional[ArrayLike] = None,
@@ -946,16 +974,21 @@ def state(
 
 # ========== Namespace for Factory Methods ==========
 
+
 class StateNamespace:
     """Namespace for state creation methods."""
 
     @staticmethod
-    def zeros(shape: ShapeLike, *, dtype: DType = float64, device: Device = cpu) -> State:
+    def zeros(
+        shape: ShapeLike, *, dtype: DType = float64, device: Device = cpu
+    ) -> State:
         """Create zero-filled state."""
         return State(shape=shape, dtype=dtype, device=device)
 
     @staticmethod
-    def ones(shape: ShapeLike, *, dtype: DType = float64, device: Device = cpu) -> State:
+    def ones(
+        shape: ShapeLike, *, dtype: DType = float64, device: Device = cpu
+    ) -> State:
         """Create state filled with ones."""
         shape_tuple = shape if isinstance(shape, tuple) else (shape,)
         size = 1
@@ -1010,7 +1043,9 @@ class StateNamespace:
             return z
 
         if dtype.is_complex:
-            flat = [complex(box_muller(), box_muller()) / math.sqrt(2) for _ in range(size)]
+            flat = [
+                complex(box_muller(), box_muller()) / math.sqrt(2) for _ in range(size)
+            ]
         else:
             flat = [box_muller() for _ in range(size)]
         return State(flat, dtype=dtype, device=device, shape=shape_tuple)

@@ -15,10 +15,10 @@ Example:
 """
 
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Tuple, List, Iterator
-import math
 
+import math
+from dataclasses import dataclass
+from typing import Iterator, List, Tuple
 
 # Kissing number of D4 = consciousness threshold
 K_D4: int = 24
@@ -228,7 +228,9 @@ class D4Lattice:
         A = [[0] * n for _ in range(n)]
         for i in range(n):
             for j in range(n):
-                A[i][j] = 2 * simple[i].inner_product(simple[j]) // simple[j].norm_squared
+                A[i][j] = (
+                    2 * simple[i].inner_product(simple[j]) // simple[j].norm_squared
+                )
         return A
 
     def roots_by_shell(self) -> dict:

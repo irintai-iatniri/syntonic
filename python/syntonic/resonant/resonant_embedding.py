@@ -5,11 +5,12 @@ Uses ResonantTensor for exact Q(φ) arithmetic. NO PYTORCH DEPENDENCIES.
 """
 
 from __future__ import annotations
+
 import math
 import random
-from typing import List, Dict, Optional
+from typing import Dict, List
 
-from syntonic._core import enumerate_windings, WindingState, ResonantTensor
+from syntonic._core import ResonantTensor, WindingState, enumerate_windings
 
 PHI = (1 + math.sqrt(5)) / 2
 
@@ -17,7 +18,7 @@ PHI = (1 + math.sqrt(5)) / 2
 class PureResonantWindingEmbedding:
     """
     Embedding layer for winding states using Resonant Engine.
-    
+
     Uses ResonantTensor for exact lattice storage and evolution.
     """
 
@@ -57,80 +58,79 @@ class PureResonantWindingEmbedding:
         """Initialize embedding matrix with golden scaling."""
         data = []
         mode_norms = []
-        
+
         for w in self.windings:
             norm_sq = w.norm_squared
             golden_scale = math.exp(-norm_sq / (2 * PHI)) / math.sqrt(self.embed_dim)
-            
+
             # Generate embedding for this winding
             for i in range(self.embed_dim):
                 data.append(random.gauss(0, golden_scale))
                 # Mode norm: winding norm + position in embedding
                 mode_norms.append(float(norm_sq + i * i))
-        
+
         self.weight = ResonantTensor(
-            data,
-            [self.num_windings, self.embed_dim],
-            mode_norms,
-            self.precision
+            data, [self.num_windings, self.embed_dim], mode_norms, self.precision
         )
 
     def forward(self, winding: WindingState) -> ResonantTensor:
         """
         Get embedding for a single winding state.
-        
+
         Args:
             winding: WindingState object
-            
+
         Returns:
             Embedding ResonantTensor of shape (embed_dim,)
         """
         key = self._winding_key(winding)
         if key not in self.winding_to_idx:
-            raise ValueError(f"Winding {winding} not in vocabulary (max_n={self.max_n})")
-        
+            raise ValueError(
+                f"Winding {winding} not in vocabulary (max_n={self.max_n})"
+            )
+
         idx = self.winding_to_idx[key]
-        
+
         # Extract the row from the weight matrix
         all_data = self.weight.to_floats()
         start = idx * self.embed_dim
-        embed_data = all_data[start:start + self.embed_dim]
+        embed_data = all_data[start : start + self.embed_dim]
         mode_norms = [float(i * i) for i in range(self.embed_dim)]
-        
+
         return ResonantTensor(embed_data, [self.embed_dim], mode_norms, self.precision)
 
     def batch_forward(self, winding_states: List[WindingState]) -> ResonantTensor:
         """
         Get embeddings for a list of winding states.
-        
+
         Args:
             winding_states: List of WindingState objects
-            
+
         Returns:
             Tensor of shape (batch_size, embed_dim)
         """
         batch_data = []
         batch_mode_norms = []
         all_data = self.weight.to_floats()
-        
+
         for w in winding_states:
             key = self._winding_key(w)
             if key not in self.winding_to_idx:
                 raise ValueError(f"Winding {w} not in vocabulary (max_n={self.max_n})")
             idx = self.winding_to_idx[key]
-            
+
             start = idx * self.embed_dim
-            batch_data.extend(all_data[start:start + self.embed_dim])
-            
+            batch_data.extend(all_data[start : start + self.embed_dim])
+
             # Mode norms
             for i in range(self.embed_dim):
                 batch_mode_norms.append(float(w.norm_squared + i * i))
-        
+
         return ResonantTensor(
             batch_data,
             [len(winding_states), self.embed_dim],
             batch_mode_norms,
-            self.precision
+            self.precision,
         )
 
     def crystallize(self):
@@ -147,18 +147,18 @@ class PureResonantWindingEmbedding:
 
 if __name__ == "__main__":
     print("Testing PureResonantWindingEmbedding...")
-    
+
     embed = PureResonantWindingEmbedding(max_n=2, embed_dim=16)
     print(f"Embedding: {embed}")
-    
+
     windings = embed.windings[:3]
-    
+
     # Single
     e = embed.forward(windings[0])
     print(f"Single: shape={e.shape()}, syntony={e.syntony():.4f}")
-    
+
     # Batch
     X = embed.batch_forward(windings)
     print(f"Batch: shape={X.shape()}")
-    
+
     print("SUCCESS")

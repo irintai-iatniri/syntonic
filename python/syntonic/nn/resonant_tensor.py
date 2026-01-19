@@ -11,8 +11,12 @@ dual representations:
 """
 
 from __future__ import annotations
-from typing import List, Optional, Union, Any
-from syntonic._core import ResonantTensor as _RustResonantTensor, GoldenExact
+
+from typing import List, Optional, Union
+
+from syntonic._core import GoldenExact
+from syntonic._core import ResonantTensor as _RustResonantTensor
+from syntonic.exact import FERMAT_PRIMES, LUCAS_SEQUENCE, MERSENNE_PRIMES
 
 
 class ResonantTensor:
@@ -55,7 +59,7 @@ class ResonantTensor:
         shape: List[int],
         mode_norm_sq: Optional[List[float]] = None,
         precision: int = 100,
-        device: str = 'cpu'
+        device: str = "cpu",
     ):
         """
         Create a ResonantTensor from floating-point data.
@@ -74,20 +78,25 @@ class ResonantTensor:
             >>> norms = [0.0, 1.0, 4.0, 9.0]  # Custom mode structure
             >>> tensor = ResonantTensor([1.0, 2.0, 3.0, 4.0], shape=[2, 2], mode_norm_sq=norms)
         """
-        if device.startswith('cuda'):
+        if device.startswith("cuda"):
             # Parse device index
-            if ':' in device:
-                idx = int(device.split(':')[1])
+            if ":" in device:
+                idx = int(device.split(":")[1])
             else:
                 idx = 0
-                
-            # Create on CPU first then move
-            # TODO: Direct GPU creation if supported by Rust
-            self._inner = _RustResonantTensor(data, shape, mode_norm_sq, precision)
-            self._inner = self._inner.to_device(idx)
+
+            # Try direct GPU creation first (more efficient)
+            try:
+                self._inner = _RustResonantTensor.from_floats_cuda(
+                    data, shape, idx, mode_norm_sq, precision
+                )
+            except (AttributeError, RuntimeError):
+                # Fallback to CPU creation + GPU transfer
+                self._inner = _RustResonantTensor(data, shape, mode_norm_sq, precision)
+                self._inner = self._inner.to_device(idx)
         else:
             self._inner = _RustResonantTensor(data, shape, mode_norm_sq, precision)
-            
+
         self._device_str = device
 
     # =========================================================================
@@ -98,6 +107,11 @@ class ResonantTensor:
     def syntony(self) -> float:
         """Get the current syntony value S ∈ [0, 1]."""
         return self._inner.syntony
+
+    @property
+    def inner(self) -> _RustResonantTensor:
+        """Access the underlying Rust backend object."""
+        return self._inner
 
     @property
     def phase(self) -> str:
@@ -129,7 +143,7 @@ class ResonantTensor:
         data: List[float],
         shape: List[int],
         precision: int = 100,
-        device: str = 'cpu'
+        device: str = "cpu",
     ) -> "ResonantTensor":
         """
         Create from float32 values (alias for constructor).
@@ -149,7 +163,7 @@ class ResonantTensor:
         cls,
         lattice: List[GoldenExact],
         shape: List[int],
-        mode_norm_sq: Optional[List[float]] = None
+        mode_norm_sq: Optional[List[float]] = None,
     ) -> "ResonantTensor":
         """
         Create from exact Q(φ) lattice values.
@@ -168,12 +182,16 @@ class ResonantTensor:
             >>> tensor = ResonantTensor.from_golden_exact(lattice, shape=[2])
         """
         instance = cls.__new__(cls)
-        instance._inner = _RustResonantTensor.from_golden_exact(lattice, shape, mode_norm_sq)
-        instance._device_str = 'cpu' # Default to cpu for lattice creation
+        instance._inner = _RustResonantTensor.from_golden_exact(
+            lattice, shape, mode_norm_sq
+        )
+        instance._device_str = "cpu"  # Default to cpu for lattice creation
         return instance
 
     @classmethod
-    def zeros(cls, shape: List[int], precision: int = 100, device: str = 'cpu') -> "ResonantTensor":
+    def zeros(
+        cls, shape: List[int], precision: int = 100, device: str = "cpu"
+    ) -> "ResonantTensor":
         """
         Create a zero-initialized tensor.
 
@@ -190,13 +208,15 @@ class ResonantTensor:
         """
         instance = cls.__new__(cls)
         instance._inner = _RustResonantTensor.zeros(shape, precision)
-        if device != 'cpu':
+        if device != "cpu":
             instance._inner = instance._inner.to_device(device)
         instance._device_str = device
         return instance
 
     @classmethod
-    def ones(cls, shape: List[int], precision: int = 100, device: str = 'cpu') -> "ResonantTensor":
+    def ones(
+        cls, shape: List[int], precision: int = 100, device: str = "cpu"
+    ) -> "ResonantTensor":
         """
         Create a ones-initialized tensor.
 
@@ -217,14 +237,48 @@ class ResonantTensor:
         return cls([1.0] * size, shape, precision=precision, device=device)
 
     @classmethod
+    def from_floats_cuda(
+        cls,
+        data: List[float],
+        shape: List[int],
+        device_idx: int = 0,
+        mode_norm_sq: Optional[List[float]] = None,
+        precision: int = 100,
+    ) -> "ResonantTensor":
+        """
+        Create a ResonantTensor directly on GPU from floats.
+
+        This bypasses CPU creation → GPU transfer for better performance.
+
+        Args:
+            data: Flattened tensor values
+            shape: Tensor shape
+            device_idx: CUDA device index (default: 0)
+            mode_norm_sq: Mode norms |n|² for each element
+            precision: Lattice precision
+
+        Returns:
+            New ResonantTensor on GPU
+
+        Examples:
+            >>> data = [1.0, 2.0, 3.0, 4.0]
+            >>> tensor = ResonantTensor.from_floats_cuda(data, [2, 2], device_idx=0)
+        """
+        instance = cls.__new__(cls)
+        instance._inner = _RustResonantTensor.from_floats_cuda(
+            data, shape, device_idx, mode_norm_sq, precision
+        )
+        instance._device_str = f"cuda:{device_idx}"
+        return instance
+
+    @classmethod
     def randn(
         cls,
         shape: List[int],
         mean: float = 0.0,
         std: float = 1.0,
         precision: int = 100,
-        device: str = 'cpu'
-
+        device: str = "cpu",
     ) -> "ResonantTensor":
         """
         Create a tensor with random Gaussian values.
@@ -246,6 +300,7 @@ class ResonantTensor:
             >>> tensor = ResonantTensor.randn([10, 10], mean=5.0, std=2.0)
         """
         import random
+
         size = 1
         for dim in shape:
             size *= dim
@@ -305,10 +360,10 @@ class ResonantTensor:
     def to(self, device: str) -> "ResonantTensor":
         """
         Move tensor to device.
-        
+
         Args:
             device: Target device ('cpu', 'cuda:0', etc.)
-            
+
         Returns:
             New tensor on target device (or self if already there)
         """
@@ -317,28 +372,28 @@ class ResonantTensor:
             return self
 
         # Call Rust backend
-        if device == 'cpu':
+        if device == "cpu":
             new_inner = self._inner.to_cpu()
-        elif device.startswith('cuda'):
-            if ':' in device:
-                idx = int(device.split(':')[1])
+        elif device.startswith("cuda"):
+            if ":" in device:
+                idx = int(device.split(":")[1])
             else:
                 idx = 0
             new_inner = self._inner.to_device(idx)
         else:
             raise ValueError(f"Unsupported device: {device}")
-            
+
         new_tensor = ResonantTensor._wrap(new_inner)
         new_tensor._device_str = device
         return new_tensor
 
     def cuda(self, device_id: int = 0) -> "ResonantTensor":
         """Move to CUDA."""
-        return self.to(f'cuda:{device_id}')
+        return self.to(f"cuda:{device_id}")
 
     def cpu(self) -> "ResonantTensor":
         """Move to CPU."""
-        return self.to('cpu')
+        return self.to("cpu")
 
     # =========================================================================
     # Phase Transitions (DHSR Cycle)
@@ -360,7 +415,7 @@ class ResonantTensor:
 
     # Internal wrapper
     @classmethod
-    def _wrap(cls, inner: _RustResonantTensor, device: str = 'cpu') -> "ResonantTensor":
+    def _wrap(cls, inner: _RustResonantTensor, device: str = "cpu") -> "ResonantTensor":
         """Wrap a Rust tensor without triggering __init__."""
         instance = cls.__new__(cls)
         instance._inner = inner
@@ -407,7 +462,9 @@ class ResonantTensor:
         """
         return self._inner.cpu_cycle(noise_scale, precision)
 
-    def batch_cpu_cycle(self, noise_scale: float = 0.01, precision: int = 100) -> List[float]:
+    def batch_cpu_cycle(
+        self, noise_scale: float = 0.01, precision: int = 100
+    ) -> List[float]:
         """
         Run batched D→H cycle (for batch dimension).
 
@@ -532,7 +589,7 @@ class ResonantTensor:
         Apply softmax along a dimension in-place.
 
         Uses numerically stable computation: softmax(x) = exp(x - max(x)) / sum(exp(x - max(x)))
-        
+
         Args:
             dim: Dimension to apply softmax along. If None, defaults to -1 (last dimension).
             precision: Lattice precision
@@ -546,13 +603,94 @@ class ResonantTensor:
         """
         self._inner.softmax(dim, precision)
 
+    def sin(self, precision: int = 100) -> "ResonantTensor":
+        """
+        Sine function: sin(x).
+
+        Computes element-wise sine, snaps result back to Q(φ) lattice.
+
+        Args:
+            precision: Lattice precision for snapping
+
+        Returns:
+            New tensor with sin applied
+
+        Examples:
+            >>> x = ResonantTensor([0.0, 3.14159/2, 3.14159], [3])
+            >>> y = x.sin()
+            >>> # y ≈ [0.0, 1.0, 0.0]
+        """
+        result = self._inner.sin(precision)
+        return ResonantTensor._wrap(result, device=self.device)
+
+    def cos(self, precision: int = 100) -> "ResonantTensor":
+        """
+        Cosine function: cos(x).
+
+        Computes element-wise cosine, snaps result back to Q(φ) lattice.
+
+        Args:
+            precision: Lattice precision for snapping
+
+        Returns:
+            New tensor with cos applied
+
+        Examples:
+            >>> x = ResonantTensor([0.0, 3.14159/2, 3.14159], [3])
+            >>> y = x.cos()
+            >>> # y ≈ [1.0, 0.0, -1.0]
+        """
+        result = self._inner.cos(precision)
+        return ResonantTensor._wrap(result, device=self.device)
+
+    def pow(self, exponent: float, precision: int = 100) -> "ResonantTensor":
+        """
+        Power function: x^exponent.
+
+        Computes element-wise power, snaps result back to Q(φ) lattice.
+
+        Args:
+            exponent: Power to raise each element to
+            precision: Lattice precision for snapping
+
+        Returns:
+            New tensor with power applied
+
+        Examples:
+            >>> x = ResonantTensor([1.0, 2.0, 3.0], [3])
+            >>> y = x.pow(2.0)  # Square each element
+            >>> # y ≈ [1.0, 4.0, 9.0]
+        """
+        result = self._inner.pow(exponent, precision)
+        return ResonantTensor._wrap(result, device=self.device)
+
+    def sqrt(self, precision: int = 100) -> "ResonantTensor":
+        """
+        Square root: sqrt(x).
+
+        Computes element-wise square root, snaps result back to Q(φ) lattice.
+
+        Args:
+            precision: Lattice precision for snapping
+
+        Returns:
+            New tensor with sqrt applied
+
+        Examples:
+            >>> x = ResonantTensor([1.0, 4.0, 9.0], [3])
+            >>> y = x.sqrt()
+            >>> # y ≈ [1.0, 2.0, 3.0]
+        """
+        result = self._inner.sqrt(precision)
+        return ResonantTensor._wrap(result, device=self.device)
+
     def dropout(self, p: float = 0.5) -> None:
         """
         Apply dropout in-place.
-        
+
         Randomly zeroes out elements with probability p.
         Scaling is applied to preserve expected sum.
-        
+
         Args:
             p: Probability of an element to be zeroed.
         """
@@ -701,6 +839,114 @@ class ResonantTensor:
         return ResonantTensor._wrap(result, device=self.device)
 
     # =========================================================================
+    # Prime Resonance Operators (Grand Synthesis)
+    # =========================================================================
+
+    def lucas_noise(self, n: int = 5) -> "ResonantTensor":
+        """
+        Inject novelty/noise scaled by the Lucas sequence (Shadow Sector).
+
+        Magnitude ~ 1 / L_n.
+        Higher n = Lower noise (Shadow Fading).
+
+        Args:
+            n: Lucas index (default 5, L_5=11 -> scale ~0.09)
+
+        Returns:
+            New tensor with added noise.
+        """
+        if n < 0:
+            n = 0
+        idx = min(n, len(LUCAS_SEQUENCE) - 1)
+        scale = 1.0 / float(LUCAS_SEQUENCE[idx])
+
+        noise = ResonantTensor.randn(self.shape, std=scale, device=self.device)
+        return self.elementwise_add(noise)
+
+    def apply_fermat_force(self, n: int = 0) -> "ResonantTensor":
+        """
+        Apply force scaling governed by Fermat primes (Interaction Strength).
+
+        Scale ~ 1 / F_n.
+        F_0 = 3 (Strong), F_4 = 65537 (Weak).
+
+        Args:
+            n: Fermat index (0..4)
+
+        Returns:
+            Scaled tensor.
+        """
+        if n < 0:
+            n = 0
+        idx = min(n, len(FERMAT_PRIMES) - 1)
+        coupling = 1.0 / float(FERMAT_PRIMES[idx])
+        return self.scalar_mul(coupling)
+
+    def mersenne_stability(self, n: int = 2) -> "ResonantTensor":
+        """
+        Harmonize/Filter based on Mersenne Prime stability (Matter Stability).
+
+        Aligns tensor towards Mersenne scales.
+        (Simplified implementation: Weighted average with One).
+
+        Args:
+            n: Mersenne index (2, 3, 5, 7 recommended)
+
+        Returns:
+            Stabilized tensor.
+        """
+        # M_n = 2^n - 1
+        # Use as a strong anchor/bias
+        # result = self * (1 - alpha) + alpha * M_n
+        # Here we use n as "Generation" of stability
+
+        # Approximate effect: Decay towards zero or specific structure?
+        # Theory says "Harmonization".
+        # We'll use a simple "Crystallize" pass with precision modulated by M_n
+
+        # M_2=3, M_3=7, M_5=31, M_7=127.
+        # Higher M = Higher Precision?
+        # Let's map n index to M values. (2->0, 3->1...)
+        possible_inds = [2, 3, 5, 7]
+        if n not in possible_inds:
+            # Find closest
+            n = min(possible_inds, key=lambda x: abs(x - n))
+
+        idx = possible_inds.index(n)
+        mersenne_val = MERSENNE_PRIMES[min(idx, len(MERSENNE_PRIMES) - 1)]
+
+        # Higher Mersenne = More Stable = Less Noise in cycle
+        # We perform a crystallization cycle with precision ~ M_n * 10
+        return self.cycle(noise_scale=0.0, precision=int(mersenne_val * 10))
+
+    def cycle(
+        self, noise_scale: float = 0.01, precision: int = 100
+    ) -> "ResonantTensor":
+        """
+        Run a single DHSR cycle (Unwrap/Re-wrap helper).
+        """
+        # Uses cpu_cycle logic but returns Tensor instead of syntony?
+        # Actually standard cpu_cycle returns Syntony float.
+        # We typically want the TENSOR back.
+        # But cpu_cycle modifies in-place in Rust?
+        # Doc says: "Returns: New syntony value".
+        # "1. D-phase... 2. H-phase: Snap back".
+        # It modifies self._inner in place!
+
+        # So we clone first to be safe, or modify in place?
+        # NN ops usually functional.
+        # Let's assume in-place for now or check.
+        # If in-place, we return self.
+
+        # Rust signature: &mut self.
+        # So it IS in-place modification of lattice.
+
+        # We'll clone for safety if functional style desired, or just modify.
+        # Let's return self for chaining.
+        self._inner.cpu_cycle(noise_scale, precision)
+        return self
+
+    # =========================================================================
     # Advanced Operations
     # =========================================================================
 
@@ -723,7 +969,7 @@ class ResonantTensor:
         """
         if not tensors:
             raise ValueError("concat expects at least one tensor")
-            
+
         ndim = len(tensors[0].shape)
         if dim < 0:
             dim += ndim
@@ -731,20 +977,24 @@ class ResonantTensor:
         # PyO3 requires Python context for static methods
         # This is a workaround to get the Python module
         import sys
-        if 'python.syntonic._core' not in sys.modules:
-            import python.syntonic._core
+
+        if "python.syntonic._core" not in sys.modules:
+            pass
 
         # Get the module that contains ResonantTensor
-        core_module = sys.modules['syntonic._core']
+        core_module = sys.modules["syntonic._core"]
 
         # Create Py references for PyO3
         from syntonic._core import ResonantTensor as _RT
+
         inner_list = [t._inner for t in tensors]
 
         # Call the static method with Python context
         # Fixed: correct arguments (tensors, dim) without module context
         result = _RT.concat(inner_list, dim)
-        return ResonantTensor._wrap(result, device=tensors[0].device if tensors else 'cpu')
+        return ResonantTensor._wrap(
+            result, device=tensors[0].device if tensors else "cpu"
+        )
 
     def index_select(self, indices: List[int], dim: int = 0) -> "ResonantTensor":
         """
@@ -771,48 +1021,50 @@ class ResonantTensor:
         except AttributeError:
             # Fallback for when backend doesn't implement index_select
             import itertools
-            
+
             shape = self.shape
-            
+
             # Calculate strides for source tensor
             strides = [1] * ndim
             for i in range(ndim - 2, -1, -1):
-                strides[i] = strides[i+1] * shape[i+1]
-                
+                strides[i] = strides[i + 1] * shape[i + 1]
+
             # Prepare new shape
             new_shape = list(shape)
             new_shape[dim] = len(indices)
-            
+
             # Get source data
             lattice = self.to_lattice()
             new_lattice = []
-            
+
             # Generate coordinates for new tensor
             # The trick: we want to iterate over the NEW tensor's layout
             # But capture values from the OLD tensor using 'indices' map
-            
+
             # Ranges for iteration: same as shape, but for the selection dim
             # we iterate 0..len(indices). We will use this to look up the real index.
             iter_ranges = [range(s) for s in new_shape]
-            
+
             for coord in itertools.product(*iter_ranges):
                 # Map coordinate to source coordinate
                 src_coord = list(coord)
-                src_coord[dim] = indices[coord[dim]] # Look up real index
-                
+                src_coord[dim] = indices[coord[dim]]  # Look up real index
+
                 # Compute flat index
                 flat_idx = sum(c * s for c, s in zip(src_coord, strides))
                 new_lattice.append(lattice[flat_idx])
-                
-            return ResonantTensor.from_golden_exact(new_lattice, new_shape, self.get_mode_norms())
+
+            return ResonantTensor.from_golden_exact(
+                new_lattice, new_shape, self.get_mode_norms()
+            )
 
     def view(self, *shape: int) -> "ResonantTensor":
         """
         Returns a new tensor with the same data but different shape.
-        
+
         Args:
             *shape: New shape dimensions
-            
+
         Returns:
             ResonantTensor with new shape
         """
@@ -821,7 +1073,7 @@ class ResonantTensor:
             new_shape = list(shape[0])
         else:
             new_shape = list(shape)
-            
+
         # Handle -1 (infer dimension)
         if -1 in new_shape:
             total_elements = len(self)
@@ -834,12 +1086,14 @@ class ResonantTensor:
                     minus_one_idx = i
                 else:
                     known_elements *= dim
-            
+
             if total_elements % known_elements != 0:
-                raise ValueError(f"Shape mismatch: {total_elements} not divisible by {known_elements}")
-            
+                raise ValueError(
+                    f"Shape mismatch: {total_elements} not divisible by {known_elements}"
+                )
+
             new_shape[minus_one_idx] = total_elements // known_elements
-            
+
         try:
             # Try Rust implementation if available
             result = self._inner.view(new_shape)
@@ -848,26 +1102,30 @@ class ResonantTensor:
             # Python fallback: re-create with new shape
             # Since data is contiguous in C-order, this is just a metadata change
             # for the lattice list
-            
+
             # Validate size
             current_size = len(self)
             new_size = 1
             for dim in new_shape:
                 new_size *= dim
-                
+
             if current_size != new_size:
-                raise ValueError(f"Shape mismatch: cannot reshape {self.shape} ({current_size}) to {new_shape} ({new_size})")
-                
+                raise ValueError(
+                    f"Shape mismatch: cannot reshape {self.shape} ({current_size}) to {new_shape} ({new_size})"
+                )
+
             # Create new tensor using existing lattice data
             # Note: We duplicate data here because we can't easily share the underlying Rust vector
             # passing it back through Python
             lattice = self.to_lattice()
-            
+
             # Simple metadata change - mode norms must be resized or reused?
             # If shape changes, mode norms flat list is still valid for element-wise ops,
             # but might need re-indexing for spectral operations.
             # For now, reuse existing mode norms as they are flat.
-            return ResonantTensor.from_golden_exact(lattice, new_shape, self.get_mode_norms())
+            return ResonantTensor.from_golden_exact(
+                lattice, new_shape, self.get_mode_norms()
+            )
 
     def reshape(self, *shape: int) -> "ResonantTensor":
         """Alias for view()."""
@@ -877,62 +1135,66 @@ class ResonantTensor:
         """
         Returns a tensor that is a transposed version of input.
         The given dimensions are swapped.
-        
+
         Args:
             dim0: First dimension to swap
             dim1: Second dimension to swap
-            
+
         Returns:
             Transposed ResonantTensor
         """
         ndim = len(self.shape)
-        if dim0 < 0: dim0 += ndim
-        if dim1 < 0: dim1 += ndim
-        
+        if dim0 < 0:
+            dim0 += ndim
+        if dim1 < 0:
+            dim1 += ndim
+
         try:
             result = self._inner.transpose(dim0, dim1)
             return ResonantTensor._wrap(result)
         except AttributeError:
             # Python fallback
             import itertools
-            
+
             shape = list(self.shape)
-            
+
             # Swap dimensions in shape
             new_shape = list(shape)
             new_shape[dim0], new_shape[dim1] = new_shape[dim1], new_shape[dim0]
-            
+
             # Calculate strides for source tensor
             strides = [1] * ndim
             for i in range(ndim - 2, -1, -1):
-                strides[i] = strides[i+1] * shape[i+1]
-                
+                strides[i] = strides[i + 1] * shape[i + 1]
+
             # Perform transpose
             lattice = self.to_lattice()
             new_lattice = []
-            
+
             # Iterate over NEW shape
             # To simulate nested loops of variable depth:
             ranges = [range(s) for s in new_shape]
-            
+
             for coord in itertools.product(*ranges):
                 # Convert new coord to old coord (swap back)
                 old_coord = list(coord)
                 old_coord[dim0], old_coord[dim1] = old_coord[dim1], old_coord[dim0]
-                
+
                 # Calculate flat index in source
                 flat_idx = sum(c * s for c, s in zip(old_coord, strides))
                 new_lattice.append(lattice[flat_idx])
-                
-            return ResonantTensor.from_golden_exact(new_lattice, new_shape, self.get_mode_norms())
+
+            return ResonantTensor.from_golden_exact(
+                new_lattice, new_shape, self.get_mode_norms()
+            )
 
     def permute(self, *dims: int) -> "ResonantTensor":
         """
         Returns a view of the original tensor with its dimensions permuted.
-        
+
         Args:
             *dims: The desired ordering of dimensions
-            
+
         Returns:
             Permuted ResonantTensor
         """
@@ -941,62 +1203,65 @@ class ResonantTensor:
             perm = list(dims[0])
         else:
             perm = list(dims)
-            
+
         if len(perm) != len(self.shape):
-            raise ValueError(f"Permutation size {len(perm)} must match tensor dimension {len(self.shape)}")
-        
+            raise ValueError(
+                f"Permutation size {len(perm)} must match tensor dimension {len(self.shape)}"
+            )
+
         ndim = len(self.shape)
         # Normalize negative dimensions
         perm = [d + ndim if d < 0 else d for d in perm]
-            
+
         try:
             result = self._inner.permute(perm)
             return ResonantTensor._wrap(result)
         except AttributeError:
             # Python fallback
             import itertools
-            
+
             shape = self.shape
-            
+
             # Validate permutation
             if set(perm) != set(range(ndim)):
                 raise ValueError(f"Invalid permutation {perm} for {ndim} dimensions")
-                
+
             new_shape = [shape[i] for i in perm]
-            
+
             # Calculate strides for source tensor
             strides = [1] * ndim
             for i in range(ndim - 2, -1, -1):
-                strides[i] = strides[i+1] * shape[i+1]
-                
+                strides[i] = strides[i + 1] * shape[i + 1]
+
             # Perform permutation
             lattice = self.to_lattice()
             new_lattice = []
-            
+
             ranges = [range(s) for s in new_shape]
-            
+
             for coord in itertools.product(*ranges):
                 # coord is in new order. We need to map back to source order.
                 # If new[i] comes from old[perm[i]], then:
                 # new_coord[i] corresponds to axis perm[i] in source.
                 # So source_coord[perm[i]] = new_coord[i]
-                
+
                 old_coord = [0] * ndim
                 for i, p in enumerate(perm):
                     old_coord[p] = coord[i]
-                    
+
                 flat_idx = sum(c * s for c, s in zip(old_coord, strides))
                 new_lattice.append(lattice[flat_idx])
-                
-            return ResonantTensor.from_golden_exact(new_lattice, new_shape, self.get_mode_norms())
 
+            return ResonantTensor.from_golden_exact(
+                new_lattice, new_shape, self.get_mode_norms()
+            )
 
     def layer_norm(
         self,
         gamma: Optional["ResonantTensor"] = None,
         beta: Optional["ResonantTensor"] = None,
         eps: float = 1e-8,
-        golden_target: bool = True
+        golden_target: bool = True,
     ) -> "ResonantTensor":
         """
         Layer normalization across last dimension.
@@ -1023,7 +1288,7 @@ class ResonantTensor:
         self,
         dim: Optional[int] = None,
         keepdim: bool = False,
-        precision: Optional[int] = None
+        precision: Optional[int] = None,
     ) -> "ResonantTensor":
         """
         Mean reduction along a dimension.
@@ -1042,10 +1307,10 @@ class ResonantTensor:
             >>> global_mean = x.mean()  # Shape: [1]
         """
         if dim is not None:
-             ndim = len(self.shape)
-             if dim < 0:
-                 dim += ndim
-        
+            ndim = len(self.shape)
+            if dim < 0:
+                dim += ndim
+
         result = self._inner.mean(dim, keepdim, precision)
         return ResonantTensor._wrap(result)
 
@@ -1053,7 +1318,7 @@ class ResonantTensor:
         self,
         dim: Optional[int] = None,
         keepdim: bool = False,
-        precision: Optional[int] = None
+        precision: Optional[int] = None,
     ) -> "ResonantTensor":
         """
         Variance reduction along a dimension (population variance).
@@ -1071,11 +1336,303 @@ class ResonantTensor:
             >>> var_per_sample = x.var(dim=1)
         """
         if dim is not None:
-             ndim = len(self.shape)
-             if dim < 0:
-                 dim += ndim
-                 
+            ndim = len(self.shape)
+            if dim < 0:
+                dim += ndim
+
         result = self._inner.var(dim, keepdim, precision)
+        return ResonantTensor._wrap(result)
+
+    def sum(
+        self,
+        dim: Optional[int] = None,
+        keepdim: bool = False,
+        precision: Optional[int] = None,
+    ) -> "ResonantTensor":
+        """
+        Sum reduction along a dimension.
+
+        Args:
+            dim: Dimension to reduce (None for global sum)
+            keepdim: Keep reduced dimension as size 1
+            precision: Lattice precision
+
+        Returns:
+            New tensor with sum values
+
+        Examples:
+            >>> x = ResonantTensor([1.0, 2.0, 3.0, 4.0], [2, 2])
+            >>> total = x.sum()  # Global sum
+            >>> row_sums = x.sum(dim=1)  # Sum along rows
+        """
+        if dim is not None:
+            ndim = len(self.shape)
+            if dim < 0:
+                dim += ndim
+
+        result = self._inner.sum(dim, keepdim, precision)
+        return ResonantTensor._wrap(result)
+
+    def max(
+        self,
+        dim: Optional[int] = None,
+        keepdim: bool = False,
+        precision: Optional[int] = None,
+    ) -> "ResonantTensor":
+        """
+        Max reduction along a dimension.
+
+        Args:
+            dim: Dimension to reduce (None for global max)
+            keepdim: Keep reduced dimension as size 1
+            precision: Lattice precision
+
+        Returns:
+            New tensor with max values
+
+        Examples:
+            >>> x = ResonantTensor([1.0, 5.0, 3.0, 4.0], [2, 2])
+            >>> global_max = x.max()  # Global maximum
+            >>> row_maxes = x.max(dim=1)  # Max along rows
+        """
+        if dim is not None:
+            ndim = len(self.shape)
+            if dim < 0:
+                dim += ndim
+
+        result = self._inner.max(dim, keepdim, precision)
+        return ResonantTensor._wrap(result)
+
+    def min(
+        self,
+        dim: Optional[int] = None,
+        keepdim: bool = False,
+        precision: Optional[int] = None,
+    ) -> "ResonantTensor":
+        """
+        Min reduction along a dimension.
+
+        Args:
+            dim: Dimension to reduce (None for global min)
+            keepdim: Keep reduced dimension as size 1
+            precision: Lattice precision
+
+        Returns:
+            New tensor with min values
+
+        Examples:
+            >>> x = ResonantTensor([1.0, 5.0, 3.0, 4.0], [2, 2])
+            >>> global_min = x.min()  # Global minimum
+            >>> row_mins = x.min(dim=1)  # Min along rows
+        """
+        if dim is not None:
+            ndim = len(self.shape)
+            if dim < 0:
+                dim += ndim
+
+        result = self._inner.min(dim, keepdim, precision)
+        return ResonantTensor._wrap(result)
+
+    def prod(
+        self,
+        dim: Optional[int] = None,
+        keepdim: bool = False,
+        precision: Optional[int] = None,
+    ) -> "ResonantTensor":
+        """
+        Product reduction along a dimension.
+
+        Args:
+            dim: Dimension to reduce (None for global product)
+            keepdim: Keep reduced dimension as size 1
+            precision: Lattice precision
+
+        Returns:
+            New tensor with product values
+
+        Examples:
+            >>> x = ResonantTensor([2.0, 3.0, 4.0, 5.0], [2, 2])
+            >>> global_prod = x.prod()  # Global product
+            >>> row_prods = x.prod(dim=1)  # Product along rows
+        """
+        if dim is not None:
+            ndim = len(self.shape)
+            if dim < 0:
+                dim += ndim
+
+        result = self._inner.prod(dim, keepdim, precision)
+        return ResonantTensor._wrap(result)
+
+    def norm(
+        self,
+        p: float = 2.0,
+        dim: Optional[int] = None,
+        keepdim: bool = False,
+        precision: Optional[int] = None,
+    ) -> "ResonantTensor":
+        """
+        p-norm reduction along a dimension.
+
+        Args:
+            p: Norm order (2.0 for Euclidean/L2 norm)
+            dim: Dimension to reduce (None for global norm)
+            keepdim: Keep reduced dimension as size 1
+            precision: Lattice precision
+
+        Returns:
+            New tensor with norm values
+
+        Examples:
+            >>> x = ResonantTensor([3.0, 4.0], [2])  # [3, 4]
+            >>> l2_norm = x.norm(p=2.0)  # sqrt(3^2 + 4^2) = 5.0
+            >>> l1_norm = x.norm(p=1.0)  # |3| + |4| = 7.0
+        """
+        if dim is not None:
+            ndim = len(self.shape)
+            if dim < 0:
+                dim += ndim
+
+        result = self._inner.norm(p, dim, keepdim, precision)
+        return ResonantTensor._wrap(result)
+
+    def masked_select(self, mask: "ResonantTensor") -> "ResonantTensor":
+        """
+        Select elements where mask is true.
+
+        Args:
+            mask: Boolean mask tensor (same shape as self)
+
+        Returns:
+            Flattened tensor containing selected elements
+
+        Examples:
+            >>> x = ResonantTensor([1.0, 2.0, 3.0, 4.0], [4])
+            >>> mask = ResonantTensor([1.0, 0.0, 1.0, 0.0], [4])  # Select even indices
+            >>> result = x.masked_select(mask)
+            >>> # result ≈ [1.0, 3.0]
+        """
+        result = self._inner.masked_select(mask._inner)
+        return ResonantTensor._wrap(result)
+
+    def gather(self, dim: int, index: "ResonantTensor") -> "ResonantTensor":
+        """
+        Gather elements along a dimension using index tensor.
+
+        Args:
+            dim: Dimension to gather along
+            index: Index tensor (same shape as self)
+
+        Returns:
+            Gathered tensor
+
+        Examples:
+            >>> x = ResonantTensor([[1.0, 2.0], [3.0, 4.0]], [2, 2])
+            >>> indices = ResonantTensor([[1, 0], [0, 1]], [2, 2])
+            >>> result = x.gather(1, indices)
+            >>> # result contains [2.0, 1.0, 3.0, 4.0]
+        """
+        result = self._inner.gather(dim, index._inner)
+        return ResonantTensor._wrap(result)
+
+    def scatter(self, dim: int, index: "ResonantTensor", src: "ResonantTensor") -> None:
+        """
+        Scatter source values into self along a dimension.
+
+        Args:
+            dim: Dimension to scatter along
+            index: Index tensor
+            src: Source tensor
+
+        Examples:
+            >>> dest = ResonantTensor.zeros([3])
+            >>> indices = ResonantTensor([0, 2], [2])
+            >>> src = ResonantTensor([10.0, 20.0], [2])
+            >>> dest.scatter(0, indices, src)
+            >>> # dest now contains [10.0, 0.0, 20.0]
+        """
+        self._inner.scatter(dim, index._inner, src._inner)
+
+    def eq(self, other: "ResonantTensor") -> "ResonantTensor":
+        """
+        Element-wise equality comparison.
+
+        Args:
+            other: Tensor to compare with
+
+        Returns:
+            Boolean tensor (1.0 for equal, 0.0 for not equal)
+
+        Examples:
+            >>> a = ResonantTensor([1.0, 2.0, 3.0], [3])
+            >>> b = ResonantTensor([1.0, 2.5, 3.0], [3])
+            >>> result = a.eq(b)  # [1.0, 0.0, 1.0]
+        """
+        result = self._inner.__eq__(other._inner)
+        return ResonantTensor._wrap(result)
+
+    def ne(self, other: "ResonantTensor") -> "ResonantTensor":
+        """
+        Element-wise inequality comparison.
+
+        Args:
+            other: Tensor to compare with
+
+        Returns:
+            Boolean tensor (1.0 for not equal, 0.0 for equal)
+        """
+        result = self._inner.__ne__(other._inner)
+        return ResonantTensor._wrap(result)
+
+    def lt(self, other: "ResonantTensor") -> "ResonantTensor":
+        """
+        Element-wise less than comparison.
+
+        Args:
+            other: Tensor to compare with
+
+        Returns:
+            Boolean tensor (1.0 for less than, 0.0 for greater than or equal)
+        """
+        result = self._inner.__lt__(other._inner)
+        return ResonantTensor._wrap(result)
+
+    def le(self, other: "ResonantTensor") -> "ResonantTensor":
+        """
+        Element-wise less than or equal comparison.
+
+        Args:
+            other: Tensor to compare with
+
+        Returns:
+            Boolean tensor (1.0 for less than or equal, 0.0 for greater than)
+        """
+        result = self._inner.__le__(other._inner)
+        return ResonantTensor._wrap(result)
+
+    def gt(self, other: "ResonantTensor") -> "ResonantTensor":
+        """
+        Element-wise greater than comparison.
+
+        Args:
+            other: Tensor to compare with
+
+        Returns:
+            Boolean tensor (1.0 for greater than, 0.0 for less than or equal)
+        """
+        result = self._inner.__gt__(other._inner)
+        return ResonantTensor._wrap(result)
+
+    def ge(self, other: "ResonantTensor") -> "ResonantTensor":
+        """
+        Element-wise greater than or equal comparison.
+
+        Args:
+            other: Tensor to compare with
+
+        Returns:
+            Boolean tensor (1.0 for greater than or equal, 0.0 for less than)
+        """
+        result = self._inner.__ge__(other._inner)
         return ResonantTensor._wrap(result)
 
     # =========================================================================
@@ -1186,86 +1743,107 @@ class ResonantTensor:
         """
         return self.matmul(other)
 
-    def __getitem__(self, key: Union[int, slice, tuple, List[int]]) -> "ResonantTensor":
+    def __getitem__(self, key) -> "ResonantTensor":
         """
-        Support indexing and slicing.
-        
+        Support advanced indexing and slicing with NumPy-like behavior.
+
+        Supports:
+        - Integer indexing: x[0, 1]
+        - Slice indexing: x[0:2, :]
+        - Boolean masking: x[x > 0.5]
+        - Ellipsis: x[..., 0]
+
         Examples:
             >>> x = ResonantTensor.randn([4, 4])
-            >>> a = x[0]    # Indexing
-            >>> b = x[0:2]  # Slicing
-            >>> c = x[:, 1] # Complex slicing
+            >>> a = x[0]           # First row
+            >>> b = x[0:2]         # First two rows
+            >>> c = x[:, 1]        # Second column
+            >>> mask = x > 0.0     # Boolean tensor
+            >>> d = x[mask]        # Elements where condition is true
         """
+        # Handle boolean indexing (masking)
+        if isinstance(key, ResonantTensor):
+            # Boolean mask - select elements where mask is true
+            return self.masked_select(key)
+
         # Normalize key to tuple
         if not isinstance(key, tuple):
             key = (key,)
-            
+
+        # Handle ellipsis by expanding it
+        if Ellipsis in key:
+            ellipsis_pos = key.index(Ellipsis)
+            # Calculate how many dimensions ellipsis should expand to
+            remaining_dims = len(self.shape) - (len(key) - 1)  # -1 for ellipsis
+            if remaining_dims < 0:
+                remaining_dims = 0
+            # Replace ellipsis with appropriate number of slice(None)
+            expanded_key = (
+                key[:ellipsis_pos]
+                + (slice(None),) * remaining_dims
+                + key[ellipsis_pos + 1 :]
+            )
+            key = expanded_key
+
         current_tensor = self
-        
-        # We need to process dimensions. 
-        # Since indexing changes shapes and potentially ranks (if we squeeze),
-        # we have to be careful with dimension management.
-        # We use a strategy of applying index_select for each slice/index,
-        # then squeezing dimensions that were scalar indexed.
-        
         reduced_dims = []
-        original_shape_len = len(self.shape)
-        
-        if len(key) > original_shape_len:
-             raise IndexError(f"Too many indices for tensor of dimension {original_shape_len}")
+
+        if len(key) > len(self.shape):
+            raise IndexError(
+                f"Too many indices for tensor of dimension {len(self.shape)}"
+            )
 
         for i, k in enumerate(key):
+            if i >= len(current_tensor.shape):
+                raise IndexError(
+                    f"Index {i} out of bounds for {len(current_tensor.shape)}-D tensor"
+                )
+
             current_dim_size = current_tensor.shape[i]
-            
+
             if isinstance(k, int):
                 # Handle negative index
                 if k < 0:
                     k += current_dim_size
                 if k < 0 or k >= current_dim_size:
-                    raise IndexError(f"Index {k} out of bounds for dimension {i} with size {current_dim_size}")
-                
+                    raise IndexError(
+                        f"Index {k} out of bounds for dimension {i} with size {current_dim_size}"
+                    )
+
                 # Select single index
                 indices = [k]
                 current_tensor = current_tensor.index_select(indices, dim=i)
                 reduced_dims.append(i)
-                
+
             elif isinstance(k, slice):
                 start, stop, step = k.indices(current_dim_size)
                 indices = list(range(start, stop, step))
+                if len(indices) != current_dim_size:
+                    current_tensor = current_tensor.index_select(indices, dim=i)
+
+            elif isinstance(k, (list, tuple)) and all(
+                isinstance(idx, int) for idx in k
+            ):
+                # List/tuple of indices
+                indices = list(k)
                 current_tensor = current_tensor.index_select(indices, dim=i)
-            
-            elif k is Ellipsis:
-                 # Ellipsis support requires more complex logic to map remaining dimensions
-                 # For now, simplistic implementation assuming it is at the end if present or 
-                 # filling gaps.
-                 # Given this is a simple wrapper, we might skip full numpy fancy indexing for now.
-                 pass
-                 
+
         # Squeeze out dimensions that were integer-indexed
-        # Since index_select preserves rank (returns shape [1, ...]), we can view/reshape
         if reduced_dims:
-            final_shape = [d for idx, d in enumerate(current_tensor.shape) if idx not in reduced_dims]
-            if not final_shape:
-                # Reduced to scalar? ResonantTensor usually wraps a list.
-                # Shape []? or [1]?
-                # Our Rust backend might expect at least [1].
-                # Let's keep [1] if it becomes scalar, effectively a 1-element tensor.
-                # Or we can return just the float value?
-                # PyTorch x[0] returns 0-d tensor. float(x[0]) gives float.
-                pass 
-            
-            # Use view to squeeze. 
-            # Note: Rust backend view checks element count match.
-            # Squeezing [1, 5, 1] -> [5] preserves element count.
-            if final_shape:
-                current_tensor = current_tensor.view(final_shape)
-            # If final_shape is empty, it means we selected down to a single element.
-            # In that case, we might want to leave it as [1] or support 0-d tensors if backend allows.
-            # Currently backend shape is Vec<usize>, so [] is valid 0-d.
-            # Let's try to view as [] if possible, or keep as [1] for safety if backed logic assumes dims > 0.
-            
+            final_shape = [
+                d
+                for idx, d in enumerate(current_tensor.shape)
+                if idx not in reduced_dims
+            ]
+            if final_shape and final_shape != current_tensor.shape:
+                try:
+                    current_tensor = current_tensor.view(final_shape)
+                except:
+                    # If view fails, keep the original shape
+                    pass
+
         return current_tensor
-        
+
     def __len__(self) -> int:
         """
         Get size of the first dimension.
@@ -1275,7 +1853,7 @@ class ResonantTensor:
             >>> assert len(x) == 3
         """
         if not self.shape:
-             return 0
+            return 0
         return self.shape[0]
 
     def __repr__(self) -> str:
@@ -1287,7 +1865,7 @@ class ResonantTensor:
     # =========================================================================
 
     @staticmethod
-    def _wrap(inner: _RustResonantTensor, device: str = 'cpu') -> "ResonantTensor":
+    def _wrap(inner: _RustResonantTensor, device: str = "cpu") -> "ResonantTensor":
         """
         Wrap a Rust ResonantTensor in Python wrapper.
 

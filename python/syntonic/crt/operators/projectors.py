@@ -8,9 +8,9 @@ Provides:
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Optional, Tuple
-import math
+
 import cmath
+from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from syntonic.core.state import State
@@ -72,7 +72,7 @@ class FourierProjector:
             result.append(s / N)
         return result
 
-    def project(self, state: 'State') -> 'State':
+    def project(self, state: "State") -> "State":
         """
         Project state onto selected Fourier modes.
 
@@ -103,10 +103,12 @@ class FourierProjector:
         projected = self._idft(freq)
 
         # Return real part if input was real
-        if state.dtype.name != 'complex128':
+        if state.dtype.name != "complex128":
             projected = [x.real for x in projected]
 
-        return State(projected, dtype=state.dtype, device=state.device, shape=state.shape)
+        return State(
+            projected, dtype=state.dtype, device=state.device, shape=state.shape
+        )
 
     def __repr__(self) -> str:
         return f"FourierProjector(modes={sorted(self.mode_indices)}, size={self.size})"
@@ -183,7 +185,7 @@ class DampingProjector:
             result.append(s / N)
         return result
 
-    def project(self, state: 'State') -> 'State':
+    def project(self, state: "State") -> "State":
         """
         Apply damping to high frequencies.
 
@@ -214,7 +216,7 @@ class DampingProjector:
         damped = self._idft(freq)
 
         # Return real part if input was real
-        if state.dtype.name != 'complex128':
+        if state.dtype.name != "complex128":
             damped = [x.real for x in damped]
 
         return State(damped, dtype=state.dtype, device=state.device, shape=state.shape)
@@ -236,7 +238,7 @@ class LaplacianOperator:
     along each axis.
     """
 
-    def __init__(self, boundary: str = 'periodic'):
+    def __init__(self, boundary: str = "periodic"):
         """
         Create a Laplacian operator.
 
@@ -245,7 +247,7 @@ class LaplacianOperator:
         """
         self.boundary = boundary
 
-    def apply(self, state: 'State') -> 'State':
+    def apply(self, state: "State") -> "State":
         """
         Apply discrete Laplacian.
 
@@ -262,11 +264,13 @@ class LaplacianOperator:
 
         if N < 3:
             # Too small for Laplacian
-            return State([0.0] * N, dtype=state.dtype, device=state.device, shape=state.shape)
+            return State(
+                [0.0] * N, dtype=state.dtype, device=state.device, shape=state.shape
+            )
 
         result = []
         for i in range(N):
-            if self.boundary == 'periodic':
+            if self.boundary == "periodic":
                 # Periodic boundary conditions
                 i_prev = (i - 1) % N
                 i_next = (i + 1) % N
@@ -281,7 +285,7 @@ class LaplacianOperator:
 
         return State(result, dtype=state.dtype, device=state.device, shape=state.shape)
 
-    def __call__(self, state: 'State') -> 'State':
+    def __call__(self, state: "State") -> "State":
         """Convenience wrapper."""
         return self.apply(state)
 

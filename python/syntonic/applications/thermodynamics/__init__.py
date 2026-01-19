@@ -25,27 +25,27 @@ Example:
 """
 
 from syntonic.applications.thermodynamics.dhsr_engine import (
-    DHSRThermodynamicCycle,
     CycleResult,
-)
-from syntonic.applications.thermodynamics.four_laws import (
-    SyntonicLaws,
-    InformationPressure,
+    DHSRThermodynamicCycle,
 )
 from syntonic.applications.thermodynamics.entropy import (
     SyntonicEntropy,
 )
+from syntonic.applications.thermodynamics.four_laws import (
+    InformationPressure,
+    SyntonicLaws,
+)
 from syntonic.applications.thermodynamics.phase_transitions import (
-    TemporalCrystallization,
     GnosisTransition,
+    TemporalCrystallization,
 )
 
 __all__ = [
-    'DHSRThermodynamicCycle',
-    'CycleResult',
-    'SyntonicLaws',
-    'InformationPressure',
-    'SyntonicEntropy',
-    'TemporalCrystallization',
-    'GnosisTransition',
+    "DHSRThermodynamicCycle",
+    "CycleResult",
+    "SyntonicLaws",
+    "InformationPressure",
+    "SyntonicEntropy",
+    "TemporalCrystallization",
+    "GnosisTransition",
 ]

@@ -22,17 +22,23 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, List, Iterator, Dict
-import math
 
-from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
-from syntonic.srt.geometry.winding import WindingState, winding_state, enumerate_windings_by_norm
+import math
+from typing import Dict, List, Optional, Tuple
+
 from syntonic.core import (
-    knot_eigenvalue as _knot_eigenvalue,
-    compute_knot_eigenvalues as _compute_knot_eigenvalues,
     knot_heat_kernel_trace as _knot_heat_kernel_trace,
+)
+from syntonic.core import (
     knot_spectral_zeta as _knot_spectral_zeta,
+)
+from syntonic.core import (
     knot_spectral_zeta_complex as _knot_spectral_zeta_complex,
+)
+from syntonic.exact import PHI
+from syntonic.srt.geometry.winding import (
+    WindingState,
+    enumerate_windings_by_norm,
 )
 
 # Knot Laplacian uses custom eigenvalue formula with knot potential:
@@ -161,7 +167,9 @@ class KnotLaplacian:
         """
         return self.eigenvalue(n) / (4 * math.pi * math.pi)
 
-    def spectrum(self, max_norm: Optional[int] = None) -> List[Tuple[WindingState, float]]:
+    def spectrum(
+        self, max_norm: Optional[int] = None
+    ) -> List[Tuple[WindingState, float]]:
         """
         Compute full spectrum up to max_norm.
 
@@ -228,7 +236,9 @@ class KnotLaplacian:
                 return ev
         return 0.0
 
-    def apply(self, coefficients: Dict[WindingState, complex]) -> Dict[WindingState, complex]:
+    def apply(
+        self, coefficients: Dict[WindingState, complex]
+    ) -> Dict[WindingState, complex]:
         """
         Apply L²_knot to a wavefunction given by coefficients.
 
@@ -303,7 +313,9 @@ class KnotLaplacian:
 
         if isinstance(s, complex) and s.imag != 0:
             # Complex s: use complex zeta function
-            real, imag = _knot_spectral_zeta_complex(self._windings, s.real, s.imag, base)
+            real, imag = _knot_spectral_zeta_complex(
+                self._windings, s.real, s.imag, base
+            )
             return complex(real, imag)
         else:
             # Real s: use faster real zeta function

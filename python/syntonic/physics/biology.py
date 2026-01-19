@@ -7,7 +7,6 @@ quantum (31 kJ/mol) corresponds to M₅ (third Mersenne prime).
 
 from syntonic.exact import PHI_NUMERIC
 
-
 # ATP hydrolysis energy quantum
 ATP_QUANTUM_KJ = 30.5  # kJ/mol (experimental value)
 ATP_QUANTUM_J = ATP_QUANTUM_KJ * 1000  # J/mol

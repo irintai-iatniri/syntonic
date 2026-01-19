@@ -8,8 +8,8 @@ ATP hydrolysis drives the DHSR cycle with efficiency η ≈ 1/φ ≈ 61.8%
 """
 
 from __future__ import annotations
-from typing import Dict, Any
-import math
+
+from typing import Dict
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
 
@@ -54,7 +54,7 @@ class KleiberLaw:
             For 70 kg human: 70 × 70^0.75 = 1723 kcal/day
             Experiment: 1740 kcal/day → 1.0% agreement
         """
-        return self.COEFFICIENT * (mass_kg ** self.EXPONENT)
+        return self.COEFFICIENT * (mass_kg**self.EXPONENT)
 
     def bmr_corrected(self, mass_kg: float) -> float:
         """
@@ -68,7 +68,7 @@ class KleiberLaw:
         Returns:
             BMR in kcal/day (slightly higher than basic)
         """
-        return self.COEFFICIENT * (mass_kg ** self.EXPONENT_CORRECTED)
+        return self.COEFFICIENT * (mass_kg**self.EXPONENT_CORRECTED)
 
     def srt_exponent(self) -> float:
         """
@@ -119,7 +119,9 @@ Experimental values:
 The agreement is NOT a coincidence—it's geometry.
 """
 
-    def compare_to_experiment(self, mass_kg: float, observed_bmr: float) -> Dict[str, float]:
+    def compare_to_experiment(
+        self, mass_kg: float, observed_bmr: float
+    ) -> Dict[str, float]:
         """
         Compare prediction to experimental BMR.
 
@@ -134,10 +136,10 @@ The agreement is NOT a coincidence—it's geometry.
         error = abs(predicted - observed_bmr) / observed_bmr * 100
 
         return {
-            'mass_kg': mass_kg,
-            'predicted_bmr': predicted,
-            'observed_bmr': observed_bmr,
-            'error_percent': error,
+            "mass_kg": mass_kg,
+            "predicted_bmr": predicted,
+            "observed_bmr": observed_bmr,
+            "error_percent": error,
         }
 
 
@@ -206,7 +208,7 @@ class ATPCycle:
         Returns:
             Derivation explanation
         """
-        return f"""
+        return """
 ATP Free Energy Derivation:
 
 ΔG_ATP = Ry/φ × (1 + q/2) × [molecular context factor]

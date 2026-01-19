@@ -13,7 +13,7 @@ So we negate losses: fitness = -loss
 
 import math
 import random
-from typing import List, Optional, Callable, Tuple
+from typing import Callable, List, Optional, Tuple
 
 # Import ResonantTensor from the core module
 from syntonic._core import ResonantTensor
@@ -136,10 +136,10 @@ class ClassificationFitness:
             values = values + [0.0] * (self.weight_size - len(values))
 
         # Take first weight_size values and reshape to (n_features, n_classes)
-        values = values[:self.weight_size]
+        values = values[: self.weight_size]
         W = []
         for i in range(self.n_features):
-            row = values[i * self.n_classes:(i + 1) * self.n_classes]
+            row = values[i * self.n_classes : (i + 1) * self.n_classes]
             W.append(row)
 
         return W
@@ -238,10 +238,10 @@ class RegressionFitness:
             values = values + [0.0] * (self.weight_size - len(values))
 
         # Reshape to (n_features, n_outputs)
-        values = values[:self.weight_size]
+        values = values[: self.weight_size]
         W = []
         for i in range(self.n_features):
-            row = values[i * self.n_outputs:(i + 1) * self.n_outputs]
+            row = values[i * self.n_outputs : (i + 1) * self.n_outputs]
             W.append(row)
 
         return W
@@ -342,12 +342,12 @@ def evolve_with_fitness(
         Dict with 'best_tensor', 'best_fitness', 'history'
     """
     history = {
-        'syntony': [],
-        'fitness': [],
-        'generation': [],
+        "syntony": [],
+        "fitness": [],
+        "generation": [],
     }
 
-    best_fitness = float('-inf')
+    best_fitness = float("-inf")
     best_tensor = None
 
     for gen in range(generations):
@@ -363,19 +363,19 @@ def evolve_with_fitness(
                 best_fitness = fitness
                 best_tensor = current
 
-            history['syntony'].append(syntony)
-            history['fitness'].append(fitness)
-            history['generation'].append(gen)
+            history["syntony"].append(syntony)
+            history["fitness"].append(fitness)
+            history["generation"].append(gen)
 
             if verbose and gen % 10 == 0:
                 print(f"Gen {gen}: syntony={syntony:.4f}, fitness={fitness:.4f}")
 
     return {
-        'best_tensor': best_tensor,
-        'best_fitness': best_fitness,
-        'final_syntony': evolver.best_syntony,
-        'generations': generations,
-        'history': history,
+        "best_tensor": best_tensor,
+        "best_fitness": best_fitness,
+        "final_syntony": evolver.best_syntony,
+        "generations": generations,
+        "history": history,
     }
 
 
@@ -444,9 +444,9 @@ class FitnessGuidedEvolver:
 
         # State
         self.best_tensor = template
-        self.best_score = float('-inf')
+        self.best_score = float("-inf")
         self.generation = 0
-        self.history = {'score': [], 'fitness': [], 'syntony': [], 'flux_syntony': []}
+        self.history = {"score": [], "fitness": [], "syntony": [], "flux_syntony": []}
 
     def _mutate(self, tensor: ResonantTensor) -> ResonantTensor:
         """Create a mutant by perturbing the tensor values in Q(φ)."""
@@ -455,7 +455,9 @@ class FitnessGuidedEvolver:
         mode_norms = tensor.get_mode_norm_sq()
 
         # Perturbation scaled by mutation_scale
-        perturbation = [self.rng.gauss(0, self.mutation_scale) for _ in range(len(values))]
+        perturbation = [
+            self.rng.gauss(0, self.mutation_scale) for _ in range(len(values))
+        ]
         new_values = [values[i] + perturbation[i] for i in range(len(values))]
 
         # Snap to Q(φ) lattice
@@ -495,7 +497,7 @@ class FitnessGuidedEvolver:
         # ═══════════════════════════════════════════════════════════════════
         mutants_with_syntony = [(m, m.syntony) for m in mutants]
         mutants_with_syntony.sort(key=lambda x: x[1], reverse=True)
-        survivors = [m for m, s in mutants_with_syntony[:self.survivor_count]]
+        survivors = [m for m, s in mutants_with_syntony[: self.survivor_count]]
 
         # ═══════════════════════════════════════════════════════════════════
         # STEP 3: DHSR CYCLE (CPU)  ◀── THIS WAS MISSING
@@ -537,10 +539,10 @@ class FitnessGuidedEvolver:
 
         # Track history
         self.generation += 1
-        self.history['score'].append(best_score)
-        self.history['fitness'].append(best_fitness)
-        self.history['syntony'].append(self.best_tensor.syntony)
-        self.history['flux_syntony'].append(best_flux_syntony)
+        self.history["score"].append(best_score)
+        self.history["fitness"].append(best_fitness)
+        self.history["syntony"].append(self.best_tensor.syntony)
+        self.history["flux_syntony"].append(best_flux_syntony)
 
         return best_score
 
@@ -556,8 +558,8 @@ class FitnessGuidedEvolver:
                 print(f"Gen {gen}: score={score:.4f}")
 
         return {
-            'best_tensor': self.best_tensor,
-            'final_score': self.best_score,
-            'generations': max_generations,
-            'history': self.history,
+            "best_tensor": self.best_tensor,
+            "final_score": self.best_score,
+            "generations": max_generations,
+            "history": self.history,
         }

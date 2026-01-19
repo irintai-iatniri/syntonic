@@ -17,6 +17,6 @@ from syntonic.srt.corrections.factors import (
 )
 
 __all__ = [
-    'CorrectionFactors',
-    'correction_factors',
+    "CorrectionFactors",
+    "correction_factors",
 ]

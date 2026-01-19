@@ -11,8 +11,9 @@ where |nᵢ|² is the mode norm squared for each feature.
 """
 
 from __future__ import annotations
-from typing import List
+
 import math
+from typing import List
 
 from syntonic._core import ResonantTensor
 
@@ -50,9 +51,7 @@ class PureWindingSyntonyComputer:
         """
         self.dim = dim
 
-    def forward(
-        self, x: ResonantTensor, mode_norms: List[float]
-    ) -> float:
+    def forward(self, x: ResonantTensor, mode_norms: List[float]) -> float:
         """
         Compute syntony over batch.
 
@@ -102,9 +101,7 @@ class PureWindingSyntonyComputer:
         # Clamp to [0, 1]
         return max(0.0, min(1.0, syntony))
 
-    def batch_syntony(
-        self, x: ResonantTensor, mode_norms: List[float]
-    ) -> List[float]:
+    def batch_syntony(self, x: ResonantTensor, mode_norms: List[float]) -> List[float]:
         """
         Compute syntony for each sample in batch separately.
 
@@ -143,7 +140,7 @@ class PureWindingSyntonyComputer:
         return syntonies
 
     def __repr__(self) -> str:
-        return f'PureWindingSyntonyComputer(dim={self.dim})'
+        return f"PureWindingSyntonyComputer(dim={self.dim})"
 
 
 if __name__ == "__main__":
@@ -165,8 +162,8 @@ if __name__ == "__main__":
     S_per_sample = computer.batch_syntony(x, mode_norms)
     print(f"Per-sample syntony (first 5): {S_per_sample[:5]}")
     mean_s = sum(S_per_sample) / len(S_per_sample)
-    var_s = sum((s - mean_s)**2 for s in S_per_sample) / len(S_per_sample)
-    std_s = var_s ** 0.5
+    var_s = sum((s - mean_s) ** 2 for s in S_per_sample) / len(S_per_sample)
+    std_s = var_s**0.5
     print(f"Mean: {mean_s:.4f}, Std: {std_s:.4f}")
 
     # Test with concentrated energy (low modes)

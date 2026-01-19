@@ -13,8 +13,8 @@ Where:
 """
 
 from __future__ import annotations
-from typing import Dict, Optional
-import math
+
+from typing import Dict
 
 from syntonic.exact import PHI_NUMERIC
 
@@ -43,33 +43,63 @@ class SRTElectronegativity:
 
     # Pauling electronegativities for reference
     PAULING_VALUES: Dict[str, float] = {
-        'H': 2.20, 'He': 0.00,
-        'Li': 0.98, 'Be': 1.57, 'B': 2.04, 'C': 2.55, 'N': 3.04, 'O': 3.44, 'F': 3.98, 'Ne': 0.00,
-        'Na': 0.93, 'Mg': 1.31, 'Al': 1.61, 'Si': 1.90, 'P': 2.19, 'S': 2.58, 'Cl': 3.16, 'Ar': 0.00,
-        'K': 0.82, 'Ca': 1.00, 'Sc': 1.36, 'Ti': 1.54, 'V': 1.63, 'Cr': 1.66, 'Mn': 1.55,
-        'Fe': 1.83, 'Co': 1.88, 'Ni': 1.91, 'Cu': 1.90, 'Zn': 1.65,
-        'Ga': 1.81, 'Ge': 2.01, 'As': 2.18, 'Se': 2.55, 'Br': 2.96, 'Kr': 0.00,
+        "H": 2.20,
+        "He": 0.00,
+        "Li": 0.98,
+        "Be": 1.57,
+        "B": 2.04,
+        "C": 2.55,
+        "N": 3.04,
+        "O": 3.44,
+        "F": 3.98,
+        "Ne": 0.00,
+        "Na": 0.93,
+        "Mg": 1.31,
+        "Al": 1.61,
+        "Si": 1.90,
+        "P": 2.19,
+        "S": 2.58,
+        "Cl": 3.16,
+        "Ar": 0.00,
+        "K": 0.82,
+        "Ca": 1.00,
+        "Sc": 1.36,
+        "Ti": 1.54,
+        "V": 1.63,
+        "Cr": 1.66,
+        "Mn": 1.55,
+        "Fe": 1.83,
+        "Co": 1.88,
+        "Ni": 1.91,
+        "Cu": 1.90,
+        "Zn": 1.65,
+        "Ga": 1.81,
+        "Ge": 2.01,
+        "As": 2.18,
+        "Se": 2.55,
+        "Br": 2.96,
+        "Kr": 0.00,
     }
 
     # Element data: (Z, period, group, valence, Z_eff_approx)
     ELEMENT_DATA: Dict[str, tuple] = {
-        'H':  (1, 1, 1, 1, 1.0),
-        'Li': (3, 2, 1, 1, 1.3),
-        'Be': (4, 2, 2, 2, 1.95),
-        'B':  (5, 2, 3, 3, 2.6),
-        'C':  (6, 2, 4, 4, 3.25),
-        'N':  (7, 2, 5, 5, 3.9),
-        'O':  (8, 2, 6, 6, 4.55),
-        'F':  (9, 2, 7, 7, 5.2),
-        'Na': (11, 3, 1, 1, 2.2),
-        'Mg': (12, 3, 2, 2, 2.85),
-        'Al': (13, 3, 3, 3, 3.5),
-        'Si': (14, 3, 4, 4, 4.15),
-        'P':  (15, 3, 5, 5, 4.8),
-        'S':  (16, 3, 6, 6, 5.45),
-        'Cl': (17, 3, 7, 7, 6.1),
-        'K':  (19, 4, 1, 1, 2.2),
-        'Ca': (20, 4, 2, 2, 2.85),
+        "H": (1, 1, 1, 1, 1.0),
+        "Li": (3, 2, 1, 1, 1.3),
+        "Be": (4, 2, 2, 2, 1.95),
+        "B": (5, 2, 3, 3, 2.6),
+        "C": (6, 2, 4, 4, 3.25),
+        "N": (7, 2, 5, 5, 3.9),
+        "O": (8, 2, 6, 6, 4.55),
+        "F": (9, 2, 7, 7, 5.2),
+        "Na": (11, 3, 1, 1, 2.2),
+        "Mg": (12, 3, 2, 2, 2.85),
+        "Al": (13, 3, 3, 3, 3.5),
+        "Si": (14, 3, 4, 4, 4.15),
+        "P": (15, 3, 5, 5, 4.8),
+        "S": (16, 3, 6, 6, 5.45),
+        "Cl": (17, 3, 7, 7, 6.1),
+        "K": (19, 4, 1, 1, 2.2),
+        "Ca": (20, 4, 2, 2, 2.85),
     }
 
     def compute(self, Z_eff: float, valence: int, k: int, n: int) -> float:
@@ -114,7 +144,7 @@ class SRTElectronegativity:
         Returns:
             Shielding factor φ^k
         """
-        return PHI_NUMERIC ** k
+        return PHI_NUMERIC**k
 
     def for_element(self, symbol: str, scaling: float = 1.0) -> float:
         """
@@ -157,10 +187,10 @@ class SRTElectronegativity:
         error = abs(srt - pauling) / pauling * 100 if pauling > 0 else 0.0
 
         return {
-            'element': symbol,
-            'srt_value': srt,
-            'pauling_value': pauling,
-            'error_percent': error,
+            "element": symbol,
+            "srt_value": srt,
+            "pauling_value": pauling,
+            "error_percent": error,
         }
 
     def gradient_interpretation(self) -> str:

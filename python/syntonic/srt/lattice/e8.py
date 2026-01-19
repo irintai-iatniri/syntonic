@@ -17,15 +17,16 @@ Example:
 """
 
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Tuple, List, Iterator, Optional, TYPE_CHECKING
-from fractions import Fraction
+
 import math
+from dataclasses import dataclass
+from fractions import Fraction
+from typing import TYPE_CHECKING, Iterator, List, Tuple
 
 from syntonic.exact import Rational
 
 if TYPE_CHECKING:
-    from syntonic.exact import Rational as RationalType
+    pass
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,8 +82,8 @@ class E8Root:
         # Check if coordinates are integers or half-integers
         first_coord = self.coords[0]
         if first_coord.denominator == 1:
-            return 'A'
-        return 'B'
+            return "A"
+        return "B"
 
     def to_float(self) -> Tuple[float, ...]:
         """Convert to float tuple."""
@@ -100,8 +101,7 @@ class E8Root:
             Tuple of Rational values from syntonic.exact
         """
         return tuple(
-            Rational(int(x.numerator), int(x.denominator))
-            for x in self.coords
+            Rational(int(x.numerator), int(x.denominator)) for x in self.coords
         )
 
     def norm_squared_rational(self) -> Rational:
@@ -159,6 +159,7 @@ class E8Root:
             if x.denominator == 1:
                 return str(x.numerator)
             return f"{x.numerator}/{x.denominator}"
+
         formatted = ", ".join(fmt(x) for x in self.coords)
         return f"E8({formatted})"
 
@@ -193,8 +194,8 @@ class E8Lattice:
         """Initialize E8 lattice by computing all roots."""
         self._roots = self._generate_roots()
         self._positive_roots = [r for r in self._roots if self._is_positive(r)]
-        self._type_a_roots = [r for r in self._roots if r.root_type == 'A']
-        self._type_b_roots = [r for r in self._roots if r.root_type == 'B']
+        self._type_a_roots = [r for r in self._roots if r.root_type == "A"]
+        self._type_b_roots = [r for r in self._roots if r.root_type == "B"]
 
     def _generate_roots(self) -> List[E8Root]:
         """Generate all 240 E8 roots."""
@@ -359,19 +360,19 @@ class E8Lattice:
             Dictionary with counts for each type
         """
         return {
-            'total': len(self._roots),
-            'positive': len(self._positive_roots),
-            'type_A': len(self._type_a_roots),
-            'type_B': len(self._type_b_roots),
+            "total": len(self._roots),
+            "positive": len(self._positive_roots),
+            "type_A": len(self._type_a_roots),
+            "type_B": len(self._type_b_roots),
         }
 
     def dynkin_labels(self, root: E8Root) -> List[int]:
         """
         Compute coefficients of the root in the basis of simple roots.
 
-        Expresses root as linear combination of simple roots coefficients 
+        Expresses root as linear combination of simple roots coefficients
         c_i such that root = sum(c_i * alpha_i).
-        
+
         Note: While the method name suggests Dynkin labels (weights basis),
         the description and logic implement the decomposition into simple roots
         (root basis), which requires solving the linear system involving the
@@ -389,7 +390,7 @@ class E8Lattice:
         # <root, alpha_j^v> = sum_i c_i <alpha_i, alpha_j^v>
         #                   = sum_i c_i * A_ji (Cartan matrix transpose)
         # (Since E8 is simply laced, A is symmetric, so A_ji = A_ij)
-        
+
         # 1. Compute RHS vector b_j = <root, alpha_j^v>
         # For simply laced E8, <x, y^v> = 2<x,y>/<y,y> = 2<x,y>/2 = <x,y>
         # But we use the generic formula for correctness.
@@ -401,15 +402,17 @@ class E8Lattice:
 
         # 2. Get Cartan Matrix A
         A = self.cartan_matrix()
-        
-        # 3. Solve A * c = rhs using Gaussian elimination with generic Fractions 
+
+        # 3. Solve A * c = rhs using Gaussian elimination with generic Fractions
         # to ensure exact integer results. A is 8x8.
         n = len(rhs)
-        
+
         # Create augmented matrix [A | rhs]
-        M = [[Fraction(A[row][col]) for col in range(n)] + [Fraction(rhs[row])] 
-             for row in range(n)]
-        
+        M = [
+            [Fraction(A[row][col]) for col in range(n)] + [Fraction(rhs[row])]
+            for row in range(n)
+        ]
+
         # Gaussian elimination
         for i in range(n):
             # Pivot
@@ -421,19 +424,19 @@ class E8Lattice:
                         M[i], M[k] = M[k], M[i]
                         pivot = M[i][i]
                         break
-            
+
             # Normalize pivot row
             inv_pivot = Fraction(1, 1) / pivot
             for j in range(i, n + 1):
                 M[i][j] *= inv_pivot
-            
+
             # Eliminate other rows
             for k in range(n):
                 if k != i:
                     factor = M[k][i]
                     for j in range(i, n + 1):
                         M[k][j] -= factor * M[i][j]
-        
+
         # Extract solution (should be integers for lattice roots)
         solution = []
         for i in range(n):
@@ -443,7 +446,7 @@ class E8Lattice:
                 # Should not happen for valid E8 roots
                 raise ValueError(f"Root coordinates not integers: {val}")
             solution.append(int(val.numerator))
-            
+
         return solution
 
     def __len__(self) -> int:
@@ -455,7 +458,7 @@ class E8Lattice:
         return iter(self._roots)
 
     def __repr__(self) -> str:
-        return f"E8Lattice(roots=240, positive=120, rank=8)"
+        return "E8Lattice(roots=240, positive=120, rank=8)"
 
 
 def e8_lattice() -> E8Lattice:

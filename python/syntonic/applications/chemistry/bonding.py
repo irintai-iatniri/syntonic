@@ -8,8 +8,9 @@ The threshold 1/φ ≈ 0.618 emerges from DHSR partition.
 """
 
 from __future__ import annotations
-from typing import Dict, Any
+
 import math
+from typing import Any, Dict
 
 from syntonic.exact import PHI_NUMERIC
 
@@ -51,9 +52,9 @@ class BondCharacter:
         delta_S = abs(chi_1 - chi_2)
 
         if delta_S > self.IONIC_THRESHOLD:
-            character = 'ionic'
+            character = "ionic"
         else:
-            character = 'covalent'
+            character = "covalent"
 
         # Ionic fraction: continuous measure from 0 (pure covalent) to 1 (pure ionic)
         # Using: 1 - exp(-ΔS/φ)
@@ -61,19 +62,19 @@ class BondCharacter:
 
         # Dipole moment prediction (qualitative)
         if delta_S < 0.4:
-            polarity = 'nonpolar'
+            polarity = "nonpolar"
         elif delta_S < self.IONIC_THRESHOLD:
-            polarity = 'polar covalent'
+            polarity = "polar covalent"
         else:
-            polarity = 'ionic'
+            polarity = "ionic"
 
         return {
-            'delta_S': delta_S,
-            'character': character,
-            'ionic_fraction': ionic_fraction,
-            'covalent_fraction': 1 - ionic_fraction,
-            'polarity': polarity,
-            'threshold': self.IONIC_THRESHOLD,
+            "delta_S": delta_S,
+            "character": character,
+            "ionic_fraction": ionic_fraction,
+            "covalent_fraction": 1 - ionic_fraction,
+            "polarity": polarity,
+            "threshold": self.IONIC_THRESHOLD,
         }
 
     def dipole_moment(self, delta_S: float, bond_length: float) -> float:
@@ -199,13 +200,13 @@ H-bond is strong because:
             Bond type classification
         """
         if delta_S < 0.4:
-            return 'nonpolar covalent'
+            return "nonpolar covalent"
         elif delta_S < self.IONIC_THRESHOLD:
-            return 'polar covalent'
+            return "polar covalent"
         elif delta_S < 2.0:
-            return 'ionic'
+            return "ionic"
         else:
-            return 'strongly ionic'
+            return "strongly ionic"
 
     def __repr__(self) -> str:
         return f"BondCharacter(threshold=1/φ≈{self.IONIC_THRESHOLD:.3f})"

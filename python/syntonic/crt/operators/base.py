@@ -6,6 +6,7 @@ OperatorBase to ensure a consistent interface.
 """
 
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
@@ -27,7 +28,7 @@ class OperatorBase(ABC):
     """
 
     @abstractmethod
-    def apply(self, state: 'State', **kwargs) -> 'State':
+    def apply(self, state: "State", **kwargs) -> "State":
         """
         Apply the operator to a state.
 
@@ -40,7 +41,7 @@ class OperatorBase(ABC):
         """
         pass
 
-    def __call__(self, state: 'State', **kwargs) -> 'State':
+    def __call__(self, state: "State", **kwargs) -> "State":
         """
         Convenience method to apply operator.
 

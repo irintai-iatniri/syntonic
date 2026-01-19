@@ -13,23 +13,22 @@ Functions:
     create_torus() - Factory for T4Torus
 """
 
-from syntonic.srt.geometry.winding import (
-    WindingState,
-    winding_state,
-)
-
 from syntonic.srt.geometry.torus import (
     T4Torus,
     create_torus,
+)
+from syntonic.srt.geometry.winding import (
+    WindingState,
+    winding_state,
 )
 
 # Alias for consistency with other factory functions
 t4_torus = create_torus
 
 __all__ = [
-    'WindingState',
-    'winding_state',
-    'T4Torus',
-    'create_torus',
-    't4_torus',
+    "WindingState",
+    "winding_state",
+    "T4Torus",
+    "create_torus",
+    "t4_torus",
 ]

@@ -14,8 +14,8 @@ Key properties:
 """
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, List, Optional, Tuple
-import math
 
 from syntonic.crt.operators.base import OperatorBase
 from syntonic.crt.operators.differentiation import (
@@ -66,7 +66,7 @@ class RecursionOperator(OperatorBase):
         self.diff_op = diff_op or default_differentiation_operator()
         self.harm_op = harm_op or default_harmonization_operator()
 
-    def apply(self, state: 'State', **kwargs) -> 'State':
+    def apply(self, state: "State", **kwargs) -> "State":
         """
         Apply recursion operator R̂ = Ĥ ∘ D̂.
 
@@ -87,7 +87,7 @@ class RecursionOperator(OperatorBase):
         # Apply Ĥ[D̂[Ψ]] with differentiation info
         return self.harm_op.apply(d_state, delta_d=delta_d)
 
-    def apply_with_info(self, state: 'State') -> Tuple['State', dict]:
+    def apply_with_info(self, state: "State") -> Tuple["State", dict]:
         """
         Apply R̂ and return detailed information.
 
@@ -108,19 +108,19 @@ class RecursionOperator(OperatorBase):
         total_change = (result - state).norm()
 
         info = {
-            'd_state': d_state,
-            'diff_magnitude': diff_magnitude,
-            'harm_magnitude': harm_magnitude,
-            'total_change': total_change,
+            "d_state": d_state,
+            "diff_magnitude": diff_magnitude,
+            "harm_magnitude": harm_magnitude,
+            "total_change": total_change,
         }
 
         return result, info
 
     def iterate(
         self,
-        state: 'State',
+        state: "State",
         n_steps: int = 10,
-    ) -> List['State']:
+    ) -> List["State"]:
         """
         Iterate R̂ n times, returning trajectory.
 
@@ -142,10 +142,10 @@ class RecursionOperator(OperatorBase):
 
     def find_fixed_point(
         self,
-        state: 'State',
+        state: "State",
         tol: float = 1e-6,
         max_iter: int = 1000,
-    ) -> Tuple['State', int, bool]:
+    ) -> Tuple["State", int, bool]:
         """
         Find fixed point R̂[Ψ*] = Ψ*.
 
@@ -174,11 +174,11 @@ class RecursionOperator(OperatorBase):
 
     def find_attractor_basin(
         self,
-        state: 'State',
+        state: "State",
         tol: float = 1e-6,
         max_iter: int = 1000,
         record_trajectory: bool = False,
-    ) -> Tuple['State', dict]:
+    ) -> Tuple["State", dict]:
         """
         Find attractor and characterize the basin.
 
@@ -212,26 +212,26 @@ class RecursionOperator(OperatorBase):
 
             if change < tol:
                 return next_state, {
-                    'n_iterations': n + 1,
-                    'converged': True,
-                    'final_change': change,
-                    'trajectory': trajectory if record_trajectory else None,
-                    'syntony_history': syntony_history,
+                    "n_iterations": n + 1,
+                    "converged": True,
+                    "final_change": change,
+                    "trajectory": trajectory if record_trajectory else None,
+                    "syntony_history": syntony_history,
                 }
 
             current = next_state
 
         return current, {
-            'n_iterations': max_iter,
-            'converged': False,
-            'final_change': (self.apply(current) - current).norm(),
-            'trajectory': trajectory if record_trajectory else None,
-            'syntony_history': syntony_history,
+            "n_iterations": max_iter,
+            "converged": False,
+            "final_change": (self.apply(current) - current).norm(),
+            "trajectory": trajectory if record_trajectory else None,
+            "syntony_history": syntony_history,
         }
 
     def period_finder(
         self,
-        state: 'State',
+        state: "State",
         max_period: int = 10,
         tol: float = 1e-6,
     ) -> Optional[int]:

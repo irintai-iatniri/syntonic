@@ -11,21 +11,25 @@ Example:
 """
 
 from syntonic.physics.running.rg import (
-    B1, B2, B3,
-    alpha_running,
-    gut_scale,
+    B1,
+    B2,
+    B3,
+    GoldenRG,
     alpha_em_at_scale,
+    alpha_running,
     alpha_s_at_scale,
     coupling_unification_check,
-    GoldenRG,
+    gut_scale,
 )
 
 __all__ = [
-    'B1', 'B2', 'B3',
-    'alpha_running',
-    'gut_scale',
-    'alpha_em_at_scale',
-    'alpha_s_at_scale',
-    'coupling_unification_check',
-    'GoldenRG',
+    "B1",
+    "B2",
+    "B3",
+    "alpha_running",
+    "gut_scale",
+    "alpha_em_at_scale",
+    "alpha_s_at_scale",
+    "coupling_unification_check",
+    "GoldenRG",
 ]

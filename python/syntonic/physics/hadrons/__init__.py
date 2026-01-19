@@ -12,23 +12,23 @@ Example:
 """
 
 from syntonic.physics.hadrons.masses import (
-    proton_mass,
+    HadronMasses,
+    b_meson_mass,
+    d_meson_mass,
+    kaon_mass,
     neutron_mass,
     neutron_proton_mass_diff,
     pion_mass,
-    kaon_mass,
-    d_meson_mass,
-    b_meson_mass,
-    HadronMasses,
+    proton_mass,
 )
 
 __all__ = [
-    'proton_mass',
-    'neutron_mass',
-    'neutron_proton_mass_diff',
-    'pion_mass',
-    'kaon_mass',
-    'd_meson_mass',
-    'b_meson_mass',
-    'HadronMasses',
+    "proton_mass",
+    "neutron_mass",
+    "neutron_proton_mass_diff",
+    "pion_mass",
+    "kaon_mass",
+    "d_meson_mass",
+    "b_meson_mass",
+    "HadronMasses",
 ]

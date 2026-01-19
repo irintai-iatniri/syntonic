@@ -12,8 +12,9 @@ Source: Theory/SRT_Altruxa_Bridge.md, Theory/Lepton_Entropy.md
 """
 
 from __future__ import annotations
+
 import math
-from typing import Union, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Union
 
 from syntonic.srt.constants import PHI_NUMERIC
 
@@ -22,8 +23,8 @@ if TYPE_CHECKING:
 
 
 def hooking_coefficient(
-    winding1: Union['ResonantTensor', List[float]],
-    winding2: Union['ResonantTensor', List[float]],
+    winding1: Union["ResonantTensor", List[float]],
+    winding2: Union["ResonantTensor", List[float]],
 ) -> float:
     """
     Compute topological hooking coefficient between two winding states.
@@ -52,12 +53,12 @@ def hooking_coefficient(
     Source: Theory/SRT_Altruxa_Bridge.md §475
     """
     # Extract float values
-    if hasattr(winding1, 'to_floats'):
+    if hasattr(winding1, "to_floats"):
         v1 = winding1.to_floats()
     else:
         v1 = list(winding1)
 
-    if hasattr(winding2, 'to_floats'):
+    if hasattr(winding2, "to_floats"):
         v2 = winding2.to_floats()
     else:
         v2 = list(winding2)
@@ -79,7 +80,7 @@ def hooking_coefficient(
     return abs(dot) / (norm1 * norm2 + eps) * PHI_NUMERIC
 
 
-def golden_resonance(tensor: 'ResonantTensor') -> float:
+def golden_resonance(tensor: "ResonantTensor") -> float:
     """
     Compute golden resonance metric for a tensor.
 
@@ -107,7 +108,7 @@ def golden_resonance(tensor: 'ResonantTensor') -> float:
     values = tensor.to_floats()
 
     # Get mode norms if available, otherwise use sequential
-    if hasattr(tensor, 'get_mode_norms'):
+    if hasattr(tensor, "get_mode_norms"):
         try:
             mode_norms = tensor.get_mode_norms()
         except Exception:
@@ -128,7 +129,7 @@ def golden_resonance(tensor: 'ResonantTensor') -> float:
     return resonance * len(values) / 10.0
 
 
-def e8_root_alignment(tensor: 'ResonantTensor') -> float:
+def e8_root_alignment(tensor: "ResonantTensor") -> float:
     """
     Compute E8 root alignment metric.
 
@@ -188,7 +189,7 @@ def e8_root_alignment(tensor: 'ResonantTensor') -> float:
     return max_alignment
 
 
-def compute_tensor_norm(tensor: 'ResonantTensor') -> float:
+def compute_tensor_norm(tensor: "ResonantTensor") -> float:
     """
     Compute Frobenius norm of a tensor.
 
@@ -205,8 +206,8 @@ def compute_tensor_norm(tensor: 'ResonantTensor') -> float:
 
 
 __all__ = [
-    'hooking_coefficient',
-    'golden_resonance',
-    'e8_root_alignment',
-    'compute_tensor_norm',
+    "hooking_coefficient",
+    "golden_resonance",
+    "e8_root_alignment",
+    "compute_tensor_norm",
 ]

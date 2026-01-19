@@ -12,9 +12,10 @@ Example:
 """
 
 from __future__ import annotations
-import math
+
 import cmath
-from typing import Tuple, Dict, Iterator, Optional, List
+import math
+from typing import Dict, Iterator, List, Tuple
 
 from syntonic.srt.geometry.winding import WindingState, enumerate_windings
 
@@ -72,7 +73,7 @@ class T4Torus:
     @property
     def volume(self) -> float:
         """Volume of T^4: (2*pi*l)^4."""
-        return self.circumference ** 4
+        return self.circumference**4
 
     def fourier_mode(
         self, n: WindingState, y: Tuple[float, float, float, float]

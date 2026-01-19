@@ -15,8 +15,9 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, List, TYPE_CHECKING
+
 import math
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from syntonic.exact import PHI_NUMERIC
 
@@ -30,7 +31,16 @@ NULL_VECTORS: List[Tuple[float, ...]] = [
     (-0.152753, -0.312330, 0.192683, -0.692448, 0.013308, 0.531069, 0.153449, 0.238219),
     (0.270941, 0.201058, 0.532514, -0.128468, 0.404635, -0.475518, -0.294881, 0.330591),
     (0.157560, 0.189639, 0.480036, 0.021016, 0.274831, -0.782436, 0.060319, 0.130225),
-    (0.476719, 0.111410, 0.464671, -0.543379, -0.142049, -0.150498, -0.314296, 0.327929),
+    (
+        0.476719,
+        0.111410,
+        0.464671,
+        -0.543379,
+        -0.142049,
+        -0.150498,
+        -0.314296,
+        0.327929,
+    ),
 ]
 
 
@@ -194,7 +204,7 @@ class QuadraticForm:
         """
         return self.parallel_norm_squared(v) - self.perpendicular_norm_squared(v)
 
-    def evaluate_root(self, root: 'E8Root') -> float:
+    def evaluate_root(self, root: "E8Root") -> float:
         """
         Compute Q for an E8 root.
 
@@ -220,12 +230,12 @@ class QuadraticForm:
         """
         Q = self.evaluate(v)
         if Q > tol:
-            return 'spacelike'
+            return "spacelike"
         elif Q < -tol:
-            return 'timelike'
-        return 'lightlike'
+            return "timelike"
+        return "lightlike"
 
-    def classify_root(self, root: 'E8Root', tol: float = 1e-10) -> str:
+    def classify_root(self, root: "E8Root", tol: float = 1e-10) -> str:
         """
         Classify E8 root by sign of Q.
 

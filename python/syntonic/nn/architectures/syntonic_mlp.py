@@ -12,10 +12,10 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import Optional, List
-import math
 
-from syntonic.nn.resonant_tensor import ResonantTensor
+import math
+from typing import List, Optional
+
 from syntonic.nn.layers import (
     DifferentiationLayer,
     HarmonizationLayer,
@@ -23,13 +23,14 @@ from syntonic.nn.layers import (
     SyntonicNorm,
 )
 from syntonic.nn.layers.resonant_linear import ResonantLinear
+from syntonic.nn.resonant_tensor import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 Q_DEFICIT = 0.027395146920
 
 
-
 import syntonic.sn as sn
+
 
 class PureSyntonicLinear(sn.Module):
     """
@@ -53,7 +54,7 @@ class PureSyntonicLinear(sn.Module):
         use_recursion: bool = True,
         dropout: float = 0.0,
         bias: bool = True,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize syntonic linear layer.
@@ -74,7 +75,9 @@ class PureSyntonicLinear(sn.Module):
         self.device = device
 
         # Main linear transformation
-        self.linear = ResonantLinear(in_features, out_features, bias=bias, device=device)
+        self.linear = ResonantLinear(
+            in_features, out_features, bias=bias, device=device
+        )
 
         # DHSR structure
         if use_recursion:
@@ -114,7 +117,7 @@ class PureSyntonicLinear(sn.Module):
         x = self.norm.forward(x)
 
         # Dropout (pure implementation)
-        if self.dropout_p > 0 and hasattr(self, 'training') and self.training:
+        if self.dropout_p > 0 and hasattr(self, "training") and self.training:
             x = self._apply_dropout(x)
 
         return x
@@ -132,12 +135,7 @@ class PureSyntonicLinear(sn.Module):
         dropped = [d * m * scale for d, m in zip(data, mask)]
 
         # Create new tensor preserving shape, mode norms, and precision
-        return ResonantTensor(
-            dropped,
-            list(x.shape),
-            x.get_mode_norms(),
-            x.precision
-        )
+        return ResonantTensor(dropped, list(x.shape), x.get_mode_norms(), x.precision)
 
     def _compute_syntony(
         self,
@@ -151,11 +149,15 @@ class PureSyntonicLinear(sn.Module):
         x_harm_floats = x_harm.to_floats()
 
         # Compute norms
-        diff_norm_sq = sum((x_diff_floats[i] - x_floats[i])**2 for i in range(len(x_floats)))
-        diff_norm = diff_norm_sq ** 0.5
+        diff_norm_sq = sum(
+            (x_diff_floats[i] - x_floats[i]) ** 2 for i in range(len(x_floats))
+        )
+        diff_norm = diff_norm_sq**0.5
 
-        harm_diff_norm_sq = sum((x_diff_floats[i] - x_harm_floats[i])**2 for i in range(len(x_floats)))
-        harm_diff_norm = harm_diff_norm_sq ** 0.5
+        harm_diff_norm_sq = sum(
+            (x_diff_floats[i] - x_harm_floats[i]) ** 2 for i in range(len(x_floats))
+        )
+        harm_diff_norm = harm_diff_norm_sq**0.5
 
         S = 1.0 - diff_norm / (harm_diff_norm + 1e-8)
         return max(0.0, min(1.0, S))
@@ -166,7 +168,7 @@ class PureSyntonicLinear(sn.Module):
         return self._syntony
 
     def extra_repr(self) -> str:
-        return f'in_features={self.in_features}, out_features={self.out_features}, recursion={self.use_recursion}'
+        return f"in_features={self.in_features}, out_features={self.out_features}, recursion={self.use_recursion}"
 
 
 class PureSyntonicMLP(sn.Module):
@@ -192,7 +194,7 @@ class PureSyntonicMLP(sn.Module):
         dropout: float = 0.1,
         use_recursion: bool = True,
         output_activation: Optional[str] = None,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize syntonic MLP.
@@ -256,9 +258,9 @@ class PureSyntonicMLP(sn.Module):
         x = self.output_layer.forward(x)
 
         # Output activation
-        if self.output_activation == 'sigmoid':
+        if self.output_activation == "sigmoid":
             x.sigmoid(precision=100)
-        elif self.output_activation == 'tanh':
+        elif self.output_activation == "tanh":
             x.tanh(precision=100)
         # Note: softmax not implemented in pure version yet
 
@@ -301,7 +303,7 @@ class PureSyntonicMLP(sn.Module):
         return outputs
 
     def extra_repr(self) -> str:
-        return f'input={self.input_dim}, hidden={self.hidden_dims}, output={self.output_dim}'
+        return f"input={self.input_dim}, hidden={self.hidden_dims}, output={self.output_dim}"
 
 
 class PureDeepSyntonicMLP:
@@ -325,7 +327,7 @@ class PureDeepSyntonicMLP:
         output_dim: int,
         depth: int = 6,
         dropout: float = 0.1,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize deep syntonic MLP.
@@ -348,10 +350,7 @@ class PureDeepSyntonicMLP:
 
         # Stack of recursion blocks with residuals
         # Note: Pure RecursionBlock doesn't support dropout parameter
-        self.blocks = [
-            RecursionBlock(hidden_dim, device=device)
-            for _ in range(depth)
-        ]
+        self.blocks = [RecursionBlock(hidden_dim, device=device) for _ in range(depth)]
 
         self.output_proj = ResonantLinear(hidden_dim, output_dim, device=device)
         self.norm = SyntonicNorm(hidden_dim, device=device)
@@ -389,16 +388,16 @@ class PureDeepSyntonicMLP:
         return sum(syntonies) / len(syntonies) if syntonies else 0.5
 
     def __repr__(self) -> str:
-        return f'PureDeepSyntonicMLP(input={self.input_dim}, hidden={self.hidden_dim}, output={self.output_dim}, depth={self.depth})'
+        return f"PureDeepSyntonicMLP(input={self.input_dim}, hidden={self.hidden_dim}, output={self.output_dim}, depth={self.depth})"
 
 
 if __name__ == "__main__":
     # Test the pure syntonic MLP
     from syntonic._core import ResonantTensor
 
-    print("="*60)
+    print("=" * 60)
     print("Testing PureSyntonicLinear...")
-    print("="*60)
+    print("=" * 60)
 
     layer = PureSyntonicLinear(4, 8, use_recursion=True)
     print(f"Layer: {layer}")
@@ -411,11 +410,11 @@ if __name__ == "__main__":
     if layer.syntony is not None:
         print(f"Layer syntony: {layer.syntony:.4f}")
     else:
-        print(f"Layer syntony: Not computed")
+        print("Layer syntony: Not computed")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Testing PureSyntonicMLP...")
-    print("="*60)
+    print("=" * 60)
 
     model = PureSyntonicMLP(4, [8, 6], 2, use_recursion=True)
     print(f"Model: {model}")
@@ -430,9 +429,9 @@ if __name__ == "__main__":
     print(f"Number of intermediate outputs: {len(intermediates)}")
     print(f"Intermediate shapes: {[out.shape for out in intermediates]}")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Testing PureDeepSyntonicMLP...")
-    print("="*60)
+    print("=" * 60)
 
     deep_model = PureDeepSyntonicMLP(4, 6, 2, depth=3)
     print(f"Model: {deep_model}")
@@ -441,6 +440,6 @@ if __name__ == "__main__":
     print(f"Output shape: {y_deep.shape}, syntony: {y_deep.syntony:.4f}")
     print(f"Model syntony: {deep_model.syntony:.4f}")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("SUCCESS - All pure MLP architectures working!")
-    print("="*60)
+    print("=" * 60)

@@ -13,6 +13,7 @@ a distinctive prediction of SRT.
 """
 
 import math
+
 from syntonic.exact import E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
 from syntonic.physics.constants import RHO_LAMBDA_QUARTER
 
@@ -35,7 +36,7 @@ def m_nu3() -> float:
 
     # ρ_Λ^(1/4) ≈ 2.3 meV, E* ≈ 20
     # m_ν₃ ≈ 2.3 × 20^1.11 ≈ 50 meV
-    return RHO_LAMBDA_QUARTER * 1000 * E_STAR_NUMERIC ** exponent
+    return RHO_LAMBDA_QUARTER * 1000 * E_STAR_NUMERIC**exponent
 
 
 def mass_squared_ratio() -> float:
@@ -192,13 +193,13 @@ class NeutrinoMasses:
     def all_parameters(self) -> dict:
         """Return all neutrino parameters."""
         return {
-            'm_nu1': self.m_nu1(),
-            'm_nu2': self.m_nu2(),
-            'm_nu3': self.m_nu3(),
-            'dm21_sq': self.delta_m21_squared(),
-            'dm31_sq': self.delta_m31_squared(),
-            'ratio': self.mass_squared_ratio(),
-            'sum': self.sum_of_masses(),
+            "m_nu1": self.m_nu1(),
+            "m_nu2": self.m_nu2(),
+            "m_nu3": self.m_nu3(),
+            "dm21_sq": self.delta_m21_squared(),
+            "dm31_sq": self.delta_m31_squared(),
+            "ratio": self.mass_squared_ratio(),
+            "sum": self.sum_of_masses(),
         }
 
     def __repr__(self) -> str:
@@ -206,13 +207,13 @@ class NeutrinoMasses:
 
 
 __all__ = [
-    'm_nu1',
-    'm_nu2',
-    'm_nu3',
-    'mass_squared_ratio',
-    'delta_m21_squared',
-    'delta_m31_squared',
-    'sum_of_masses',
-    'effective_majorana_mass',
-    'NeutrinoMasses',
+    "m_nu1",
+    "m_nu2",
+    "m_nu3",
+    "mass_squared_ratio",
+    "delta_m21_squared",
+    "delta_m31_squared",
+    "sum_of_masses",
+    "effective_majorana_mass",
+    "NeutrinoMasses",
 ]

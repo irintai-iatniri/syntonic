@@ -7,8 +7,9 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import Optional, List, Dict, Tuple, Callable, Any
+
 import math
+from typing import Dict, List, Optional, Tuple
 
 from syntonic._core import ResonantTensor
 
@@ -38,21 +39,21 @@ def compute_weight_decay(
     """
     decay_loss = 0.0
     n_layers = len(weights)
-    
+
     for i, w in enumerate(weights):
         if golden_scaling:
             scale = PHI ** (-i)
         else:
             scale = 1.0
-        
+
         # L2 norm via variance * size
         w_var = w.var()
         w_size = 1
         for dim in w.shape():
             w_size *= dim
-        
+
         decay_loss += scale * w_var * w_size
-    
+
     return lambda_decay * decay_loss
 
 
@@ -64,22 +65,22 @@ def compute_sparsity_penalty(
     Compute activation sparsity regularization.
 
     Promotes golden-ratio sparsity: ~61.8% near-zero activations.
-    
+
     Args:
         activations: Activation tensor
         target_sparsity: Target sparsity ratio (default: 1/φ)
-    
+
     Returns:
         Sparsity penalty
     """
     # Use variance as sparsity proxy
     # Low variance → more concentrated (sparse)
     var = activations.var()
-    
+
     # Map variance to sparsity estimate
     # High var → low sparsity, low var → high sparsity
     estimated_sparsity = 1.0 / (1.0 + var)
-    
+
     # Penalty for deviation from golden sparsity
     penalty = (estimated_sparsity - target_sparsity) ** 2
     return penalty
@@ -139,23 +140,23 @@ class SyntonicRegularizer:
         if self.lambda_decay > 0 and weights:
             decay_loss = compute_weight_decay(weights, self.lambda_decay)
             total_loss += decay_loss
-            metrics['reg_decay'] = decay_loss
+            metrics["reg_decay"] = decay_loss
 
         # 2. Activation sparsity
         if self.lambda_sparsity > 0 and activations is not None:
             sparsity_loss = compute_sparsity_penalty(activations)
             weighted_sparsity = self.lambda_sparsity * sparsity_loss
             total_loss += weighted_sparsity
-            metrics['reg_sparsity'] = weighted_sparsity
+            metrics["reg_sparsity"] = weighted_sparsity
 
         # 3. Weight coherence (variance-based approximation)
         if self.lambda_coherence > 0 and weights:
             coherence_loss = self._compute_coherence(weights)
             weighted_coherence = self.lambda_coherence * coherence_loss
             total_loss += weighted_coherence
-            metrics['reg_coherence'] = weighted_coherence
+            metrics["reg_coherence"] = weighted_coherence
 
-        metrics['reg_total'] = total_loss
+        metrics["reg_total"] = total_loss
         return total_loss, metrics
 
     def _compute_coherence(self, weights: List[ResonantTensor]) -> float:
@@ -166,10 +167,10 @@ class SyntonicRegularizer:
         """
         if not weights:
             return 0.0
-        
+
         variances = [w.var() for w in weights]
         mean_var = sum(variances) / len(variances)
-        
+
         # Penalize variance deviation (want balanced coherence)
         coherence_loss = sum((v - mean_var) ** 2 for v in variances) / len(variances)
         return coherence_loss
@@ -206,7 +207,7 @@ class SyntonyConstraint:
             return 0.0
 
         violation = self.target - self.margin - syntony
-        return self.weight * (violation ** 2)
+        return self.weight * (violation**2)
 
 
 class ArchonicPenalty:
@@ -244,13 +245,17 @@ class ArchonicPenalty:
         # Update history
         self.syntony_history.append(current_syntony)
         if len(self.syntony_history) > self.history_size:
-            self.syntony_history = self.syntony_history[-self.history_size:]
+            self.syntony_history = self.syntony_history[-self.history_size :]
 
         if len(self.syntony_history) < 10:
             return 0.0
 
         # Check for archonic pattern
-        recent = self.syntony_history[-50:] if len(self.syntony_history) >= 50 else self.syntony_history
+        recent = (
+            self.syntony_history[-50:]
+            if len(self.syntony_history) >= 50
+            else self.syntony_history
+        )
         mean_S = sum(recent) / len(recent)
         var_S = sum((s - mean_S) ** 2 for s in recent) / len(recent)
 
@@ -258,14 +263,18 @@ class ArchonicPenalty:
         mid = len(recent) // 2
         first_half = recent[:mid]
         second_half = recent[mid:]
-        trend = sum(second_half) / len(second_half) - sum(first_half) / len(first_half) if first_half else 0.0
+        trend = (
+            sum(second_half) / len(second_half) - sum(first_half) / len(first_half)
+            if first_half
+            else 0.0
+        )
 
         # Archonic: high variance, no trend, below target
         target_S = S_TARGET - 0.1
         is_archonic = (
-            var_S > self.variance_threshold and
-            abs(trend) < self.variance_threshold / 10 and
-            mean_S < target_S
+            var_S > self.variance_threshold
+            and abs(trend) < self.variance_threshold / 10
+            and mean_S < target_S
         )
 
         if is_archonic:
@@ -288,30 +297,28 @@ PureArchonicPenalty = ArchonicPenalty
 if __name__ == "__main__":
     """Test pure regularization."""
     print("Testing Pure Syntonic Regularization...")
-    
+
     # Create test weights
     w1 = ResonantTensor.from_floats_default_modes([0.1] * 16, [4, 4], 100)
     w2 = ResonantTensor.from_floats_default_modes([0.2] * 16, [4, 4], 100)
     weights = [w1, w2]
-    
+
     # Create test activations
     activations = ResonantTensor.from_floats_default_modes(
-        [0.5, 0.0, 0.3, 0.0, 0.1, 0.0],
-        [2, 3],
-        100
+        [0.5, 0.0, 0.3, 0.0, 0.1, 0.0], [2, 3], 100
     )
-    
+
     # Test regularizer
     reg = SyntonicRegularizer(lambda_decay=0.01, lambda_sparsity=0.001)
     loss, metrics = reg(weights, activations)
-    
+
     print(f"Total regularization: {metrics['reg_total']:.6f}")
     print(f"  Decay: {metrics.get('reg_decay', 0):.6f}")
     print(f"  Sparsity: {metrics.get('reg_sparsity', 0):.6f}")
-    
+
     # Test syntony constraint
     constraint = SyntonyConstraint(weight=1.0)
     violation = constraint(0.5)  # Below target
     print(f"Syntony constraint violation: {violation:.6f}")
-    
+
     print("✅ Pure Syntonic Regularization test passed!")

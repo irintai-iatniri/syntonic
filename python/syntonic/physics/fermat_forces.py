@@ -6,8 +6,8 @@ Maps Fermat primes to fundamental forces.
 
 from syntonic.srt.prime_selection import (
     FERMAT_PRIMES,
-    is_fermat_prime,
     get_force_spectrum,
+    is_fermat_prime,
 )
 
 FORCE_NAMES = ["Strong", "Electroweak", "Dark Boundary", "Gravity", "Versal"]

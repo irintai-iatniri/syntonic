@@ -16,23 +16,28 @@ Example:
     >>> print(f"PyTorch epochs: {results['pytorch']['epochs']}")
 """
 
-from .datasets import make_xor, make_moons, make_circles, make_spiral, train_test_split
-from .fitness import ClassificationFitness, RegressionFitness, WavefunctionFitness, evolve_with_fitness
-from .convergence_benchmark import ConvergenceSpeedBenchmark, BenchmarkResult
+from .convergence_benchmark import BenchmarkResult, ConvergenceSpeedBenchmark
+from .datasets import make_circles, make_moons, make_spiral, make_xor, train_test_split
+from .fitness import (
+    ClassificationFitness,
+    RegressionFitness,
+    WavefunctionFitness,
+    evolve_with_fitness,
+)
 
 __all__ = [
     # Datasets
-    'make_xor',
-    'make_moons',
-    'make_circles',
-    'make_spiral',
-    'train_test_split',
+    "make_xor",
+    "make_moons",
+    "make_circles",
+    "make_spiral",
+    "train_test_split",
     # Fitness wrappers
-    'ClassificationFitness',
-    'RegressionFitness',
-    'WavefunctionFitness',
-    'evolve_with_fitness',
+    "ClassificationFitness",
+    "RegressionFitness",
+    "WavefunctionFitness",
+    "evolve_with_fitness",
     # Benchmarks
-    'ConvergenceSpeedBenchmark',
-    'BenchmarkResult',
+    "ConvergenceSpeedBenchmark",
+    "BenchmarkResult",
 ]

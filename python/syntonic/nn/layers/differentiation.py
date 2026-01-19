@@ -13,6 +13,7 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
+
 from typing import Optional
 
 from syntonic._core import ResonantTensor
@@ -49,7 +50,7 @@ class DifferentiationLayer:
         out_features: Optional[int] = None,
         bias: bool = True,
         alpha_scale: float = 1.0,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize differentiation layer.
@@ -65,7 +66,9 @@ class DifferentiationLayer:
 
         self.in_features = in_features
         self.out_features = out_features
-        self.linear = ResonantLinear(in_features, out_features, bias=bias, device=device)
+        self.linear = ResonantLinear(
+            in_features, out_features, bias=bias, device=device
+        )
         self.alpha_scale = alpha_scale
         self.device = device
 
@@ -112,17 +115,19 @@ class DifferentiationLayer:
         d_x_floats = d_x.to_floats()
 
         # Compute ||d_x - x||
-        diff_norm_sq = sum((d_x_floats[i] - x_floats[i])**2 for i in range(len(x_floats)))
-        diff_norm = diff_norm_sq ** 0.5
+        diff_norm_sq = sum(
+            (d_x_floats[i] - x_floats[i]) ** 2 for i in range(len(x_floats))
+        )
+        diff_norm = diff_norm_sq**0.5
 
         # Compute ||x||
-        x_norm_sq = sum(x_floats[i]**2 for i in range(len(x_floats)))
-        x_norm = x_norm_sq ** 0.5
+        x_norm_sq = sum(x_floats[i] ** 2 for i in range(len(x_floats)))
+        x_norm = x_norm_sq**0.5
 
         return diff_norm / (x_norm + 1e-8)
 
     def __repr__(self) -> str:
-        return f'DifferentiationLayer(in_features={self.in_features}, out_features={self.out_features}, alpha_scale={self.alpha_scale}, device={self.device})'
+        return f"DifferentiationLayer(in_features={self.in_features}, out_features={self.out_features}, alpha_scale={self.alpha_scale}, device={self.device})"
 
 
 class DifferentiationModule:
@@ -138,7 +143,7 @@ class DifferentiationModule:
         d_model: int,
         n_heads: int,
         dropout: float = 0.1,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize multi-head differentiation module.
@@ -155,7 +160,9 @@ class DifferentiationModule:
         self.device = device
 
         if self.head_dim * n_heads != d_model:
-            raise ValueError(f"d_model {d_model} must be divisible by n_heads {n_heads}")
+            raise ValueError(
+                f"d_model {d_model} must be divisible by n_heads {n_heads}"
+            )
 
         # Multi-head projections (possibility spaces)
         self.projectors = [
@@ -203,10 +210,9 @@ class DifferentiationModule:
         # 4. Residual + Norm
         # x + out
         res = x.elementwise_add(out)
-        
+
         # Layer Norm (using default behavior for now)
         return res.layer_norm()
-
 
 
 if __name__ == "__main__":
@@ -244,22 +250,23 @@ if __name__ == "__main__":
         d_model = 16
         n_heads = 4
         diff_mod = DifferentiationModule(d_model, n_heads, dropout=0.1)
-        
+
         # improved test data - random gaussian-like
         # [batch=2, seq=4, d_model=16] -> total 128 elements
-        dm_data = [float(i % 10) / 10.0 for i in range(128)] 
+        dm_data = [float(i % 10) / 10.0 for i in range(128)]
         x_mod = ResonantTensor(dm_data, [2, 4, d_model])
-        
+
         y_mod = diff_mod.forward(x_mod)
         print(f"Module Input shape: {x_mod.shape}")
         print(f"Module Output shape: {y_mod.shape}")
-        
+
         assert y_mod.shape == x_mod.shape
         print("DifferentiationModule works!")
-        
+
     except Exception as e:
         print(f"DifferentiationModule failed: {e}")
         import traceback
+
         traceback.print_exc()
 
     print("\nSUCCESS - DifferentiationLayer refactored!")

@@ -12,8 +12,9 @@ This is not a difference of degree—it is a topological distinction.
 """
 
 from __future__ import annotations
-from typing import Any, List
+
 import math
+from typing import Any, List
 
 
 class LifeTopology:
@@ -88,16 +89,16 @@ class LifeTopology:
             Information flow description
         """
         flows = {
-            'crystal': 'M⁴ → T⁴ (unidirectional, recording only)',
-            'rock': 'M⁴ → T⁴ (unidirectional, recording only)',
-            'virus': 'M⁴ ↔ T⁴ (weak bidirectional, parasitic)',
-            'cell': 'M⁴ ↔ T⁴ (strong bidirectional)',
-            'bacterium': 'M⁴ ↔ T⁴ (strong bidirectional)',
-            'plant': 'M⁴ ↔ T⁴ (hierarchical bidirectional)',
-            'animal': 'M⁴ ↔ T⁴ (hierarchical bidirectional)',
-            'organism': 'M⁴ ↔ T⁴ (hierarchical bidirectional)',
+            "crystal": "M⁴ → T⁴ (unidirectional, recording only)",
+            "rock": "M⁴ → T⁴ (unidirectional, recording only)",
+            "virus": "M⁴ ↔ T⁴ (weak bidirectional, parasitic)",
+            "cell": "M⁴ ↔ T⁴ (strong bidirectional)",
+            "bacterium": "M⁴ ↔ T⁴ (strong bidirectional)",
+            "plant": "M⁴ ↔ T⁴ (hierarchical bidirectional)",
+            "animal": "M⁴ ↔ T⁴ (hierarchical bidirectional)",
+            "organism": "M⁴ ↔ T⁴ (hierarchical bidirectional)",
         }
-        return flows.get(system_type.lower(), f'Unknown flow for {system_type}')
+        return flows.get(system_type.lower(), f"Unknown flow for {system_type}")
 
     def flow_direction(self, Tv_sum: float) -> str:
         """
@@ -110,9 +111,9 @@ class LifeTopology:
             Flow direction description
         """
         if Tv_sum < self.LIFE_THRESHOLD:
-            return 'unidirectional (M⁴ → T⁴)'
+            return "unidirectional (M⁴ → T⁴)"
         else:
-            return 'bidirectional (M⁴ ↔ T⁴)'
+            return "bidirectional (M⁴ ↔ T⁴)"
 
     def topological_definition(self) -> str:
         """

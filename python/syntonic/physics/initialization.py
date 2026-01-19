@@ -1,11 +1,18 @@
-import torch
 import math
+
+import torch
+
 from syntonic.srt.constants import (
-    E_STAR_NUMERIC, 
-    Q_DEFICIT_NUMERIC as Q, 
-    PHI_NUMERIC as PHI,
-    correction_factor
+    E_STAR_NUMERIC,
+    correction_factor,
 )
+from syntonic.srt.constants import (
+    PHI_NUMERIC as PHI,
+)
+from syntonic.srt.constants import (
+    Q_DEFICIT_NUMERIC as Q,
+)
+
 
 def get_resonance_value(base_scale="particle", n_winding=1, corrections=None):
     """
@@ -14,12 +21,12 @@ def get_resonance_value(base_scale="particle", n_winding=1, corrections=None):
     """
     if corrections is None:
         corrections = []
-    
+
     # Base Scalar (The "v" or "E*")
     if base_scale == "spectral":
         val = E_STAR_NUMERIC
     elif base_scale == "higgs":
-        val = 246.0 # Vacuum expectation
+        val = 246.0  # Vacuum expectation
     else:
         val = 1.0
 
@@ -31,8 +38,9 @@ def get_resonance_value(base_scale="particle", n_winding=1, corrections=None):
         # Uses your existing correction_factor function from exact/__init__.py
         factor = correction_factor(struct_name, sign)
         val *= factor
-        
+
     return val
+
 
 def syntonic_uniform_(tensor, mode="golden"):
     """

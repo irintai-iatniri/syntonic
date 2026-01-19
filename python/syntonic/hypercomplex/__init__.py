@@ -23,7 +23,7 @@ Usage:
     True
 """
 
-from syntonic.core import Quaternion, Octonion
+from syntonic.core import Octonion, Quaternion
 
 # Unit quaternions (basis elements)
 I = Quaternion(0.0, 1.0, 0.0, 0.0)  # i
@@ -87,20 +87,35 @@ def octonion(e0, e1=0.0, e2=0.0, e3=0.0, e4=0.0, e5=0.0, e6=0.0, e7=0.0):
         14.2828568570857
     """
     return Octonion(
-        float(e0), float(e1), float(e2), float(e3),
-        float(e4), float(e5), float(e6), float(e7)
+        float(e0),
+        float(e1),
+        float(e2),
+        float(e3),
+        float(e4),
+        float(e5),
+        float(e6),
+        float(e7),
     )
 
 
 __all__ = [
     # Classes
-    'Quaternion',
-    'Octonion',
+    "Quaternion",
+    "Octonion",
     # Factory functions
-    'quaternion',
-    'octonion',
+    "quaternion",
+    "octonion",
     # Quaternion basis
-    'I', 'J', 'K',
+    "I",
+    "J",
+    "K",
     # Octonion basis
-    'E0', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7',
+    "E0",
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6",
+    "E7",
 ]

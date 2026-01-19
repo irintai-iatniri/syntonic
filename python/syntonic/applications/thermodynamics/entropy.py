@@ -7,8 +7,10 @@ Where p(n) follows the Golden Measure: μ(n) ∝ exp(-|n|²/φ)
 """
 
 from __future__ import annotations
-from typing import Dict, Tuple, List
+
 import math
+from typing import Dict, Tuple
+
 from syntonic.exact import PHI_NUMERIC
 
 
@@ -80,7 +82,7 @@ class SyntonicEntropy:
         for norm_sq in range(max_norm_sq + 1):
             # Degeneracy of states with |n|² = norm_sq (approximate)
             # For 4D: roughly proportional to norm_sq^1.5
-            degeneracy = max(1, int(4 * (norm_sq ** 1.5))) if norm_sq > 0 else 1
+            degeneracy = max(1, int(4 * (norm_sq**1.5))) if norm_sq > 0 else 1
             weight = math.exp(-norm_sq / PHI_NUMERIC)
             weights[norm_sq] = weight * degeneracy
             total_weight += weight * degeneracy
@@ -113,7 +115,7 @@ class SyntonicEntropy:
         S_0 = 1.0  # Reference entropy
 
         if S <= 0:
-            return float('inf')
+            return float("inf")
         if S >= 1:
             return 0.0
 

@@ -9,8 +9,8 @@ The genetic code (64 codons, 20 amino acids) emerges from T⁴ topology.
 """
 
 from __future__ import annotations
+
 from typing import Dict, Tuple
-import math
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
 
@@ -169,26 +169,74 @@ class GeneticCode:
 
     # Standard genetic code
     CODONS_TO_AMINO = {
-        'UUU': 'Phe', 'UUC': 'Phe', 'UUA': 'Leu', 'UUG': 'Leu',
-        'UCU': 'Ser', 'UCC': 'Ser', 'UCA': 'Ser', 'UCG': 'Ser',
-        'UAU': 'Tyr', 'UAC': 'Tyr', 'UAA': 'Stop', 'UAG': 'Stop',
-        'UGU': 'Cys', 'UGC': 'Cys', 'UGA': 'Stop', 'UGG': 'Trp',
-        'CUU': 'Leu', 'CUC': 'Leu', 'CUA': 'Leu', 'CUG': 'Leu',
-        'CCU': 'Pro', 'CCC': 'Pro', 'CCA': 'Pro', 'CCG': 'Pro',
-        'CAU': 'His', 'CAC': 'His', 'CAA': 'Gln', 'CAG': 'Gln',
-        'CGU': 'Arg', 'CGC': 'Arg', 'CGA': 'Arg', 'CGG': 'Arg',
-        'AUU': 'Ile', 'AUC': 'Ile', 'AUA': 'Ile', 'AUG': 'Met',
-        'ACU': 'Thr', 'ACC': 'Thr', 'ACA': 'Thr', 'ACG': 'Thr',
-        'AAU': 'Asn', 'AAC': 'Asn', 'AAA': 'Lys', 'AAG': 'Lys',
-        'AGU': 'Ser', 'AGC': 'Ser', 'AGA': 'Arg', 'AGG': 'Arg',
-        'GUU': 'Val', 'GUC': 'Val', 'GUA': 'Val', 'GUG': 'Val',
-        'GCU': 'Ala', 'GCC': 'Ala', 'GCA': 'Ala', 'GCG': 'Ala',
-        'GAU': 'Asp', 'GAC': 'Asp', 'GAA': 'Glu', 'GAG': 'Glu',
-        'GGU': 'Gly', 'GGC': 'Gly', 'GGA': 'Gly', 'GGG': 'Gly',
+        "UUU": "Phe",
+        "UUC": "Phe",
+        "UUA": "Leu",
+        "UUG": "Leu",
+        "UCU": "Ser",
+        "UCC": "Ser",
+        "UCA": "Ser",
+        "UCG": "Ser",
+        "UAU": "Tyr",
+        "UAC": "Tyr",
+        "UAA": "Stop",
+        "UAG": "Stop",
+        "UGU": "Cys",
+        "UGC": "Cys",
+        "UGA": "Stop",
+        "UGG": "Trp",
+        "CUU": "Leu",
+        "CUC": "Leu",
+        "CUA": "Leu",
+        "CUG": "Leu",
+        "CCU": "Pro",
+        "CCC": "Pro",
+        "CCA": "Pro",
+        "CCG": "Pro",
+        "CAU": "His",
+        "CAC": "His",
+        "CAA": "Gln",
+        "CAG": "Gln",
+        "CGU": "Arg",
+        "CGC": "Arg",
+        "CGA": "Arg",
+        "CGG": "Arg",
+        "AUU": "Ile",
+        "AUC": "Ile",
+        "AUA": "Ile",
+        "AUG": "Met",
+        "ACU": "Thr",
+        "ACC": "Thr",
+        "ACA": "Thr",
+        "ACG": "Thr",
+        "AAU": "Asn",
+        "AAC": "Asn",
+        "AAA": "Lys",
+        "AAG": "Lys",
+        "AGU": "Ser",
+        "AGC": "Ser",
+        "AGA": "Arg",
+        "AGG": "Arg",
+        "GUU": "Val",
+        "GUC": "Val",
+        "GUA": "Val",
+        "GUG": "Val",
+        "GCU": "Ala",
+        "GCC": "Ala",
+        "GCA": "Ala",
+        "GCG": "Ala",
+        "GAU": "Asp",
+        "GAC": "Asp",
+        "GAA": "Glu",
+        "GAG": "Glu",
+        "GGU": "Gly",
+        "GGC": "Gly",
+        "GGA": "Gly",
+        "GGG": "Gly",
     }
 
     # Nucleotide to T⁴ direction mapping
-    BASE_TO_WINDING = {'U': 0, 'A': 1, 'G': 2, 'C': 3}
+    BASE_TO_WINDING = {"U": 0, "A": 1, "G": 2, "C": 3}
 
     def codon_count(self) -> int:
         """
@@ -234,7 +282,7 @@ class GeneticCode:
         Returns:
             Amino acid name or 'Stop'
         """
-        return self.CODONS_TO_AMINO.get(codon.upper(), 'Unknown')
+        return self.CODONS_TO_AMINO.get(codon.upper(), "Unknown")
 
     def codon_to_winding(self, codon: str) -> Tuple[int, int, int, int]:
         """
@@ -251,7 +299,7 @@ class GeneticCode:
         if len(codon) != 3:
             raise ValueError("Codon must be 3 bases")
 
-        codon = codon.upper().replace('T', 'U')  # DNA to RNA
+        codon = codon.upper().replace("T", "U")  # DNA to RNA
         n7 = self.BASE_TO_WINDING[codon[0]]
         n8 = self.BASE_TO_WINDING[codon[1]]
         n9 = self.BASE_TO_WINDING[codon[2]]
@@ -333,4 +381,4 @@ Small variations:
 """
 
     def __repr__(self) -> str:
-        return f"GeneticCode(codons=64, amino_acids=20)"
+        return "GeneticCode(codons=64, amino_acids=20)"

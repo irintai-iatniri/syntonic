@@ -10,7 +10,6 @@ Third Law: Vacuum Saturation lim_{T→0} S = φ - q
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
 from syntonic.srt.geometry import WindingState
@@ -161,7 +160,7 @@ class InformationPressure:
     VALUE = 1 / PHI_NUMERIC  # P ≈ 0.618
 
     @staticmethod
-    def compute(winding_state: 'WindingState' = None) -> float:
+    def compute(winding_state: "WindingState" = None) -> float:
         """
         Compute information pressure at a winding state.
 
@@ -179,7 +178,7 @@ class InformationPressure:
         return 1 / PHI_NUMERIC
 
     @staticmethod
-    def gradient_force(winding_state: 'WindingState') -> float:
+    def gradient_force(winding_state: "WindingState") -> float:
         """
         Force from pressure gradient on a winding state.
 

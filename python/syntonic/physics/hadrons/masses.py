@@ -16,9 +16,7 @@ Meson mass patterns:
     B± = E* × 264 = 5279.8 MeV
 """
 
-import math
-from syntonic.exact import PHI, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
-from syntonic.physics.constants import V_EW
+from syntonic.exact import E_STAR_NUMERIC, PHI, Q_DEFICIT_NUMERIC, get_correction_factor
 
 
 def proton_mass() -> float:
@@ -42,7 +40,7 @@ def proton_mass() -> float:
     q = Q_DEFICIT_NUMERIC
 
     # φ⁸ ≈ 46.979
-    phi_8 = phi ** 8
+    phi_8 = phi**8
 
     # (E* - q) ≈ 19.972 — recursion fixed point
     e_star_minus_q = E_STAR_NUMERIC - q
@@ -75,10 +73,14 @@ def neutron_proton_mass_diff() -> float:
     phi = PHI.eval()
 
     # φ⁸ ≈ 46.979
-    phi_8 = phi ** 8
+    phi_8 = phi**8
 
     # Correction chain from recursion evolution: C39 (q/6), C18 (q/36), C4 (q/360)
-    correction = (1 + get_correction_factor(39)) * (1 + get_correction_factor(18)) * (1 + get_correction_factor(4))
+    correction = (
+        (1 + get_correction_factor(39))
+        * (1 + get_correction_factor(18))
+        * (1 + get_correction_factor(4))
+    )
 
     return phi_8 * Q_DEFICIT_NUMERIC * correction
 
@@ -101,7 +103,7 @@ def neutron_mass() -> float:
     phi = PHI.eval()
 
     # φ⁸ ≈ 46.979
-    phi_8 = phi ** 8
+    phi_8 = phi**8
 
     # Correction factor: C3 (q/720)
     correction = 1 + get_correction_factor(3)
@@ -259,13 +261,13 @@ class HadronMasses:
     def all_masses(self) -> dict:
         """Return all hadron masses."""
         return {
-            'm_p': self.proton_mass(),
-            'm_n': self.neutron_mass(),
-            'dm_np': self.neutron_proton_diff(),
-            'm_pi': self.pion_mass(),
-            'm_K': self.kaon_mass(),
-            'm_D': self.d_meson_mass(),
-            'm_B': self.b_meson_mass(),
+            "m_p": self.proton_mass(),
+            "m_n": self.neutron_mass(),
+            "dm_np": self.neutron_proton_diff(),
+            "m_pi": self.pion_mass(),
+            "m_K": self.kaon_mass(),
+            "m_D": self.d_meson_mass(),
+            "m_B": self.b_meson_mass(),
         }
 
     def __repr__(self) -> str:
@@ -273,16 +275,16 @@ class HadronMasses:
 
 
 __all__ = [
-    'proton_mass',
-    'neutron_mass',
-    'neutron_proton_mass_diff',
-    'pion_mass',
-    'pion_neutral_mass',
-    'kaon_mass',
-    'd_meson_mass',
-    'b_meson_mass',
-    'eta_mass',
-    'rho_mass',
-    'omega_mass',
-    'HadronMasses',
+    "proton_mass",
+    "neutron_mass",
+    "neutron_proton_mass_diff",
+    "pion_mass",
+    "pion_neutral_mass",
+    "kaon_mass",
+    "d_meson_mass",
+    "b_meson_mass",
+    "eta_mass",
+    "rho_mass",
+    "omega_mass",
+    "HadronMasses",
 ]

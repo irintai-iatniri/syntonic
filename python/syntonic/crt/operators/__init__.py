@@ -12,20 +12,25 @@ Provides:
 """
 
 from syntonic.crt.operators.base import OperatorBase
-from syntonic.crt.operators.projectors import (
-    FourierProjector,
-    DampingProjector,
-    LaplacianOperator,
-    create_mode_projectors,
-    create_damping_cascade,
-)
 from syntonic.crt.operators.differentiation import (
     DifferentiationOperator,
     default_differentiation_operator,
 )
+from syntonic.crt.operators.gnosis import (
+    K_D4,
+    GnosisComputer,
+    default_gnosis_computer,
+)
 from syntonic.crt.operators.harmonization import (
     HarmonizationOperator,
     default_harmonization_operator,
+)
+from syntonic.crt.operators.projectors import (
+    DampingProjector,
+    FourierProjector,
+    LaplacianOperator,
+    create_damping_cascade,
+    create_mode_projectors,
 )
 from syntonic.crt.operators.recursion import (
     RecursionOperator,
@@ -34,34 +39,28 @@ from syntonic.crt.operators.recursion import (
 from syntonic.crt.operators.syntony import (
     SyntonyComputer,
     syntony_entropy,
-    syntony_spectral,
     syntony_quick,
-)
-
-from syntonic.crt.operators.gnosis import (
-    GnosisComputer,
-    default_gnosis_computer,
-    K_D4,
+    syntony_spectral,
 )
 
 __all__ = [
-    'OperatorBase',
-    'FourierProjector',
-    'DampingProjector',
-    'LaplacianOperator',
-    'create_mode_projectors',
-    'create_damping_cascade',
-    'DifferentiationOperator',
-    'default_differentiation_operator',
-    'HarmonizationOperator',
-    'default_harmonization_operator',
-    'RecursionOperator',
-    'default_recursion_operator',
-    'SyntonyComputer',
-    'syntony_entropy',
-    'syntony_spectral',
-    'syntony_quick',
-    'GnosisComputer',
-    'default_gnosis_computer',
-    'K_D4',
+    "OperatorBase",
+    "FourierProjector",
+    "DampingProjector",
+    "LaplacianOperator",
+    "create_mode_projectors",
+    "create_damping_cascade",
+    "DifferentiationOperator",
+    "default_differentiation_operator",
+    "HarmonizationOperator",
+    "default_harmonization_operator",
+    "RecursionOperator",
+    "default_recursion_operator",
+    "SyntonyComputer",
+    "syntony_entropy",
+    "syntony_spectral",
+    "syntony_quick",
+    "GnosisComputer",
+    "default_gnosis_computer",
+    "K_D4",
 ]

@@ -14,13 +14,14 @@ The transcendence threshold θ_c = 3π corresponds to K(D₄)/8 = 3 cycles.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional, List, Tuple
+
 import math
+from typing import TYPE_CHECKING, Optional, Tuple
 
 if TYPE_CHECKING:
+    from python.syntonic.crt.operators.syntony import SyntonyComputer
     from syntonic.core.state import State
     from syntonic.crt.operators.recursion import RecursionOperator
-    from python.syntonic.crt.operators.syntony import SyntonyComputer
 
 # D4 kissing number
 K_D4 = 24
@@ -46,14 +47,14 @@ class GnosisComputer:
     """
 
     # Phase thresholds for layer boundaries
-    THETA_1 = math.pi       # Layer 0 → 1
-    THETA_2 = 2 * math.pi   # Layer 1 → 2
-    THETA_3 = 3 * math.pi   # Layer 2 → 3 (transcendence)
+    THETA_1 = math.pi  # Layer 0 → 1
+    THETA_2 = 2 * math.pi  # Layer 1 → 2
+    THETA_3 = 3 * math.pi  # Layer 2 → 3 (transcendence)
 
     def __init__(
         self,
-        recursion_op: Optional['RecursionOperator'] = None,
-        syntony_computer: Optional['SyntonyComputer'] = None,
+        recursion_op: Optional["RecursionOperator"] = None,
+        syntony_computer: Optional["SyntonyComputer"] = None,
         max_iterations: int = 100,
     ):
         """
@@ -69,19 +70,20 @@ class GnosisComputer:
         self.max_iterations = max_iterations
 
     @property
-    def recursion_op(self) -> 'RecursionOperator':
+    def recursion_op(self) -> "RecursionOperator":
         """Get recursion operator, creating default if needed."""
         if self._recursion_op is None:
             from syntonic.crt.operators.recursion import default_recursion_operator
+
             self._recursion_op = default_recursion_operator()
         return self._recursion_op
 
     @property
-    def syntony_computer(self) -> Optional['SyntonyComputer']:
+    def syntony_computer(self) -> Optional["SyntonyComputer"]:
         """Get syntony computer if available."""
         return self._syntony_computer
 
-    def compute_phase(self, state: 'State') -> float:
+    def compute_phase(self, state: "State") -> float:
         """
         Compute accumulated transcendence phase θ.
 
@@ -130,7 +132,7 @@ class GnosisComputer:
 
         return theta
 
-    def compute_phase_quick(self, state: 'State') -> float:
+    def compute_phase_quick(self, state: "State") -> float:
         """
         Quick phase estimate without full evolution.
 
@@ -152,6 +154,7 @@ class GnosisComputer:
 
         # Modulate by state "quality" (low entropy = more phase)
         from python.syntonic.crt.operators.syntony import syntony_entropy
+
         entropy_syntony = syntony_entropy(state)
 
         # Combine indicators
@@ -159,7 +162,7 @@ class GnosisComputer:
 
         return phase
 
-    def compute_layer(self, state: 'State', quick: bool = True) -> int:
+    def compute_layer(self, state: "State", quick: bool = True) -> int:
         """
         Determine gnosis layer from phase.
 
@@ -188,7 +191,7 @@ class GnosisComputer:
         else:
             return 3  # Transcendent
 
-    def transcendence_metric(self, state: 'State') -> float:
+    def transcendence_metric(self, state: "State") -> float:
         """
         Compute continuous transcendence measure T(Ψ).
 
@@ -204,7 +207,7 @@ class GnosisComputer:
         theta = self.compute_phase_quick(state)
         return theta / self.THETA_3
 
-    def layer_progress(self, state: 'State') -> Tuple[int, float]:
+    def layer_progress(self, state: "State") -> Tuple[int, float]:
         """
         Compute current layer and progress toward next layer.
 
@@ -230,7 +233,7 @@ class GnosisComputer:
 
         return layer, min(progress, 1.0)
 
-    def k_d4_cycles(self, state: 'State') -> float:
+    def k_d4_cycles(self, state: "State") -> float:
         """
         Compute effective K(D₄) cycles.
 
@@ -250,14 +253,14 @@ class GnosisComputer:
     def layer_name(self, layer: int) -> str:
         """Get human-readable layer name."""
         names = {
-            0: 'nascent',
-            1: 'emergent',
-            2: 'coherent',
-            3: 'transcendent',
+            0: "nascent",
+            1: "emergent",
+            2: "coherent",
+            3: "transcendent",
         }
-        return names.get(layer, 'unknown')
+        return names.get(layer, "unknown")
 
-    def describe(self, state: 'State') -> str:
+    def describe(self, state: "State") -> str:
         """
         Generate human-readable gnosis description.
 
@@ -271,10 +274,7 @@ class GnosisComputer:
         name = self.layer_name(layer)
         T = self.transcendence_metric(state)
 
-        return (
-            f"Gnosis Layer {layer} ({name}), "
-            f"progress={progress:.1%}, T={T:.3f}"
-        )
+        return f"Gnosis Layer {layer} ({name}), " f"progress={progress:.1%}, T={T:.3f}"
 
     def __repr__(self) -> str:
         return f"GnosisComputer(max_iter={self.max_iterations})"

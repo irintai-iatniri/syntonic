@@ -16,7 +16,8 @@ Note: The PDG values are provided for validation only.
 """
 
 import math
-from syntonic.exact import PHI, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
+
+from syntonic.exact import E_STAR_NUMERIC, PHI, get_correction_factor
 
 # =============================================================================
 # Input Scale (the only input in SRT)
@@ -49,7 +50,7 @@ def gut_scale() -> float:
         GUT scale in GeV
     """
     phi = PHI.eval()
-    return V_EW * math.exp(phi ** 7)
+    return V_EW * math.exp(phi**7)
 
 
 def planck_scale_reduced() -> float:
@@ -104,30 +105,30 @@ RHO_LAMBDA_QUARTER = 2.3e-3  # eV, (ρ_Λ)^{1/4} dark energy density
 
 # These map physical processes to algebraic structures
 PHYSICS_STRUCTURE_MAP = {
-    'chiral_suppression': 'E8_positive',     # 120 - chiral fermions
-    'generation_crossing': 'E6_positive',     # 36 - golden cone
-    'fundamental_rep': 'E6_fundamental',      # 27 - 27 of E6
-    'consciousness': 'D4_kissing',            # 24 - D4 kissing number
-    'cartan': 'G2_dim',                       # 8 - rank(E8)
+    "chiral_suppression": "E8_positive",  # 120 - chiral fermions
+    "generation_crossing": "E6_positive",  # 36 - golden cone
+    "fundamental_rep": "E6_fundamental",  # 27 - 27 of E6
+    "consciousness": "D4_kissing",  # 24 - D4 kissing number
+    "cartan": "G2_dim",  # 8 - rank(E8)
 }
 
 
 __all__ = [
     # Input scale
-    'V_EW',
+    "V_EW",
     # PDG reference values
-    'M_Z',
-    'M_W_PDG',
-    'M_H_PDG',
-    'ALPHA_EM_0',
-    'ALPHA_S_MZ',
+    "M_Z",
+    "M_W_PDG",
+    "M_H_PDG",
+    "ALPHA_EM_0",
+    "ALPHA_S_MZ",
     # Scale functions
-    'gut_scale',
-    'planck_scale_reduced',
-    'electroweak_symmetry_breaking_scale',
-    'qcd_scale',
+    "gut_scale",
+    "planck_scale_reduced",
+    "electroweak_symmetry_breaking_scale",
+    "qcd_scale",
     # Cosmological
-    'RHO_LAMBDA_QUARTER',
+    "RHO_LAMBDA_QUARTER",
     # Structure map
-    'PHYSICS_STRUCTURE_MAP',
+    "PHYSICS_STRUCTURE_MAP",
 ]

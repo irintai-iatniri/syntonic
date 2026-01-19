@@ -11,12 +11,12 @@ The universe is a heat engine with this fixed efficiency.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Optional, TYPE_CHECKING
-import math
 
-from syntonic.exact import PHI, PHI_NUMERIC, Q_DEFICIT_NUMERIC
+from dataclasses import dataclass
+from typing import Optional
+
 from syntonic.core import State
+from syntonic.exact import PHI_NUMERIC
 
 
 @dataclass
@@ -33,7 +33,7 @@ class CycleResult:
     @property
     def is_carnot_limited(self) -> bool:
         """Check if efficiency is at the Carnot limit (1/φ)."""
-        return abs(self.efficiency - 1/PHI_NUMERIC) < 1e-6
+        return abs(self.efficiency - 1 / PHI_NUMERIC) < 1e-6
 
 
 class DHSRThermodynamicCycle:
@@ -66,7 +66,7 @@ class DHSRThermodynamicCycle:
     WORK_FRACTION = 1 / PHI_NUMERIC  # 0.618 - converted to work/gnosis
     RECYCLE_FRACTION = 1 / PHI_NUMERIC**2  # 0.382 - recycled as potential
 
-    def __init__(self, working_medium: Optional['State'] = None):
+    def __init__(self, working_medium: Optional["State"] = None):
         """
         Initialize with optional working medium state.
 
@@ -78,7 +78,7 @@ class DHSRThermodynamicCycle:
         self._cycle_count = 0
 
     @property
-    def medium(self) -> Optional['State']:
+    def medium(self) -> Optional["State"]:
         """Current working medium state."""
         return self._medium
 
@@ -92,7 +92,7 @@ class DHSRThermodynamicCycle:
         """Number of cycles completed."""
         return self._cycle_count
 
-    def differentiation_step(self, state: 'State') -> 'State':
+    def differentiation_step(self, state: "State") -> "State":
         """
         D̂: WU → {WU₁, WU₂, ..., WUₙ}
 
@@ -107,7 +107,7 @@ class DHSRThermodynamicCycle:
         """
         return state.differentiate()
 
-    def harmonization_step(self, state: 'State') -> 'State':
+    def harmonization_step(self, state: "State") -> "State":
         """
         Ĥ: Recombination into ratio pairs.
 
@@ -122,7 +122,7 @@ class DHSRThermodynamicCycle:
         """
         return state.harmonize()
 
-    def syntonization_step(self, state: 'State') -> tuple['State', str]:
+    def syntonization_step(self, state: "State") -> tuple["State", str]:
         """
         Ŝ: Oscillation between Mv and Tv pairs.
 
@@ -140,13 +140,13 @@ class DHSRThermodynamicCycle:
         syntony = state.syntony
 
         if abs(syntony - PHI_NUMERIC) < 0.01:
-            return state, 'proceed'
+            return state, "proceed"
         elif syntony < PHI_NUMERIC:
-            return state, 'accumulate'
+            return state, "accumulate"
         else:
-            return state, 'split'
+            return state, "split"
 
-    def recursion_step(self, state: 'State') -> 'State':
+    def recursion_step(self, state: "State") -> "State":
         """
         R̂: Filtering and recycling.
 
@@ -247,10 +247,10 @@ class DHSRThermodynamicCycle:
         total = D + H
 
         return {
-            'D': D,
-            'H': H,
-            'sum': total,
-            'verified': abs(total - 1.0) < 1e-10,
+            "D": D,
+            "H": H,
+            "sum": total,
+            "verified": abs(total - 1.0) < 1e-10,
         }
 
     def __repr__(self) -> str:

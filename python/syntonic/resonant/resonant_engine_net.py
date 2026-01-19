@@ -3,34 +3,34 @@ WindingEngine: A pure Resonant-Winding Engine implementation.
 
 """
 
-from syntonic._core import ResonantTensor, GoldenExact
 import random
-import math
+
+from syntonic._core import GoldenExact, ResonantTensor
+
 
 class ResonantLayer:
     """A single layer in the Resonant Engine."""
+
     def __init__(self, in_features, out_features, precision=100):
         self.in_features = in_features
         self.out_features = out_features
         self.precision = precision
-        
+
         # Initialize weights and biases as ResonantTensors
-        # Using Golden-Measure inspired initialization: 
+        # Using Golden-Measure inspired initialization:
         # Small random integers in the lattice
         w_lattice = []
         for _ in range(out_features * in_features):
             a = random.randint(-2, 2)
             b = random.randint(-1, 1)
             w_lattice.append(GoldenExact.from_integers(a, b))
-            
+
         b_lattice = [GoldenExact.from_integers(0, 0) for _ in range(out_features)]
-        
+
         self.weight = ResonantTensor.from_golden_exact(
             w_lattice, [out_features, in_features]
         )
-        self.bias = ResonantTensor.from_golden_exact(
-            b_lattice, [out_features]
-        )
+        self.bias = ResonantTensor.from_golden_exact(b_lattice, [out_features])
 
     def forward(self, x):
         """Forward pass using native Rust linalg."""
@@ -42,11 +42,13 @@ class ResonantLayer:
         x.relu()
         return x
 
+
 class WindingEngine:
     """
     The WindingEngine manages a hierarchy of ResonantLayers
     performing the DHSR cycle natively on the lattice.
     """
+
     def __init__(self, dims, precision=100):
         """
         Args:
@@ -55,9 +57,7 @@ class WindingEngine:
         """
         self.layers = []
         for i in range(len(dims) - 1):
-            self.layers.append(
-                ResonantLayer(dims[i], dims[i+1], precision=precision)
-            )
+            self.layers.append(ResonantLayer(dims[i], dims[i + 1], precision=precision))
         self.precision = precision
 
     def forward(self, x, noise_scale=0.0):
@@ -69,12 +69,12 @@ class WindingEngine:
         for i, layer in enumerate(self.layers):
             # 1. Linear Projection + Activation (Flux logic inside Rust)
             x = layer.forward(x)
-            
+
             # 2. Resonant Cycle (DHSR)
             # This applies noise (D) and snaps back to Lattice (H)
             if noise_scale > 0:
                 x.run_batch_cpu_cycle(noise_scale, self.precision)
-                
+
         return x
 
     def get_parameters(self):
@@ -90,5 +90,5 @@ class WindingEngine:
         idx = 0
         for layer in self.layers:
             layer.weight = new_params[idx]
-            layer.bias = new_params[idx+1]
+            layer.bias = new_params[idx + 1]
             idx += 2

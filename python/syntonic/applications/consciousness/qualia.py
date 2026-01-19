@@ -6,10 +6,8 @@ Free will is topological steering among permitted futures.
 """
 
 from __future__ import annotations
-from typing import Dict, Any, List
-import math
 
-from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
+from typing import Any, Dict
 
 
 class QualiaTopology:
@@ -129,11 +127,11 @@ Why synesthesia runs in families:
             Structure description
         """
         return {
-            'dimensions': 'Potentially infinite (T⁴ has many winding modes)',
-            'topology': 'Non-trivial knots and links',
-            'metric': 'Golden-ratio based (distances scale with φ)',
-            'symmetry': 'Partial (some qualia related by φ-scaling)',
-            'boundaries': 'Sharp (categorical perception emerges)',
+            "dimensions": "Potentially infinite (T⁴ has many winding modes)",
+            "topology": "Non-trivial knots and links",
+            "metric": "Golden-ratio based (distances scale with φ)",
+            "symmetry": "Partial (some qualia related by φ-scaling)",
+            "boundaries": "Sharp (categorical perception emerges)",
         }
 
     def consciousness_without_qualia(self) -> str:
@@ -259,10 +257,10 @@ class FreeWill:
         max_layer = current_layer + self.LAYER_CONSTRAINT
 
         return {
-            'current_layer': current_layer,
-            'min_influence': min_layer,
-            'max_influence': max_layer,
-            'influence_range': list(range(min_layer, max_layer + 1)),
+            "current_layer": current_layer,
+            "min_influence": min_layer,
+            "max_influence": max_layer,
+            "influence_range": list(range(min_layer, max_layer + 1)),
         }
 
     def determinism_vs_free_will(self) -> str:
@@ -392,11 +390,11 @@ But baseline adults:
             Dict of constraints
         """
         return {
-            'layer_constraint': 'Can only influence ±2 Gnosis layers',
-            'energy_constraint': 'Steering requires energy (attention)',
-            'bandwidth_constraint': 'Can only attend to limited information',
-            'history_constraint': 'Current configuration limits options',
-            'physics_constraint': 'Cannot violate M⁴ laws (only select among permitted futures)',
+            "layer_constraint": "Can only influence ±2 Gnosis layers",
+            "energy_constraint": "Steering requires energy (attention)",
+            "bandwidth_constraint": "Can only attend to limited information",
+            "history_constraint": "Current configuration limits options",
+            "physics_constraint": "Cannot violate M⁴ laws (only select among permitted futures)",
         }
 
     def __repr__(self) -> str:

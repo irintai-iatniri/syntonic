@@ -16,24 +16,27 @@ Architecture:
 """
 
 from __future__ import annotations
-from typing import List, Dict, Tuple, Optional
+
 import math
+from typing import Dict, List
+
+from python.syntonic.nn.winding.resonant_embedding import PureResonantWindingEmbedding
 
 import syntonic.sn as sn
+from python.syntonic.nn.architectures.syntonic_mlp import PureSyntonicLinear
 from syntonic._core import ResonantTensor, WindingState
-from python.syntonic.nn.winding.resonant_embedding import PureResonantWindingEmbedding
+from syntonic.nn.layers.syntonic_gate import SyntonicGate
 from syntonic.nn.winding.fibonacci_hierarchy import FibonacciHierarchy
 from syntonic.nn.winding.resonant_dhsr_block import ResonantWindingDHSRBlock
-from python.syntonic.nn.architectures.syntonic_mlp import PureSyntonicLinear
-from syntonic.nn.layers.syntonic_gate import SyntonicGate
 
 PHI = (1 + math.sqrt(5)) / 2
 Q_DEFICIT = 0.027395146920
 
+
 class PureWindingNet(sn.Module):
     """
     Neural network operating on winding space (Pure Python).
-    
+
     Architecture:
     - Winding embedding
     - Fibonacci hierarchy
@@ -75,9 +78,7 @@ class PureWindingNet(sn.Module):
 
         # 1. Resonant Winding embedding layer
         self.winding_embed = PureResonantWindingEmbedding(
-            max_n=max_winding,
-            embed_dim=base_dim,
-            precision=precision
+            max_n=max_winding, embed_dim=base_dim, precision=precision
         )
 
         # 2. Fibonacci hierarchy
@@ -118,10 +119,7 @@ class PureWindingNet(sn.Module):
         self.final_gate = SyntonicGate(layer_dims[num_blocks - 1])
 
         # 7. Mode norms per layer (precomputed lists)
-        self.mode_norms = [
-            [float(j * j) for j in range(dim)]
-            for dim in layer_dims
-        ]
+        self.mode_norms = [[float(j * j) for j in range(dim)] for dim in layer_dims]
 
         # Network-level metrics
         self.network_syntony = 0.0
@@ -139,7 +137,7 @@ class PureWindingNet(sn.Module):
         """
         # 1. Embed windings
         x = self.winding_embed.batch_forward(winding_states)
-        
+
         # Initial syntony
         syntony = 0.5
         syntonies = []
@@ -186,13 +184,13 @@ class PureWindingNet(sn.Module):
         total_validated = 0
         total_rejected = 0
         blockchain_length = 0
-        
+
         for i in range(len(self.blocks)):
             block = self.blocks[i]
             total_validated += block.total_blocks_validated
             total_rejected += block.total_blocks_rejected
             blockchain_length += block.get_blockchain_length()
-            
+
         total_cycles = total_validated + total_rejected
 
         return {
@@ -208,51 +206,57 @@ class PureWindingNet(sn.Module):
     def get_weights(self) -> List[ResonantTensor]:
         """Get all learnable weights (PureModel protocol)."""
         weights = []
-        
+
         # 0. Embeddings
         weights.append(self.winding_embed.weight)
-        
+
         # 1. Transitions
         for i in range(len(self.transitions)):
             layer = self.transitions[i]
             # Check for linear layer parameters
-            if hasattr(layer.linear, 'weight'):
+            if hasattr(layer.linear, "weight"):
                 # ResonantLinear wraps weight in Parameter, so get tensor
                 weights.append(layer.linear.weight.tensor)
-            if hasattr(layer.linear, 'bias') and layer.linear.bias is not None:
+            if hasattr(layer.linear, "bias") and layer.linear.bias is not None:
                 weights.append(layer.linear.bias.tensor)
-                
+
         # 2. Output projection
-        if hasattr(self.output_proj.linear, 'weight'):
+        if hasattr(self.output_proj.linear, "weight"):
             weights.append(self.output_proj.linear.weight.tensor)
-        if hasattr(self.output_proj.linear, 'bias') and self.output_proj.linear.bias is not None:
+        if (
+            hasattr(self.output_proj.linear, "bias")
+            and self.output_proj.linear.bias is not None
+        ):
             weights.append(self.output_proj.linear.bias.tensor)
-            
+
         return weights
 
     def set_weights(self, weights: List[ResonantTensor]) -> None:
         """Set weights (PureModel protocol)."""
         idx = 0
-        
+
         # 0. Embeddings
         self.winding_embed.weight = weights[idx]
         idx += 1
-        
+
         # 1. Transitions
         for i in range(len(self.transitions)):
             layer = self.transitions[i]
-            if hasattr(layer.linear, 'weight'):
+            if hasattr(layer.linear, "weight"):
                 layer.linear.weight.tensor = weights[idx]
                 idx += 1
-            if hasattr(layer.linear, 'bias') and layer.linear.bias is not None:
+            if hasattr(layer.linear, "bias") and layer.linear.bias is not None:
                 layer.linear.bias.tensor = weights[idx]
                 idx += 1
-                
+
         # 2. Output projection
-        if hasattr(self.output_proj.linear, 'weight'):
+        if hasattr(self.output_proj.linear, "weight"):
             self.output_proj.linear.weight.tensor = weights[idx]
             idx += 1
-        if hasattr(self.output_proj.linear, 'bias') and self.output_proj.linear.bias is not None:
+        if (
+            hasattr(self.output_proj.linear, "bias")
+            and self.output_proj.linear.bias is not None
+        ):
             self.output_proj.linear.bias.tensor = weights[idx]
             idx += 1
 
@@ -261,27 +265,28 @@ class PureWindingNet(sn.Module):
         """Get model syntony (PureModel protocol)."""
         return self.network_syntony
 
+
 if __name__ == "__main__":
     from syntonic.srt.geometry.winding import WindingState
-    
-    print("="*60)
+
+    print("=" * 60)
     print("PureWindingNet Test (No PyTorch)")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Create simple windings
     w1 = WindingState(7, 8, 0, 0)
     w2 = WindingState(1, 2, 0, 0)
     windings = [w1, w2]
-    
+
     model = PureWindingNet(max_winding=10, base_dim=32, num_blocks=2, output_dim=2)
-    
+
     # Forward pass
     logits = model(windings)
     print(f"\nLogits shape: {logits.shape}")
     print(f"Logits data: {logits.to_floats()}")
-    
+
     # Stats
     stats = model.get_blockchain_stats()
     print(f"Network syntony: {stats['network_syntony']:.4f}")
-    
+
     print("\n✓ PureWindingNet Verified")

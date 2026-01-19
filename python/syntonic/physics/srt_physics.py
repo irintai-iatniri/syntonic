@@ -8,10 +8,9 @@ Implements computational models for:
 - Consciousness emergence (Fibonacci gates)
 """
 
-import numpy as np
 import math
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 
 # SRT Constants
 PHI = (1 + math.sqrt(5)) / 2  # Golden ratio
@@ -21,6 +20,7 @@ E_STAR = math.exp(math.pi) - math.pi  # Stability constant
 @dataclass
 class ForceConfig:
     """Configuration for a fundamental force."""
+
     name: str
     fermat_index: int
     coupling_constant: float
@@ -30,6 +30,7 @@ class ForceConfig:
 @dataclass
 class MatterGeneration:
     """Configuration for a matter generation."""
+
     generation: int
     mersenne_prime: int
     mass_scale: float  # In GeV
@@ -39,6 +40,7 @@ class MatterGeneration:
 @dataclass
 class DarkSector:
     """Configuration for dark sector particles."""
+
     name: str
     lucas_index: int
     mass_gev: float
@@ -58,36 +60,36 @@ class ForceSimulator:
     def _initialize_forces(self) -> Dict[str, ForceConfig]:
         """Initialize the 5 fundamental forces from Fermat primes."""
         return {
-            'strong': ForceConfig(
-                name='Strong Nuclear',
+            "strong": ForceConfig(
+                name="Strong Nuclear",
                 fermat_index=0,  # F0 = 3
                 coupling_constant=1.0,
-                range=1e-15  # ~1 fm
+                range=1e-15,  # ~1 fm
             ),
-            'weak': ForceConfig(
-                name='Weak Nuclear',
+            "weak": ForceConfig(
+                name="Weak Nuclear",
                 fermat_index=1,  # F1 = 5
                 coupling_constant=1e-6,
-                range=1e-18  # ~0.1 fm
+                range=1e-18,  # ~0.1 fm
             ),
-            'electromagnetic': ForceConfig(
-                name='Electromagnetic',
+            "electromagnetic": ForceConfig(
+                name="Electromagnetic",
                 fermat_index=2,  # F2 = 17
-                coupling_constant=1/137.036,
-                range=float('inf')  # Infinite range
+                coupling_constant=1 / 137.036,
+                range=float("inf"),  # Infinite range
             ),
-            'gravity': ForceConfig(
-                name='Gravity',
+            "gravity": ForceConfig(
+                name="Gravity",
                 fermat_index=3,  # F3 = 257
                 coupling_constant=6.67430e-11,
-                range=float('inf')  # Infinite range
+                range=float("inf"),  # Infinite range
             ),
-            'versal': ForceConfig(
-                name='Versal Repulsion',
+            "versal": ForceConfig(
+                name="Versal Repulsion",
                 fermat_index=4,  # F4 = 65537
                 coupling_constant=1e-40,  # Hypothetical
-                range=float('inf')  # Drives expansion
-            )
+                range=float("inf"),  # Drives expansion
+            ),
         }
 
     def get_force_spectrum(self) -> List[Tuple[str, ForceConfig]]:
@@ -108,7 +110,7 @@ class ForceSimulator:
         elif n == 1:  # Weak
             return 1e-6
         elif n == 2:  # EM
-            return 1/137.036
+            return 1 / 137.036
         elif n == 3:  # Gravity
             return 6.67e-11
         else:  # Higher forces
@@ -132,33 +134,33 @@ class MatterSimulator:
                 generation=1,
                 mersenne_prime=3,  # M2 = 3
                 mass_scale=0.511,  # Electron mass (MeV)
-                stability=True
+                stability=True,
             ),
             2: MatterGeneration(
                 generation=2,
                 mersenne_prime=7,  # M3 = 7
                 mass_scale=105.7,  # Muon mass (MeV)
-                stability=True
+                stability=True,
             ),
             3: MatterGeneration(
                 generation=3,
                 mersenne_prime=31,  # M5 = 31
                 mass_scale=1777,  # Tau mass (MeV)
-                stability=True
+                stability=True,
             ),
             4: MatterGeneration(
                 generation=4,
                 mersenne_prime=127,  # M7 = 127
                 mass_scale=173000,  # Top quark mass (MeV)
-                stability=True
+                stability=True,
             ),
             # The barrier - M11 = 2047 = 23 × 89 (composite)
             11: MatterGeneration(
                 generation=11,
                 mersenne_prime=2047,
                 mass_scale=0.0,  # No stable particles
-                stability=False
-            )
+                stability=False,
+            ),
         }
 
     def get_stable_generations(self) -> List[MatterGeneration]:
@@ -199,24 +201,24 @@ class DarkSectorSimulator:
         lucas_boost = self._lucas_boost_factor()
 
         return {
-            'dark_matter_scalar': DarkSector(
-                name='Dark Matter Scalar',
+            "dark_matter_scalar": DarkSector(
+                name="Dark Matter Scalar",
                 lucas_index=17,
                 mass_gev=172.7 * lucas_boost,  # ~1.18 TeV
-                coupling_strength=1e-12  # Very weak coupling
+                coupling_strength=1e-12,  # Very weak coupling
             ),
-            'sterile_neutrino_light': DarkSector(
-                name='Light Sterile Neutrino',
+            "sterile_neutrino_light": DarkSector(
+                name="Light Sterile Neutrino",
                 lucas_index=13,
                 mass_gev=1e-3,  # keV scale
-                coupling_strength=1e-15
+                coupling_strength=1e-15,
             ),
-            'dark_photon': DarkSector(
-                name='Dark Photon',
+            "dark_photon": DarkSector(
+                name="Dark Photon",
                 lucas_index=19,
                 mass_gev=1000.0,  # GeV scale
-                coupling_strength=1e-9
-            )
+                coupling_strength=1e-9,
+            ),
         }
 
     def _lucas_boost_factor(self) -> float:
@@ -277,7 +279,7 @@ class ConsciousnessSimulator:
             13: "Life (Gamma Synchrony)",
             17: "Cosmic (Deep Transcendence)",
             23: "Hyper (Universal)",
-            29: "Versal (Closure)"
+            29: "Versal (Closure)",
         }
 
     def calculate_syntony_threshold(self, plane_index: int) -> float:
@@ -348,33 +350,33 @@ class SRTPhysicsEngine:
         scale_factor = math.exp(time * 1e-40)  # Very slow expansion
 
         return {
-            'cosmic_time': time,
-            'scale_factor': scale_factor,
-            'forces': {
-                name: {
-                    'coupling': config.coupling_constant,
-                    'range': config.range
-                }
+            "cosmic_time": time,
+            "scale_factor": scale_factor,
+            "forces": {
+                name: {"coupling": config.coupling_constant, "range": config.range}
                 for name, config in self.forces.get_force_spectrum()
             },
-            'matter_generations': [
+            "matter_generations": [
                 {
-                    'generation': gen.generation,
-                    'stable': gen.stability,
-                    'mass_scale_mev': gen.mass_scale
+                    "generation": gen.generation,
+                    "stable": gen.stability,
+                    "mass_scale_mev": gen.mass_scale,
                 }
                 for gen in self.matter.generations.values()
             ],
-            'dark_sector': [
+            "dark_sector": [
                 {
-                    'name': particle.name,
-                    'mass_gev': particle.mass_gev,
-                    'coupling': particle.coupling_strength
+                    "name": particle.name,
+                    "mass_gev": particle.mass_gev,
+                    "coupling": particle.coupling_strength,
                 }
                 for particle in self.dark_sector.get_dark_particles()
             ],
-            'consciousness_threshold': self.consciousness.calculate_syntony_threshold(17),
-            'dark_matter_prediction_tev': self.dark_sector.predict_dark_matter_mass() / 1000.0
+            "consciousness_threshold": self.consciousness.calculate_syntony_threshold(
+                17
+            ),
+            "dark_matter_prediction_tev": self.dark_sector.predict_dark_matter_mass()
+            / 1000.0,
         }
 
     def validate_srt_predictions(self) -> Dict[str, bool]:
@@ -388,23 +390,25 @@ class SRTPhysicsEngine:
 
         # Force count prediction (exactly 5 forces)
         force_count = len(self.forces.get_force_spectrum())
-        validations['force_count'] = force_count == 5
+        validations["force_count"] = force_count == 5
 
         # Matter generations (exactly 3 stable + top)
         stable_gens = len(self.matter.get_stable_generations())
-        validations['matter_generations'] = stable_gens == 4  # 3 + top quark
+        validations["matter_generations"] = stable_gens == 4  # 3 + top quark
 
         # Stability barrier at p=11
         barrier = self.matter.get_stability_barrier()
-        validations['stability_barrier'] = barrier == 11
+        validations["stability_barrier"] = barrier == 11
 
         # Dark matter mass prediction (~1.18 TeV)
         dm_mass = self.dark_sector.predict_dark_matter_mass()
-        validations['dark_matter_mass'] = 1.0 < dm_mass / 1000.0 < 1.5  # Within 1-1.5 TeV range
+        validations["dark_matter_mass"] = (
+            1.0 < dm_mass / 1000.0 < 1.5
+        )  # Within 1-1.5 TeV range
 
         # Consciousness emergence at Fib primes
         gamma_freq = self.consciousness.get_gamma_synchrony_frequency()
-        validations['gamma_synchrony'] = 35.0 < gamma_freq < 45.0  # Near 40 Hz
+        validations["gamma_synchrony"] = 35.0 < gamma_freq < 45.0  # Near 40 Hz
 
         return validations
 

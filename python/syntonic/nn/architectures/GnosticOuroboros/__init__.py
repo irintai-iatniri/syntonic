@@ -5,21 +5,21 @@ A multi-scale recursive architecture implementing SRT principles.
 """
 
 from syntonic.nn.architectures.GnosticOuroboros.gnostic_ouroboros import (
-    ScaleModule,
+    DIM,
+    MAGNITUDES,
+    PHI,
+    PLANES,
     DeterministicSuperposition,
     GnosticOuroboros,
-    MAGNITUDES,
-    PLANES,
-    DIM,
-    PHI,
+    ScaleModule,
 )
 
 __all__ = [
-    'ScaleModule',
-    'DeterministicSuperposition',
-    'GnosticOuroboros',
-    'MAGNITUDES',
-    'PLANES',
-    'DIM',
-    'PHI',
+    "ScaleModule",
+    "DeterministicSuperposition",
+    "GnosticOuroboros",
+    "MAGNITUDES",
+    "PLANES",
+    "DIM",
+    "PHI",
 ]

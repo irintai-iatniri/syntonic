@@ -28,16 +28,9 @@ Example:
     {'layer': 1, 'status': 'alive', ...}
 """
 
-from syntonic.applications.biology.life_topology import (
-    LifeTopology,
-)
 from syntonic.applications.biology.abiogenesis import (
-    TranscendenceThreshold,
     GnosisLayers,
-)
-from syntonic.applications.biology.metabolism import (
-    KleiberLaw,
-    ATPCycle,
+    TranscendenceThreshold,
 )
 from syntonic.applications.biology.evolution import (
     EvolutionaryDirectionality,
@@ -47,15 +40,22 @@ from syntonic.applications.biology.genetics import (
     DNAStructure,
     GeneticCode,
 )
+from syntonic.applications.biology.life_topology import (
+    LifeTopology,
+)
+from syntonic.applications.biology.metabolism import (
+    ATPCycle,
+    KleiberLaw,
+)
 
 __all__ = [
-    'LifeTopology',
-    'TranscendenceThreshold',
-    'GnosisLayers',
-    'KleiberLaw',
-    'ATPCycle',
-    'EvolutionaryDirectionality',
-    'ProteinFolding',
-    'DNAStructure',
-    'GeneticCode',
+    "LifeTopology",
+    "TranscendenceThreshold",
+    "GnosisLayers",
+    "KleiberLaw",
+    "ATPCycle",
+    "EvolutionaryDirectionality",
+    "ProteinFolding",
+    "DNAStructure",
+    "GeneticCode",
 ]

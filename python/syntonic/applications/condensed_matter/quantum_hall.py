@@ -8,8 +8,8 @@ FQHE fractions are Fibonacci ratios: ν = F_n / F_{n+2}
 """
 
 from __future__ import annotations
+
 from typing import List, Tuple
-import math
 
 from syntonic.exact import PHI_NUMERIC, fibonacci
 
@@ -78,7 +78,7 @@ class QuantumHallEffect:
             Hall resistance in Ohms
         """
         if n7 == 0:
-            return float('inf')
+            return float("inf")
         return self.H_PLANCK / (self.E_CHARGE**2 * n7)
 
     def fqhe_fractions(self, max_n: int = 10) -> List[Tuple[int, int, float]]:

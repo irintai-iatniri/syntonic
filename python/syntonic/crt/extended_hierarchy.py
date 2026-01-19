@@ -6,9 +6,9 @@ Universal Syntony Correction Hierarchy.
 """
 
 from syntonic._core import (
-    hierarchy_apply_e7_correction,
     hierarchy_apply_collapse_threshold_correction,
     hierarchy_apply_coxeter_kissing_correction,
+    hierarchy_apply_e7_correction,
 )
 
 

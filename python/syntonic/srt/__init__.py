@@ -33,22 +33,34 @@ Example:
 """
 
 # Constants
+# Import new functions directly from _core (not available in prime_selection wrapper)
+from syntonic._core import (
+    fibonacci_number,
+    fibonacci_resonance_boost,
+    is_fibonacci_prime,
+    is_lucas_gap,
+    is_transcendence_gate,
+    lucas_gap_pressure,
+    pisano_period,
+    pisano_periods_batch,
+    versal_grip_strength,
+)
 from syntonic.srt.constants import (
-    # Golden ratio
-    PHI,
-    PHI_SQUARED,
-    PHI_INVERSE,
-    PHI_NUMERIC,
+    D4_KISSING,
+    E6_GOLDEN_CONE,
+    E8_POSITIVE_ROOTS,
+    E8_ROOTS,
     # SRT constants
     E_STAR_NUMERIC,
+    # Golden ratio
+    PHI,
+    PHI_INVERSE,
+    PHI_NUMERIC,
+    PHI_SQUARED,
     Q_DEFICIT_NUMERIC,
     STRUCTURE_DIMENSIONS,
     # SRT-specific
     TORUS_DIMENSIONS,
-    E8_ROOTS,
-    E8_POSITIVE_ROOTS,
-    E6_GOLDEN_CONE,
-    D4_KISSING,
 )
 
 # Corrections
@@ -57,75 +69,80 @@ from syntonic.srt.corrections import (
     correction_factors,
 )
 
+# Prime selection
+from syntonic.srt.fermat_forces import (
+    fermat_number,
+    get_force_spectrum,
+    is_fermat_prime,
+    validate_force_existence,
+)
+
+# Functional
+from syntonic.srt.functional import (
+    SyntonyFunctional,
+    compute_syntony,
+    syntony_functional,
+)
+
 # Geometry
 from syntonic.srt.geometry import (
-    WindingState,
-    winding_state,
     T4Torus,
+    WindingState,
     t4_torus,
+    winding_state,
 )
 
 # Golden operations
 from syntonic.srt.golden import (
     GoldenMeasure,
-    golden_measure,
     GoldenRecursionMap,
+    golden_measure,
     golden_recursion_map,
 )
 
 # Lattice
 from syntonic.srt.lattice import (
-    D4Root,
-    D4Lattice,
-    d4_lattice,
     K_D4,
-    E8Root,
+    D4Lattice,
+    D4Root,
     E8Lattice,
-    e8_lattice,
-    GoldenProjector,
-    golden_projector,
+    E8Root,
     GoldenCone,
-    golden_cone,
+    GoldenProjector,
     QuadraticForm,
-    quadratic_form,
     compute_Q,
+    d4_lattice,
+    e8_lattice,
+    golden_cone,
+    golden_projector,
+    quadratic_form,
 )
-
-# Prime selection
-from syntonic.srt.fermat_forces import (
-    fermat_number,
-    is_fermat_prime,
-    get_force_spectrum,
-    validate_force_existence,
-)
-
-from syntonic.srt.mersenne_matter import (
-    mersenne_number,
-    is_mersenne_prime,
-    get_generation_spectrum,
-    validate_generation_stability,
-    generation_barrier_explanation,
-)
-
 from syntonic.srt.lucas_shadow import (
-    lucas_number,
-    shadow_phase,
-    is_lucas_prime,
     dark_matter_mass_prediction,
     get_shadow_spectrum,
+    is_lucas_prime,
+    lucas_number,
+    shadow_phase,
+)
+from syntonic.srt.mersenne_matter import (
+    generation_barrier_explanation,
+    get_generation_spectrum,
+    is_mersenne_prime,
+    mersenne_number,
+    validate_generation_stability,
 )
 
-# Import new functions directly from _core (not available in prime_selection wrapper)
-from syntonic._core import (
-    pisano_period,
-    pisano_periods_batch,
-    versal_grip_strength,
-    is_transcendence_gate,
-    fibonacci_number,
-    is_fibonacci_prime,
-    fibonacci_resonance_boost,
-    is_lucas_gap,
-    lucas_gap_pressure,
+# Spectral
+from syntonic.srt.spectral import (
+    HeatKernel,
+    KnotLaplacian,
+    MobiusRegularizer,
+    ThetaSeries,
+    compute_e_star,
+    heat_kernel,
+    knot_laplacian,
+    mobius_regularizer,
+    theta_series,
 )
 
 # Temporarily disable prime_selection imports until functions are properly exported
@@ -147,31 +164,10 @@ from syntonic._core import (
 #     is_lucas_prime,
 #     dark_matter_mass_prediction,
 # )
-
 from syntonic.srt.transcendence import (
-    get_plane_for_fib_index,
     compute_current_plane,
+    get_plane_for_fib_index,
     transcendence_probability,
-)
-
-# Spectral
-from syntonic.srt.spectral import (
-    ThetaSeries,
-    theta_series,
-    HeatKernel,
-    heat_kernel,
-    KnotLaplacian,
-    knot_laplacian,
-    MobiusRegularizer,
-    mobius_regularizer,
-    compute_e_star,
-)
-
-# Functional
-from syntonic.srt.functional import (
-    SyntonyFunctional,
-    syntony_functional,
-    compute_syntony,
 )
 
 
@@ -339,7 +335,7 @@ class SRTSystem:
         """Return summary of SRT system configuration."""
         lines = [
             f"SRT System (phi={self._phi:.6f})",
-            f"  Torus: T⁴ = S¹×S¹×S¹×S¹",
+            "  Torus: T⁴ = S¹×S¹×S¹×S¹",
             f"  E8 lattice: {len(self._e8.roots)} roots",
             f"  D4 lattice: {len(self._d4.roots)} roots, K={self._d4.kissing_number}",
             f"  Golden cone: {len(self._golden_cone.roots)} roots",

@@ -18,35 +18,33 @@ Example:
     172.72  # GeV
 """
 
-from syntonic.physics.fermions.windings import (
-    ELECTRON_WINDING,
-    MUON_WINDING,
-    TAU_WINDING,
-    UP_WINDING,
-    DOWN_WINDING,
-    STRANGE_WINDING,
-    CHARM_WINDING,
-    BOTTOM_WINDING,
-    TOP_WINDING,
-    LEPTON_WINDINGS,
-    UP_TYPE_WINDINGS,
-    DOWN_TYPE_WINDINGS,
-)
-
 from syntonic.physics.fermions.leptons import (
     electron_mass,
+    mass_from_depth,
     muon_mass,
     tau_mass,
-    mass_from_depth,
 )
-
 from syntonic.physics.fermions.quarks import (
-    up_mass,
+    bottom_mass,
+    charm_mass,
     down_mass,
     strange_mass,
-    charm_mass,
-    bottom_mass,
     top_mass,
+    up_mass,
+)
+from syntonic.physics.fermions.windings import (
+    BOTTOM_WINDING,
+    CHARM_WINDING,
+    DOWN_TYPE_WINDINGS,
+    DOWN_WINDING,
+    ELECTRON_WINDING,
+    LEPTON_WINDINGS,
+    MUON_WINDING,
+    STRANGE_WINDING,
+    TAU_WINDING,
+    TOP_WINDING,
+    UP_TYPE_WINDINGS,
+    UP_WINDING,
 )
 
 
@@ -112,15 +110,15 @@ class FermionMasses:
     def all_masses(self) -> dict:
         """Return all fermion masses as a dictionary."""
         return {
-            'm_e': self.electron_mass(),
-            'm_mu': self.muon_mass(),
-            'm_tau': self.tau_mass(),
-            'm_u': self.up_mass(),
-            'm_d': self.down_mass(),
-            'm_s': self.strange_mass(),
-            'm_c': self.charm_mass(),
-            'm_b': self.bottom_mass(),
-            'm_t': self.top_mass(),
+            "m_e": self.electron_mass(),
+            "m_mu": self.muon_mass(),
+            "m_tau": self.tau_mass(),
+            "m_u": self.up_mass(),
+            "m_d": self.down_mass(),
+            "m_s": self.strange_mass(),
+            "m_c": self.charm_mass(),
+            "m_b": self.bottom_mass(),
+            "m_t": self.top_mass(),
         }
 
     def __repr__(self) -> str:
@@ -129,29 +127,29 @@ class FermionMasses:
 
 __all__ = [
     # Windings
-    'ELECTRON_WINDING',
-    'MUON_WINDING',
-    'TAU_WINDING',
-    'UP_WINDING',
-    'DOWN_WINDING',
-    'STRANGE_WINDING',
-    'CHARM_WINDING',
-    'BOTTOM_WINDING',
-    'TOP_WINDING',
-    'LEPTON_WINDINGS',
-    'UP_TYPE_WINDINGS',
-    'DOWN_TYPE_WINDINGS',
+    "ELECTRON_WINDING",
+    "MUON_WINDING",
+    "TAU_WINDING",
+    "UP_WINDING",
+    "DOWN_WINDING",
+    "STRANGE_WINDING",
+    "CHARM_WINDING",
+    "BOTTOM_WINDING",
+    "TOP_WINDING",
+    "LEPTON_WINDINGS",
+    "UP_TYPE_WINDINGS",
+    "DOWN_TYPE_WINDINGS",
     # Functions
-    'electron_mass',
-    'muon_mass',
-    'tau_mass',
-    'up_mass',
-    'down_mass',
-    'strange_mass',
-    'charm_mass',
-    'bottom_mass',
-    'top_mass',
-    'mass_from_depth',
+    "electron_mass",
+    "muon_mass",
+    "tau_mass",
+    "up_mass",
+    "down_mass",
+    "strange_mass",
+    "charm_mass",
+    "bottom_mass",
+    "top_mass",
+    "mass_from_depth",
     # Class
-    'FermionMasses',
+    "FermionMasses",
 ]

@@ -5,7 +5,6 @@ A gauge force exists IFF F_n = 2^(2^n) + 1 is prime.
 This caps fundamental forces at n=4 (F_5 is composite).
 """
 
-from syntonic.exact import FERMAT_PRIMES, FERMAT_INDICES
 
 
 def fermat_number(n: int) -> int:

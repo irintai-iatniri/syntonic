@@ -9,9 +9,8 @@ Shell capacity = 2n² emerges from winding state counting:
 """
 
 from __future__ import annotations
-from typing import List, Dict, Any, Optional
 
-from syntonic.exact import PHI_NUMERIC
+from typing import List
 
 
 class PeriodicTable:
@@ -37,21 +36,21 @@ class PeriodicTable:
 
     # Orbital capacities from winding counting
     ORBITAL_CAPACITIES = {
-        's': 2,   # 1 × 2 = 2
-        'p': 6,   # 3 × 2 = 6
-        'd': 10,  # 5 × 2 = 10
-        'f': 14,  # 7 × 2 = 14
+        "s": 2,  # 1 × 2 = 2
+        "p": 6,  # 3 × 2 = 6
+        "d": 10,  # 5 × 2 = 10
+        "f": 14,  # 7 × 2 = 14
     }
 
     # Period structure
     PERIODS = {
-        1: ['1s'],
-        2: ['2s', '2p'],
-        3: ['3s', '3p'],
-        4: ['4s', '3d', '4p'],
-        5: ['5s', '4d', '5p'],
-        6: ['6s', '4f', '5d', '6p'],
-        7: ['7s', '5f', '6d', '7p'],
+        1: ["1s"],
+        2: ["2s", "2p"],
+        3: ["3s", "3p"],
+        4: ["4s", "3d", "4p"],
+        5: ["5s", "4d", "5p"],
+        6: ["6s", "4f", "5d", "6p"],
+        7: ["7s", "5f", "6d", "7p"],
     }
 
     def shell_capacity(self, n: int) -> int:
@@ -106,13 +105,25 @@ class PeriodicTable:
             List of orbitals in filling order
         """
         return [
-            '1s',
-            '2s', '2p',
-            '3s', '3p',
-            '4s', '3d', '4p',
-            '5s', '4d', '5p',
-            '6s', '4f', '5d', '6p',
-            '7s', '5f', '6d', '7p',
+            "1s",
+            "2s",
+            "2p",
+            "3s",
+            "3p",
+            "4s",
+            "3d",
+            "4p",
+            "5s",
+            "4d",
+            "5p",
+            "6s",
+            "4f",
+            "5d",
+            "6p",
+            "7s",
+            "5f",
+            "6d",
+            "7p",
         ]
 
     def electron_configuration(self, Z: int) -> str:
@@ -126,7 +137,7 @@ class PeriodicTable:
             Electron configuration string
         """
         order = self.aufbau_order()
-        capacities = {'s': 2, 'p': 6, 'd': 10, 'f': 14}
+        capacities = {"s": 2, "p": 6, "d": 10, "f": 14}
 
         config = []
         remaining = Z
@@ -143,7 +154,7 @@ class PeriodicTable:
                 config.append(f"{orbital}{electrons}")
             remaining -= electrons
 
-        return ' '.join(config)
+        return " ".join(config)
 
     def valence_electrons(self, Z: int) -> int:
         """
@@ -171,7 +182,7 @@ class PeriodicTable:
         valence = 0
         for orb in orbitals:
             n = int(orb[0])
-            if n == max_n and orb[1] in ['s', 'p']:
+            if n == max_n and orb[1] in ["s", "p"]:
                 # Extract electron count
                 count = int(orb[2:]) if len(orb) > 2 else 0
                 valence += count
@@ -195,9 +206,9 @@ class PeriodicTable:
             Explanation of trend
         """
         trends = {
-            'across': "χ increases (Z_eff increases, same shielding)",
-            'down': "χ decreases (more φ^k shielding layers)",
-            'noble': "χ ≈ 0 (closed shells, no syntony deficit)"
+            "across": "χ increases (Z_eff increases, same shielding)",
+            "down": "χ decreases (more φ^k shielding layers)",
+            "noble": "χ ≈ 0 (closed shells, no syntony deficit)",
         }
         return trends.get(direction, "Unknown direction")
 
@@ -256,7 +267,7 @@ Exception: Noble gas configuration is especially stable
         """
         if len(orbital) >= 2:
             return orbital[1]
-        return 'unknown'
+        return "unknown"
 
     def winding_interpretation(self) -> str:
         """

@@ -8,11 +8,11 @@ Gnosis score computation from the Rust backend.
 from syntonic._core import (
     COLLAPSE_THRESHOLD,
     GNOSIS_GAP,
-    is_conscious,
-    gnosis_score,
     compute_creativity,
-    optimal_gnosis_target,
     consciousness_probability,
+    gnosis_score,
+    is_conscious,
+    optimal_gnosis_target,
 )
 
 

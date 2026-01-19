@@ -7,15 +7,16 @@ Provides:
 """
 
 from __future__ import annotations
+
+import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Optional, Tuple
-import math
 
 if TYPE_CHECKING:
+    from python.syntonic.crt.operators.gnosis import GnosisComputer
+    from python.syntonic.crt.operators.syntony import SyntonyComputer
     from syntonic.core.state import State
     from syntonic.crt.operators.recursion import RecursionOperator
-    from python.syntonic.crt.operators.syntony import SyntonyComputer
-    from python.syntonic.crt.operators.gnosis import GnosisComputer
 
 
 @dataclass
@@ -33,7 +34,7 @@ class SyntonyTrajectory:
         >>> print(f"Converged: {trajectory.converged}")
     """
 
-    states: List['State'] = field(default_factory=list)
+    states: List["State"] = field(default_factory=list)
     syntony_values: List[float] = field(default_factory=list)
     gnosis_values: List[int] = field(default_factory=list)
     phase_values: List[float] = field(default_factory=list)
@@ -48,12 +49,12 @@ class SyntonyTrajectory:
         return max(0, len(self.states) - 1)
 
     @property
-    def initial_state(self) -> Optional['State']:
+    def initial_state(self) -> Optional["State"]:
         """Get initial state."""
         return self.states[0] if self.states else None
 
     @property
-    def final_state(self) -> Optional['State']:
+    def final_state(self) -> Optional["State"]:
         """Get final state."""
         return self.states[-1] if self.states else None
 
@@ -101,13 +102,13 @@ class SyntonyTrajectory:
         """Describe syntony trend: 'increasing', 'decreasing', or 'stable'."""
         delta = self.syntony_delta
         if delta is None:
-            return 'unknown'
+            return "unknown"
         if delta > 0.01:
-            return 'increasing'
+            return "increasing"
         elif delta < -0.01:
-            return 'decreasing'
+            return "decreasing"
         else:
-            return 'stable'
+            return "stable"
 
     def convergence_rate(self) -> Optional[float]:
         """
@@ -138,11 +139,19 @@ class SyntonyTrajectory:
         """Generate human-readable summary."""
         lines = [
             f"SyntonyTrajectory: {self.n_steps} steps",
-            f"  Initial syntony: {self.initial_syntony:.4f}" if self.initial_syntony else "",
+            (
+                f"  Initial syntony: {self.initial_syntony:.4f}"
+                if self.initial_syntony
+                else ""
+            ),
             f"  Final syntony: {self.final_syntony:.4f}" if self.final_syntony else "",
             f"  Trend: {self.syntony_trend}",
             f"  Converged: {self.converged}",
-            f"  Final gnosis: Layer {self.final_gnosis}" if self.final_gnosis is not None else "",
+            (
+                f"  Final gnosis: Layer {self.final_gnosis}"
+                if self.final_gnosis is not None
+                else ""
+            ),
         ]
         return "\n".join(line for line in lines if line)
 
@@ -165,9 +174,9 @@ class DHSREvolver:
 
     def __init__(
         self,
-        recursion_op: Optional['RecursionOperator'] = None,
-        syntony_computer: Optional['SyntonyComputer'] = None,
-        gnosis_computer: Optional['GnosisComputer'] = None,
+        recursion_op: Optional["RecursionOperator"] = None,
+        syntony_computer: Optional["SyntonyComputer"] = None,
+        gnosis_computer: Optional["GnosisComputer"] = None,
     ):
         """
         Create a DHSR evolver.
@@ -182,24 +191,26 @@ class DHSREvolver:
         self._gnosis_computer = gnosis_computer
 
     @property
-    def recursion_op(self) -> 'RecursionOperator':
+    def recursion_op(self) -> "RecursionOperator":
         """Get recursion operator, creating default if needed."""
         if self._recursion_op is None:
             from syntonic.crt.operators.recursion import default_recursion_operator
+
             self._recursion_op = default_recursion_operator()
         return self._recursion_op
 
     @property
-    def gnosis_computer(self) -> 'GnosisComputer':
+    def gnosis_computer(self) -> "GnosisComputer":
         """Get gnosis computer, creating default if needed."""
         if self._gnosis_computer is None:
             from python.syntonic.crt.operators.gnosis import default_gnosis_computer
+
             self._gnosis_computer = default_gnosis_computer()
         return self._gnosis_computer
 
     def evolve(
         self,
-        initial_state: 'State',
+        initial_state: "State",
         n_steps: int = 100,
         early_stop: bool = True,
         tol: float = 1e-6,
@@ -243,7 +254,9 @@ class DHSREvolver:
             # Record state
             trajectory.states.append(next_state)
             trajectory.syntony_values.append(next_state.syntony)
-            trajectory.gnosis_values.append(self.gnosis_computer.compute_layer(next_state))
+            trajectory.gnosis_values.append(
+                self.gnosis_computer.compute_layer(next_state)
+            )
             trajectory.phase_values.append(accumulated_phase)
 
             # Check convergence
@@ -256,10 +269,10 @@ class DHSREvolver:
 
     def find_attractor(
         self,
-        initial_state: 'State',
+        initial_state: "State",
         tol: float = 1e-6,
         max_iter: int = 1000,
-    ) -> Tuple['State', SyntonyTrajectory]:
+    ) -> Tuple["State", SyntonyTrajectory]:
         """
         Find attractor state from initial condition.
 
@@ -284,7 +297,7 @@ class DHSREvolver:
 
     def analyze_stability(
         self,
-        state: 'State',
+        state: "State",
         perturbation_scale: float = 0.01,
         n_perturbations: int = 10,
         n_steps: int = 50,
@@ -301,8 +314,9 @@ class DHSREvolver:
         Returns:
             dict with stability analysis
         """
-        from syntonic.core.state import state as create_state
         import random
+
+        from syntonic.core.state import state as create_state
 
         base_syntony = state.syntony
         trajectories = []
@@ -311,10 +325,11 @@ class DHSREvolver:
             # Create perturbed state
             flat = state.to_list()
             perturbed = [
-                x + perturbation_scale * (2 * random.random() - 1)
-                for x in flat
+                x + perturbation_scale * (2 * random.random() - 1) for x in flat
             ]
-            perturbed_state = create_state(perturbed, dtype=state.dtype, shape=state.shape)
+            perturbed_state = create_state(
+                perturbed, dtype=state.dtype, shape=state.shape
+            )
 
             # Evolve
             traj = self.evolve(perturbed_state, n_steps=n_steps)
@@ -323,22 +338,25 @@ class DHSREvolver:
         # Analyze results
         final_syntonies = [t.final_syntony for t in trajectories]
         mean_final = sum(final_syntonies) / len(final_syntonies)
-        variance = sum((s - mean_final) ** 2 for s in final_syntonies) / len(final_syntonies)
+        variance = sum((s - mean_final) ** 2 for s in final_syntonies) / len(
+            final_syntonies
+        )
 
         return {
-            'base_syntony': base_syntony,
-            'mean_final_syntony': mean_final,
-            'syntony_variance': variance,
-            'stable': variance < 0.01,
-            'convergence_rate': sum(1 for t in trajectories if t.converged) / n_perturbations,
+            "base_syntony": base_syntony,
+            "mean_final_syntony": mean_final,
+            "syntony_variance": variance,
+            "stable": variance < 0.01,
+            "convergence_rate": sum(1 for t in trajectories if t.converged)
+            / n_perturbations,
         }
 
     def find_all_attractors(
         self,
-        initial_states: List['State'],
+        initial_states: List["State"],
         tol: float = 1e-6,
         cluster_tol: float = 0.01,
-    ) -> List[Tuple['State', int]]:
+    ) -> List[Tuple["State", int]]:
         """
         Find distinct attractors from multiple initial conditions.
 
@@ -371,7 +389,7 @@ class DHSREvolver:
         return attractors
 
     def __repr__(self) -> str:
-        return f"DHSREvolver()"
+        return "DHSREvolver()"
 
 
 def default_evolver() -> DHSREvolver:

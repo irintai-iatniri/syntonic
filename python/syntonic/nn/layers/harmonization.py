@@ -13,6 +13,7 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
+
 from typing import Optional
 
 import syntonic.sn as sn
@@ -52,7 +53,7 @@ class HarmonizationLayer:
         bias: bool = True,
         beta_scale: float = 1.0,
         gamma_scale: float = 1.0,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize harmonization layer.
@@ -72,11 +73,15 @@ class HarmonizationLayer:
         self.device = device
 
         # Damping pathway: -β·σ(W_H·x + b_H)
-        self.damping = ResonantLinear(in_features, out_features, bias=bias, device=device)
+        self.damping = ResonantLinear(
+            in_features, out_features, bias=bias, device=device
+        )
         self.beta_scale = beta_scale
 
         # Syntony projection: +γ·tanh(W_S·x + b_S)
-        self.syntony_proj = ResonantLinear(in_features, out_features, bias=bias, device=device)
+        self.syntony_proj = ResonantLinear(
+            in_features, out_features, bias=bias, device=device
+        )
         self.gamma_scale = gamma_scale
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
@@ -133,17 +138,17 @@ class HarmonizationLayer:
         # Compute variance before
         x_floats = x.to_floats()
         x_mean = sum(x_floats) / len(x_floats)
-        x_var = sum((v - x_mean)**2 for v in x_floats) / len(x_floats)
+        x_var = sum((v - x_mean) ** 2 for v in x_floats) / len(x_floats)
 
         # Compute variance after
         h_floats = h_x.to_floats()
         h_mean = sum(h_floats) / len(h_floats)
-        h_var = sum((v - h_mean)**2 for v in h_floats) / len(h_floats)
+        h_var = sum((v - h_mean) ** 2 for v in h_floats) / len(h_floats)
 
         return (x_var - h_var) / (x_var + 1e-8)
 
     def __repr__(self) -> str:
-        return f'HarmonizationLayer(in_features={self.in_features}, out_features={self.out_features}, beta={self.beta_scale}, gamma={self.gamma_scale}, device={self.device})'
+        return f"HarmonizationLayer(in_features={self.in_features}, out_features={self.out_features}, beta={self.beta_scale}, gamma={self.gamma_scale}, device={self.device})"
 
 
 class HarmonizationModule(sn.Module):
@@ -164,7 +169,7 @@ class HarmonizationModule(sn.Module):
         d_model: int,
         n_heads: int,
         dropout: float = 0.1,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize Harmonization Module.
@@ -180,15 +185,17 @@ class HarmonizationModule(sn.Module):
         self.n_heads = n_heads
         self.head_dim = d_model // n_heads
         self.device = device
-        self._device = device # sn.Module support
+        self._device = device  # sn.Module support
 
         # Multi-path Damping: -βᵢ · σ(W_H,i · x)
         # We implement this as n_heads independent linear projections
         # similar to attention heads
-        self.damping_heads = sn.ModuleList([
-            ResonantLinear(d_model, self.head_dim, device=device)
-            for _ in range(n_heads)
-        ])
+        self.damping_heads = sn.ModuleList(
+            [
+                ResonantLinear(d_model, self.head_dim, device=device)
+                for _ in range(n_heads)
+            ]
+        )
 
         # Shared Syntony Projection: +γ · tanh(W_S · x)
         self.syntony_proj = ResonantLinear(d_model, d_model, device=device)
@@ -205,7 +212,7 @@ class HarmonizationModule(sn.Module):
         damping_outputs = []
         for head in self.damping_heads:
             h = head.forward(x)
-            h.sigmoid(precision=100) # Damping activation
+            h.sigmoid(precision=100)  # Damping activation
             damping_outputs.append(h)
 
         # Concatenate heads [batch, n_heads * head_dim] -> [batch, d_model]
@@ -213,14 +220,14 @@ class HarmonizationModule(sn.Module):
 
         # 2. Shared Syntony Projection
         syntony = self.syntony_proj.forward(x)
-        syntony.tanh(precision=100) # Syntony activation
+        syntony.tanh(precision=100)  # Syntony activation
 
         # 3. Combine: x - Damping + Syntony
         # Note: We subtract damping (reduction of dissonance) and add syntony (increase of coherence)
-        
+
         # -Damping
         neg_damping = damping_combined.negate()
-        
+
         # Combine
         combined = x.elementwise_add(neg_damping)
         combined = combined.elementwise_add(syntony)

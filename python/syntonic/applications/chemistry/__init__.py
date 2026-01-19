@@ -23,22 +23,22 @@ Example:
     3.0...  # Close to Pauling value 3.04
 """
 
-from syntonic.applications.chemistry.electronegativity import (
-    SRTElectronegativity,
-)
 from syntonic.applications.chemistry.bonding import (
     BondCharacter,
 )
-from syntonic.applications.chemistry.periodic_table import (
-    PeriodicTable,
+from syntonic.applications.chemistry.electronegativity import (
+    SRTElectronegativity,
 )
 from syntonic.applications.chemistry.molecular import (
     MolecularGeometry,
 )
+from syntonic.applications.chemistry.periodic_table import (
+    PeriodicTable,
+)
 
 __all__ = [
-    'SRTElectronegativity',
-    'BondCharacter',
-    'PeriodicTable',
-    'MolecularGeometry',
+    "SRTElectronegativity",
+    "BondCharacter",
+    "PeriodicTable",
+    "MolecularGeometry",
 ]

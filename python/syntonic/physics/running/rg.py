@@ -19,17 +19,17 @@ GUT scale:
 """
 
 import math
-from syntonic.exact import PHI, Q_DEFICIT_NUMERIC
-from syntonic.physics.constants import V_EW, M_Z
 
+from syntonic.exact import PHI, Q_DEFICIT_NUMERIC
+from syntonic.physics.constants import M_Z, V_EW
 
 # =============================================================================
 # Beta Coefficients (Standard Model)
 # =============================================================================
 
-B1 = 41 / 10    # U(1)_Y
-B2 = -19 / 6    # SU(2)_L
-B3 = -7         # SU(3)_c
+B1 = 41 / 10  # U(1)_Y
+B2 = -19 / 6  # SU(2)_L
+B3 = -7  # SU(3)_c
 
 # =============================================================================
 # Running Functions
@@ -64,10 +64,10 @@ def alpha_running(
     log_ratio = math.log(mu / mu_0)
     delta = b * (1 + q) / (2 * math.pi) * log_ratio
 
-    alpha_inv = 1/alpha_0 - delta
+    alpha_inv = 1 / alpha_0 - delta
 
     if alpha_inv <= 0:
-        return float('inf')  # Coupling diverges (Landau pole)
+        return float("inf")  # Coupling diverges (Landau pole)
     return 1 / alpha_inv
 
 
@@ -87,7 +87,7 @@ def alpha_em_at_scale(mu: float) -> float:
     alpha_em_mz = 1 / 127.9  # Running from q=0 to M_Z
 
     # Run to scale mu
-    return alpha_running(alpha_em_mz, B1 * 3/5, mu)  # GUT normalization
+    return alpha_running(alpha_em_mz, B1 * 3 / 5, mu)  # GUT normalization
 
 
 def alpha_s_at_scale(mu: float) -> float:
@@ -119,7 +119,7 @@ def gut_scale(v: float = V_EW) -> float:
         GUT scale in GeV
     """
     phi = PHI.eval()
-    return v * math.exp(phi ** 7)
+    return v * math.exp(phi**7)
 
 
 def coupling_unification_check() -> dict:
@@ -134,9 +134,9 @@ def coupling_unification_check() -> dict:
     mu_gut = gut_scale()
 
     # Reference values at M_Z
-    alpha_1_mz = (5/3) / 127.9  # GUT normalized U(1)_Y
-    alpha_2_mz = 0.0338         # SU(2)_L
-    alpha_3_mz = 0.1179         # SU(3)_c
+    alpha_1_mz = (5 / 3) / 127.9  # GUT normalized U(1)_Y
+    alpha_2_mz = 0.0338  # SU(2)_L
+    alpha_3_mz = 0.1179  # SU(3)_c
 
     # Run to GUT scale
     alpha_1_gut = alpha_running(alpha_1_mz, B1, mu_gut)
@@ -144,11 +144,11 @@ def coupling_unification_check() -> dict:
     alpha_3_gut = alpha_running(alpha_3_mz, B3, mu_gut)
 
     return {
-        'alpha_1': alpha_1_gut,
-        'alpha_2': alpha_2_gut,
-        'alpha_3': alpha_3_gut,
-        'mu_GUT': mu_gut,
-        'approximate_unification': abs(alpha_1_gut - alpha_2_gut) / alpha_1_gut < 0.1,
+        "alpha_1": alpha_1_gut,
+        "alpha_2": alpha_2_gut,
+        "alpha_3": alpha_3_gut,
+        "mu_GUT": mu_gut,
+        "approximate_unification": abs(alpha_1_gut - alpha_2_gut) / alpha_1_gut < 0.1,
     }
 
 
@@ -222,9 +222,9 @@ class GoldenRG:
     def all_parameters(self) -> dict:
         """Return key RG parameters."""
         return {
-            'mu_GUT': self.gut_scale(),
-            'M_Planck': self.planck_scale(),
-            'alpha_s_1TeV': self.alpha_s_at_scale(1000),
+            "mu_GUT": self.gut_scale(),
+            "M_Planck": self.planck_scale(),
+            "alpha_s_1TeV": self.alpha_s_at_scale(1000),
             **self.unification_check(),
         }
 
@@ -233,13 +233,15 @@ class GoldenRG:
 
 
 __all__ = [
-    'B1', 'B2', 'B3',
-    'alpha_running',
-    'alpha_em_at_scale',
-    'alpha_s_at_scale',
-    'gut_scale',
-    'planck_scale',
-    'hierarchy_ratio',
-    'coupling_unification_check',
-    'GoldenRG',
+    "B1",
+    "B2",
+    "B3",
+    "alpha_running",
+    "alpha_em_at_scale",
+    "alpha_s_at_scale",
+    "gut_scale",
+    "planck_scale",
+    "hierarchy_ratio",
+    "coupling_unification_check",
+    "GoldenRG",
 ]

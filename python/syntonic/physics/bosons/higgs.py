@@ -14,8 +14,9 @@ Self-coupling enhancement:
 """
 
 import math
+
 from syntonic.exact import PHI, Q_DEFICIT_NUMERIC
-from syntonic.physics.constants import V_EW, gut_scale
+from syntonic.physics.constants import V_EW
 
 
 def higgs_mass_tree(v: float = V_EW) -> float:
@@ -181,12 +182,12 @@ class HiggsSector:
     def all_parameters(self) -> dict:
         """Return all Higgs sector parameters."""
         return {
-            'm_H': self.mass(),
-            'm_H_tree': self.tree_level_mass(),
-            'delta_m_H': self.loop_correction(),
-            'lambda_ratio': self.self_coupling_ratio(),
-            'lambda': self.quartic_coupling(),
-            'Gamma_H': self.width(),
+            "m_H": self.mass(),
+            "m_H_tree": self.tree_level_mass(),
+            "delta_m_H": self.loop_correction(),
+            "lambda_ratio": self.self_coupling_ratio(),
+            "lambda": self.quartic_coupling(),
+            "Gamma_H": self.width(),
         }
 
     def __repr__(self) -> str:
@@ -194,11 +195,11 @@ class HiggsSector:
 
 
 __all__ = [
-    'higgs_mass_tree',
-    'higgs_mass_loop',
-    'higgs_mass',
-    'higgs_self_coupling_ratio',
-    'higgs_quartic_coupling',
-    'higgs_width',
-    'HiggsSector',
+    "higgs_mass_tree",
+    "higgs_mass_loop",
+    "higgs_mass",
+    "higgs_self_coupling_ratio",
+    "higgs_quartic_coupling",
+    "higgs_width",
+    "HiggsSector",
 ]

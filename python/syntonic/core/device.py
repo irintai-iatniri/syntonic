@@ -11,12 +11,14 @@ Examples:
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional
 
+from syntonic._core import cuda_device_count as _rust_cuda_count
+
 # Import CUDA functions from Rust backend
 from syntonic._core import cuda_is_available as _rust_cuda_available
-from syntonic._core import cuda_device_count as _rust_cuda_count
 
 
 @dataclass(frozen=True)
@@ -47,9 +49,9 @@ class Device:
         Returns:
             Device name (e.g., 'cpu', 'cuda:0', 'cuda:1').
         """
-        if self.type == 'cpu':
-            return 'cpu'
-        return f'cuda:{self.index or 0}'
+        if self.type == "cpu":
+            return "cpu"
+        return f"cuda:{self.index or 0}"
 
     @property
     def is_cpu(self) -> bool:
@@ -58,7 +60,7 @@ class Device:
         Returns:
             True if CPU device, False otherwise.
         """
-        return self.type == 'cpu'
+        return self.type == "cpu"
 
     @property
     def is_cuda(self) -> bool:
@@ -67,7 +69,7 @@ class Device:
         Returns:
             True if CUDA device, False otherwise.
         """
-        return self.type == 'cuda'
+        return self.type == "cuda"
 
     def __str__(self) -> str:
         return self.name
@@ -77,7 +79,7 @@ class Device:
 
 
 # Singleton CPU device
-cpu = Device('cpu')
+cpu = Device("cpu")
 
 
 def cuda(device_id: int = 0) -> Device:
@@ -100,7 +102,7 @@ def cuda(device_id: int = 0) -> Device:
     """
     if not cuda_is_available():
         raise RuntimeError("CUDA not available")
-    return Device('cuda', device_id)  # pragma: no cover
+    return Device("cuda", device_id)  # pragma: no cover
 
 
 def cuda_is_available() -> bool:
@@ -139,11 +141,11 @@ def device(spec: str) -> Device:
         >>> device('cuda:1')
         syn.device('cuda:1')
     """
-    if spec == 'cpu':
+    if spec == "cpu":
         return cpu
-    if spec.startswith('cuda'):
-        if ':' in spec:
-            idx = int(spec.split(':')[1])
+    if spec.startswith("cuda"):
+        if ":" in spec:
+            idx = int(spec.split(":")[1])
             return cuda(idx)
         return cuda(0)
     raise ValueError(f"Unknown device: {spec}")

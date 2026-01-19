@@ -18,7 +18,8 @@ Charge Quantization (from winding numbers):
 """
 
 import math
-from syntonic.exact import PHI, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
+
+from syntonic.exact import E_STAR_NUMERIC, PHI, Q_DEFICIT_NUMERIC, get_correction_factor
 from syntonic.physics.constants import V_EW
 
 
@@ -63,13 +64,13 @@ def fine_structure_constant() -> float:
     E_star = E_STAR_NUMERIC  # e^π - π ≈ 19.999
 
     # Coherence volume factor
-    q_cubed = q ** 3
+    q_cubed = q**3
 
     # Loop corrections
     loop_factor = 1 + q + q**2 / phi
 
     # Geometric factor from E₆ structure and M⁴ collapse
-    phi_6 = phi ** 6
+    phi_6 = phi**6
     geometric_factor = phi_6 - 0.75 + phi**2 * q
 
     # Complete formula
@@ -256,12 +257,12 @@ class GaugeSector:
     def all_parameters(self) -> dict:
         """Return all gauge sector parameters."""
         return {
-            'sin2_theta_W': self.weinberg_angle(),
-            'alpha_em': self.fine_structure_constant(),
-            'alpha_s': self.strong_coupling(),
-            'm_W': self.w_mass(),
-            'm_Z': self.z_mass(),
-            'Gamma_Z': self.z_width(),
+            "sin2_theta_W": self.weinberg_angle(),
+            "alpha_em": self.fine_structure_constant(),
+            "alpha_s": self.strong_coupling(),
+            "m_W": self.w_mass(),
+            "m_Z": self.z_mass(),
+            "Gamma_Z": self.z_width(),
         }
 
     def __repr__(self) -> str:
@@ -269,15 +270,15 @@ class GaugeSector:
 
 
 __all__ = [
-    'weinberg_angle',
-    'fine_structure_constant',
-    'alpha_em_inverse',
-    'strong_coupling',
-    'su2_coupling',
-    'u1_coupling',
-    'w_mass',
-    'z_mass',
-    'z_width',
-    'w_z_mass_ratio',
-    'GaugeSector',
+    "weinberg_angle",
+    "fine_structure_constant",
+    "alpha_em_inverse",
+    "strong_coupling",
+    "su2_coupling",
+    "u1_coupling",
+    "w_mass",
+    "z_mass",
+    "z_width",
+    "w_z_mass_ratio",
+    "GaugeSector",
 ]

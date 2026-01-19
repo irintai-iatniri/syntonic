@@ -28,46 +28,43 @@ Constants:
 """
 
 from syntonic.srt.lattice.d4 import (
-    D4Root,
-    D4Lattice,
-    d4_lattice,
     K_D4,
+    D4Lattice,
+    D4Root,
+    d4_lattice,
 )
-
 from syntonic.srt.lattice.e8 import (
-    E8Root,
     E8Lattice,
+    E8Root,
     e8_lattice,
 )
-
-from syntonic.srt.lattice.quadratic_form import (
-    QuadraticForm,
-    quadratic_form,
-    compute_Q,
-    NULL_VECTORS,
-)
-
 from syntonic.srt.lattice.golden_cone import (
-    GoldenProjector,
-    golden_projector,
     GoldenCone,
+    GoldenProjector,
     golden_cone,
+    golden_projector,
+)
+from syntonic.srt.lattice.quadratic_form import (
+    NULL_VECTORS,
+    QuadraticForm,
+    compute_Q,
+    quadratic_form,
 )
 
 __all__ = [
-    'D4Root',
-    'D4Lattice',
-    'd4_lattice',
-    'K_D4',
-    'E8Root',
-    'E8Lattice',
-    'e8_lattice',
-    'GoldenProjector',
-    'golden_projector',
-    'GoldenCone',
-    'golden_cone',
-    'QuadraticForm',
-    'quadratic_form',
-    'compute_Q',
-    'NULL_VECTORS',
+    "D4Root",
+    "D4Lattice",
+    "d4_lattice",
+    "K_D4",
+    "E8Root",
+    "E8Lattice",
+    "e8_lattice",
+    "GoldenProjector",
+    "golden_projector",
+    "GoldenCone",
+    "golden_cone",
+    "QuadraticForm",
+    "quadratic_form",
+    "compute_Q",
+    "NULL_VECTORS",
 ]

@@ -13,28 +13,27 @@ Example:
 """
 
 # Re-export Retrocausal RES as the primary optimizer
-from syntonic.resonant.retrocausal import (
-    RetrocausalConfig,
-    create_retrocausal_evolver,
-    create_standard_evolver,
-    compare_convergence,
-)
-
 # Re-export core RES types
 from syntonic._core import (
-    ResonantEvolver,
     RESConfig,
+    ResonantEvolver,
     RESResult,
+)
+from syntonic.resonant.retrocausal import (
+    RetrocausalConfig,
+    compare_convergence,
+    create_retrocausal_evolver,
+    create_standard_evolver,
 )
 
 __all__ = [
     # Retrocausal RES (recommended)
-    'RetrocausalConfig',
-    'create_retrocausal_evolver',
-    'create_standard_evolver',
-    'compare_convergence',
+    "RetrocausalConfig",
+    "create_retrocausal_evolver",
+    "create_standard_evolver",
+    "compare_convergence",
     # Core RES types
-    'ResonantEvolver',
-    'RESConfig',
-    'RESResult',
+    "ResonantEvolver",
+    "RESConfig",
+    "RESResult",
 ]

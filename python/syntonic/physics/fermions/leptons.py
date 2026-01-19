@@ -15,10 +15,10 @@ where k is the recursion depth (generation) and |n|² is the winding norm.
 """
 
 import math
+
 from syntonic.exact import (
-    PHI,
     E_STAR_NUMERIC,
-    Q_DEFICIT_NUMERIC,
+    PHI,
     fibonacci,
     get_correction_factor,
 )
@@ -78,7 +78,7 @@ def muon_mass() -> float:
 
     # Muon/electron ratio from golden recursion
     # m_μ/m_e ≈ 206.77 = (3/2) × φ⁵ × correction
-    phi_5 = phi ** 5
+    phi_5 = phi**5
     base_ratio = 1.5 * phi_5  # ≈ 16.94
 
     # Additional winding factor for generation 2
@@ -105,7 +105,7 @@ def tau_mass() -> float:
 
     # Correction factors from hierarchy: C28 (q/5π) and C3 (q/720)
     corr1 = 1 - get_correction_factor(28)  # q/5π
-    corr2 = 1 - get_correction_factor(3)   # q/720
+    corr2 = 1 - get_correction_factor(3)  # q/720
 
     return E_STAR_NUMERIC * F_11 * corr1 * corr2
 
@@ -122,9 +122,9 @@ def lepton_mass_ratios() -> dict:
     m_tau = tau_mass()
 
     return {
-        'm_mu/m_e': m_mu / m_e,
-        'm_tau/m_e': m_tau / m_e,
-        'm_tau/m_mu': m_tau / m_mu,
+        "m_mu/m_e": m_mu / m_e,
+        "m_tau/m_e": m_tau / m_e,
+        "m_tau/m_mu": m_tau / m_mu,
     }
 
 
@@ -150,10 +150,10 @@ def koide_relation() -> float:
 
 
 __all__ = [
-    'electron_mass',
-    'muon_mass',
-    'tau_mass',
-    'mass_from_depth',
-    'lepton_mass_ratios',
-    'koide_relation',
+    "electron_mass",
+    "muon_mass",
+    "tau_mass",
+    "mass_from_depth",
+    "lepton_mass_ratios",
+    "koide_relation",
 ]

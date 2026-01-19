@@ -14,14 +14,14 @@ Example:
 
 from syntonic.physics.validation.pdg import (
     PDG_VALUES,
-    validate_prediction,
-    validate_all,
     summary_report,
+    validate_all,
+    validate_prediction,
 )
 
 __all__ = [
-    'PDG_VALUES',
-    'validate_prediction',
-    'validate_all',
-    'summary_report',
+    "PDG_VALUES",
+    "validate_prediction",
+    "validate_all",
+    "summary_report",
 ]

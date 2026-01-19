@@ -16,19 +16,21 @@ Example:
 """
 
 from __future__ import annotations
-import math
-from typing import Dict, List, Optional, Callable, Iterator, TYPE_CHECKING
 
-from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
-from syntonic.srt.geometry.winding import WindingState, enumerate_windings
+import math
+from typing import TYPE_CHECKING, Callable, Dict, Optional
+
 from syntonic.core import (
     partition_function as _partition_function,
-    theta_sum_combined as _theta_sum_combined,
-    compute_golden_weights as _compute_golden_weights,
 )
+from syntonic.core import (
+    theta_sum_combined as _theta_sum_combined,
+)
+from syntonic.exact import PHI, GoldenExact
+from syntonic.srt.geometry.winding import WindingState, enumerate_windings
 
 if TYPE_CHECKING:
-    from syntonic.exact import GoldenExact as GoldenExactType
+    pass
 
 
 class GoldenMeasure:
@@ -211,7 +213,7 @@ class GoldenMeasure:
         """
         mean = self.expectation(func, max_norm)
         mean_sq = self.expectation(lambda n: func(n) ** 2, max_norm)
-        return mean_sq - mean ** 2
+        return mean_sq - mean**2
 
     def theta_sum(
         self,
@@ -285,7 +287,9 @@ def golden_weight(n: WindingState, phi: Optional[float] = None) -> float:
     return math.exp(-n.norm_squared / phi)
 
 
-def compute_partition_function(max_norm: int = 10, phi: Optional[float] = None) -> float:
+def compute_partition_function(
+    max_norm: int = 10, phi: Optional[float] = None
+) -> float:
     """
     Compute partition function Z = sum_n exp(-|n|^2/phi).
 

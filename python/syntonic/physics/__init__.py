@@ -24,43 +24,44 @@ Example:
     >>> sm.validate()  # Compare all predictions to PDG
 """
 
-from syntonic.physics.constants import (
-    V_EW,
-    M_Z,
-    M_W_PDG,
-    M_H_PDG,
-    ALPHA_EM_0,
-)
-
 # Import submodules
-from syntonic.physics import fermions
-from syntonic.physics import bosons
-from syntonic.physics import mixing
-from syntonic.physics import neutrinos
-from syntonic.physics import hadrons
-from syntonic.physics import running
-from syntonic.physics import validation
-from syntonic.physics import sm_verification
-from syntonic.physics import gravity
+from syntonic.physics import (
+    bosons,
+    fermions,
+    gravity,
+    hadrons,
+    mixing,
+    neutrinos,
+    running,
+    sm_verification,
+    validation,
+)
+from syntonic.physics.bosons import GaugeSector, HiggsSector
+from syntonic.physics.constants import (
+    ALPHA_EM_0,
+    M_H_PDG,
+    M_W_PDG,
+    M_Z,
+    V_EW,
+)
 
 # Import key classes
 from syntonic.physics.fermions import FermionMasses
-from syntonic.physics.bosons import GaugeSector, HiggsSector
+from syntonic.physics.gravity import BimetricGravity
+from syntonic.physics.hadrons import HadronMasses
 from syntonic.physics.mixing import CKMMatrix, PMNSMatrix
 from syntonic.physics.neutrinos import NeutrinoMasses
-from syntonic.physics.hadrons import HadronMasses
 from syntonic.physics.running import GoldenRG
-from syntonic.physics.validation import validate_all, PDG_VALUES
 from syntonic.physics.sm_verification import verify_all_observables
-from syntonic.physics.gravity import BimetricGravity
 
 # Topology functions for neural network architectures
 from syntonic.physics.topology import (
-    hooking_coefficient,
-    golden_resonance,
-    e8_root_alignment,
     compute_tensor_norm,
+    e8_root_alignment,
+    golden_resonance,
+    hooking_coefficient,
 )
+from syntonic.physics.validation import PDG_VALUES, validate_all
 
 
 class StandardModel:

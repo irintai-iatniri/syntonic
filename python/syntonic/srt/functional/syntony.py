@@ -17,13 +17,14 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, Dict, List, TYPE_CHECKING
-import math
 
-from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
+import math
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+
+from syntonic.core import enumerate_windings_exact_norm
+from syntonic.exact import PHI
 from syntonic.srt.geometry.winding import WindingState, winding_state
 from syntonic.srt.spectral.knot_laplacian import KnotLaplacian
-from syntonic.core import enumerate_windings_exact_norm
 
 if TYPE_CHECKING:
     from syntonic import State
@@ -139,7 +140,9 @@ class SyntonyFunctional:
 
         return self._phi * total / self._Z_vac
 
-    def evaluate_from_state(self, psi: 'State', winding_map: Optional[Dict] = None) -> float:
+    def evaluate_from_state(
+        self, psi: "State", winding_map: Optional[Dict] = None
+    ) -> float:
         """
         Compute S[Ψ] for a State object.
 
@@ -152,9 +155,9 @@ class SyntonyFunctional:
         """
         # Extract coefficients from State
         # This depends on how State exposes its data
-        if hasattr(psi, 'to_numpy'):
+        if hasattr(psi, "to_numpy"):
             data = psi.to_numpy().flatten()
-        elif hasattr(psi, 'data'):
+        elif hasattr(psi, "data"):
             data = list(psi.data)
         else:
             raise TypeError("Cannot extract coefficients from State")
@@ -187,7 +190,9 @@ class SyntonyFunctional:
         # Use Rust enumerator for ~50x speedup
         return enumerate_windings_exact_norm(norm_sq)
 
-    def verify_bound(self, coefficients: Dict[WindingState, complex]) -> Tuple[float, bool]:
+    def verify_bound(
+        self, coefficients: Dict[WindingState, complex]
+    ) -> Tuple[float, bool]:
         """
         Verify that S[Ψ] ≤ φ.
 
@@ -275,7 +280,9 @@ class SyntonyFunctional:
         coefficients = {vacuum: complex(1.0)}
         return (coefficients, self.evaluate(coefficients))
 
-    def excited_state(self, n: WindingState) -> Tuple[Dict[WindingState, complex], float]:
+    def excited_state(
+        self, n: WindingState
+    ) -> Tuple[Dict[WindingState, complex], float]:
         """
         Compute syntony for a single excited state |n⟩.
 

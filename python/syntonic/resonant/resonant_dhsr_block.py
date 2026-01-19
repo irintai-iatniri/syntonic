@@ -19,12 +19,14 @@ NO PYTORCH DEPENDENCIES - uses pure sn (syntonic network) module.
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, List
+
 import math
 import time
+from typing import List, Tuple
 
 try:
     from syntonic._core import ResonantTensor
+
     RESONANT_AVAILABLE = True
 except ImportError:
     RESONANT_AVAILABLE = False
@@ -36,7 +38,7 @@ from python.syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
 
 PHI = (1 + math.sqrt(5)) / 2  # Golden ratio
 PHI_INV = 1 / PHI  # φ^-1 ≈ 0.618
-PHI_INV_SQ = PHI_INV ** 2  # φ^-2 ≈ 0.382
+PHI_INV_SQ = PHI_INV**2  # φ^-2 ≈ 0.382
 
 
 class ResonantWindingDHSRBlock(sn.Module):
@@ -123,60 +125,67 @@ class ResonantWindingDHSRBlock(sn.Module):
         2. differentiate(): D̂ flux on GPU/CPU
         3. crystallize(): Ĥ + snap back to Q(φ) lattice
         4. destroy_shadow(): clear flux
-        
+
         Args:
             x: Input ResonantTensor
             mode_norms: Mode norms for each feature
             prev_syntony: Previous syntony value
-            
+
         Returns:
             (output, syntony, accepted): Crystallized output, new syntony, blockchain acceptance
         """
         shape = x.shape
         batch_size = shape[0] if len(shape) > 1 else 1
-        
+
         # 1. EXECUTE DHSR CYCLE (D̂ + Ĥ + Crystallize) - GPU EXCLUSIVE
         d_start = time.perf_counter()
-        
+
         # GPU-only D-phase: process each sample individually on GPU
         batch_syntonies = []
         single_tensors = []
-        
+
         data = x.to_floats()
-        mode_norms_full = mode_norms * batch_size if mode_norms else [float(i % self.dim) ** 2 for i in range(batch_size * self.dim)]
-        
+        mode_norms_full = (
+            mode_norms * batch_size
+            if mode_norms
+            else [float(i % self.dim) ** 2 for i in range(batch_size * self.dim)]
+        )
+
         for b in range(batch_size):
             # Extract single sample
             start = b * self.dim
             end = (b + 1) * self.dim
             single_data = data[start:end]
             single_mode_norms = mode_norms_full[start:end]
-            
+
             # Create single tensor
-            single_tensor = ResonantTensor(single_data, [1, self.dim], single_mode_norms, self.precision)
-            
+            single_tensor = ResonantTensor(
+                single_data, [1, self.dim], single_mode_norms, self.precision
+            )
+
             # GPU D-phase cycle with CPU fallback
             try:
-                syntony = single_tensor.cuda_cycle_gpu(noise_scale=self.noise_scale, precision=self.precision, device_idx=0)
+                syntony = single_tensor.cuda_cycle_gpu(
+                    noise_scale=self.noise_scale, precision=self.precision, device_idx=0
+                )
             except Exception:
                 # If CUDA fails (driver mismatch, no device), use pure Python cycle
                 # We replicate the cycle logic in pure Python using Rust backend functions
-                from syntonic._core import srt_dhsr_cycle
-                
+
                 # Manual CPU Cycle
                 # 1. Differentiate (D-Hat)
                 single_tensor = single_tensor.differentiate(self.noise_scale)
-                
+
                 # 2. Harmonize (H-Hat)
                 # Note: harmonize is inherent in srt_dhsr_cycle, but here we do it explicitly
                 single_tensor = single_tensor.harmonize(PHI_INV, 0.0)
 
                 # 3. Compute Syntony (on CPU)
                 syntony = single_tensor.syntony
-                
+
             batch_syntonies.append(syntony)
             single_tensors.append(single_tensor)
-        
+
         # Concatenate back to batch
         x = ResonantTensor.concat(single_tensors, 0)
 
@@ -187,7 +196,9 @@ class ResonantWindingDHSRBlock(sn.Module):
             x = self.prime_filter(x)
 
         # 3. Update syntony (average of batch)
-        syntony_new = sum(batch_syntonies) / len(batch_syntonies) if batch_syntonies else 0.5
+        syntony_new = (
+            sum(batch_syntonies) / len(batch_syntonies) if batch_syntonies else 0.5
+        )
 
         # 4. TEMPORAL BLOCKCHAIN RECORDING
         delta_syntony = abs(syntony_new - prev_syntony)
@@ -236,7 +247,9 @@ class ResonantWindingDHSRBlock(sn.Module):
             "h_duration": self.last_h_duration,
             "ratio": self.last_ratio,
             "target_ratio": PHI,
-            "phi_dwell_satisfied": abs(self.last_ratio - PHI) < 0.1 if self.last_ratio > 0 else False,
+            "phi_dwell_satisfied": (
+                abs(self.last_ratio - PHI) < 0.1 if self.last_ratio > 0 else False
+            ),
         }
 
     def extra_repr(self) -> str:
@@ -250,7 +263,7 @@ class ResonantWindingDHSRBlock(sn.Module):
 
 if __name__ == "__main__":
     import random
-    
+
     print("=" * 70)
     print("Resonant DHSR Block Test - Dual-State Architecture (Pure Python)")
     print("=" * 70)
@@ -296,13 +309,13 @@ if __name__ == "__main__":
 
     # Timing stats
     timing = block.get_timing_stats()
-    print(f"\n" + "=" * 70)
+    print("\n" + "=" * 70)
     print("φ-Dwell Timing Verification")
     print("=" * 70)
     print(f"D-phase duration: {timing['d_duration']*1000:.2f}ms")
 
     # Verify state evolution
-    print(f"\n" + "=" * 70)
+    print("\n" + "=" * 70)
     print("State Evolution Test (Multiple Cycles)")
     print("=" * 70)
 
@@ -319,4 +332,3 @@ if __name__ == "__main__":
     print("\n" + "=" * 70)
     print("✓ Resonant Engine dual-state architecture (pure Python) verified!")
     print("=" * 70)
-

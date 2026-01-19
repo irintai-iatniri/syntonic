@@ -5,8 +5,8 @@ For every constructive phase φ^n, there's a shadow (1-φ)^n.
 Lucas numbers L_n = φ^n + (1-φ)^n sum light and shadow.
 """
 
-from syntonic.exact import PHI_NUMERIC, LUCAS_SEQUENCE, LUCAS_PRIMES
-import math
+
+from syntonic.exact import LUCAS_PRIMES, LUCAS_SEQUENCE, PHI_NUMERIC
 
 PHI_CONJUGATE = 1 - PHI_NUMERIC  # ≈ -0.618
 

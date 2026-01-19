@@ -13,8 +13,9 @@ Where:
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Optional, Callable
+
 import math
+from typing import TYPE_CHECKING, Callable, List, Optional
 
 from syntonic.crt.operators.base import OperatorBase
 from syntonic.crt.operators.projectors import (
@@ -57,7 +58,7 @@ class HarmonizationOperator(OperatorBase):
         gamma_0: float = 0.1,
         num_dampers: int = 3,
         damping_projectors: Optional[List[DampingProjector]] = None,
-        target_generator: Optional[Callable[['State'], 'State']] = None,
+        target_generator: Optional[Callable[["State"], "State"]] = None,
         nonlinear_strength: float = 0.01,
     ):
         """
@@ -95,7 +96,7 @@ class HarmonizationOperator(OperatorBase):
         return self._dampers
 
     @staticmethod
-    def _default_target(state: 'State') -> 'State':
+    def _default_target(state: "State") -> "State":
         """
         Default target generator: normalized mean projection.
 
@@ -116,7 +117,9 @@ class HarmonizationOperator(OperatorBase):
         # Target is uniform state with mean value
         target_flat = [mean_val] * N
 
-        return State(target_flat, dtype=state.dtype, device=state.device, shape=state.shape)
+        return State(
+            target_flat, dtype=state.dtype, device=state.device, shape=state.shape
+        )
 
     def _decay_factor(self, level: int, delta_d: Optional[float]) -> float:
         """
@@ -132,7 +135,7 @@ class HarmonizationOperator(OperatorBase):
             Decay factor in [0, 1]
         """
         # Base decay follows golden ratio
-        base_decay = PHI_INV ** level
+        base_decay = PHI_INV**level
 
         # Modulate by differentiation magnitude if provided
         if delta_d is not None:
@@ -143,7 +146,7 @@ class HarmonizationOperator(OperatorBase):
 
         return base_decay * min(modulation, 2.0)  # Cap at 2x
 
-    def _syntony_projection(self, state: 'State', S: float) -> 'State':
+    def _syntony_projection(self, state: "State", S: float) -> "State":
         """
         Compute syntony-promoting projection Ŝ_op[Ψ].
 
@@ -166,7 +169,7 @@ class HarmonizationOperator(OperatorBase):
 
         return direction * gamma
 
-    def _nonlinear_correction(self, state: 'State', S: float) -> 'State':
+    def _nonlinear_correction(self, state: "State", S: float) -> "State":
         """
         Compute nonlinear correction Δ_NL[Ψ].
 
@@ -184,7 +187,9 @@ class HarmonizationOperator(OperatorBase):
         if self.nonlinear_strength < 1e-12:
             # Return zero state
             flat = [0.0] * state.size
-            return State(flat, dtype=state.dtype, device=state.device, shape=state.shape)
+            return State(
+                flat, dtype=state.dtype, device=state.device, shape=state.shape
+            )
 
         flat = state.to_list()
         N = len(flat)
@@ -205,15 +210,17 @@ class HarmonizationOperator(OperatorBase):
         # Scale by syntony (stronger correction at higher syntony)
         correction = [c * S for c in correction]
 
-        return State(correction, dtype=state.dtype, device=state.device, shape=state.shape)
+        return State(
+            correction, dtype=state.dtype, device=state.device, shape=state.shape
+        )
 
     def apply(
         self,
-        state: 'State',
+        state: "State",
         syntony: Optional[float] = None,
         delta_d: Optional[float] = None,
         **kwargs,
-    ) -> 'State':
+    ) -> "State":
         """
         Apply harmonization operator Ĥ.
 
@@ -256,7 +263,7 @@ class HarmonizationOperator(OperatorBase):
 
         return result
 
-    def harmonization_magnitude(self, state: 'State') -> float:
+    def harmonization_magnitude(self, state: "State") -> float:
         """
         Compute magnitude of harmonization Δ_H = ||Ĥ[Ψ] - Ψ||.
 

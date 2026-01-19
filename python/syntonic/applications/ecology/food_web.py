@@ -9,8 +9,9 @@ gives 4 trophic levels in ecology!
 """
 
 from __future__ import annotations
-from typing import Dict, Any, List, Optional
+
 import math
+from typing import Any, Dict
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
 
@@ -41,7 +42,9 @@ class TrophicDynamics:
     """
 
     TROPHIC_EFFICIENCY = PHI_NUMERIC ** (-5)  # ≈ 0.09 = 9%
-    TROPHIC_EFFICIENCY_CORRECTED = (PHI_NUMERIC ** (-5)) * (1 + Q_DEFICIT_NUMERIC)  # ≈ 9.3%
+    TROPHIC_EFFICIENCY_CORRECTED = (PHI_NUMERIC ** (-5)) * (
+        1 + Q_DEFICIT_NUMERIC
+    )  # ≈ 9.3%
     TROPHIC_LEVELS = 4  # N_gen + 1 = 3 + 1 = 4
     N_GENERATIONS = 3  # Same as particle physics!
 
@@ -69,7 +72,7 @@ class TrophicDynamics:
         Returns:
             Energy available at that level
         """
-        return primary_production * (self.TROPHIC_EFFICIENCY ** level)
+        return primary_production * (self.TROPHIC_EFFICIENCY**level)
 
     def biomass_pyramid(self, base_biomass: float) -> Dict[int, float]:
         """
@@ -82,7 +85,7 @@ class TrophicDynamics:
             Dict mapping level to biomass
         """
         return {
-            level: base_biomass * (self.TROPHIC_EFFICIENCY ** level)
+            level: base_biomass * (self.TROPHIC_EFFICIENCY**level)
             for level in range(self.TROPHIC_LEVELS)
         }
 
@@ -188,7 +191,7 @@ class FoodWeb:
         """
         if n_species <= 0:
             return 0.0
-        return n_links / (n_species ** 2)
+        return n_links / (n_species**2)
 
     def expected_links(self, n_species: int) -> float:
         """
@@ -202,7 +205,7 @@ class FoodWeb:
         Returns:
             Expected number of links
         """
-        return self.UNIVERSAL_CONNECTANCE * (n_species ** 2)
+        return self.UNIVERSAL_CONNECTANCE * (n_species**2)
 
     def link_density(self, n_species: int, n_links: int) -> float:
         """
@@ -238,15 +241,16 @@ class FoodWeb:
         expected_predators = L_per_S / 2
 
         return {
-            'connectance': C,
-            'links_per_species': L_per_S,
-            'expected_prey': expected_prey,
-            'expected_predators': expected_predators,
-            'top_predator_fraction': 1 / (n_species ** 0.5) if n_species > 0 else 0,
+            "connectance": C,
+            "links_per_species": L_per_S,
+            "expected_prey": expected_prey,
+            "expected_predators": expected_predators,
+            "top_predator_fraction": 1 / (n_species**0.5) if n_species > 0 else 0,
         }
 
-    def stability_criterion(self, n_species: int, connectance: float,
-                            interaction_strength: float) -> bool:
+    def stability_criterion(
+        self, n_species: int, connectance: float, interaction_strength: float
+    ) -> bool:
         """
         May's stability criterion for food webs.
 

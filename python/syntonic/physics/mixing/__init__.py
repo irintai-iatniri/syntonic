@@ -19,38 +19,37 @@ Example:
 """
 
 from syntonic.physics.mixing.ckm import (
-    V_us,
+    CKMMatrix,
     V_cb,
-    V_ub,
+    V_tb,
     V_td,
     V_ts,
-    V_tb,
+    V_ub,
+    V_us,
     jarlskog_invariant,
-    CKMMatrix,
 )
-
 from syntonic.physics.mixing.pmns import (
-    theta_12,
-    theta_23,
-    theta_13,
-    delta_CP,
     PMNSMatrix,
+    delta_CP,
+    theta_12,
+    theta_13,
+    theta_23,
 )
 
 __all__ = [
     # CKM elements
-    'V_us',
-    'V_cb',
-    'V_ub',
-    'V_td',
-    'V_ts',
-    'V_tb',
-    'jarlskog_invariant',
-    'CKMMatrix',
+    "V_us",
+    "V_cb",
+    "V_ub",
+    "V_td",
+    "V_ts",
+    "V_tb",
+    "jarlskog_invariant",
+    "CKMMatrix",
     # PMNS elements
-    'theta_12',
-    'theta_23',
-    'theta_13',
-    'delta_CP',
-    'PMNSMatrix',
+    "theta_12",
+    "theta_23",
+    "theta_13",
+    "delta_CP",
+    "PMNSMatrix",
 ]

@@ -6,8 +6,9 @@ from pre-conscious (Layer 2) to conscious (Layer 3) and beyond.
 """
 
 from __future__ import annotations
-from typing import Dict, Any, Optional
+
 import math
+from typing import Any, Dict
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
 
@@ -61,11 +62,13 @@ class ConsciousnessGnosis:
         kissing_fraction = min(delta_S / self.KISSING_THRESHOLD, 1.0)
 
         return {
-            'phase_fraction': phase_fraction,
-            'kissing_fraction': kissing_fraction,
-            'overall_readiness': min(phase_fraction, kissing_fraction),
-            'limiting_factor': 'phase' if phase_fraction < kissing_fraction else 'connectivity',
-            'is_conscious': phase_fraction >= 1.0 and kissing_fraction >= 1.0,
+            "phase_fraction": phase_fraction,
+            "kissing_fraction": kissing_fraction,
+            "overall_readiness": min(phase_fraction, kissing_fraction),
+            "limiting_factor": (
+                "phase" if phase_fraction < kissing_fraction else "connectivity"
+            ),
+            "is_conscious": phase_fraction >= 1.0 and kissing_fraction >= 1.0,
         }
 
     def gnosis_level(self, Tv_sum: float, delta_S: float) -> float:
@@ -106,7 +109,7 @@ class ConsciousnessGnosis:
         return PHI_NUMERIC - Q_DEFICIT_NUMERIC
 
     def __repr__(self) -> str:
-        return f"ConsciousnessGnosis(phase_threshold=3π, K=24)"
+        return "ConsciousnessGnosis(phase_threshold=3π, K=24)"
 
 
 class LayerTransition:
@@ -130,7 +133,7 @@ class LayerTransition:
         2: 2 * math.pi,
         3: 3 * math.pi,
         4: 4 * math.pi,
-        5: float('inf'),
+        5: float("inf"),
     }
 
     def transition_energy(self, from_layer: int, to_layer: int) -> float:

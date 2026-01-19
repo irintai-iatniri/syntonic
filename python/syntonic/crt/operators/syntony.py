@@ -18,8 +18,9 @@ This module provides:
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
+
 import math
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from syntonic.core.state import State
@@ -46,8 +47,8 @@ class SyntonyComputer:
 
     def __init__(
         self,
-        diff_op: 'DifferentiationOperator',
-        harm_op: 'HarmonizationOperator',
+        diff_op: "DifferentiationOperator",
+        harm_op: "HarmonizationOperator",
         epsilon: float = 1e-10,
     ):
         """
@@ -62,7 +63,7 @@ class SyntonyComputer:
         self.harm_op = harm_op
         self.epsilon = epsilon
 
-    def compute(self, state: 'State') -> float:
+    def compute(self, state: "State") -> float:
         """
         Compute syntony index S(Ψ).
 
@@ -92,7 +93,7 @@ class SyntonyComputer:
         # Clamp to [0, 1]
         return max(0.0, min(1.0, S))
 
-    def compute_components(self, state: 'State') -> dict:
+    def compute_components(self, state: "State") -> dict:
         """
         Compute syntony with detailed components.
 
@@ -116,18 +117,18 @@ class SyntonyComputer:
         S = max(0.0, min(1.0, S))
 
         return {
-            'syntony': S,
-            'diff_magnitude': diff_magnitude,
-            'residual': residual,
-            'd_state': d_psi,
-            'hd_state': hd_psi,
+            "syntony": S,
+            "diff_magnitude": diff_magnitude,
+            "residual": residual,
+            "d_state": d_psi,
+            "hd_state": hd_psi,
         }
 
     def __repr__(self) -> str:
         return f"SyntonyComputer(eps={self.epsilon})"
 
 
-def syntony_entropy(state: 'State') -> float:
+def syntony_entropy(state: "State") -> float:
     """
     Estimate syntony from entropy of the state.
 
@@ -176,7 +177,7 @@ def syntony_entropy(state: 'State') -> float:
     return 1.0 - normalized_entropy
 
 
-def syntony_spectral(state: 'State') -> float:
+def syntony_spectral(state: "State") -> float:
     """
     Estimate syntony from spectral concentration.
 
@@ -223,7 +224,7 @@ def syntony_spectral(state: 'State') -> float:
     return low_freq_power / total_power
 
 
-def syntony_quick(state: 'State') -> float:
+def syntony_quick(state: "State") -> float:
     """
     Quick syntony estimate using total variation.
 

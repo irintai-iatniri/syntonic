@@ -10,34 +10,33 @@ This module provides the fundamental building blocks for syntonic neural network
 - ResonantLinear: Linear layer in Q(φ)
 """
 
+from syntonic.nn.activations.gnosis_gelu import GnosisGELU
 from syntonic.nn.layers.differentiation import (
     DifferentiationLayer,
     DifferentiationModule,
 )
-from syntonic.nn.layers.harmonization import HarmonizationLayer
-from syntonic.nn.layers.syntonic_gate import (
-    SyntonicGate,
-    AdaptiveGate,
-)
-from syntonic.nn.layers.recursion import (
-    RecursionBlock,
-    DeepRecursionNet,
-)
 from syntonic.nn.layers.gnosis import GnosisLayer
+from syntonic.nn.layers.harmonization import HarmonizationLayer
 from syntonic.nn.layers.normalization import (
-    SyntonicNorm,
     GoldenNorm,
+    SyntonicNorm,
 )
-from syntonic.nn.layers.resonant_linear import ResonantLinear
 from syntonic.nn.layers.prime_syntony_gate import (
     PrimeSyntonyGate,
-    WindingAttention,
     SRTTransformerBlock,
+    WindingAttention,
     get_stable_dimensions,
     suggest_network_dimensions,
 )
-from syntonic.nn.activations.gnosis_gelu import GnosisGELU
-
+from syntonic.nn.layers.recursion import (
+    DeepRecursionNet,
+    RecursionBlock,
+)
+from syntonic.nn.layers.resonant_linear import ResonantLinear
+from syntonic.nn.layers.syntonic_gate import (
+    AdaptiveGate,
+    SyntonicGate,
+)
 
 __all__ = [
     "DifferentiationLayer",

@@ -6,8 +6,9 @@ Matches the Rust backend's CpuData/CudaData enum types.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional, Union, Any
+from typing import Any, Union
 
 
 @dataclass(frozen=True)

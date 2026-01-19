@@ -18,11 +18,9 @@ Note: Light quark masses are MS-bar at 2 GeV scale.
       Top mass is the pole mass including 1-loop QCD correction.
 """
 
-import math
 from syntonic.exact import (
-    PHI,
     E_STAR_NUMERIC,
-    Q_DEFICIT_NUMERIC,
+    PHI,
     get_correction_factor,
 )
 
@@ -150,17 +148,17 @@ def quark_mass_ratios() -> dict:
 
     return {
         # First generation
-        'm_d/m_u': m_d / m_u,
+        "m_d/m_u": m_d / m_u,
         # Second generation
-        'm_s/m_d': m_s / m_d,
-        'm_c/m_s': m_c / m_s,
+        "m_s/m_d": m_s / m_d,
+        "m_c/m_s": m_c / m_s,
         # Third generation
-        'm_b/m_s': m_b / m_s,
-        'm_t/m_b': m_t / m_b,
+        "m_b/m_s": m_b / m_s,
+        "m_t/m_b": m_t / m_b,
         # Cross-generation
-        'm_c/m_u': m_c / m_u,
-        'm_t/m_c': m_t / m_c,
-        'm_b/m_d': m_b / m_d,
+        "m_c/m_u": m_c / m_u,
+        "m_t/m_c": m_t / m_c,
+        "m_b/m_d": m_b / m_d,
     }
 
 
@@ -171,9 +169,9 @@ def light_quark_masses() -> dict:
     These are MS-bar masses at 2 GeV scale.
     """
     return {
-        'm_u': up_mass(),
-        'm_d': down_mass(),
-        'm_s': strange_mass(),
+        "m_u": up_mass(),
+        "m_d": down_mass(),
+        "m_s": strange_mass(),
     }
 
 
@@ -185,20 +183,20 @@ def heavy_quark_masses() -> dict:
     t is in GeV (pole mass).
     """
     return {
-        'm_c': charm_mass(),  # MeV
-        'm_b': bottom_mass(),  # MeV
-        'm_t': top_mass(),     # GeV
+        "m_c": charm_mass(),  # MeV
+        "m_b": bottom_mass(),  # MeV
+        "m_t": top_mass(),  # GeV
     }
 
 
 __all__ = [
-    'up_mass',
-    'down_mass',
-    'strange_mass',
-    'charm_mass',
-    'bottom_mass',
-    'top_mass',
-    'quark_mass_ratios',
-    'light_quark_masses',
-    'heavy_quark_masses',
+    "up_mass",
+    "down_mass",
+    "strange_mass",
+    "charm_mass",
+    "bottom_mass",
+    "top_mass",
+    "quark_mass_ratios",
+    "light_quark_masses",
+    "heavy_quark_masses",
 ]

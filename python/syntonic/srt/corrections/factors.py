@@ -13,8 +13,9 @@ Example:
     >>> cf.minus('D4')  # 1 - q/24
 """
 
-from typing import List, Dict, Optional
-from syntonic.exact import Q_DEFICIT_NUMERIC, STRUCTURE_DIMENSIONS, correction_factor
+from typing import List, Optional
+
+from syntonic.exact import Q_DEFICIT_NUMERIC, STRUCTURE_DIMENSIONS
 
 
 class CorrectionFactors:

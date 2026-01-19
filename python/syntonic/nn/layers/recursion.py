@@ -11,13 +11,14 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import Optional, Tuple, List, Union
 
+from typing import List, Optional, Tuple, Union
+
+import syntonic.sn as sn
 from syntonic._core import ResonantTensor
 from syntonic.nn.layers.differentiation import DifferentiationLayer
 from syntonic.nn.layers.harmonization import HarmonizationLayer
 from syntonic.nn.layers.syntonic_gate import SyntonicGate
-import syntonic.sn as sn
 
 
 class RecursionBlock(sn.Module):
@@ -51,7 +52,7 @@ class RecursionBlock(sn.Module):
         alpha_scale: float = 1.0,
         beta_scale: float = 1.0,
         gamma_scale: float = 1.0,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize recursion block.
@@ -77,13 +78,18 @@ class RecursionBlock(sn.Module):
 
         # Ĥ operator
         self.harmonize = HarmonizationLayer(
-            hidden_features, out_features,
-            beta_scale=beta_scale, gamma_scale=gamma_scale, device=device
+            hidden_features,
+            out_features,
+            beta_scale=beta_scale,
+            gamma_scale=gamma_scale,
+            device=device,
         )
 
         self.use_gate = use_gate
         if use_gate:
-            self.gate = SyntonicGate(out_features, hidden_dim=hidden_features, device=device)
+            self.gate = SyntonicGate(
+                out_features, hidden_dim=hidden_features, device=device
+            )
 
         # Track syntony for this block
         self._last_syntony = None
@@ -158,16 +164,21 @@ class RecursionBlock(sn.Module):
         # Check if dimensions match
         if len(x_floats) == len(x_diff_floats):
             # ||D(x) - x||
-            diff_norm_sq = sum((x_diff_floats[i] - x_floats[i])**2 for i in range(len(x_floats)))
-            diff_norm = diff_norm_sq ** 0.5
+            diff_norm_sq = sum(
+                (x_diff_floats[i] - x_floats[i]) ** 2 for i in range(len(x_floats))
+            )
+            diff_norm = diff_norm_sq**0.5
         else:
             # Dimensions changed - use ||D(x)|| instead
-            diff_norm_sq = sum(x_diff_floats[i]**2 for i in range(len(x_diff_floats)))
-            diff_norm = diff_norm_sq ** 0.5
+            diff_norm_sq = sum(x_diff_floats[i] ** 2 for i in range(len(x_diff_floats)))
+            diff_norm = diff_norm_sq**0.5
 
         # ||D(x) - H(D(x))||
-        harm_diff_norm_sq = sum((x_diff_floats[i] - x_harm_floats[i])**2 for i in range(len(x_diff_floats)))
-        harm_diff_norm = harm_diff_norm_sq ** 0.5
+        harm_diff_norm_sq = sum(
+            (x_diff_floats[i] - x_harm_floats[i]) ** 2
+            for i in range(len(x_diff_floats))
+        )
+        harm_diff_norm = harm_diff_norm_sq**0.5
 
         # S = 1 - numerator / (denominator + ε)
         epsilon = 1e-8
@@ -181,7 +192,7 @@ class RecursionBlock(sn.Module):
         return self._last_syntony
 
     def __repr__(self) -> str:
-        return f'RecursionBlock(in={self.differentiate.in_features}, out={self.harmonize.out_features}, device={self.device})'
+        return f"RecursionBlock(in={self.differentiate.in_features}, out={self.harmonize.out_features}, device={self.device})"
 
 
 class DeepRecursionNet(sn.Module):
@@ -205,7 +216,7 @@ class DeepRecursionNet(sn.Module):
         hidden_dims: List[int],
         output_dim: int,
         use_gates: bool = False,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize deep recursion network.
@@ -219,10 +230,14 @@ class DeepRecursionNet(sn.Module):
         """
         super().__init__()
         dims = [input_dim] + hidden_dims + [output_dim]
-        self.blocks = sn.ModuleList([
-            RecursionBlock(dims[i], dims[i+1], dims[i+1], use_gate=use_gates, device=device)
-            for i in range(len(dims) - 1)
-        ])
+        self.blocks = sn.ModuleList(
+            [
+                RecursionBlock(
+                    dims[i], dims[i + 1], dims[i + 1], use_gate=use_gates, device=device
+                )
+                for i in range(len(dims) - 1)
+            ]
+        )
 
         self._layer_syntonies = []
         self.device = device
@@ -256,7 +271,7 @@ class DeepRecursionNet(sn.Module):
         return self._layer_syntonies
 
     def __repr__(self) -> str:
-        return f'DeepRecursionNet(blocks={len(self.blocks)})'
+        return f"DeepRecursionNet(blocks={len(self.blocks)})"
 
 
 if __name__ == "__main__":

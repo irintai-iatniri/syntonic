@@ -13,8 +13,6 @@ runs out of external connections and must model itself.
 """
 
 from __future__ import annotations
-from typing import Dict, Any
-import math
 
 
 class KissingNumberThreshold:
@@ -147,7 +145,7 @@ it's a geometric constant, not an evolutionary accident.
                 8: "E₈",
             }.get(d, "—")
             lines.append(f"  D = {d}: K = {k} ({lattice})")
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def __repr__(self) -> str:
         return f"KissingNumberThreshold(K={self.KISSING_NUMBER})"

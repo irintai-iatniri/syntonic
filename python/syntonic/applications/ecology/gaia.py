@@ -8,8 +8,9 @@ Human civilization (Noosphere): S ≈ 1.32 × 10¹⁰ (Layer 4+)
 """
 
 from __future__ import annotations
-from typing import Dict, Any, List
+
 import math
+from typing import Any, Dict
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
 
@@ -37,12 +38,12 @@ class GaiaHomeostasis:
 
     # Biosphere components
     COMPONENTS = {
-        'plants': {'biomass_kg': 4.5e14, 'gnosis': 1.5},
-        'bacteria': {'biomass_kg': 7e13, 'gnosis': 1.0},
-        'fungi': {'biomass_kg': 1.2e13, 'gnosis': 1.2},
-        'animals': {'biomass_kg': 2e12, 'gnosis': 2.5},
-        'archaea': {'biomass_kg': 7e12, 'gnosis': 1.0},
-        'protists': {'biomass_kg': 4e12, 'gnosis': 1.3},
+        "plants": {"biomass_kg": 4.5e14, "gnosis": 1.5},
+        "bacteria": {"biomass_kg": 7e13, "gnosis": 1.0},
+        "fungi": {"biomass_kg": 1.2e13, "gnosis": 1.2},
+        "animals": {"biomass_kg": 2e12, "gnosis": 2.5},
+        "archaea": {"biomass_kg": 7e12, "gnosis": 1.0},
+        "protists": {"biomass_kg": 4e12, "gnosis": 1.3},
     }
 
     def biosphere_syntony(self) -> float:
@@ -75,7 +76,7 @@ class GaiaHomeostasis:
 
         for name, data in self.COMPONENTS.items():
             # Simplified syntony calculation
-            S = base * (data['biomass_kg'] ** 0.75) * data['gnosis']
+            S = base * (data["biomass_kg"] ** 0.75) * data["gnosis"]
             breakdown[name] = S
 
         return breakdown
@@ -119,7 +120,7 @@ Manifestations:
         Returns:
             Extinction threshold
         """
-        return self.KISSING_NUMBER * (PHI_NUMERIC ** 3)
+        return self.KISSING_NUMBER * (PHI_NUMERIC**3)
 
     def current_extinction_risk(self) -> Dict[str, Any]:
         """
@@ -132,11 +133,11 @@ Manifestations:
         current = self.BIOSPHERE_SYNTONY
 
         return {
-            'current_syntony': current,
-            'extinction_threshold': threshold,
-            'safety_margin': current / threshold,
-            'risk_level': 'LOW' if current > threshold * 1e6 else 'ELEVATED',
-            'interpretation': (
+            "current_syntony": current,
+            "extinction_threshold": threshold,
+            "safety_margin": current / threshold,
+            "risk_level": "LOW" if current > threshold * 1e6 else "ELEVATED",
+            "interpretation": (
                 "Current biosphere syntony vastly exceeds threshold. "
                 "However, rapid biodiversity loss could change this."
             ),
@@ -193,23 +194,23 @@ This is testable:
             Dict of feedback mechanisms
         """
         return {
-            'temperature': (
+            "temperature": (
                 "CO₂ weathering feedback: Higher T → more weathering → "
                 "less CO₂ → lower T. Time constant: ~100 ky"
             ),
-            'oxygen': (
+            "oxygen": (
                 "Photosynthesis/respiration balance: More O₂ → more fires → "
                 "less vegetation → less O₂. Time constant: ~10 My"
             ),
-            'nutrients': (
+            "nutrients": (
                 "Biogeochemical cycles: N, P, S cycling through atmosphere, "
                 "ocean, land. Time constant: varies by element"
             ),
-            'albedo': (
+            "albedo": (
                 "Ice-albedo feedback: More ice → higher albedo → cooler → "
                 "more ice (positive). Countered by other feedbacks."
             ),
-            'biodiversity': (
+            "biodiversity": (
                 "Species interactions: More diversity → more stability → "
                 "maintains diversity. Time constant: ~1 My"
             ),
@@ -260,7 +261,7 @@ class Noosphere:
         # Human biological contribution
         human_biomass = 70 * self.HUMAN_POPULATION  # ~70 kg average
         human_gnosis = 4.0  # Layer 4 (theory of mind)
-        bio_syntony = base * (human_biomass ** 0.75) * human_gnosis
+        bio_syntony = base * (human_biomass**0.75) * human_gnosis
 
         # Technological amplification
         tech_syntony = bio_syntony * math.log10(self.TECH_AMPLIFICATION)
@@ -270,10 +271,10 @@ class Noosphere:
         social_syntony = bio_syntony * social_factor
 
         return {
-            'biological': bio_syntony,
-            'technological': tech_syntony,
-            'social': social_syntony,
-            'total': bio_syntony + tech_syntony + social_syntony,
+            "biological": bio_syntony,
+            "technological": tech_syntony,
+            "social": social_syntony,
+            "total": bio_syntony + tech_syntony + social_syntony,
         }
 
     def noosphere_reality(self) -> str:

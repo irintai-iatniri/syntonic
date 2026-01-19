@@ -10,7 +10,8 @@ No PyTorch, NumPy, or external ML libraries required.
 """
 
 import math
-from syntonic._core import ResonantTensor, GoldenExact
+
+from syntonic._core import ResonantTensor
 
 # Universal constants (from SRT axioms)
 PHI = (1 + math.sqrt(5)) / 2
@@ -48,7 +49,7 @@ class GoldenConeAttention:
         # 1. Input projection matrix (K) [num_heads, embed_dim]
         # X @ K^T -> Scores
         k_data = []
-        
+
         # 2. Output projection matrix (V) [embed_dim, num_heads]
         # Scores @ V^T -> Output (if V is [embed, heads], V^T is [heads, embed])
         # Wait, ResonantTensor matmul is X @ W^T.
@@ -60,24 +61,30 @@ class GoldenConeAttention:
         for h in range(self.num_heads):
             # Use Fibonacci-based initialization for each head
             # Weight = e^(-h²/φ) (Golden Measure decay)
-            w = math.exp(-(h ** 2) / PHI)
-            
+            w = math.exp(-(h**2) / PHI)
+
             # Generate vector for head h
-            head_vector = [w * math.cos(2 * math.pi * h * i / self.embed_dim)
-                           for i in range(self.embed_dim)]
-            
+            head_vector = [
+                w * math.cos(2 * math.pi * h * i / self.embed_dim)
+                for i in range(self.embed_dim)
+            ]
+
             # Add to K (rows are heads)
             k_data.extend(head_vector)
-            
+
             # Add to V (transposed: rows are embedding dims)
             for i in range(self.embed_dim):
                 v_data_transposed[i * self.num_heads + h] = head_vector[i]
 
-        self.cone_k = ResonantTensor(k_data, [self.num_heads, self.embed_dim],
-                                     precision=self.precision)
-        
-        self.cone_v = ResonantTensor(v_data_transposed, [self.embed_dim, self.num_heads],
-                                     precision=self.precision)
+        self.cone_k = ResonantTensor(
+            k_data, [self.num_heads, self.embed_dim], precision=self.precision
+        )
+
+        self.cone_v = ResonantTensor(
+            v_data_transposed,
+            [self.embed_dim, self.num_heads],
+            precision=self.precision,
+        )
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
@@ -170,8 +177,14 @@ class PureResonantTransformer:
     4. Output: Classification or regression head.
     """
 
-    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int,
-                 num_layers: int = 2, precision: int = 100):
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dim: int,
+        output_dim: int,
+        num_layers: int = 2,
+        precision: int = 100,
+    ):
         """
         Initialize the Pure Resonant Transformer.
 
@@ -189,16 +202,28 @@ class PureResonantTransformer:
         self.precision = precision
 
         # Components
-        self.attention = GoldenConeAttention(hidden_dim, num_heads=36, precision=precision)
-        self.ffn = RecursiveLayer(hidden_dim, num_iterations=num_layers, precision=precision)
+        self.attention = GoldenConeAttention(
+            hidden_dim, num_heads=36, precision=precision
+        )
+        self.ffn = RecursiveLayer(
+            hidden_dim, num_iterations=num_layers, precision=precision
+        )
 
         # Input projection
-        in_w = [math.exp(-abs(i - j) / PHI) for i in range(hidden_dim) for j in range(input_dim)]
-        self.input_proj = ResonantTensor(in_w, [hidden_dim, input_dim], precision=precision)
+        in_w = [
+            math.exp(-abs(i - j) / PHI)
+            for i in range(hidden_dim)
+            for j in range(input_dim)
+        ]
+        self.input_proj = ResonantTensor(
+            in_w, [hidden_dim, input_dim], precision=precision
+        )
 
         # Output projection
         out_w = [1.0 / math.sqrt(hidden_dim) for _ in range(output_dim * hidden_dim)]
-        self.output_proj = ResonantTensor(out_w, [output_dim, hidden_dim], precision=precision)
+        self.output_proj = ResonantTensor(
+            out_w, [output_dim, hidden_dim], precision=precision
+        )
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
@@ -225,9 +250,11 @@ class PureResonantTransformer:
         return out
 
     def __repr__(self):
-        return (f"PureResonantTransformer(input={self.input_dim}, "
-                f"hidden={self.hidden_dim}, output={self.output_dim}, "
-                f"layers={self.num_layers})")
+        return (
+            f"PureResonantTransformer(input={self.input_dim}, "
+            f"hidden={self.hidden_dim}, output={self.output_dim}, "
+            f"layers={self.num_layers})"
+        )
 
 
 if __name__ == "__main__":
@@ -235,10 +262,7 @@ if __name__ == "__main__":
 
     # Create a simple model
     model = PureResonantTransformer(
-        input_dim=4,
-        hidden_dim=16,
-        output_dim=2,
-        num_layers=2
+        input_dim=4, hidden_dim=16, output_dim=2, num_layers=2
     )
     print(f"Model: {model}")
 

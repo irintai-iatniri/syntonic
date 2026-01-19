@@ -17,14 +17,15 @@ Example:
 """
 
 from __future__ import annotations
-import math
-from typing import List, Set, Tuple, Optional, TYPE_CHECKING
 
-from syntonic.exact import PHI, PHI_NUMERIC, GoldenExact
+import math
+from typing import TYPE_CHECKING, List, Optional, Set, Tuple
+
+from syntonic.exact import PHI, GoldenExact
 from syntonic.srt.geometry.winding import WindingState, enumerate_windings
 
 if TYPE_CHECKING:
-    from syntonic.exact import GoldenExact as GoldenExactType
+    pass
 
 
 class GoldenRecursionMap:
@@ -76,7 +77,9 @@ class GoldenRecursionMap:
         return self._phi_exact
 
     # Maximum winding component to prevent overflow (i64 limit / phi)
-    _MAX_COMPONENT = 5_000_000_000_000_000_000  # ~5e18, safe for i64 after phi multiplication
+    _MAX_COMPONENT = (
+        5_000_000_000_000_000_000  # ~5e18, safe for i64 after phi multiplication
+    )
 
     def apply(self, n: WindingState) -> WindingState:
         """
@@ -92,9 +95,15 @@ class GoldenRecursionMap:
             OverflowError: If any component exceeds safe range
         """
         # Check for overflow before computing
-        if abs(n.n7) > self._MAX_COMPONENT or abs(n.n8) > self._MAX_COMPONENT or \
-           abs(n.n9) > self._MAX_COMPONENT or abs(n.n10) > self._MAX_COMPONENT:
-            raise OverflowError(f"Winding component exceeds safe range for golden recursion")
+        if (
+            abs(n.n7) > self._MAX_COMPONENT
+            or abs(n.n8) > self._MAX_COMPONENT
+            or abs(n.n9) > self._MAX_COMPONENT
+            or abs(n.n10) > self._MAX_COMPONENT
+        ):
+            raise OverflowError(
+                "Winding component exceeds safe range for golden recursion"
+            )
 
         return WindingState(
             int(math.floor(self._phi * n.n7)),
@@ -281,7 +290,7 @@ class GoldenRecursionMap:
         if k < 0:
             return 0.0  # No convergence
         # k=0 means fixed point, k>0 means deeper recursion
-        return math.exp(-(self._phi ** k))
+        return math.exp(-(self._phi**k))
 
     def generation(self, n: WindingState, max_depth: int = 100) -> int:
         """
@@ -320,20 +329,20 @@ class GoldenRecursionMap:
             - 'divergent': orbit doesn't converge in max_depth
         """
         if self.is_fixed_point(n):
-            return 'fixed'
+            return "fixed"
 
         orbit = self.orbit(n, max_depth)
         if len(orbit) <= max_depth:
             # Orbit terminated - found cycle
             last = orbit[-1]
             if last == orbit[-2]:
-                return 'convergent'
+                return "convergent"
             # Find period
             for i, state in enumerate(orbit[:-1]):
                 if state == last:
                     period = len(orbit) - 1 - i
-                    return f'periodic-{period}'
-        return 'divergent'
+                    return f"periodic-{period}"
+        return "divergent"
 
     def __repr__(self) -> str:
         return f"GoldenRecursionMap(phi={self._phi:.6f})"

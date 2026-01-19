@@ -23,7 +23,7 @@ Third Generation (k=3):
     Tau:     (1,0,0,0), |n|² = 1
 """
 
-from syntonic.srt.geometry.winding import WindingState, winding_state
+from syntonic.srt.geometry.winding import winding_state
 
 # =============================================================================
 # Lepton Windings
@@ -69,21 +69,21 @@ BOTTOM_WINDING = winding_state(1, 1, 1, 0)
 # =============================================================================
 
 LEPTON_WINDINGS = {
-    'electron': ELECTRON_WINDING,
-    'muon': MUON_WINDING,
-    'tau': TAU_WINDING,
+    "electron": ELECTRON_WINDING,
+    "muon": MUON_WINDING,
+    "tau": TAU_WINDING,
 }
 
 UP_TYPE_WINDINGS = {
-    'up': UP_WINDING,
-    'charm': CHARM_WINDING,
-    'top': TOP_WINDING,
+    "up": UP_WINDING,
+    "charm": CHARM_WINDING,
+    "top": TOP_WINDING,
 }
 
 DOWN_TYPE_WINDINGS = {
-    'down': DOWN_WINDING,
-    'strange': STRANGE_WINDING,
-    'bottom': BOTTOM_WINDING,
+    "down": DOWN_WINDING,
+    "strange": STRANGE_WINDING,
+    "bottom": BOTTOM_WINDING,
 }
 
 ALL_FERMION_WINDINGS = {
@@ -107,9 +107,9 @@ def generation(fermion: str) -> int:
     Returns:
         Generation number
     """
-    gen1 = {'electron', 'up', 'down'}
-    gen2 = {'muon', 'charm', 'strange'}
-    gen3 = {'tau', 'top', 'bottom'}
+    gen1 = {"electron", "up", "down"}
+    gen2 = {"muon", "charm", "strange"}
+    gen3 = {"tau", "top", "bottom"}
 
     if fermion in gen1:
         return 1
@@ -139,21 +139,21 @@ def winding_norm_squared(fermion: str) -> int:
 
 __all__ = [
     # Individual windings
-    'ELECTRON_WINDING',
-    'MUON_WINDING',
-    'TAU_WINDING',
-    'UP_WINDING',
-    'DOWN_WINDING',
-    'STRANGE_WINDING',
-    'CHARM_WINDING',
-    'BOTTOM_WINDING',
-    'TOP_WINDING',
+    "ELECTRON_WINDING",
+    "MUON_WINDING",
+    "TAU_WINDING",
+    "UP_WINDING",
+    "DOWN_WINDING",
+    "STRANGE_WINDING",
+    "CHARM_WINDING",
+    "BOTTOM_WINDING",
+    "TOP_WINDING",
     # Collections
-    'LEPTON_WINDINGS',
-    'UP_TYPE_WINDINGS',
-    'DOWN_TYPE_WINDINGS',
-    'ALL_FERMION_WINDINGS',
+    "LEPTON_WINDINGS",
+    "UP_TYPE_WINDINGS",
+    "DOWN_TYPE_WINDINGS",
+    "ALL_FERMION_WINDINGS",
     # Functions
-    'generation',
-    'winding_norm_squared',
+    "generation",
+    "winding_norm_squared",
 ]

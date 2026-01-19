@@ -8,11 +8,12 @@ states |n₇, n₈, n₉, n₁₀⟩ to continuous learned embeddings using the 
 """
 
 from __future__ import annotations
+
 import math
 import random
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
-from syntonic._core import enumerate_windings, WindingState, ResonantTensor, GoldenExact
+from syntonic._core import ResonantTensor, WindingState, enumerate_windings
 
 PHI = (1 + math.sqrt(5)) / 2
 
@@ -64,14 +65,13 @@ class WindingStateEmbedding:
 
             # Golden initialization: scale by exp(-|n|²/(2φ))
             golden_scale = math.exp(-mode_norm_sq / (2 * PHI))
-            
+
             # Generate embedding data
             embed_data = [
-                random.gauss(0, init_scale * golden_scale)
-                for _ in range(embed_dim)
+                random.gauss(0, init_scale * golden_scale) for _ in range(embed_dim)
             ]
             mode_norms_list = [float(i**2) for i in range(embed_dim)]
-            
+
             self.embeddings[key] = ResonantTensor(
                 embed_data, [embed_dim], mode_norms_list, precision
             )
@@ -113,16 +113,13 @@ class WindingStateEmbedding:
         for w in windings:
             embed = self.forward(w)
             batch_data.extend(embed.to_floats())
-        
+
         # Create batched tensor
         batch_size = len(windings)
         mode_norms = [float(i**2) for i in range(batch_size * self.embed_dim)]
-        
+
         return ResonantTensor(
-            batch_data,
-            [batch_size, self.embed_dim],
-            mode_norms,
-            self.precision
+            batch_data, [batch_size, self.embed_dim], mode_norms, self.precision
         )
 
     def get_mode_norm(self, winding: WindingState) -> int:
@@ -148,21 +145,21 @@ class WindingStateEmbedding:
 if __name__ == "__main__":
     # Test the pure WindingStateEmbedding
     print("Testing WindingStateEmbedding...")
-    
+
     embed = WindingStateEmbedding(max_n=2, embed_dim=16)
     print(f"Embedding: {embed}")
-    
+
     # Get some windings
     windings = embed.windings[:3]
     print(f"First 3 windings: {windings}")
-    
+
     # Single embedding
     e = embed.forward(windings[0])
     print(f"Single embedding shape: {e.shape}")
     print(f"Single embedding syntony: {e.syntony:.4f}")
-    
+
     # Batch
     X = embed.batch_forward(windings)
     print(f"Batch shape: {X.shape}")
-    
+
     print("SUCCESS")

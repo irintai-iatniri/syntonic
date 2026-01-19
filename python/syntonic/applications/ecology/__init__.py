@@ -14,24 +14,24 @@ from syntonic.applications.ecology.ecosystem import (
     EcosystemSyntony,
 )
 from syntonic.applications.ecology.food_web import (
-    TrophicDynamics,
     FoodWeb,
+    TrophicDynamics,
 )
 from syntonic.applications.ecology.gaia import (
     GaiaHomeostasis,
     Noosphere,
 )
 from syntonic.applications.ecology.succession import (
-    EcologicalSuccession,
     DisturbanceRecovery,
+    EcologicalSuccession,
 )
 
 __all__ = [
-    'EcosystemSyntony',
-    'TrophicDynamics',
-    'FoodWeb',
-    'GaiaHomeostasis',
-    'Noosphere',
-    'EcologicalSuccession',
-    'DisturbanceRecovery',
+    "EcosystemSyntony",
+    "TrophicDynamics",
+    "FoodWeb",
+    "GaiaHomeostasis",
+    "Noosphere",
+    "EcologicalSuccession",
+    "DisturbanceRecovery",
 ]

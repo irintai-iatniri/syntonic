@@ -25,18 +25,20 @@ Example:
     0.6180339887498949
 """
 
-from syntonic.applications import thermodynamics
-from syntonic.applications import condensed_matter
-from syntonic.applications import chemistry
-from syntonic.applications import biology
-from syntonic.applications import consciousness
-from syntonic.applications import ecology
+from syntonic.applications import (
+    biology,
+    chemistry,
+    condensed_matter,
+    consciousness,
+    ecology,
+    thermodynamics,
+)
 
 __all__ = [
-    'thermodynamics',
-    'condensed_matter',
-    'chemistry',
-    'biology',
-    'consciousness',
-    'ecology',
+    "thermodynamics",
+    "condensed_matter",
+    "chemistry",
+    "biology",
+    "consciousness",
+    "ecology",
 ]

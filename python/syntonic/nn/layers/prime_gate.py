@@ -7,6 +7,7 @@ Dimensions matching Fibonacci Prime indices get φ^n boost with normalization.
 
 import torch
 import torch.nn as nn
+
 from syntonic._core import fibonacci_resonance_boost, is_transcendence_gate
 
 

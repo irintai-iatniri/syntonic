@@ -9,12 +9,12 @@ inhabit the golden field Q(φ).
 """
 
 from __future__ import annotations
-import math
-import random
-from typing import Optional, List
 
-from syntonic.nn.resonant_tensor import ResonantTensor
+import math
+from typing import Optional
+
 import syntonic.sn as sn
+from syntonic.nn.resonant_tensor import ResonantTensor
 
 PHI = (1 + math.sqrt(5)) / 2
 
@@ -22,10 +22,10 @@ PHI = (1 + math.sqrt(5)) / 2
 class ResonantLinear(sn.Module):
     """
     Linear transformation layer using Resonant Engine.
-    
+
     Y = XW^T + b
-    
-    Weights and biases are stored as ResonantTensors, meaning they 
+
+    Weights and biases are stored as ResonantTensors, meaning they
     natively inhabit the Q(φ) lattice with exact arithmetic.
     """
 
@@ -35,7 +35,7 @@ class ResonantLinear(sn.Module):
         out_features: int,
         bias: bool = True,
         precision: int = 100,
-        device: str = 'cpu',
+        device: str = "cpu",
         resonance_target: Optional[str] = None,
         mode: Optional[str] = None,
     ):
@@ -65,10 +65,10 @@ class ResonantLinear(sn.Module):
         # We use 'golden' initialization which respects the lattice structure
         self.weight = sn.Parameter(
             shape=[out_features, in_features],
-            init='golden',
+            init="golden",
             requires_grad=True,
             precision=precision,
-            device=device
+            device=device,
         )
 
         # 2. Apply mode-based scaling (DHSR modes)
@@ -83,13 +83,13 @@ class ResonantLinear(sn.Module):
         if bias:
             self.bias = sn.Parameter(
                 shape=[out_features],
-                init='golden',
+                init="golden",
                 requires_grad=True,
                 precision=precision,
-                device=device
+                device=device,
             )
         else:
-            self.register_buffer('bias', None)
+            self.register_buffer("bias", None)
 
     def _apply_mode_scaling(self):
         """
@@ -118,9 +118,7 @@ class ResonantLinear(sn.Module):
 
         scaled_data = [x * scale for x in weight_data]
         self.weight.tensor = ResonantTensor(
-            scaled_data,
-            list(self.weight.tensor.shape),
-            precision=self.precision
+            scaled_data, list(self.weight.tensor.shape), precision=self.precision
         )
 
     def _apply_physics_priors(self):
@@ -129,18 +127,18 @@ class ResonantLinear(sn.Module):
         This forces the layer to start at a 'Solved' state.
         """
         target_value = 1.0
-        
+
         if self.resonance_target == "top_quark":
             # Formula: v * e^(2*phi) * corrections
             # We use 1.0 as base unit, scaling handled by network depth usually,
             # but here we encode the relative ratio.
             base_mass = 172.72
             target_value = base_mass
-            
+
         elif self.resonance_target == "higgs":
             # Formula: 125.25 GeV
             target_value = 125.25
-            
+
         elif self.resonance_target == "electron_gap":
             # The 1000 nm target from Photonic Crystal
             target_value = 1000.0
@@ -148,14 +146,16 @@ class ResonantLinear(sn.Module):
         # Apply to tensor
         # We set the diagonal or primary component to this value
         # This gives the matrix the correct 'Eigenvalue' (Energy Level)
-        print(f"[*] Snapping ResonantLinear to {self.resonance_target} ({target_value})")
-        
+        print(
+            f"[*] Snapping ResonantLinear to {self.resonance_target} ({target_value})"
+        )
+
         # Note: We need a method on ResonantTensor to fill or set values.
-        # Assuming .fill_diagonal_() or similar exists in Rust backend, 
+        # Assuming .fill_diagonal_() or similar exists in Rust backend,
         # or we re-create the tensor data.
         # For now, we simulate by re-initializing data:
-        current_data = self.weight.tensor.to_list() # Hypothetical accessor
-        
+        current_data = self.weight.tensor.to_list()  # Hypothetical accessor
+
         # Set the 'Resonant Frequency' of the matrix
         # In a linear layer, the spectral radius (largest eigenvalue) determines the scaling.
         # We normalize the matrix so its spectral radius matches the target.
@@ -202,16 +202,16 @@ class ResonantLinear(sn.Module):
 if __name__ == "__main__":
     # Test the pure ResonantLinear
     print("Testing ResonantLinear...")
-    
+
     layer = ResonantLinear(4, 8, bias=True)
     print(f"Layer: {layer}")
     print(f"Weight parameter: {layer.weight}")
     print(f"Weight tensor shape: {layer.weight.tensor.shape}")
-    
+
     # Create input
     x_data = [0.5, 0.3, -0.2, 0.8] * 2  # batch of 2
     x = ResonantTensor(x_data, [2, 4])
-    
+
     # Forward pass
     y = layer.forward(x)
     print(f"Output shape: {y.shape}")

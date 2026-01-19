@@ -7,9 +7,8 @@ Combines GoldenGELU with Gnosis-aware gating.
 import torch
 import torch.nn as nn
 from syntonic._core import (
-    golden_gelu_forward,
-    is_conscious,
     gnosis_score,
+    golden_gelu_forward,
 )
 
 

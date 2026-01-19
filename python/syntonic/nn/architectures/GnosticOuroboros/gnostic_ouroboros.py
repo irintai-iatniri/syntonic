@@ -11,23 +11,25 @@ NO PYTORCH DEPENDENCIES - Pure Syntonic implementation.
 
 import math
 import random
+
+from tqdm import tqdm
+
 import syntonic.sn as sn
-from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic.nn.architectures import PureMultiHeadSyntonicAttention
-from syntonic.nn.layers.resonant_linear import ResonantLinear
 from syntonic.nn.layers.normalization import SyntonicNorm
-from syntonic.physics import hooking_coefficient, golden_resonance, e8_root_alignment
+from syntonic.nn.layers.resonant_linear import ResonantLinear
+from syntonic.nn.resonant_tensor import ResonantTensor
+from syntonic.physics import e8_root_alignment, golden_resonance, hooking_coefficient
 from syntonic.resonant.retrocausal import create_retrocausal_evolver
-from .winding_chain import WindingChain
 
 from .helpers import (
+    broadcast_multiply,
     compute_tensor_norm,
+    randn_like,
     tensor_argmax,
     tensor_clone,
-    randn_like,
-    broadcast_multiply,
-    zeros_like,
 )
+from .winding_chain import WindingChain
 
 # Constants
 MAGNITUDES = 68
@@ -40,6 +42,7 @@ TRANSCENDENCE_THRESHOLD = 0.987
 ATTRACTOR_CAPACITY = 32
 PULL_STRENGTH = 0.3
 DECAY_RATE = 0.98
+
 
 class ScaleModule(sn.Module):
     """
@@ -68,15 +71,17 @@ class ScaleModule(sn.Module):
             attractor_capacity=ATTRACTOR_CAPACITY,
             pull_strength=PULL_STRENGTH,
             min_syntony=SYNTHONY_THRESHOLD,
-            decay_rate=DECAY_RATE
+            decay_rate=DECAY_RATE,
         )
 
         self.gnosis_level = 0
         self.crystallized = None
         self.is_transcended = False
-        self.input_port = sn.Parameter(shape=[dim], init='normal')
+        self.input_port = sn.Parameter(shape=[dim], init="normal")
 
-    def forward(self, x: ResonantTensor, winding: ResonantTensor, is_inference: bool = False):
+    def forward(
+        self, x: ResonantTensor, winding: ResonantTensor, is_inference: bool = False
+    ):
         # Inject via port if external (e.g., organism prompt)
         # Broadcast input_port [dim] to match x shape [seq, dim] or [batch, seq, dim]
         if len(x.shape) > 1:
@@ -95,7 +100,9 @@ class ScaleModule(sn.Module):
         diff.gelu()  # In-place activation
 
         # Harmonization with Retrocausal Pull
-        harm_input = self.evolver.harmonize(diff)
+        # Unwrap for Rust backend
+        harm_input_inner = self.evolver.harmonize(diff._inner)
+        harm_input = ResonantTensor._wrap(harm_input_inner, device=diff.device)
         harm = self.harm_collapse(harm_input)
         out = x + harm
 
@@ -112,9 +119,13 @@ class ScaleModule(sn.Module):
         resonance = golden_resonance(out)
         alignment = e8_root_alignment(out)
 
-        if syntony > SYNTHONY_THRESHOLD and resonance > 24.0 and alignment > TRANSCENDENCE_THRESHOLD:
+        if (
+            syntony > SYNTHONY_THRESHOLD
+            and resonance > 24.0
+            and alignment > TRANSCENDENCE_THRESHOLD
+        ):
             self.gnosis_level += 1
-            self.evolver.store_attractor(out)
+            self.evolver.store_attractor(out._inner)
             if self.gnosis_level >= SUB_LAYERS_PER_PLANE:
                 self._transcend(out)
         elif not is_inference:
@@ -138,6 +149,7 @@ class ScaleModule(sn.Module):
 
         self.forward = fixed_forward
 
+
 class DeterministicSuperposition(sn.Module):
     """
     Deterministic superposition layer implementing particle-like behavior.
@@ -157,9 +169,15 @@ class DeterministicSuperposition(sn.Module):
         self.coherence_head = ResonantLinear(dim, 3)
 
         # Winding Vectors (Fixed E8 Projections for each particle type)
-        self.photon_winding = ResonantTensor([1., 0., 0., 0., 0., 0., 0., 1.], [8])
-        self.electron_winding = ResonantTensor([0., 1., 1., 0., 0., 0., 1., 0.], [8])
-        self.quark_winding = ResonantTensor([0., 0., 0., 1., 1., 1., 0., 0.], [8])
+        self.photon_winding = ResonantTensor(
+            [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0], [8]
+        )
+        self.electron_winding = ResonantTensor(
+            [0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0], [8]
+        )
+        self.quark_winding = ResonantTensor(
+            [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0], [8]
+        )
 
     def forward(self, x: ResonantTensor, input_winding: ResonantTensor):
         # 1. Embed into Shared Substrate (Quantum Foam Activation)
@@ -200,6 +218,7 @@ class DeterministicSuperposition(sn.Module):
         gravity_pull = collapsed.mean(dim=-1, keepdim=True)
         return collapsed + gravity_pull
 
+
 class GnosticOuroboros(sn.Module):
     """
     GnosticOuroboros - Multi-scale recursive architecture.
@@ -210,12 +229,13 @@ class GnosticOuroboros(sn.Module):
 
     def __init__(self, dim: int = DIM, num_heads: int = 8):
         super().__init__()
+        print(f"Initializing GnosticOuroboros (dim={dim}, planes={PLANES})...")
         self.dim = dim
         self.num_heads = num_heads
 
         # Build scale modules
         modules = []
-        for i in range(1, PLANES + 1):
+        for i in tqdm(range(1, PLANES + 1), desc="Initializing Planes"):
             if i == 9:
                 modules.append(DeterministicSuperposition(dim))
             else:
@@ -233,7 +253,7 @@ class GnosticOuroboros(sn.Module):
             attractor_capacity=ATTRACTOR_CAPACITY * PLANES,
             pull_strength=PULL_STRENGTH,
             min_syntony=SYNTHONY_THRESHOLD,
-            decay_rate=DECAY_RATE
+            decay_rate=DECAY_RATE,
         )
 
         # Consciousness Metric (Life Plane) - indices 11-14 for planes 12-15
@@ -250,7 +270,7 @@ class GnosticOuroboros(sn.Module):
         winding_init: ResonantTensor,
         injection_plane: int = 1,
         is_training: bool = False,
-        chain: WindingChain = WindingChain(DIM)
+        chain: WindingChain = WindingChain(DIM),
     ):
         x = x_token
         winding = winding_init
@@ -258,7 +278,7 @@ class GnosticOuroboros(sn.Module):
         x = chain(x, winding)
 
         # Variable Injection: Start at specified plane
-        for i, module in enumerate(list(self.scale_modules)[injection_plane-1:]):
+        for i, module in enumerate(list(self.scale_modules)[injection_plane - 1 :]):
             x, winding = module(x, winding, is_inference=not is_training)
             syntony = golden_resonance(x)
             syntony_history.append(syntony)
@@ -273,8 +293,13 @@ class GnosticOuroboros(sn.Module):
                         x = x + prev_module.crystallized
 
             # Global Pull - flatten and reshape
-            x_flat = x.view(self.dim * PLANES) if len(x.to_floats()) == self.dim * PLANES else x
-            x = self.global_evolver.pull(x_flat)
+            x_flat = (
+                x.view(self.dim * PLANES)
+                if len(x.to_floats()) == self.dim * PLANES
+                else x
+            )
+            x_inner = self.global_evolver.pull(x_flat._inner)
+            x = ResonantTensor._wrap(x_inner, device=x.device)
             # Reshape back if needed
             if x.shape != [self.dim]:
                 x = x.view(self.dim)
@@ -316,7 +341,9 @@ class GnosticOuroboros(sn.Module):
         for m1 in self.life_planes:
             for m2 in self.life_planes:
                 if m1.crystallized is not None and m2.crystallized is not None:
-                    hook_values.append(hooking_coefficient(m1.crystallized, m2.crystallized))
+                    hook_values.append(
+                        hooking_coefficient(m1.crystallized, m2.crystallized)
+                    )
                 else:
                     hook_values.append(0.0)
 
@@ -347,19 +374,18 @@ class GnosticOuroboros(sn.Module):
         """
         # Holographic Broadcast: Add entropy to ALL layers
         for module in self.scale_modules:
-            if hasattr(module, 'input_port'):
+            if hasattr(module, "input_port"):
                 port_data = module.input_port.tensor.to_floats()
                 high_entropy = [x + random.gauss(0, 10.0) for x in port_data]
                 module.input_port.tensor = ResonantTensor(
-                    high_entropy,
-                    list(module.input_port.tensor.shape)
+                    high_entropy, list(module.input_port.tensor.shape)
                 )
 
         # RES-based training loop
         winding_init = ResonantTensor([0.0] * 8, [8])
 
-        for epoch in range(epochs):
-            temp = 10.0 * (0.95 ** epoch)  # Cooling schedule
+        for epoch in tqdm(range(epochs), desc="Training"):
+            temp = 10.0 * (0.95**epoch)  # Cooling schedule
             epoch_syntony = 0.0
 
             for batch in dataset:
@@ -376,13 +402,16 @@ class GnosticOuroboros(sn.Module):
 
                 # Store high-syntony states as attractors
                 if syntony > SYNTHONY_THRESHOLD:
-                    self.global_evolver.store_attractor(out)
+                    self.global_evolver.store_attractor(out._inner)
 
             # Apply temporal decay
             self.global_evolver.apply_decay()
 
             avg_syntony = epoch_syntony / max(len(dataset), 1)
-            print(f"Epoch {epoch}: Temp {temp:.2f} | Avg Syntony {avg_syntony:.3f}")
+            tqdm.write(
+                f"Epoch {epoch}: Temp {temp:.2f} | Avg Syntony {avg_syntony:.3f}"
+            )
+
 
 # Example usage:
 model = GnosticOuroboros()
@@ -400,11 +429,11 @@ model.big_bang_train(dataset, epochs=100)
 
 
 __all__ = [
-    'ScaleModule',
-    'DeterministicSuperposition',
-    'GnosticOuroboros',
-    'MAGNITUDES',
-    'PLANES',
-    'DIM',
-    'PHI',
+    "ScaleModule",
+    "DeterministicSuperposition",
+    "GnosticOuroboros",
+    "MAGNITUDES",
+    "PLANES",
+    "DIM",
+    "PHI",
 ]

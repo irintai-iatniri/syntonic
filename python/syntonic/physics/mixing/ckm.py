@@ -17,7 +17,14 @@ for inter-generation mixing.
 """
 
 import math
-from syntonic.exact import PHI, PHI_INVERSE, E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
+
+from syntonic.exact import (
+    E_STAR_NUMERIC,
+    PHI,
+    PHI_INVERSE,
+    Q_DEFICIT_NUMERIC,
+    get_correction_factor,
+)
 
 
 def V_us() -> float:
@@ -36,7 +43,9 @@ def V_us() -> float:
     phi_hat = PHI_INVERSE.eval()  # φ̂ = 1/φ
 
     # Correction factors from hierarchy: C48 (qφ), C41 (q/4)
-    return phi_hat**3 * (1 - get_correction_factor(48)) * (1 - get_correction_factor(41))
+    return (
+        phi_hat**3 * (1 - get_correction_factor(48)) * (1 - get_correction_factor(41))
+    )
 
 
 def V_cb() -> float:
@@ -68,7 +77,12 @@ def V_ub() -> float:
     phi_hat = PHI_INVERSE.eval()
 
     # Correction factors from hierarchy: C47 (q), C52 (4q), C45 (q/2)
-    return get_correction_factor(47) * phi_hat**4 * (1 - get_correction_factor(52)) * (1 + get_correction_factor(45))
+    return (
+        get_correction_factor(47)
+        * phi_hat**4
+        * (1 - get_correction_factor(52))
+        * (1 + get_correction_factor(45))
+    )
 
 
 def V_cd() -> float:
@@ -110,7 +124,12 @@ def V_td() -> float:
 
     # V_td is slightly larger than V_ub
     # Correction factors from hierarchy: C52 (4q), C45 (q/2)
-    return get_correction_factor(52) * phi_hat**3 * (1 - 3*get_correction_factor(52)) * (1 + get_correction_factor(45))
+    return (
+        get_correction_factor(52)
+        * phi_hat**3
+        * (1 - 3 * get_correction_factor(52))
+        * (1 + get_correction_factor(45))
+    )
 
 
 def V_ts() -> float:
@@ -148,7 +167,7 @@ def V_ud() -> float:
         |V_ud|
     """
     v_us = V_us()
-    return math.sqrt(1 - v_us**2 - V_ub()**2)
+    return math.sqrt(1 - v_us**2 - V_ub() ** 2)
 
 
 def jarlskog_invariant() -> float:
@@ -167,7 +186,12 @@ def jarlskog_invariant() -> float:
     phi = PHI.eval()
 
     # Correction factors from hierarchy: C52 (4q), C49 (qφ²), C40 (q/φ³)
-    return (Q_DEFICIT_NUMERIC**2 / E_STAR_NUMERIC) * (1 - get_correction_factor(52)) * (1 - get_correction_factor(49)) * (1 - get_correction_factor(40))
+    return (
+        (Q_DEFICIT_NUMERIC**2 / E_STAR_NUMERIC)
+        * (1 - get_correction_factor(52))
+        * (1 - get_correction_factor(49))
+        * (1 - get_correction_factor(40))
+    )
 
 
 def cabibbo_angle() -> float:
@@ -259,17 +283,17 @@ class CKMMatrix:
     def all_parameters(self) -> dict:
         """Return all CKM parameters."""
         return {
-            'V_ud': self.V_ud(),
-            'V_us': self.V_us(),
-            'V_ub': self.V_ub(),
-            'V_cd': self.V_cd(),
-            'V_cs': self.V_cs(),
-            'V_cb': self.V_cb(),
-            'V_td': self.V_td(),
-            'V_ts': self.V_ts(),
-            'V_tb': self.V_tb(),
-            'J_CP': self.jarlskog_invariant(),
-            'theta_C': self.cabibbo_angle(),
+            "V_ud": self.V_ud(),
+            "V_us": self.V_us(),
+            "V_ub": self.V_ub(),
+            "V_cd": self.V_cd(),
+            "V_cs": self.V_cs(),
+            "V_cb": self.V_cb(),
+            "V_td": self.V_td(),
+            "V_ts": self.V_ts(),
+            "V_tb": self.V_tb(),
+            "J_CP": self.jarlskog_invariant(),
+            "theta_C": self.cabibbo_angle(),
         }
 
     def __repr__(self) -> str:
@@ -277,17 +301,17 @@ class CKMMatrix:
 
 
 __all__ = [
-    'V_ud',
-    'V_us',
-    'V_ub',
-    'V_cd',
-    'V_cs',
-    'V_cb',
-    'V_td',
-    'V_ts',
-    'V_tb',
-    'jarlskog_invariant',
-    'cabibbo_angle',
-    'cabibbo_angle_degrees',
-    'CKMMatrix',
+    "V_ud",
+    "V_us",
+    "V_ub",
+    "V_cd",
+    "V_cs",
+    "V_cb",
+    "V_td",
+    "V_ts",
+    "V_tb",
+    "jarlskog_invariant",
+    "cabibbo_angle",
+    "cabibbo_angle_degrees",
+    "CKMMatrix",
 ]

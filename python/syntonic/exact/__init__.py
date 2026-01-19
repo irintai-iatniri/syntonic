@@ -29,22 +29,21 @@ Usage:
 """
 
 import math
-from syntonic.core import (
-    Rational,
-    GoldenExact,
-    FundamentalConstant,
-    srt_phi,
-    srt_phi_inv,
-    srt_q_deficit,
-    srt_pi,
-    srt_e,
-    srt_structure_dimension,
-    srt_correction_factor,
-)
 
 # Try to import PySymExpr if available
-from syntonic.core import SymExpr
-
+from syntonic.core import (
+    FundamentalConstant,
+    GoldenExact,
+    Rational,
+    SymExpr,
+    srt_correction_factor,
+    srt_e,
+    srt_phi,
+    srt_phi_inv,
+    srt_pi,
+    srt_q_deficit,
+    srt_structure_dimension,
+)
 
 # =============================================================================
 # Exact Golden Constants

@@ -44,31 +44,31 @@ Geometric Constants:
 """
 
 from syntonic.exact import (
+    E_STAR_NUMERIC,
+    # Prime sequences (Five Operators)
+    FERMAT_PRIMES,
+    LUCAS_PRIMES,
+    LUCAS_SEQUENCE,
+    M11_BARRIER,
+    MERSENNE_EXPONENTS,
     # Exact golden ratio constants
     PHI,
-    PHI_SQUARED,
     PHI_INVERSE,
     # Numeric constants
     PHI_NUMERIC,
-    E_STAR_NUMERIC,
-    Q_DEFICIT_NUMERIC,
+    PHI_SQUARED,
     PI_NUMERIC,
-    # Prime sequences (Five Operators)
-    FERMAT_PRIMES,
-    MERSENNE_EXPONENTS,
-    LUCAS_SEQUENCE,
-    LUCAS_PRIMES,
-    M11_BARRIER,
+    Q_DEFICIT_NUMERIC,
     # Structure dimensions
     STRUCTURE_DIMENSIONS,
-    # Functions
-    fibonacci,
-    lucas,
-    correction_factor,
-    golden_number,
     # Types
     GoldenExact,
     Rational,
+    correction_factor,
+    # Functions
+    fibonacci,
+    golden_number,
+    lucas,
 )
 
 # =============================================================================
@@ -89,26 +89,26 @@ MODULAR_VOLUME: float = PI_NUMERIC / 3  # Vol(F) = π/3
 
 # Import hierarchy constants from Rust backend
 from syntonic._core import (
-    hierarchy_e8_roots,
-    hierarchy_e8_positive_roots,
-    hierarchy_e8_rank,
-    hierarchy_e8_coxeter,
-    hierarchy_e7_roots,
-    hierarchy_e7_positive_roots,
-    hierarchy_e7_fundamental,
-    hierarchy_e7_rank,
+    get_fibonacci_primes,
+    hierarchy_d4_coxeter,
+    hierarchy_d4_rank,
+    hierarchy_e6_coxeter,
+    hierarchy_e6_fundamental,
+    hierarchy_e6_positive_roots,
+    hierarchy_e6_rank,
+    hierarchy_e6_roots,
     hierarchy_e7_coxeter,
     hierarchy_e7_dim,
-    hierarchy_e6_roots,
-    hierarchy_e6_positive_roots,
-    hierarchy_e6_fundamental,
-    hierarchy_e6_rank,
-    hierarchy_e6_coxeter,
-    hierarchy_d4_rank,
-    hierarchy_d4_coxeter,
-    hierarchy_g2_rank,
+    hierarchy_e7_fundamental,
+    hierarchy_e7_positive_roots,
+    hierarchy_e7_rank,
+    hierarchy_e7_roots,
+    hierarchy_e8_coxeter,
+    hierarchy_e8_positive_roots,
+    hierarchy_e8_rank,
+    hierarchy_e8_roots,
     hierarchy_f4_rank,
-    get_fibonacci_primes,
+    hierarchy_g2_rank,
 )
 
 # T^4 Torus dimensions

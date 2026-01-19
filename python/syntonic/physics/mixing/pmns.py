@@ -18,7 +18,13 @@ is a key prediction of SRT.
 """
 
 import math
-from syntonic.exact import PHI, PHI_INVERSE, Q_DEFICIT_NUMERIC, get_correction_factor, get_suppression_factor
+
+from syntonic.exact import (
+    PHI,
+    PHI_INVERSE,
+    get_correction_factor,
+    get_suppression_factor,
+)
 
 
 def theta_12() -> float:
@@ -77,7 +83,11 @@ def theta_23() -> float:
     epsilon = 0.07  # Small deviation from maximal
 
     # Correction factors from hierarchy: C35 (q/8), C18 (q/36), C9 (q/120)
-    correction = (1 + get_correction_factor(35)) * (1 + get_correction_factor(18)) * (1 - get_correction_factor(9))
+    correction = (
+        (1 + get_correction_factor(35))
+        * (1 + get_correction_factor(18))
+        * (1 - get_correction_factor(9))
+    )
 
     return math.degrees((base_rad + epsilon) * correction)
 
@@ -115,7 +125,7 @@ def theta_13() -> float:
     phi = PHI.eval()
 
     # Base formula: sin θ₁₃⁰ = φ̂^(3/2) × (1 - qφ)^(1/2) × e^(qφ/2) / π
-    phi_hat_3_2 = phi_hat ** 1.5  # 0.486
+    phi_hat_3_2 = phi_hat**1.5  # 0.486
     sqrt_factor = math.sqrt(1 - get_correction_factor(48))  # C48 (qφ)
     exp_factor = math.exp(get_correction_factor(48) / 2)  # 1.0225
 
@@ -123,7 +133,7 @@ def theta_13() -> float:
     theta_0 = math.degrees(math.asin(sin_theta_0))  # 8.9°
 
     # Double recursion penalty (Δk=2): recursion_penalty suppression
-    theta_1 = theta_0 * get_suppression_factor('recursion_penalty')  # 8.52°
+    theta_1 = theta_0 * get_suppression_factor("recursion_penalty")  # 8.52°
 
     # Cartan correction (rank E₈ = 8): C35 (q/8)
     theta_2 = theta_1 * (1 + get_correction_factor(35))  # 8.55°
@@ -148,7 +158,12 @@ def delta_CP() -> float:
         δ_CP in radians
     """
     # Correction factors from hierarchy: C52 (4q), C46 (q/φ), C41 (q/4)
-    return 1.2 * (1 + get_correction_factor(52)) * (1 + get_correction_factor(46)) * (1 + get_correction_factor(41))
+    return (
+        1.2
+        * (1 + get_correction_factor(52))
+        * (1 + get_correction_factor(46))
+        * (1 + get_correction_factor(41))
+    )
 
 
 def delta_CP_degrees() -> float:
@@ -169,7 +184,7 @@ def sin2_theta_12() -> float:
         sin²(θ₁₂) ≈ 0.304
     """
     theta = math.radians(theta_12())
-    return math.sin(theta)**2
+    return math.sin(theta) ** 2
 
 
 def sin2_theta_23() -> float:
@@ -180,7 +195,7 @@ def sin2_theta_23() -> float:
         sin²(θ₂₃) ≈ 0.573
     """
     theta = math.radians(theta_23())
-    return math.sin(theta)**2
+    return math.sin(theta) ** 2
 
 
 def sin2_theta_13() -> float:
@@ -191,7 +206,7 @@ def sin2_theta_13() -> float:
         sin²(θ₁₃) ≈ 0.022
     """
     theta = math.radians(theta_13())
-    return math.sin(theta)**2
+    return math.sin(theta) ** 2
 
 
 class PMNSMatrix:
@@ -243,14 +258,14 @@ class PMNSMatrix:
     def all_parameters(self) -> dict:
         """Return all PMNS parameters."""
         return {
-            'theta_12': self.theta_12(),
-            'theta_23': self.theta_23(),
-            'theta_13': self.theta_13(),
-            'delta_CP': self.delta_CP(),
-            'delta_CP_deg': self.delta_CP_degrees(),
-            'sin2_theta_12': self.sin2_theta_12(),
-            'sin2_theta_23': self.sin2_theta_23(),
-            'sin2_theta_13': self.sin2_theta_13(),
+            "theta_12": self.theta_12(),
+            "theta_23": self.theta_23(),
+            "theta_13": self.theta_13(),
+            "delta_CP": self.delta_CP(),
+            "delta_CP_deg": self.delta_CP_degrees(),
+            "sin2_theta_12": self.sin2_theta_12(),
+            "sin2_theta_23": self.sin2_theta_23(),
+            "sin2_theta_13": self.sin2_theta_13(),
         }
 
     def __repr__(self) -> str:
@@ -258,13 +273,13 @@ class PMNSMatrix:
 
 
 __all__ = [
-    'theta_12',
-    'theta_23',
-    'theta_13',
-    'delta_CP',
-    'delta_CP_degrees',
-    'sin2_theta_12',
-    'sin2_theta_23',
-    'sin2_theta_13',
-    'PMNSMatrix',
+    "theta_12",
+    "theta_23",
+    "theta_13",
+    "delta_CP",
+    "delta_CP_degrees",
+    "sin2_theta_12",
+    "sin2_theta_23",
+    "sin2_theta_13",
+    "PMNSMatrix",
 ]

@@ -12,8 +12,9 @@ Where:
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Optional
+
 import math
+from typing import TYPE_CHECKING, List, Optional
 
 from syntonic.crt.operators.base import OperatorBase
 from syntonic.crt.operators.projectors import (
@@ -76,14 +77,14 @@ class DifferentiationOperator(OperatorBase):
 
         # Projectors will be initialized on first use if not provided
         self._projectors = projectors
-        self._laplacian = laplacian or LaplacianOperator(boundary='periodic')
+        self._laplacian = laplacian or LaplacianOperator(boundary="periodic")
 
         # Mode weights (golden ratio decay by default)
         if weights is not None:
             self._weights = weights
         else:
             # wᵢ = φ^(-i) gives golden decay
-            self._weights = [PHI_INV ** i for i in range(num_modes)]
+            self._weights = [PHI_INV**i for i in range(num_modes)]
 
     @property
     def projectors(self) -> List[FourierProjector]:
@@ -112,10 +113,10 @@ class DifferentiationOperator(OperatorBase):
 
     def apply(
         self,
-        state: 'State',
+        state: "State",
         syntony: Optional[float] = None,
         **kwargs,
-    ) -> 'State':
+    ) -> "State":
         """
         Apply differentiation operator D̂.
 
@@ -158,7 +159,7 @@ class DifferentiationOperator(OperatorBase):
 
         return result
 
-    def differentiation_magnitude(self, state: 'State') -> float:
+    def differentiation_magnitude(self, state: "State") -> float:
         """
         Compute magnitude of differentiation Δ_D = ||D̂[Ψ] - Ψ||.
 

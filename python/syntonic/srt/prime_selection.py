@@ -5,7 +5,7 @@ Exposes Fermat, Mersenne, and Lucas prime selection rules
 from the Rust backend for SRT physics.
 """
 
-from typing import List, Tuple
+
 # Temporarily disable imports from _core until all functions are properly exported
 # from syntonic._core import (
 #     # Constants - only export what's actually available

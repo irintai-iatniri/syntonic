@@ -19,15 +19,20 @@ Example:
 """
 
 from __future__ import annotations
-from typing import Iterator, List, Dict
+
+from typing import Dict, List
 
 # Re-export Rust WindingState and enumeration functions
 from syntonic.core import (
     WindingState,
-    enumerate_windings as _enumerate_windings,
-    enumerate_windings_by_norm as _enumerate_windings_by_norm,
-    enumerate_windings_exact_norm,
     count_windings,
+    enumerate_windings_exact_norm,
+)
+from syntonic.core import (
+    enumerate_windings as _enumerate_windings,
+)
+from syntonic.core import (
+    enumerate_windings_by_norm as _enumerate_windings_by_norm,
 )
 
 # Re-export WindingState class for type annotations
@@ -41,9 +46,7 @@ __all__ = [
 ]
 
 
-def winding_state(
-    n7: int, n8: int = 0, n9: int = 0, n10: int = 0
-) -> WindingState:
+def winding_state(n7: int, n8: int = 0, n9: int = 0, n10: int = 0) -> WindingState:
     """
     Create a winding state |n_7, n_8, n_9, n_10>.
 

@@ -10,8 +10,9 @@ Source: CRT.md §7.1
 """
 
 from __future__ import annotations
+
 import math
-from typing import Optional, List, Dict
+from typing import Dict, List
 
 from syntonic._core import ResonantTensor
 from syntonic.nn.layers.resonant_parameter import ResonantParameter
@@ -47,7 +48,7 @@ class SyntonicNorm:
         eps: float = 1e-5,
         elementwise_affine: bool = True,
         golden_target: bool = True,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize syntonic normalization.
@@ -68,7 +69,9 @@ class SyntonicNorm:
         if elementwise_affine:
             # Initialize gamma (weight) to 1.0
             gamma_data = [1.0] * normalized_shape
-            self.weight = ResonantParameter(gamma_data, [normalized_shape], device=device)
+            self.weight = ResonantParameter(
+                gamma_data, [normalized_shape], device=device
+            )
 
             # Initialize beta (bias) to 0.0
             beta_data = [0.0] * normalized_shape
@@ -93,12 +96,14 @@ class SyntonicNorm:
         if self.elementwise_affine:
             gamma = self.weight.tensor
             beta = self.bias.tensor
-            return x.layer_norm(gamma=gamma, beta=beta, eps=self.eps, golden_target=self.golden_target)
+            return x.layer_norm(
+                gamma=gamma, beta=beta, eps=self.eps, golden_target=self.golden_target
+            )
         else:
             return x.layer_norm(eps=self.eps, golden_target=self.golden_target)
 
     def __repr__(self) -> str:
-        return f'SyntonicNorm({self.normalized_shape}, eps={self.eps}, golden_target={self.golden_target})'
+        return f"SyntonicNorm({self.normalized_shape}, eps={self.eps}, golden_target={self.golden_target})"
 
 
 class GoldenNorm:
@@ -128,7 +133,7 @@ class GoldenNorm:
         eps: float = 1e-5,
         affine: bool = True,
         track_running_stats: bool = True,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize golden normalization.
@@ -208,8 +213,12 @@ class GoldenNorm:
             if self.track_running_stats:
                 # Update running statistics
                 for j in range(self.num_features):
-                    self.running_mean[j] = (1 - self.momentum) * self.running_mean[j] + self.momentum * mean[j]
-                    self.running_var[j] = (1 - self.momentum) * self.running_var[j] + self.momentum * var[j]
+                    self.running_mean[j] = (1 - self.momentum) * self.running_mean[
+                        j
+                    ] + self.momentum * mean[j]
+                    self.running_var[j] = (1 - self.momentum) * self.running_var[
+                        j
+                    ] + self.momentum * var[j]
                 self.num_batches_tracked += 1
         else:
             # Use running statistics
@@ -263,7 +272,7 @@ class GoldenNorm:
         self.training = False
 
     def __repr__(self) -> str:
-        return f'GoldenNorm({self.num_features}, target_var=1/φ≈{self.target_var:.4f}, momentum={self.momentum})'
+        return f"GoldenNorm({self.num_features}, target_var=1/φ≈{self.target_var:.4f}, momentum={self.momentum})"
 
 
 class RecursionLayerNorm:
@@ -286,7 +295,7 @@ class RecursionLayerNorm:
         num_features: int,
         n_recursions: int = 4,
         eps: float = 1e-5,
-        device: str = 'cpu',
+        device: str = "cpu",
     ):
         """
         Initialize recursion-aware layer norm.
@@ -309,7 +318,9 @@ class RecursionLayerNorm:
         for i in range(n_recursions):
             # Initialize weights to 1.0
             weight_data = [1.0] * num_features
-            self.weights[i] = ResonantParameter(weight_data, [num_features], device=device)
+            self.weights[i] = ResonantParameter(
+                weight_data, [num_features], device=device
+            )
 
             # Initialize biases to 0.0
             bias_data = [0.0] * num_features
@@ -356,7 +367,9 @@ class RecursionLayerNorm:
         return x_norm
 
     def __repr__(self) -> str:
-        return f'RecursionLayerNorm({self.num_features}, n_recursions={self.n_recursions})'
+        return (
+            f"RecursionLayerNorm({self.num_features}, n_recursions={self.n_recursions})"
+        )
 
 
 if __name__ == "__main__":

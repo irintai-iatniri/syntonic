@@ -24,6 +24,7 @@ from typing import List, Optional
 
 # Import syntonic components only
 from syntonic._core import ResonantTensor
+
 from .datasets import make_xor, train_test_split
 from .fitness import ClassificationFitness, FitnessGuidedEvolver
 

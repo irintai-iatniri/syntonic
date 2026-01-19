@@ -9,8 +9,9 @@ optimal 4-winding packing in 3D.
 """
 
 from __future__ import annotations
-from typing import Dict, Any, Tuple, List
+
 import math
+from typing import Any, Dict
 
 
 class MolecularGeometry:
@@ -34,12 +35,12 @@ class MolecularGeometry:
 
     # Standard bond angles
     ANGLES = {
-        'linear': 180.0,
-        'trigonal_planar': 120.0,
-        'tetrahedral': 109.47,
-        'trigonal_bipyramidal_eq': 120.0,
-        'trigonal_bipyramidal_ax': 90.0,
-        'octahedral': 90.0,
+        "linear": 180.0,
+        "trigonal_planar": 120.0,
+        "tetrahedral": 109.47,
+        "trigonal_bipyramidal_eq": 120.0,
+        "trigonal_bipyramidal_ax": 90.0,
+        "octahedral": 90.0,
     }
 
     def tetrahedral_angle(self) -> float:
@@ -54,7 +55,7 @@ class MolecularGeometry:
         Returns:
             Tetrahedral angle in degrees
         """
-        return math.degrees(math.acos(-1/3))
+        return math.degrees(math.acos(-1 / 3))
 
     def optimal_geometry(self, n_bonds: int, n_lone_pairs: int = 0) -> Dict[str, Any]:
         """
@@ -82,19 +83,19 @@ class MolecularGeometry:
 
         # Base geometries by total electron domains
         base_geometries = {
-            2: ('linear', 180.0),
-            3: ('trigonal_planar', 120.0),
-            4: ('tetrahedral', self.tetrahedral_angle()),
-            5: ('trigonal_bipyramidal', (120.0, 90.0)),
-            6: ('octahedral', 90.0),
+            2: ("linear", 180.0),
+            3: ("trigonal_planar", 120.0),
+            4: ("tetrahedral", self.tetrahedral_angle()),
+            5: ("trigonal_bipyramidal", (120.0, 90.0)),
+            6: ("octahedral", 90.0),
         }
 
         if total_domains not in base_geometries:
             return {
-                'geometry': 'unknown',
-                'angle': 0.0,
-                'n_bonds': n_bonds,
-                'n_lone_pairs': n_lone_pairs,
+                "geometry": "unknown",
+                "angle": 0.0,
+                "n_bonds": n_bonds,
+                "n_lone_pairs": n_lone_pairs,
             }
 
         name, angle = base_geometries[total_domains]
@@ -105,12 +106,12 @@ class MolecularGeometry:
         )
 
         return {
-            'electron_geometry': name,
-            'molecular_geometry': molecular_geometry,
-            'ideal_angle': angle,
-            'n_bonds': n_bonds,
-            'n_lone_pairs': n_lone_pairs,
-            'total_domains': total_domains,
+            "electron_geometry": name,
+            "molecular_geometry": molecular_geometry,
+            "ideal_angle": angle,
+            "n_bonds": n_bonds,
+            "n_lone_pairs": n_lone_pairs,
+            "total_domains": total_domains,
         }
 
     def _adjust_for_lone_pairs(
@@ -126,13 +127,13 @@ class MolecularGeometry:
 
         # Common modifications
         adjustments = {
-            (4, 1): 'trigonal_pyramidal',  # NH3
-            (4, 2): 'bent',  # H2O
-            (5, 1): 'seesaw',
-            (5, 2): 'T-shaped',
-            (5, 3): 'linear',
-            (6, 1): 'square_pyramidal',
-            (6, 2): 'square_planar',
+            (4, 1): "trigonal_pyramidal",  # NH3
+            (4, 2): "bent",  # H2O
+            (5, 1): "seesaw",
+            (5, 2): "T-shaped",
+            (5, 3): "linear",
+            (6, 1): "square_pyramidal",
+            (6, 2): "square_planar",
         }
 
         return adjustments.get((total_domains, n_lone_pairs), base_geometry)
@@ -162,14 +163,14 @@ class MolecularGeometry:
             Geometry details for water
         """
         return {
-            'molecule': 'H2O',
-            'electron_geometry': 'tetrahedral',
-            'molecular_geometry': 'bent',
-            'ideal_angle': self.tetrahedral_angle(),
-            'actual_angle': 104.5,  # experimental
-            'compression': 'Two lone pairs compress H-O-H angle',
-            'n_bonds': 2,
-            'n_lone_pairs': 2,
+            "molecule": "H2O",
+            "electron_geometry": "tetrahedral",
+            "molecular_geometry": "bent",
+            "ideal_angle": self.tetrahedral_angle(),
+            "actual_angle": 104.5,  # experimental
+            "compression": "Two lone pairs compress H-O-H angle",
+            "n_bonds": 2,
+            "n_lone_pairs": 2,
         }
 
     def ammonia_geometry(self) -> Dict[str, Any]:
@@ -180,14 +181,14 @@ class MolecularGeometry:
             Geometry details for ammonia
         """
         return {
-            'molecule': 'NH3',
-            'electron_geometry': 'tetrahedral',
-            'molecular_geometry': 'trigonal_pyramidal',
-            'ideal_angle': self.tetrahedral_angle(),
-            'actual_angle': 107.0,  # experimental
-            'compression': 'One lone pair compresses H-N-H angles',
-            'n_bonds': 3,
-            'n_lone_pairs': 1,
+            "molecule": "NH3",
+            "electron_geometry": "tetrahedral",
+            "molecular_geometry": "trigonal_pyramidal",
+            "ideal_angle": self.tetrahedral_angle(),
+            "actual_angle": 107.0,  # experimental
+            "compression": "One lone pair compresses H-N-H angles",
+            "n_bonds": 3,
+            "n_lone_pairs": 1,
         }
 
     def methane_geometry(self) -> Dict[str, Any]:
@@ -198,14 +199,14 @@ class MolecularGeometry:
             Geometry details for methane
         """
         return {
-            'molecule': 'CH4',
-            'electron_geometry': 'tetrahedral',
-            'molecular_geometry': 'tetrahedral',
-            'ideal_angle': self.tetrahedral_angle(),
-            'actual_angle': self.tetrahedral_angle(),  # exact
-            'compression': 'None - all equivalent bonds',
-            'n_bonds': 4,
-            'n_lone_pairs': 0,
+            "molecule": "CH4",
+            "electron_geometry": "tetrahedral",
+            "molecular_geometry": "tetrahedral",
+            "ideal_angle": self.tetrahedral_angle(),
+            "actual_angle": self.tetrahedral_angle(),  # exact
+            "compression": "None - all equivalent bonds",
+            "n_bonds": 4,
+            "n_lone_pairs": 0,
         }
 
     def hybridization(self, n_bonds: int, n_lone_pairs: int = 0) -> str:
@@ -229,13 +230,13 @@ class MolecularGeometry:
         """
         total = n_bonds + n_lone_pairs
         hybridizations = {
-            2: 'sp',
-            3: 'sp²',
-            4: 'sp³',
-            5: 'sp³d',
-            6: 'sp³d²',
+            2: "sp",
+            3: "sp²",
+            4: "sp³",
+            5: "sp³d",
+            6: "sp³d²",
         }
-        return hybridizations.get(total, f'unknown (domains={total})')
+        return hybridizations.get(total, f"unknown (domains={total})")
 
     def syntony_optimization_principle(self) -> str:
         """

@@ -5,10 +5,11 @@ Implements the Prime Syntony Gate as described in The_Grand_Synthesis.md.
 This layer applies resonance boosts at Fibonacci prime dimensions.
 """
 
-import torch
-import torch.nn as nn
 import math
 from typing import Optional
+
+import torch
+import torch.nn as nn
 
 # SRT Constants
 PHI = (1 + math.sqrt(5)) / 2  # Golden ratio
@@ -28,7 +29,9 @@ class PrimeSyntonyGate(nn.Module):
         anomaly_penalty (float): Penalty for the "material anomaly" at dim=4 (default: 0.9)
     """
 
-    def __init__(self, dim: int, boost_scale: float = 1.0, anomaly_penalty: float = 0.9):
+    def __init__(
+        self, dim: int, boost_scale: float = 1.0, anomaly_penalty: float = 0.9
+    ):
         super().__init__()
         self.dim = dim
         self.boost_scale = boost_scale
@@ -45,15 +48,17 @@ class PrimeSyntonyGate(nn.Module):
             if dim == 4:
                 # The "Material Anomaly" - composite structure creates prime reality
                 # but with imperfect resonance
-                self.boost_factor = (PHI ** dim) * anomaly_penalty * boost_scale
+                self.boost_factor = (PHI**dim) * anomaly_penalty * boost_scale
             else:
                 # Pure Fibonacci prime resonance
-                self.boost_factor = (PHI ** dim) * boost_scale
+                self.boost_factor = (PHI**dim) * boost_scale
         else:
             self.boost_factor = 1.0
 
         # Register as buffer for device compatibility
-        self.register_buffer('boost', torch.tensor(self.boost_factor, dtype=torch.float32))
+        self.register_buffer(
+            "boost", torch.tensor(self.boost_factor, dtype=torch.float32)
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -75,7 +80,7 @@ class PrimeSyntonyGate(nn.Module):
             return x
 
     def extra_repr(self) -> str:
-        return f'dim={self.dim}, resonant={self.is_resonant}, boost={self.boost_factor:.3f}'
+        return f"dim={self.dim}, resonant={self.is_resonant}, boost={self.boost_factor:.3f}"
 
 
 class WindingAttention(nn.Module):
@@ -97,6 +102,7 @@ class WindingAttention(nn.Module):
         # Validate dimension stability
         if not self._is_mersenne_dimension(embed_dim):
             import warnings
+
             warnings.warn(
                 f"embed_dim={embed_dim} is not a Mersenne prime. "
                 "Consider using: 3, 7, 31, 127 for stability."
@@ -130,7 +136,7 @@ class WindingAttention(nn.Module):
         query: torch.Tensor,
         key: torch.Tensor,
         value: torch.Tensor,
-        attn_mask: Optional[torch.Tensor] = None
+        attn_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """
         Multi-head attention with winding stabilization.
@@ -147,9 +153,21 @@ class WindingAttention(nn.Module):
         batch_size, seq_len, _ = query.size()
 
         # Linear projections and reshape
-        q = self.q_proj(query).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-        k = self.k_proj(key).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-        v = self.v_proj(value).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        q = (
+            self.q_proj(query)
+            .view(batch_size, seq_len, self.num_heads, self.head_dim)
+            .transpose(1, 2)
+        )
+        k = (
+            self.k_proj(key)
+            .view(batch_size, seq_len, self.num_heads, self.head_dim)
+            .transpose(1, 2)
+        )
+        v = (
+            self.v_proj(value)
+            .view(batch_size, seq_len, self.num_heads, self.head_dim)
+            .transpose(1, 2)
+        )
 
         # Attention computation
         scale = math.sqrt(self.head_dim)
@@ -165,7 +183,11 @@ class WindingAttention(nn.Module):
         attn_output = torch.matmul(attn_weights, v)
 
         # Reshape and project out
-        attn_output = attn_output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.embed_dim)
+        attn_output = (
+            attn_output.transpose(1, 2)
+            .contiguous()
+            .view(batch_size, seq_len, self.embed_dim)
+        )
         output = self.out_proj(attn_output)
 
         # Apply Prime Syntony Gate
@@ -188,7 +210,13 @@ class SRTTransformerBlock(nn.Module):
         dropout (float): Dropout probability
     """
 
-    def __init__(self, embed_dim: int, num_heads: int, ff_dim: Optional[int] = None, dropout: float = 0.1):
+    def __init__(
+        self,
+        embed_dim: int,
+        num_heads: int,
+        ff_dim: Optional[int] = None,
+        dropout: float = 0.1,
+    ):
         super().__init__()
 
         if ff_dim is None:
@@ -211,7 +239,9 @@ class SRTTransformerBlock(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x: torch.Tensor, attn_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, attn_mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
         # Multi-head attention
         attn_output = self.attention(x, x, x, attn_mask)
         x = self.norm1(x + self.dropout(attn_output))
@@ -224,6 +254,7 @@ class SRTTransformerBlock(nn.Module):
 
 
 # Utility functions for dimension validation
+
 
 def get_stable_dimensions(max_dim: int = 128) -> list[int]:
     """
@@ -241,7 +272,9 @@ def get_stable_dimensions(max_dim: int = 128) -> list[int]:
     return mersenne_primes
 
 
-def suggest_network_dimensions(input_dim: int, output_dim: int, num_layers: int) -> list[int]:
+def suggest_network_dimensions(
+    input_dim: int, output_dim: int, num_layers: int
+) -> list[int]:
     """
     Suggest stable dimensions for a neural network architecture.
 
@@ -260,7 +293,9 @@ def suggest_network_dimensions(input_dim: int, output_dim: int, num_layers: int)
 
     for i in range(1, num_layers):
         # Interpolate between stable dimensions
-        target_dim = stable_dims[min(i * len(stable_dims) // num_layers, len(stable_dims) - 1)]
+        target_dim = stable_dims[
+            min(i * len(stable_dims) // num_layers, len(stable_dims) - 1)
+        ]
         dimensions.append(target_dim)
 
     dimensions.append(output_dim)

@@ -6,53 +6,50 @@ PURE IMPLEMENTATION: Uses ResonantTensor, no PyTorch dependencies.
 L_total = L_task + λ(1 - S_model) + μC_{iπ}
 """
 
-from syntonic.nn.loss.syntony_metrics import (
-    compute_activation_syntony,
-    aggregate_syntonies,
-    SyntonyTracker,
-)
-from syntonic.nn.loss.syntonic_loss import (
-    SyntonicLoss,
-    LayerwiseSyntonicLoss,
-    mse_loss,
-    cross_entropy_loss,
-)
 from syntonic.nn.loss.phase_alignment import (
+    GoldenPhaseScheduler,
+    IPiConstraint,
     PhaseAlignmentLoss,
     compute_phase_alignment,
-    IPiConstraint,
-    GoldenPhaseScheduler,
 )
 from syntonic.nn.loss.regularization import (
+    ArchonicPenalty,
     SyntonicRegularizer,
     SyntonyConstraint,
-    ArchonicPenalty,
-    compute_weight_decay,
     compute_sparsity_penalty,
+    compute_weight_decay,
+)
+from syntonic.nn.loss.syntonic_loss import (
+    LayerwiseSyntonicLoss,
+    SyntonicLoss,
+    cross_entropy_loss,
+    mse_loss,
+)
+from syntonic.nn.loss.syntony_metrics import (
+    SyntonyTracker,
+    aggregate_syntonies,
+    compute_activation_syntony,
 )
 
 __all__ = [
     # Syntony metrics
-    'compute_activation_syntony',
-    'aggregate_syntonies',
-    'SyntonyTracker',
-    
+    "compute_activation_syntony",
+    "aggregate_syntonies",
+    "SyntonyTracker",
     # Loss functions
-    'SyntonicLoss',
-    'LayerwiseSyntonicLoss',
-    'mse_loss',
-    'cross_entropy_loss',
-    
+    "SyntonicLoss",
+    "LayerwiseSyntonicLoss",
+    "mse_loss",
+    "cross_entropy_loss",
     # Phase alignment
-    'PhaseAlignmentLoss',
-    'compute_phase_alignment',
-    'IPiConstraint',
-    'GoldenPhaseScheduler',
-    
+    "PhaseAlignmentLoss",
+    "compute_phase_alignment",
+    "IPiConstraint",
+    "GoldenPhaseScheduler",
     # Regularization
-    'SyntonicRegularizer',
-    'SyntonyConstraint',
-    'ArchonicPenalty',
-    'compute_weight_decay',
-    'compute_sparsity_penalty',
+    "SyntonicRegularizer",
+    "SyntonyConstraint",
+    "ArchonicPenalty",
+    "compute_weight_decay",
+    "compute_sparsity_penalty",
 ]

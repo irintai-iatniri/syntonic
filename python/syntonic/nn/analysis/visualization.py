@@ -13,12 +13,12 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
-from typing import List, Dict, Optional, Any, TYPE_CHECKING
+
 import math
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
-    import matplotlib.pyplot as plt
-    import matplotlib.figure
+    pass
 
 PHI = (1 + math.sqrt(5)) / 2
 Q_DEFICIT = 0.027395146920
@@ -29,6 +29,7 @@ def _check_matplotlib():
     """Check if matplotlib is available."""
     try:
         import matplotlib.pyplot as plt
+
         return True
     except ImportError:
         return False
@@ -63,23 +64,29 @@ def plot_syntony_history(
     fig, ax = plt.subplots(figsize=figsize)
 
     # Plot syntony
-    ax.plot(history, 'b-', label='Syntony', alpha=0.7)
+    ax.plot(history, "b-", label="Syntony", alpha=0.7)
 
     # Target line
-    ax.axhline(y=target, color='g', linestyle='--', label=f'Target (φ-q ≈ {target:.3f})')
+    ax.axhline(
+        y=target, color="g", linestyle="--", label=f"Target (φ-q ≈ {target:.3f})"
+    )
 
     # Warning zone
-    ax.axhline(y=target - 0.1, color='orange', linestyle=':', alpha=0.5, label='Warning zone')
+    ax.axhline(
+        y=target - 0.1, color="orange", linestyle=":", alpha=0.5, label="Warning zone"
+    )
 
     # Moving average
     if len(history) > 10:
         window = min(50, len(history) // 5)
-        ma = [sum(history[max(0, i-window):i+1]) / min(i+1, window+1)
-              for i in range(len(history))]
-        ax.plot(ma, 'r-', label=f'MA({window})', alpha=0.7)
+        ma = [
+            sum(history[max(0, i - window) : i + 1]) / min(i + 1, window + 1)
+            for i in range(len(history))
+        ]
+        ax.plot(ma, "r-", label=f"MA({window})", alpha=0.7)
 
-    ax.set_xlabel('Step')
-    ax.set_ylabel('Syntony')
+    ax.set_xlabel("Step")
+    ax.set_ylabel("Syntony")
     ax.set_title(title)
     ax.legend()
     ax.grid(True, alpha=0.3)
@@ -87,7 +94,7 @@ def plot_syntony_history(
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
 
     return fig
 
@@ -126,30 +133,32 @@ def plot_layer_syntonies(
     x = range(n_layers)
 
     # Color by syntony level
-    colors = ['green' if s >= target - 0.1 else 'orange' if s >= target - 0.2 else 'red'
-              for s in layer_syntonies]
+    colors = [
+        "green" if s >= target - 0.1 else "orange" if s >= target - 0.2 else "red"
+        for s in layer_syntonies
+    ]
 
     bars = ax.bar(x, layer_syntonies, color=colors, alpha=0.7)
 
     # Target line
-    ax.axhline(y=target, color='g', linestyle='--', label=f'Target')
+    ax.axhline(y=target, color="g", linestyle="--", label="Target")
 
     # Labels
     if layer_names:
         ax.set_xticks(x)
-        ax.set_xticklabels(layer_names, rotation=45, ha='right')
+        ax.set_xticklabels(layer_names, rotation=45, ha="right")
     else:
-        ax.set_xlabel('Layer')
+        ax.set_xlabel("Layer")
 
-    ax.set_ylabel('Syntony')
+    ax.set_ylabel("Syntony")
     ax.set_title(title)
     ax.legend()
-    ax.grid(True, alpha=0.3, axis='y')
+    ax.grid(True, alpha=0.3, axis="y")
 
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
 
     return fig
 
@@ -183,13 +192,14 @@ def plot_archonic_regions(
         return None
 
     import matplotlib.pyplot as plt
+
     from syntonic.nn.analysis.archonic_detector import detect_archonic_pattern
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=figsize, sharex=True)
 
     # Plot syntony
-    ax1.plot(history, 'b-', alpha=0.7, label='Syntony')
-    ax1.axhline(y=target, color='g', linestyle='--', alpha=0.5, label='Target')
+    ax1.plot(history, "b-", alpha=0.7, label="Syntony")
+    ax1.axhline(y=target, color="g", linestyle="--", alpha=0.5, label="Target")
 
     # Detect archonic regions if mask not provided
     if archonic_mask is None:
@@ -198,7 +208,7 @@ def plot_archonic_regions(
             if i < 50:
                 archonic_mask.append(False)
             else:
-                report = detect_archonic_pattern(history[:i+1], window_size=50)
+                report = detect_archonic_pattern(history[: i + 1], window_size=50)
                 archonic_mask.append(report.is_archonic)
 
     # Highlight archonic regions
@@ -218,9 +228,15 @@ def plot_archonic_regions(
         archonic_regions.append((start, len(history)))
 
     for start, end in archonic_regions:
-        ax1.axvspan(start, end, alpha=0.3, color='red', label='Archonic' if start == archonic_regions[0][0] else '')
+        ax1.axvspan(
+            start,
+            end,
+            alpha=0.3,
+            color="red",
+            label="Archonic" if start == archonic_regions[0][0] else "",
+        )
 
-    ax1.set_ylabel('Syntony')
+    ax1.set_ylabel("Syntony")
     ax1.legend()
     ax1.grid(True, alpha=0.3)
     ax1.set_title(title)
@@ -232,23 +248,25 @@ def plot_archonic_regions(
         if i < window:
             variances.append(0)
         else:
-            w = history[i-window:i]
+            w = history[i - window : i]
             mean = sum(w) / len(w)
             var = sum((x - mean) ** 2 for x in w) / len(w)
             variances.append(var)
 
-    ax2.plot(variances, 'orange', alpha=0.7, label='Variance')
-    ax2.axhline(y=variance_threshold, color='r', linestyle='--', alpha=0.5, label='Threshold')
+    ax2.plot(variances, "orange", alpha=0.7, label="Variance")
+    ax2.axhline(
+        y=variance_threshold, color="r", linestyle="--", alpha=0.5, label="Threshold"
+    )
 
-    ax2.set_xlabel('Step')
-    ax2.set_ylabel('Variance')
+    ax2.set_xlabel("Step")
+    ax2.set_ylabel("Variance")
     ax2.legend()
     ax2.grid(True, alpha=0.3)
 
     plt.tight_layout()
 
     if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
 
     return fig
 
@@ -266,9 +284,9 @@ class SyntonyViz:
     def __init__(self):
         """Initialize visualization suite."""
         self._history: Dict[str, List[float]] = {
-            'syntony': [],
-            'loss': [],
-            'lr': [],
+            "syntony": [],
+            "loss": [],
+            "lr": [],
         }
         self._layer_syntonies: List[List[float]] = []
         self._epochs: List[int] = []
@@ -294,11 +312,11 @@ class SyntonyViz:
         self._epochs.append(epoch)
 
         if syntony is not None:
-            self._history['syntony'].append(syntony)
+            self._history["syntony"].append(syntony)
         if loss is not None:
-            self._history['loss'].append(loss)
+            self._history["loss"].append(loss)
         if lr is not None:
-            self._history['lr'].append(lr)
+            self._history["lr"].append(lr)
         if layer_syntonies is not None:
             self._layer_syntonies.append(layer_syntonies)
 
@@ -326,53 +344,71 @@ class SyntonyViz:
         fig, axes = plt.subplots(2, 2, figsize=figsize)
 
         # Syntony history
-        if self._history['syntony']:
+        if self._history["syntony"]:
             ax = axes[0, 0]
-            ax.plot(self._epochs[:len(self._history['syntony'])],
-                   self._history['syntony'], 'b-', alpha=0.7)
-            ax.axhline(y=S_TARGET, color='g', linestyle='--', alpha=0.5)
-            ax.set_xlabel('Epoch')
-            ax.set_ylabel('Syntony')
-            ax.set_title('Syntony Over Training')
+            ax.plot(
+                self._epochs[: len(self._history["syntony"])],
+                self._history["syntony"],
+                "b-",
+                alpha=0.7,
+            )
+            ax.axhline(y=S_TARGET, color="g", linestyle="--", alpha=0.5)
+            ax.set_xlabel("Epoch")
+            ax.set_ylabel("Syntony")
+            ax.set_title("Syntony Over Training")
             ax.grid(True, alpha=0.3)
 
         # Loss history
-        if self._history['loss']:
+        if self._history["loss"]:
             ax = axes[0, 1]
-            ax.semilogy(self._epochs[:len(self._history['loss'])],
-                       self._history['loss'], 'r-', alpha=0.7)
-            ax.set_xlabel('Epoch')
-            ax.set_ylabel('Loss')
-            ax.set_title('Training Loss')
+            ax.semilogy(
+                self._epochs[: len(self._history["loss"])],
+                self._history["loss"],
+                "r-",
+                alpha=0.7,
+            )
+            ax.set_xlabel("Epoch")
+            ax.set_ylabel("Loss")
+            ax.set_title("Training Loss")
             ax.grid(True, alpha=0.3)
 
         # Learning rate
-        if self._history['lr']:
+        if self._history["lr"]:
             ax = axes[1, 0]
-            ax.plot(self._epochs[:len(self._history['lr'])],
-                   self._history['lr'], 'g-', alpha=0.7)
-            ax.set_xlabel('Epoch')
-            ax.set_ylabel('Learning Rate')
-            ax.set_title('Learning Rate Schedule')
+            ax.plot(
+                self._epochs[: len(self._history["lr"])],
+                self._history["lr"],
+                "g-",
+                alpha=0.7,
+            )
+            ax.set_xlabel("Epoch")
+            ax.set_ylabel("Learning Rate")
+            ax.set_title("Learning Rate Schedule")
             ax.grid(True, alpha=0.3)
 
         # Latest layer syntonies
         if self._layer_syntonies:
             ax = axes[1, 1]
             latest = self._layer_syntonies[-1]
-            colors = ['green' if s >= S_TARGET - 0.1 else 'orange' if s >= S_TARGET - 0.2 else 'red'
-                     for s in latest]
+            colors = [
+                (
+                    "green"
+                    if s >= S_TARGET - 0.1
+                    else "orange" if s >= S_TARGET - 0.2 else "red"
+                )
+                for s in latest
+            ]
             ax.bar(range(len(latest)), latest, color=colors, alpha=0.7)
-            ax.axhline(y=S_TARGET, color='g', linestyle='--', alpha=0.5)
-            ax.set_xlabel('Layer')
-            ax.set_ylabel('Syntony')
-            ax.set_title('Layer-wise Syntony (Latest)')
-            ax.grid(True, alpha=0.3, axis='y')
+            ax.axhline(y=S_TARGET, color="g", linestyle="--", alpha=0.5)
+            ax.set_xlabel("Layer")
+            ax.set_ylabel("Syntony")
+            ax.set_title("Layer-wise Syntony (Latest)")
+            ax.grid(True, alpha=0.3, axis="y")
 
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+            plt.savefig(save_path, dpi=150, bbox_inches="tight")
 
         return fig
 
@@ -402,24 +438,23 @@ class SyntonyViz:
         # Stack layer syntonies
         data = np.array(self._layer_syntonies).T
 
-        im = ax.imshow(data, aspect='auto', cmap='RdYlGn',
-                       vmin=0, vmax=1)
-        ax.set_xlabel('Epoch')
-        ax.set_ylabel('Layer')
-        ax.set_title('Layer Syntony Evolution')
+        im = ax.imshow(data, aspect="auto", cmap="RdYlGn", vmin=0, vmax=1)
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Layer")
+        ax.set_title("Layer Syntony Evolution")
 
-        plt.colorbar(im, ax=ax, label='Syntony')
+        plt.colorbar(im, ax=ax, label="Syntony")
 
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+            plt.savefig(save_path, dpi=150, bbox_inches="tight")
 
         return fig
 
     def reset(self):
         """Reset all history."""
-        self._history = {'syntony': [], 'loss': [], 'lr': []}
+        self._history = {"syntony": [], "loss": [], "lr": []}
         self._layer_syntonies = []
         self._epochs = []
 

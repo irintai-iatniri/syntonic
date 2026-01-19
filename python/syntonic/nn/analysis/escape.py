@@ -8,11 +8,13 @@ Source: CRT.md §10, §12.2
 """
 
 from __future__ import annotations
+
+import math
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
+
 import torch
 import torch.nn as nn
-from typing import Optional, Dict, Any, List
-from abc import ABC, abstractmethod
-import math
 
 PHI = (1 + math.sqrt(5)) / 2
 Q_DEFICIT = 0.027395146920
@@ -66,7 +68,7 @@ class NoiseInjection(EscapeMechanism):
     def __init__(
         self,
         scale: float = 0.01,
-        target: str = 'weights',  # 'weights' or 'gradients'
+        target: str = "weights",  # 'weights' or 'gradients'
         golden_scaling: bool = True,
         adaptive: bool = True,
     ):
@@ -132,11 +134,11 @@ class NoiseInjection(EscapeMechanism):
                 layer_scale = scale
 
             # Generate noise
-            if self.target == 'weights':
+            if self.target == "weights":
                 noise = torch.randn_like(param.data) * layer_scale * param.data.std()
                 param.data.add_(noise)
                 total_noise_norm += noise.norm().item()
-            elif self.target == 'gradients' and param.grad is not None:
+            elif self.target == "gradients" and param.grad is not None:
                 noise = torch.randn_like(param.grad) * layer_scale * param.grad.std()
                 param.grad.add_(noise)
                 total_noise_norm += noise.norm().item()
@@ -144,11 +146,11 @@ class NoiseInjection(EscapeMechanism):
             n_params += param.numel()
 
         return {
-            'scale': scale,
-            'target': self.target,
-            'n_params': n_params,
-            'total_noise_norm': total_noise_norm,
-            'injection_count': self._injection_count,
+            "scale": scale,
+            "target": self.target,
+            "n_params": n_params,
+            "total_noise_norm": total_noise_norm,
+            "injection_count": self._injection_count,
         }
 
     def reset(self):
@@ -176,7 +178,7 @@ class LearningRateShock(EscapeMechanism):
         self,
         multiplier: float = 3.0,
         duration: int = 10,
-        decay: str = 'linear',  # 'linear', 'exponential', 'step'
+        decay: str = "linear",  # 'linear', 'exponential', 'step'
     ):
         """
         Initialize lr shock.
@@ -214,27 +216,25 @@ class LearningRateShock(EscapeMechanism):
             raise ValueError("Optimizer required for LearningRateShock")
 
         if self._shock_active:
-            return {'status': 'shock_already_active'}
+            return {"status": "shock_already_active"}
 
         # Store original learning rates
-        self._original_lrs = [
-            group['lr'] for group in optimizer.param_groups
-        ]
+        self._original_lrs = [group["lr"] for group in optimizer.param_groups]
 
         # Apply shock
         for group in optimizer.param_groups:
-            group['lr'] *= self.multiplier
+            group["lr"] *= self.multiplier
 
         self._shock_active = True
         self._remaining_steps = self.duration
         self._shock_count += 1
 
         return {
-            'status': 'shock_applied',
-            'multiplier': self.multiplier,
-            'duration': self.duration,
-            'new_lrs': [group['lr'] for group in optimizer.param_groups],
-            'shock_count': self._shock_count,
+            "status": "shock_applied",
+            "multiplier": self.multiplier,
+            "duration": self.duration,
+            "new_lrs": [group["lr"] for group in optimizer.param_groups],
+            "shock_count": self._shock_count,
         }
 
     def step(self, optimizer: torch.optim.Optimizer) -> bool:
@@ -257,21 +257,21 @@ class LearningRateShock(EscapeMechanism):
         if self._remaining_steps <= 0:
             # Restore original learning rates
             for group, original_lr in zip(optimizer.param_groups, self._original_lrs):
-                group['lr'] = original_lr
+                group["lr"] = original_lr
             self._shock_active = False
             return False
 
         # Apply decay
-        if self.decay == 'linear':
+        if self.decay == "linear":
             progress = 1 - (self._remaining_steps / self.duration)
             for group, original_lr in zip(optimizer.param_groups, self._original_lrs):
                 shocked_lr = original_lr * self.multiplier
-                group['lr'] = shocked_lr - (shocked_lr - original_lr) * progress
+                group["lr"] = shocked_lr - (shocked_lr - original_lr) * progress
 
-        elif self.decay == 'exponential':
+        elif self.decay == "exponential":
             decay_factor = (1 / self.multiplier) ** (1 / self.duration)
             for group in optimizer.param_groups:
-                group['lr'] *= decay_factor
+                group["lr"] *= decay_factor
 
         # 'step' decay: stay at shocked lr until end
         return True
@@ -305,7 +305,7 @@ class WeightPerturbation(EscapeMechanism):
     def __init__(
         self,
         magnitude: float = 0.1,
-        direction: str = 'syntony',  # 'syntony', 'random', 'anti_gradient'
+        direction: str = "syntony",  # 'syntony', 'random', 'anti_gradient'
     ):
         """
         Initialize weight perturbation.
@@ -342,12 +342,12 @@ class WeightPerturbation(EscapeMechanism):
             if not param.requires_grad:
                 continue
 
-            if self.direction == 'random':
+            if self.direction == "random":
                 # Random direction
                 direction = torch.randn_like(param.data)
                 direction = direction / (direction.norm() + 1e-8)
 
-            elif self.direction == 'anti_gradient' and param.grad is not None:
+            elif self.direction == "anti_gradient" and param.grad is not None:
                 # Move against gradient (escape local min)
                 direction = -param.grad
                 direction = direction / (direction.norm() + 1e-8)
@@ -365,11 +365,11 @@ class WeightPerturbation(EscapeMechanism):
             n_params += param.numel()
 
         return {
-            'magnitude': self.magnitude,
-            'direction': self.direction,
-            'total_perturb_norm': total_perturb_norm,
-            'n_params': n_params,
-            'perturbation_count': self._perturbation_count,
+            "magnitude": self.magnitude,
+            "direction": self.direction,
+            "total_perturb_norm": total_perturb_norm,
+            "n_params": n_params,
+            "perturbation_count": self._perturbation_count,
         }
 
     def reset(self):
@@ -430,18 +430,20 @@ class CombinedEscape(EscapeMechanism):
         Returns:
             Combined statistics
         """
-        results = {'mechanisms_applied': []}
+        results = {"mechanisms_applied": []}
 
         for mechanism, threshold in zip(self.mechanisms, self.severity_thresholds):
             if severity >= threshold:
                 result = mechanism.apply(model, optimizer)
-                results['mechanisms_applied'].append({
-                    'type': type(mechanism).__name__,
-                    'result': result,
-                })
+                results["mechanisms_applied"].append(
+                    {
+                        "type": type(mechanism).__name__,
+                        "result": result,
+                    }
+                )
 
-        results['severity'] = severity
-        results['n_applied'] = len(results['mechanisms_applied'])
+        results["severity"] = severity
+        results["n_applied"] = len(results["mechanisms_applied"])
 
         return results
 

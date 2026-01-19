@@ -17,33 +17,28 @@ Syntonic Architecture:
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional, Callable, List
-from dataclasses import dataclass, field
+
+import cmath
 import math
 import random
-import cmath
 
 # Syntonic imports
 import sys
+from dataclasses import dataclass, field
+from typing import Callable, List, Optional, Tuple
 
 sys.path.insert(0, "/home/Andrew/Documents/SRT Complete/implementation/syntonic/python")
 
-from syntonic.core.state import State
 from syntonic.core.dtype import complex128
-from syntonic.exact import PHI_NUMERIC, PHI_INVERSE, Q_DEFICIT_NUMERIC
-from syntonic.srt.spectral import (
-    ThetaSeries,
-    theta_series,
-    MobiusRegularizer,
-    compute_e_star,
-)
+from syntonic.core.state import State
+from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
 from syntonic.srt.geometry import (
-    enumerate_windings,
     WindingState,
-    enumerate_windings_exact_norm,
+    enumerate_windings,
 )
-from syntonic.srt.spectral import KnotLaplacian, knot_laplacian
-
+from syntonic.srt.spectral import (
+    theta_series,
+)
 
 # =============================================================================
 # CONSTANTS

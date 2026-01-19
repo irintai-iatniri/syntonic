@@ -11,11 +11,13 @@ Source: CRT.md §12.2
 """
 
 from __future__ import annotations
+
+import math
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+
 import torch
 import torch.nn as nn
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
-import math
 
 PHI = (1 + math.sqrt(5)) / 2
 Q_DEFICIT = 0.027395146920
@@ -120,7 +122,7 @@ class SyntonyMonitor:
         """Get mean syntony."""
         if not self._history:
             return 0.0
-        window = self._history[-self.window_size:]
+        window = self._history[-self.window_size :]
         return sum(window) / len(window)
 
     @property
@@ -128,7 +130,7 @@ class SyntonyMonitor:
         """Get syntony variance."""
         if len(self._history) < 2:
             return 0.0
-        window = self._history[-self.window_size:]
+        window = self._history[-self.window_size :]
         mean = sum(window) / len(window)
         return sum((s - mean) ** 2 for s in window) / len(window)
 
@@ -137,9 +139,11 @@ class SyntonyMonitor:
         """Get recent trend."""
         if len(self._history) < 10:
             return 0.0
-        window = self._history[-self.window_size:]
+        window = self._history[-self.window_size :]
         mid = len(window) // 2
-        return sum(window[mid:]) / len(window[mid:]) - sum(window[:mid]) / len(window[:mid])
+        return sum(window[mid:]) / len(window[mid:]) - sum(window[:mid]) / len(
+            window[:mid]
+        )
 
     @property
     def peak_syntony(self) -> float:
@@ -161,13 +165,13 @@ class SyntonyMonitor:
     def get_statistics(self) -> Dict[str, float]:
         """Get all statistics."""
         return {
-            'current': self.current_syntony,
-            'mean': self.mean_syntony,
-            'variance': self.variance,
-            'trend': self.trend,
-            'peak': self.peak_syntony,
-            'fraction_above_target': self.fraction_above_target,
-            'target': self.target,
+            "current": self.current_syntony,
+            "mean": self.mean_syntony,
+            "variance": self.variance,
+            "trend": self.trend,
+            "peak": self.peak_syntony,
+            "fraction_above_target": self.fraction_above_target,
+            "target": self.target,
         }
 
     def reset(self):
@@ -250,21 +254,25 @@ class NetworkHealth:
 
         # Overall health
         overall_health = (
-            0.4 * syntony_health +
-            0.2 * gradient_health +
-            0.2 * weight_health +
-            0.2 * activation_health
+            0.4 * syntony_health
+            + 0.2 * gradient_health
+            + 0.2 * weight_health
+            + 0.2 * activation_health
         )
 
         is_healthy = overall_health > 0.6 and syntony_health > 0.4
 
         # Generate recommendations
         if syntony_health < 0.5:
-            recommendations.append("Syntony below target - consider noise injection or lr increase")
+            recommendations.append(
+                "Syntony below target - consider noise injection or lr increase"
+            )
         if gradient_health < 0.5:
             recommendations.append("Gradient issues detected - check gradient clipping")
         if weight_health < 0.5:
-            recommendations.append("Weight distribution unhealthy - consider re-initialization")
+            recommendations.append(
+                "Weight distribution unhealthy - consider re-initialization"
+            )
         if activation_health < 0.5:
             recommendations.append("Activation issues - check for dead/saturated units")
 
@@ -289,7 +297,7 @@ class NetworkHealth:
         # Get model syntony
         syntonies = []
         for module in self.model.modules():
-            if hasattr(module, 'syntony') and module.syntony is not None:
+            if hasattr(module, "syntony") and module.syntony is not None:
                 syntonies.append(module.syntony)
 
         if not syntonies:
@@ -308,10 +316,14 @@ class NetworkHealth:
 
         # Warnings
         if mean_syntony < self.syntony_target - 0.2:
-            warnings.append(f"Syntony significantly below target: {mean_syntony:.4f} < {self.syntony_target:.4f}")
+            warnings.append(
+                f"Syntony significantly below target: {mean_syntony:.4f} < {self.syntony_target:.4f}"
+            )
 
         if max_syntony - min_syntony > 0.3:
-            warnings.append(f"High syntony variance across layers: [{min_syntony:.4f}, {max_syntony:.4f}]")
+            warnings.append(
+                f"High syntony variance across layers: [{min_syntony:.4f}, {max_syntony:.4f}]"
+            )
 
         if self._syntony_monitor.trend < -0.01:
             warnings.append("Syntony trending downward")
@@ -379,11 +391,13 @@ class NetworkHealth:
                     has_nan = True
                     continue
 
-                weight_stats.append({
-                    'name': name,
-                    'mean': mean,
-                    'std': std,
-                })
+                weight_stats.append(
+                    {
+                        "name": name,
+                        "mean": mean,
+                        "std": std,
+                    }
+                )
 
         if has_nan:
             warnings.append("NaN weights detected!")
@@ -396,15 +410,15 @@ class NetworkHealth:
 
         for stat in weight_stats:
             # Check for mean drift
-            if abs(stat['mean']) > 1.0:
+            if abs(stat["mean"]) > 1.0:
                 health *= 0.9
                 warnings.append(f"Large mean in {stat['name']}: {stat['mean']:.4f}")
 
             # Check for too small/large std
-            if stat['std'] < 1e-4:
+            if stat["std"] < 1e-4:
                 health *= 0.9
                 warnings.append(f"Very small std in {stat['name']}: {stat['std']:.6f}")
-            elif stat['std'] > 10:
+            elif stat["std"] > 10:
                 health *= 0.9
                 warnings.append(f"Very large std in {stat['name']}: {stat['std']:.4f}")
 

@@ -13,10 +13,11 @@ Quantized in units of E* × q ≈ 0.548 eV
 """
 
 from __future__ import annotations
-from typing import Dict, List, Tuple
-import math
 
-from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC, E_STAR_NUMERIC
+import math
+from typing import Dict, List, Tuple
+
+from syntonic.exact import E_STAR_NUMERIC, PHI_NUMERIC, Q_DEFICIT_NUMERIC
 
 
 class BandStructure:
@@ -59,14 +60,14 @@ class BandStructure:
     # E_g = E* × N × q works exactly for direct-gap materials
     # Indirect gaps (Si, Ge, GaAs) may require small corrections
     BAND_GAPS: Dict[str, Tuple[int, float]] = {
-        'Diamond': (10, 5.47),    # E* × 10 × q = 5.479 eV, exp: 5.47 eV (0.2%)
-        'GaN':     (6,  3.4),     # E* × 6 × q = 3.287 eV, exp: 3.4 eV (3.3%)
-        'SiC':     (6,  3.26),    # E* × 6 × q = 3.287 eV, exp: 3.26 eV (0.8%)
-        'ZnO':     (6,  3.37),    # E* × 6 × q = 3.287 eV, exp: 3.37 eV (2.5%)
-        'GaAs':    (3,  1.42),    # E* × 3 × q = 1.644 eV, exp: 1.42 eV (15% - indirect)
-        'Si':      (2,  1.12),    # E* × 2 × q = 1.096 eV, exp: 1.12 eV (2.1%)
-        'Ge':      (1,  0.67),    # E* × 1 × q = 0.548 eV, exp: 0.67 eV (18% - indirect)
-        'InSb':    (1,  0.17),    # E* × 1 × q = 0.548 eV, exp: 0.17 eV (narrow gap)
+        "Diamond": (10, 5.47),  # E* × 10 × q = 5.479 eV, exp: 5.47 eV (0.2%)
+        "GaN": (6, 3.4),  # E* × 6 × q = 3.287 eV, exp: 3.4 eV (3.3%)
+        "SiC": (6, 3.26),  # E* × 6 × q = 3.287 eV, exp: 3.26 eV (0.8%)
+        "ZnO": (6, 3.37),  # E* × 6 × q = 3.287 eV, exp: 3.37 eV (2.5%)
+        "GaAs": (3, 1.42),  # E* × 3 × q = 1.644 eV, exp: 1.42 eV (15% - indirect)
+        "Si": (2, 1.12),  # E* × 2 × q = 1.096 eV, exp: 1.12 eV (2.1%)
+        "Ge": (1, 0.67),  # E* × 1 × q = 0.548 eV, exp: 0.67 eV (18% - indirect)
+        "InSb": (1, 0.17),  # E* × 1 × q = 0.548 eV, exp: 0.17 eV (narrow gap)
     }
 
     def band_gap(self, N: int) -> float:
@@ -118,11 +119,11 @@ class BandStructure:
             Material classification
         """
         if E_g > 3.0:
-            return 'insulator'
+            return "insulator"
         elif E_g > 0:
-            return 'semiconductor'
+            return "semiconductor"
         else:
-            return 'metal'
+            return "metal"
 
     def predict_material(self, name: str) -> Dict[str, float]:
         """
@@ -142,11 +143,11 @@ class BandStructure:
         error = abs(pred - exp) / exp * 100
 
         return {
-            'material': name,
-            'N': N,
-            'predicted_eV': pred,
-            'experimental_eV': exp,
-            'error_percent': error,
+            "material": name,
+            "N": N,
+            "predicted_eV": pred,
+            "experimental_eV": exp,
+            "error_percent": error,
         }
 
     def all_predictions(self) -> List[Dict[str, float]]:

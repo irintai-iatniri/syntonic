@@ -5,11 +5,8 @@ Maps Mersenne primes to particle generations.
 """
 
 from syntonic.srt.prime_selection import (
-    MERSENNE_EXPONENTS,
-    mersenne_number,
-    is_mersenne_prime,
-    get_generation_spectrum,
     generation_barrier_explanation,
+    mersenne_number,
 )
 
 

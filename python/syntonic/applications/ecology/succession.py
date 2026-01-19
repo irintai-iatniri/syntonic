@@ -8,8 +8,9 @@ Climax community: S → φ - q, stable, filled niches
 """
 
 from __future__ import annotations
-from typing import Dict, Any, List, Optional
+
 import math
+from typing import Any, Dict
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
 
@@ -59,7 +60,9 @@ class EcologicalSuccession:
         S_target = self.ATTRACTOR
         return S_target - (S_target - S_0) * math.exp(-gamma * t)
 
-    def time_to_climax(self, S_0: float, gamma: float, threshold: float = 0.95) -> float:
+    def time_to_climax(
+        self, S_0: float, gamma: float, threshold: float = 0.95
+    ) -> float:
         """
         Time to reach climax community (fraction of attractor).
 
@@ -83,7 +86,7 @@ class EcologicalSuccession:
 
         ratio = (S_target - S_threshold) / (S_target - S_0)
         if ratio <= 0:
-            return float('inf')
+            return float("inf")
 
         return -math.log(ratio) / gamma
 
@@ -95,45 +98,45 @@ class EcologicalSuccession:
             Dict of succession stages
         """
         return {
-            'pioneer': {
-                'syntony_fraction': 0.1,
-                'characteristics': [
-                    'r-selected species',
-                    'High reproductive rate',
-                    'Low competitive ability',
-                    'Simple food webs',
+            "pioneer": {
+                "syntony_fraction": 0.1,
+                "characteristics": [
+                    "r-selected species",
+                    "High reproductive rate",
+                    "Low competitive ability",
+                    "Simple food webs",
                 ],
-                'examples': ['Lichens', 'Mosses', 'Annual herbs'],
+                "examples": ["Lichens", "Mosses", "Annual herbs"],
             },
-            'early': {
-                'syntony_fraction': 0.3,
-                'characteristics': [
-                    'Fast-growing perennials',
-                    'Increasing soil depth',
-                    'Simple nutrient cycling',
-                    'Low biodiversity',
+            "early": {
+                "syntony_fraction": 0.3,
+                "characteristics": [
+                    "Fast-growing perennials",
+                    "Increasing soil depth",
+                    "Simple nutrient cycling",
+                    "Low biodiversity",
                 ],
-                'examples': ['Grasses', 'Shrubs', 'Pioneer trees'],
+                "examples": ["Grasses", "Shrubs", "Pioneer trees"],
             },
-            'mid': {
-                'syntony_fraction': 0.6,
-                'characteristics': [
-                    'Mixed species composition',
-                    'Developing canopy structure',
-                    'Complex nutrient cycling',
-                    'Increasing biodiversity',
+            "mid": {
+                "syntony_fraction": 0.6,
+                "characteristics": [
+                    "Mixed species composition",
+                    "Developing canopy structure",
+                    "Complex nutrient cycling",
+                    "Increasing biodiversity",
                 ],
-                'examples': ['Mixed forest', 'Diverse prairie'],
+                "examples": ["Mixed forest", "Diverse prairie"],
             },
-            'climax': {
-                'syntony_fraction': 0.95,
-                'characteristics': [
-                    'K-selected species',
-                    'Stable community',
-                    'Complex food webs',
-                    'Maximum biodiversity',
+            "climax": {
+                "syntony_fraction": 0.95,
+                "characteristics": [
+                    "K-selected species",
+                    "Stable community",
+                    "Complex food webs",
+                    "Maximum biodiversity",
                 ],
-                'examples': ['Old-growth forest', 'Climax grassland'],
+                "examples": ["Old-growth forest", "Climax grassland"],
             },
         }
 
@@ -261,7 +264,7 @@ class DisturbanceRecovery:
 
         ratio = (S_target - S_threshold) / (S_target - S_post)
         if ratio <= 0:
-            return float('inf')
+            return float("inf")
 
         return -math.log(ratio) / gamma
 
@@ -296,7 +299,7 @@ class DisturbanceRecovery:
             Resilience metric
         """
         if recovery_time <= 0:
-            return float('inf')
+            return float("inf")
         return disturbance_severity / recovery_time
 
     def disturbance_types(self) -> Dict[str, Dict[str, Any]]:
@@ -307,35 +310,35 @@ class DisturbanceRecovery:
             Dict of disturbance types
         """
         return {
-            'fire': {
-                'severity_range': (0.3, 0.9),
-                'recovery_rate': 0.05,
-                'typical_recovery': '10-50 years',
-                'syntony_reset': 'Partial (underground structures survive)',
+            "fire": {
+                "severity_range": (0.3, 0.9),
+                "recovery_rate": 0.05,
+                "typical_recovery": "10-50 years",
+                "syntony_reset": "Partial (underground structures survive)",
             },
-            'flood': {
-                'severity_range': (0.2, 0.7),
-                'recovery_rate': 0.1,
-                'typical_recovery': '1-10 years',
-                'syntony_reset': 'Moderate (seeds, nutrients redistributed)',
+            "flood": {
+                "severity_range": (0.2, 0.7),
+                "recovery_rate": 0.1,
+                "typical_recovery": "1-10 years",
+                "syntony_reset": "Moderate (seeds, nutrients redistributed)",
             },
-            'volcanic': {
-                'severity_range': (0.9, 1.0),
-                'recovery_rate': 0.01,
-                'typical_recovery': '100-1000 years',
-                'syntony_reset': 'Complete (primary succession)',
+            "volcanic": {
+                "severity_range": (0.9, 1.0),
+                "recovery_rate": 0.01,
+                "typical_recovery": "100-1000 years",
+                "syntony_reset": "Complete (primary succession)",
             },
-            'logging': {
-                'severity_range': (0.5, 0.8),
-                'recovery_rate': 0.03,
-                'typical_recovery': '50-200 years',
-                'syntony_reset': 'Significant (soil mostly intact)',
+            "logging": {
+                "severity_range": (0.5, 0.8),
+                "recovery_rate": 0.03,
+                "typical_recovery": "50-200 years",
+                "syntony_reset": "Significant (soil mostly intact)",
             },
-            'agriculture': {
-                'severity_range': (0.7, 0.95),
-                'recovery_rate': 0.02,
-                'typical_recovery': '100-500 years',
-                'syntony_reset': 'Major (soil degradation)',
+            "agriculture": {
+                "severity_range": (0.7, 0.95),
+                "recovery_rate": 0.02,
+                "typical_recovery": "100-500 years",
+                "syntony_reset": "Major (soil degradation)",
             },
         }
 

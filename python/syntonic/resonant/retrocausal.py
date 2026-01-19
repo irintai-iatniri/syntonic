@@ -70,7 +70,8 @@ print(f"Converged in {result.generations} generations")
 """
 
 from typing import Optional
-from syntonic._core import ResonantTensor, ResonantEvolver, RESConfig, RESResult
+
+from syntonic._core import RESConfig, ResonantEvolver, ResonantTensor
 
 
 class RetrocausalConfig:
@@ -91,7 +92,6 @@ class RetrocausalConfig:
         precision: int = 100,
         max_generations: int = 1000,
         convergence_threshold: float = 1e-6,
-
         # Retrocausal parameters
         attractor_capacity: int = 32,
         attractor_pull_strength: float = 0.3,
@@ -156,7 +156,7 @@ def create_retrocausal_evolver(
     pull_strength: float = 0.3,
     min_syntony: float = 0.7,
     decay_rate: float = 0.98,
-    **kwargs
+    **kwargs,
 ) -> ResonantEvolver:
     """
     Create a ResonantEvolver with retrocausal attractor guidance.
@@ -190,21 +190,18 @@ def create_retrocausal_evolver(
         attractor_pull_strength=pull_strength,
         attractor_min_syntony=min_syntony,
         attractor_decay_rate=decay_rate,
-        **kwargs
+        **kwargs,
     )
 
-    
     # Unwrap Python wrapper if present
-    if hasattr(template, '_inner'):
+    if hasattr(template, "_inner"):
         template = template._inner
 
     return ResonantEvolver(template, config)
 
 
 def create_standard_evolver(
-    template: ResonantTensor,
-    population_size: int = 32,
-    **kwargs
+    template: ResonantTensor, population_size: int = 32, **kwargs
 ) -> ResonantEvolver:
     """
     Create a standard ResonantEvolver WITHOUT retrocausal guidance.
@@ -228,14 +225,11 @@ def create_standard_evolver(
         >>> result = evolver.run()
     """
     config = RESConfig(
-        population_size=population_size,
-        enable_retrocausal=False,
-        **kwargs
+        population_size=population_size, enable_retrocausal=False, **kwargs
     )
 
-    
     # Unwrap Python wrapper if present
-    if hasattr(template, '_inner'):
+    if hasattr(template, "_inner"):
         template = template._inner
 
     return ResonantEvolver(template, config)
@@ -245,7 +239,7 @@ def compare_convergence(
     template: ResonantTensor,
     population_size: int = 32,
     max_generations: int = 500,
-    trials: int = 5
+    trials: int = 5,
 ) -> dict:
     """
     Compare convergence speed between standard and retrocausal RES.
@@ -278,9 +272,7 @@ def compare_convergence(
     # Run standard RES trials
     for _ in range(trials):
         evolver = create_standard_evolver(
-            template,
-            population_size=population_size,
-            max_generations=max_generations
+            template, population_size=population_size, max_generations=max_generations
         )
         result = evolver.run()
         standard_results.append(result)
@@ -288,9 +280,7 @@ def compare_convergence(
     # Run retrocausal RES trials
     for _ in range(trials):
         evolver = create_retrocausal_evolver(
-            template,
-            population_size=population_size,
-            max_generations=max_generations
+            template, population_size=population_size, max_generations=max_generations
         )
         result = evolver.run()
         retrocausal_results.append(result)
@@ -300,28 +290,30 @@ def compare_convergence(
     standard_mean_syntony = sum(r.final_syntony for r in standard_results) / trials
 
     retrocausal_mean_gens = sum(r.generations for r in retrocausal_results) / trials
-    retrocausal_mean_syntony = sum(r.final_syntony for r in retrocausal_results) / trials
+    retrocausal_mean_syntony = (
+        sum(r.final_syntony for r in retrocausal_results) / trials
+    )
 
     speedup = (standard_mean_gens - retrocausal_mean_gens) / standard_mean_gens
 
     return {
-        'standard': {
-            'mean_generations': standard_mean_gens,
-            'mean_syntony': standard_mean_syntony,
-            'results': standard_results,
+        "standard": {
+            "mean_generations": standard_mean_gens,
+            "mean_syntony": standard_mean_syntony,
+            "results": standard_results,
         },
-        'retrocausal': {
-            'mean_generations': retrocausal_mean_gens,
-            'mean_syntony': retrocausal_mean_syntony,
-            'results': retrocausal_results,
+        "retrocausal": {
+            "mean_generations": retrocausal_mean_gens,
+            "mean_syntony": retrocausal_mean_syntony,
+            "results": retrocausal_results,
         },
-        'speedup': speedup,
+        "speedup": speedup,
     }
 
 
 __all__ = [
-    'RetrocausalConfig',
-    'create_retrocausal_evolver',
-    'create_standard_evolver',
-    'compare_convergence',
+    "RetrocausalConfig",
+    "create_retrocausal_evolver",
+    "create_standard_evolver",
+    "compare_convergence",
 ]

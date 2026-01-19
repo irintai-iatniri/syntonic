@@ -13,6 +13,7 @@ Geometric meaning:
 """
 
 from __future__ import annotations
+
 import math
 
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
@@ -116,7 +117,7 @@ class Superconductivity:
         Returns:
             Modified BCS ratio
         """
-        return self.BCS_RATIO * (PHI_NUMERIC ** coupling_power)
+        return self.BCS_RATIO * (PHI_NUMERIC**coupling_power)
 
     def coherence_length(self, v_F: float, gap: float) -> float:
         """

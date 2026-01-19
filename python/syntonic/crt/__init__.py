@@ -35,68 +35,67 @@ Basic Usage:
 
 from typing import Tuple
 
-# Operators
-from syntonic.crt.operators import (
-    OperatorBase,
-    FourierProjector,
-    DampingProjector,
-    LaplacianOperator,
-    create_mode_projectors,
-    create_damping_cascade,
-    DifferentiationOperator,
-    default_differentiation_operator,
-    HarmonizationOperator,
-    default_harmonization_operator,
-    RecursionOperator,
-    default_recursion_operator,
-    SyntonyComputer,
-    syntony_entropy,
-    syntony_spectral,
-    syntony_quick,
-    GnosisComputer,
-    default_gnosis_computer,
-    K_D4,
-)
-
 # Extended hierarchy corrections
 from syntonic._core import (
-    hierarchy_e8_dim,
-    hierarchy_e7_dim,
-    hierarchy_e6_dim,
-    hierarchy_d4_dim,
-    hierarchy_d4_kissing,
-    hierarchy_g2_dim,
-    hierarchy_f4_dim,
-    hierarchy_coxeter_kissing_720,
-    hierarchy_exponent,
-    hierarchy_apply_e7_correction,
     hierarchy_apply_collapse_threshold_correction,
     hierarchy_apply_coxeter_kissing_correction,
-    # Newly exposed hierarchy constants
-    hierarchy_e8_roots,
+    hierarchy_apply_e7_correction,
+    hierarchy_coxeter_kissing_720,
+    hierarchy_d4_coxeter,
+    hierarchy_d4_dim,
+    hierarchy_d4_kissing,
+    hierarchy_d4_rank,
+    hierarchy_e6_coxeter,
+    hierarchy_e6_dim,
+    hierarchy_e6_fundamental,
+    hierarchy_e6_positive_roots,
+    hierarchy_e6_rank,
+    hierarchy_e6_roots,
+    hierarchy_e7_coxeter,
+    hierarchy_e7_dim,
+    hierarchy_e7_fundamental,
+    hierarchy_e7_positive_roots,
+    hierarchy_e7_rank,
+    hierarchy_e7_roots,
+    hierarchy_e8_coxeter,
+    hierarchy_e8_dim,
     hierarchy_e8_positive_roots,
     hierarchy_e8_rank,
-    hierarchy_e8_coxeter,
-    hierarchy_e7_roots,
-    hierarchy_e7_positive_roots,
-    hierarchy_e7_fundamental,
-    hierarchy_e7_rank,
-    hierarchy_e7_coxeter,
-    hierarchy_e6_roots,
-    hierarchy_e6_positive_roots,
-    hierarchy_e6_fundamental,
-    hierarchy_e6_rank,
-    hierarchy_e6_coxeter,
-    hierarchy_d4_rank,
-    hierarchy_d4_coxeter,
-    hierarchy_g2_rank,
+    # Newly exposed hierarchy constants
+    hierarchy_e8_roots,
+    hierarchy_exponent,
+    hierarchy_f4_dim,
     hierarchy_f4_rank,
+    hierarchy_g2_dim,
+    hierarchy_g2_rank,
 )
-
 from syntonic.crt.extended_hierarchy import (
-    apply_e7_correction,
     apply_collapse_threshold,
     apply_coxeter_kissing,
+    apply_e7_correction,
+)
+
+# Operators
+from syntonic.crt.operators import (
+    K_D4,
+    DampingProjector,
+    DifferentiationOperator,
+    FourierProjector,
+    GnosisComputer,
+    HarmonizationOperator,
+    LaplacianOperator,
+    OperatorBase,
+    RecursionOperator,
+    SyntonyComputer,
+    create_damping_cascade,
+    create_mode_projectors,
+    default_differentiation_operator,
+    default_gnosis_computer,
+    default_harmonization_operator,
+    default_recursion_operator,
+    syntony_entropy,
+    syntony_quick,
+    syntony_spectral,
 )
 
 # Structure dimensions dictionary (comprehensive)
@@ -195,8 +194,8 @@ Example Usage:
 
 # Evolution
 from syntonic.crt.dhsr_evolution import (
-    SyntonyTrajectory,
     DHSREvolver,
+    SyntonyTrajectory,
     default_evolver,
 )
 

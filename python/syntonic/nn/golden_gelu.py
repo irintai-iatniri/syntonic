@@ -18,17 +18,15 @@ This represents theory-correct GeLU where the scaling factor is
 exactly the golden ratio φ, derived from SRT geometry.
 """
 
-from typing import Union, List, Tuple
+from typing import List, Union
 
 from syntonic._core import (
-    golden_gelu_forward,
-    golden_gelu_backward,
     batched_golden_gelu_forward,
     get_golden_gelu_phi,
+    golden_gelu_backward,
+    golden_gelu_forward,
 )
-
-from syntonic.core import State, DType
-
+from syntonic.core import State
 
 
 class GoldenGELU:

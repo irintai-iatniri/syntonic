@@ -5,7 +5,7 @@ A winding mode is stable IFF M_p = 2^p - 1 is prime.
 This explains exactly 3 fermion generations.
 """
 
-from syntonic.exact import MERSENNE_PRIMES, MERSENNE_EXPONENTS, M11_BARRIER
+from syntonic.exact import M11_BARRIER
 
 
 def mersenne_number(p: int) -> int:

@@ -11,14 +11,15 @@ This module implements a complete DHSR cycle using the Rust backend:
 """
 
 from __future__ import annotations
+
 import math
 import random
-from typing import Tuple, List, Optional
+from typing import List, Tuple
 
 import syntonic.sn as sn
+from python.syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
 from syntonic._core import ResonantTensor
 from syntonic.nn.layers.resonant_linear import ResonantLinear
-from python.syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
 
 PHI = (1 + math.sqrt(5)) / 2
 PHI_INV = 1 / PHI
@@ -110,36 +111,35 @@ class WindingDHSRBlock(sn.Module):
         # Expand via Fibonacci factor (Differentiation)
         h = self.d_expand.forward(x)
         h.relu()  # Activation
-        
+
         # Apply dropout in the expanded space
         if self.training:
             h = self.dropout(h)
-            
+
         delta = self.d_project.forward(h)
 
         # Apply differentiation update: x' = x + α·Δ
         # Manual elementwise add until ResonantTensor supports scalar_mul + add better
         x_floats = x.to_floats()
         delta_floats = delta.to_floats()
-        combined = [
-            x_floats[i] + alpha * delta_floats[i] 
-            for i in range(len(x_floats))
-        ]
-        
+        combined = [x_floats[i] + alpha * delta_floats[i] for i in range(len(x_floats))]
+
         # If x has mode norms, try to preserve them or pass None to auto-compute 1D
-        mode_norms = list(x.mode_norm_sq()) if hasattr(x, 'mode_norm_sq') else None
-        
-        x_diff = ResonantTensor(combined, list(x.shape), mode_norms, precision=self.precision)
+        mode_norms = list(x.mode_norm_sq()) if hasattr(x, "mode_norm_sq") else None
+
+        x_diff = ResonantTensor(
+            combined, list(x.shape), mode_norms, precision=self.precision
+        )
 
         # === H-PHASE: Harmonization & Prime Filtering ===
         # 1. Prime Selection (Möbius filtering)
         if self.prime_filter is not None:
-             x_diff = self.prime_filter(x_diff)
+            x_diff = self.prime_filter(x_diff)
 
         # 2. Lattice Crystallization (Harmonization) via cpu_cycle
         # This calculates syntony AND snaps to grid
         syntony_new = x_diff.cpu_cycle(noise_scale=0.01, precision=self.precision)
-        
+
         # If cpu_cycle returns 0 (stub or failed), try to use property
         if syntony_new == 0.0:
             syntony_new = x_diff.syntony
@@ -214,7 +214,7 @@ class WindingDHSRBlock(sn.Module):
 if __name__ == "__main__":
     # Test the pure WindingDHSRBlock
     print("Testing WindingDHSRBlock...")
-    
+
     block = WindingDHSRBlock(dim=16, fib_expand_factor=2)
     print(f"Block: {block}")
 

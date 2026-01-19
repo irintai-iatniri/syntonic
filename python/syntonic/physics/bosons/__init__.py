@@ -16,36 +16,35 @@ Example:
 """
 
 from syntonic.physics.bosons.gauge import (
-    weinberg_angle,
+    GaugeSector,
     fine_structure_constant,
     strong_coupling,
     w_mass,
+    weinberg_angle,
     z_mass,
     z_width,
-    GaugeSector,
 )
-
 from syntonic.physics.bosons.higgs import (
-    higgs_mass_tree,
-    higgs_mass_loop,
-    higgs_mass,
-    higgs_self_coupling_ratio,
     HiggsSector,
+    higgs_mass,
+    higgs_mass_loop,
+    higgs_mass_tree,
+    higgs_self_coupling_ratio,
 )
 
 __all__ = [
     # Gauge functions
-    'weinberg_angle',
-    'fine_structure_constant',
-    'strong_coupling',
-    'w_mass',
-    'z_mass',
-    'z_width',
-    'GaugeSector',
+    "weinberg_angle",
+    "fine_structure_constant",
+    "strong_coupling",
+    "w_mass",
+    "z_mass",
+    "z_width",
+    "GaugeSector",
     # Higgs functions
-    'higgs_mass_tree',
-    'higgs_mass_loop',
-    'higgs_mass',
-    'higgs_self_coupling_ratio',
-    'HiggsSector',
+    "higgs_mass_tree",
+    "higgs_mass_loop",
+    "higgs_mass",
+    "higgs_self_coupling_ratio",
+    "HiggsSector",
 ]

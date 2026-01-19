@@ -29,11 +29,11 @@ Example:
 """
 
 from syntonic._core import (
-    ResonantTensor,
-    ResonantEvolver,
-    RESConfig,
-    RESResult,
     GoldenExact,
+    RESConfig,
+    ResonantEvolver,
+    ResonantTensor,
+    RESResult,
 )
 
 # Retrocausal module
@@ -47,17 +47,17 @@ Q_DEFICIT = 0.027395146920  # Universal syntony deficit (NOT a hyperparameter!)
 
 __all__ = [
     # Core types
-    'ResonantTensor',
-    'GoldenExact',
+    "ResonantTensor",
+    "GoldenExact",
     # Evolver types
-    'ResonantEvolver',
-    'RESConfig',
-    'RESResult',
+    "ResonantEvolver",
+    "RESConfig",
+    "RESResult",
     # Retrocausal module
-    'retrocausal',
+    "retrocausal",
     # Constants
-    'PHI',
-    'PHI_INV',
-    'PHI_INV_SQ',
-    'Q_DEFICIT',
+    "PHI",
+    "PHI_INV",
+    "PHI_INV_SQ",
+    "Q_DEFICIT",
 ]

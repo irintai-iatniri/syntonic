@@ -11,10 +11,10 @@ Gamma (40 Hz) is the "frame rate" of consciousness.
 """
 
 from __future__ import annotations
-from typing import Dict, Any, List
-import math
 
-from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
+from typing import Dict
+
+from syntonic.exact import PHI_NUMERIC
 
 
 class NeuralAntennaModel:
@@ -117,10 +117,10 @@ This frequency is NOT arbitrary:
         phase_delay = wavelength / 4  # Quarter-wave delay for beamforming
 
         return {
-            'target_frequency': target_frequency,
-            'wavelength_m': wavelength,
-            'phase_delay_m': phase_delay,
-            'phase_delay_ms': (phase_delay / self.NEURAL_VELOCITY) * 1000,
+            "target_frequency": target_frequency,
+            "wavelength_m": wavelength,
+            "phase_delay_m": phase_delay,
+            "phase_delay_ms": (phase_delay / self.NEURAL_VELOCITY) * 1000,
         }
 
     def antenna_efficiency(self, coherence: float) -> float:
@@ -136,7 +136,7 @@ This frequency is NOT arbitrary:
             Efficiency factor
         """
         # Efficiency scales with coherence squared (like antenna gain)
-        return coherence ** 2
+        return coherence**2
 
     def sleep_state_tuning(self) -> str:
         """
@@ -249,7 +249,7 @@ class Microtubules:
         """
         if n <= 0:
             raise ValueError("Mode number must be positive")
-        return (2 * length / n) * (PHI_NUMERIC ** k)
+        return (2 * length / n) * (PHI_NUMERIC**k)
 
     def fibonacci_structure(self) -> str:
         """
