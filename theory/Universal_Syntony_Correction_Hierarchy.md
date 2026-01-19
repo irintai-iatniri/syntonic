@@ -96,6 +96,27 @@ The **Status** column indicates whether each factor is currently used (✓ USED)
 | 56 | 8q | ~21.9% | rank(E₈) × q | Full E₈ Cartan enhancement |
 | 57 | qφ⁵ | ~30.4% | Fifth golden | Five-layer transitions |
 
+### Prime Number Tower Corrections (NEW)
+
+The Three-Prime Selection Principle adds geometric divisors from Mersenne, Lucas, and Fermat primes:
+
+| Level | Factor | Magnitude | Geometric Origin | Physical Interpretation |
+|-------|--------|-----------|------------------|------------------------|
+| P1 | q/M₂ = q/3 | ~0.91% | Mersenne M₂ = 3 | Generation count (=N_gen) |
+| P2 | q/M₃ = q/7 | ~0.39% | Mersenne M₃ = 7 | First non-trivial Mersenne |
+| P3 | q/M₅ = q/31 | ~0.088% | Mersenne M₅ = 31 | Third generation stability |
+| P4 | q/M₇ = q/127 | ~0.022% | Mersenne M₇ = 127 | Heavy anchor (dark matter seed) |
+| L1 | q/L₄ = q/7 | ~0.39% | Lucas L₄ = 7 | Mersenne-Lucas resonance |
+| L2 | q/L₅ = q/11 | ~0.25% | Lucas L₅ = 11 | M₁₁ barrier connection |
+| L3 | q/L₆ = q/18 | ~0.15% | Lucas L₆ = 18 | E₇ Coxeter number |
+| L4 | q/L₇ = q/29 | ~0.095% | Lucas L₇ = 29 | Lucas prime gate |
+| L5 | q/L₁₁ = q/199 | ~0.014% | Lucas L₁₁ = 199 | Deep shadow structure |
+| F1 | q/F₀ = q/3 | ~0.91% | Fermat F₀ = 3 | Strong force SU(3) |
+| F2 | q/F₁ = q/5 | ~0.55% | Fermat F₁ = 5 | Weak isospin SU(2) |
+| F3 | q/F₂ = q/17 | ~0.16% | Fermat F₂ = 17 | Hypercharge U(1) |
+| F4 | q/F₃ = q/257 | ~0.011% | Fermat F₃ = 257 | Gravity seed |
+| F5 | q/F₄ = q/65537 | ~10⁻⁷ | Fermat F₄ = 65537 | Recursion completion |
+
 ### Multiplicative Suppression Factors
 
 These factors appear as divisors for processes involving recursion layer crossings:
@@ -1157,6 +1178,217 @@ $$\frac{1}{1+q\phi^3} = \frac{1}{1 + 0.027395 \times 4.236} = 0.896$$
 - Four-layer crossings
 - Deep recursion penalties
 - Ultra-heavy transitions
+
+---
+
+## 3.9 NEW: Prime Number Tower Corrections
+
+The **Three-Prime Selection Principle** (Fermat, Mersenne, Lucas) forms a tower of geometric divisors that explains the origin of forces (Fermat), stable matter generations (Mersenne), and the dark sector (Lucas).
+
+---
+
+### Mersenne Prime Divisors
+
+The Mersenne primes M_p = 2^p - 1 constrain which matter generations can exist. Only p ∈ {2, 3, 5, 7} produce primes, giving exactly 3 generations plus a heavy anchor.
+
+---
+
+#### q/3 ≈ 0.91% — Mersenne M₂ (Generation Count)
+
+**Geometric Origin:** M₂ = 2² - 1 = 3 = N_gen
+
+The first Mersenne prime equals the generation count itself. This is the **fundamental generation correction**.
+
+$$\frac{q}{M_2} = \frac{q}{3} = 0.00913$$
+
+**Physical Applications:**
+- Single-generation observables
+- CKM V_cb = Q × 3/2 × (1 + q/3)
+- Per-generation flavor corrections
+
+---
+
+#### q/7 ≈ 0.39% — Mersenne M₃ (First Non-trivial)
+
+**Geometric Origin:** M₃ = 2³ - 1 = 7
+
+The first non-trivial Mersenne prime. Also equals L₄ (fourth Lucas number), creating a **shadow resonance** between Mersenne and Lucas towers.
+
+$$\frac{q}{M_3} = \frac{q}{7} = 0.00391$$
+
+**Physical Applications:**
+- Mersenne-Lucas resonance effects
+- E₇ rank connection (rank(E₇) = 7)
+- Second-generation stability corrections
+
+---
+
+#### q/31 ≈ 0.088% — Mersenne M₅ (Third Generation)
+
+**Geometric Origin:** M₅ = 2⁵ - 1 = 31
+
+The Mersenne prime corresponding to p = 5 (third generation exponent).
+
+$$\frac{q}{M_5} = \frac{q}{31} = 0.000884$$
+
+**Physical Applications:**
+- Third-generation specific corrections
+- Heavy quark mass precision
+- τ lepton fine structure
+
+---
+
+#### q/127 ≈ 0.022% — Mersenne M₇ (Heavy Anchor)
+
+**Geometric Origin:** M₇ = 2⁷ - 1 = 127
+
+The "heavy anchor" Mersenne prime. Though not forming a fourth generation (blocked by M₁₁ = 2047 = 23 × 89 being composite), M₇ seeds dark matter predictions.
+
+$$\frac{q}{M_7} = \frac{q}{127} = 0.000216$$
+
+**Physical Applications:**
+- Charm quark mass: m_c = E* × 127/2 × (1+q/120)
+- Dark sector corrections
+- Ultra-precision GUT observables
+
+---
+
+### Lucas Number Divisors
+
+The Lucas sequence L_n = φⁿ + φ̂ⁿ provides **shadow phase** corrections. Lucas primes at indices {0, 2, 4, 5, 7, 8, 11, 13, ...} govern dark sector physics.
+
+---
+
+#### q/L₄ = q/7 ≈ 0.39% — Lucas-Mersenne Resonance
+
+**Geometric Origin:** L₄ = 7 = M₃
+
+The unique coincidence where a Lucas number equals a Mersenne prime. This **Mersenne-Lucas resonance** explains why p = 7 (the heavy anchor) has special significance.
+
+$$\frac{q}{L_4} = \frac{q}{7} = 0.00391$$
+
+---
+
+#### q/11 ≈ 0.25% — Lucas L₅ (M₁₁ Barrier Connection)
+
+**Geometric Origin:** L₅ = 11
+
+The Lucas number 11 connects to the **M₁₁ barrier** (M₁₁ = 2¹¹ - 1 = 2047 is composite), explaining why there is no fourth generation.
+
+$$\frac{q}{L_5} = \frac{q}{11} = 0.00250$$
+
+**Physical Applications:**
+- Fourth-generation suppression
+- M₁₁ barrier corrections
+- Heavy particle threshold effects
+
+---
+
+#### q/18 ≈ 0.15% — Lucas L₆ (E₇ Coxeter)
+
+**Geometric Origin:** L₆ = 18 = h(E₇)
+
+The Lucas number L₆ equals the E₇ Coxeter number, connecting the shadow tower to intermediate unification.
+
+$$\frac{q}{L_6} = \frac{q}{18} = 0.00152$$
+
+---
+
+#### q/29 ≈ 0.095% — Lucas L₇ Prime Gate
+
+**Geometric Origin:** L₇ = 29 (prime)
+
+A Lucas prime, acting as a **transcendence gate** in the recursion hierarchy.
+
+$$\frac{q}{L_7} = \frac{q}{29} = 0.000945$$
+
+**Physical Applications:**
+- Shadow sector precision
+- Dark matter mass fine structure
+
+---
+
+#### q/199 ≈ 0.014% — Lucas L₁₁ Deep Shadow
+
+**Geometric Origin:** L₁₁ = 199 (prime)
+
+Deep shadow structure correction for ultra-precision observables.
+
+$$\frac{q}{L_{11}} = \frac{q}{199} = 0.000138$$
+
+---
+
+### Fermat Prime Divisors
+
+The Fermat primes F_n = 2^(2^n) + 1 determine the **number of fundamental forces**. Only F₀ = 3, F₁ = 5, F₂ = 17, F₃ = 257, F₄ = 65537 are prime, giving exactly 5 forces.
+
+---
+
+#### q/3 ≈ 0.91% — Fermat F₀ (Strong Force)
+
+**Geometric Origin:** F₀ = 2¹ + 1 = 3
+
+The first Fermat prime governs SU(3) strong force structure.
+
+$$\frac{q}{F_0} = \frac{q}{3} = 0.00913$$
+
+**Note:** F₀ = M₂ = N_gen = 3, showing deep unity between prime towers.
+
+---
+
+#### q/5 ≈ 0.55% — Fermat F₁ (Weak Isospin)
+
+**Geometric Origin:** F₁ = 2² + 1 = 5
+
+The second Fermat prime governs SU(2)_L weak isospin structure.
+
+$$\frac{q}{F_1} = \frac{q}{5} = 0.00549$$
+
+**Physical Applications:**
+- Weak interaction observables
+- V_ub = Q² × K(D₄)/F₁ = Q² × 24/5 (collapse threshold / weak force)
+
+---
+
+#### q/17 ≈ 0.16% — Fermat F₂ (Hypercharge/EM)
+
+**Geometric Origin:** F₂ = 2⁴ + 1 = 17
+
+The third Fermat prime governs U(1)_Y hypercharge structure.
+
+$$\frac{q}{F_2} = \frac{q}{17} = 0.00161$$
+
+**Physical Applications:**
+- Electromagnetic precision corrections
+- Hypercharge running
+
+---
+
+#### q/257 ≈ 0.011% — Fermat F₃ (Gravity Seed)
+
+**Geometric Origin:** F₃ = 2⁸ + 1 = 257
+
+The fourth Fermat prime governs gravitational coupling structure.
+
+$$\frac{q}{F_3} = \frac{q}{257} = 0.000107$$
+
+**Physical Applications:**
+- Gravitational precision
+- Planck-scale threshold effects
+
+---
+
+#### q/65537 ≈ 4.2×10⁻⁷ — Fermat F₄ (Recursion Completion)
+
+**Geometric Origin:** F₄ = 2¹⁶ + 1 = 65537
+
+The fifth and final Fermat prime, completing the force spectrum and governing deep recursion structure.
+
+$$\frac{q}{F_4} = \frac{q}{65537} \approx 0$$
+
+**Physical Applications:**
+- Ultimate recursion completion
+- Fixed-point precision (effectively negligible)
 
 ---
 

@@ -74,6 +74,26 @@ from .constants import UniverseSeeds
 
 from .geometry import GeometricInvariants
 
+from .operators import (
+    recursion_map,
+    is_recursion_fixed_point,
+    GAUGE_FORCES,
+    is_stable_generation,
+    get_generation,
+    lucas_number,
+    dark_matter_mass_prediction,
+    apply_five_operators,
+    OperatorResult,
+)
+
+from .dhsr import (
+    DHSRState,
+    compute_syntony,
+    compute_gnosis,
+    dhsr_cycle_step,
+    map_to_particle_physics,
+)
+
 from .catalog import (
     FormulaType,
     ParticleType,
@@ -129,6 +149,22 @@ __all__ = [
     "get_particle",
     "list_particles",
     "get_all_configs",
+    # Five Operators
+    "recursion_map",
+    "is_recursion_fixed_point",
+    "GAUGE_FORCES",
+    "is_stable_generation",
+    "get_generation",
+    "lucas_number",
+    "dark_matter_mass_prediction",
+    "apply_five_operators",
+    "OperatorResult",
+    # DHSR Framework
+    "DHSRState",
+    "compute_syntony",
+    "compute_gnosis",
+    "dhsr_cycle_step",
+    "map_to_particle_physics",
     # Functions
     "apply_correction",
     "apply_special",

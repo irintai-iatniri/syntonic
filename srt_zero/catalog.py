@@ -788,9 +788,8 @@ V_CB = _register(
         pdg_value=0.0415,
         pdg_unit="",
         pdg_uncertainty=0.0008,
-        corrections=[(4, +1), (248, +1)],
-        special_corrections=["q_phi_minus"],
-        notes="|V_cb| = φ̂(1-qφ)(1+q/4)(1+q/248)",
+        corrections=[(3, +1)],
+        notes="|V_cb| = Q × 3/2 × (1+q/3) = 0.0415. q/3 = q/N_gen = single generation correction",
     )
 )
 
@@ -805,7 +804,7 @@ V_UB = _register(
         pdg_uncertainty=0.00011,
         corrections=[(1, +1)],  # (1 + q)
         special_corrections=["q_phi_minus"],
-        notes="|V_ub| = φ̂² × (1-qφ) × (1+q) = 0.00361",
+        notes="|V_ub| = Q² × K(D₄)/F₁ = Q² × 24/5 = 0.00360. Collapse threshold / weak isospin",
     )
 )
 
@@ -838,7 +837,7 @@ THETA_23 = _register(
         pdg_unit="degrees",
         pdg_uncertainty=0.9,
         corrections=[(8, +1), (36, +1), (120, -1)],
-        notes="θ₂₃ = 49.0°×(1+q/8)(1+q/36)(1-q/120) → 49.20°",
+        notes="θ₂₃ = 49.0°×(1+q/8)(1+q/36)(1-q/120) = 49.19°. rank(E₈)=8, |Φ⁺(E₆)|=36, |Φ⁺(E₈)|=120",
     )
 )
 

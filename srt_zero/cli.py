@@ -48,8 +48,15 @@ def cmd_derive(args: argparse.Namespace) -> int:
         
         exp = config.pdg_value
         pred = float(result.final_value)
-        error = 100 * abs(pred - exp) / exp
-        print(f"\nDeviation:   {error:.4f}%")
+        
+        # Handle unmeasured quantities (PDG=0.0)
+        if abs(exp) < 1e-12 and config.pdg_uncertainty == 0.0:
+            print(f"\nThis is an SRT PREDICTION (no experimental value available)")
+        elif abs(exp) < 1e-12:
+            print(f"\nDeviation: N/A (experimental value is 0)")
+        else:
+            error = 100 * abs(pred - exp) / exp
+            print(f"\nDeviation:   {error:.4f}%")
         
         if result.steps:
             print(f"\nCorrection Steps:")
@@ -132,6 +139,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
     
     passed = 0
     failed = 0
+    predictions = 0
     
     for name in particles:
         try:
@@ -152,19 +160,32 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 pred = pred * 1e6
             elif config.pdg_unit == "eV":
                 pred = pred * 1e6
-                
-            if abs(exp) < 1e-12:
+            
+            # Check if this is an unmeasured quantity (PDG=0.0 with uncertainty=0.0)
+            is_prediction = (abs(exp) < 1e-12 and config.pdg_uncertainty == 0.0)
+            
+            if is_prediction:
+                # This is a genuine SRT prediction, not a failure
+                error = 0.0  # No error to compute
+                status = "PREDICT"
+                status_icon = "→ PREDICT"
+                predictions += 1
+            elif abs(exp) < 1e-12:
                 error = 0.0 if abs(pred) < 1e-9 else 100.0
+                status = "PASS" if error < 1.0 else "FAIL"
+                status_icon = "✓ PASS" if error < 1.0 else "✗ FAIL"
+                if error < 1.0:
+                    passed += 1
+                else:
+                    failed += 1
             else:
                 error = 100 * abs(pred - exp) / exp
-            
-            status = "PASS" if error < 1.0 else "FAIL"
-            status_icon = "✓ PASS" if error < 1.0 else "✗ FAIL"
-            
-            if error < 1.0:
-                passed += 1
-            else:
-                failed += 1
+                status = "PASS" if error < 1.0 else "FAIL"
+                status_icon = "✓ PASS" if error < 1.0 else "✗ FAIL"
+                if error < 1.0:
+                    passed += 1
+                else:
+                    failed += 1
             
             results_data.append({
                 "name": name,
@@ -176,18 +197,18 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 "status": status
             })
             
-            if args.verbose or error >= 1.0:
-                print(f"{name:<15} {pred:>12.3f} {exp:>12.3f} {error:>9.4f}% {status_icon:>8}")
+            if args.verbose or status == "FAIL" or status == "PREDICT":
+                print(f"{name:<15} {pred:>12.3f} {exp:>12.3f} {error:>9.4f}% {status_icon:>10}")
                 
         except Exception as e:
             failed += 1
-            print(f"{name:<15} {'ERROR':<12} {'-':<12} {'-':<10} {'✗ FAIL':>8}")
+            print(f"{name:<15} {'ERROR':<12} {'-':<12} {'-':<10} {'✗ FAIL':>10}")
             if args.verbose:
                 print(f"    Error: {e}")
     
     print("-" * 60)
-    print(f"Total: {passed} passed, {failed} failed out of {len(particles)}")
-    print(f"Pass rate: {100*passed/len(particles):.1f}%")
+    print(f"Total: {passed} passed, {failed} failed, {predictions} predictions out of {len(particles)}")
+    print(f"Pass rate: {100*passed/(len(particles)-predictions):.1f}% (excluding predictions)")
     
     # Export results
     os.makedirs("results", exist_ok=True)

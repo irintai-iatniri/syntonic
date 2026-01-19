@@ -352,7 +352,7 @@ class SRTSystem:
 
 
 def create_srt_system(
-    phi: float = None,
+    phi: float | None = None,
     max_norm: int = 20,
     max_spectral_terms: int = 20,
 ) -> SRTSystem:

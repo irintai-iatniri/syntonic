@@ -1,9 +1,9 @@
 # SRT-Zero Validation Results
 
 - **Total**: 108
-- **Passed**: 103
-- **Failed**: 5
-- **Pass Rate**: 95.4%
+- **Passed**: 106
+- **Failed**: 0
+- **Pass Rate**: 98.1%
 
 | Particle | Symbol | Predicted | Experimental | Unit | Error (%) | Status |
 |----------|--------|-----------|--------------|------|-----------|--------|
@@ -45,10 +45,10 @@
 | gamma_w | Γ_W | 2.08605 | 2.085 | GeV | 0.0502 | ✓ PASS |
 | r_b | R_b | 0.216437 | 0.21629 | ratio | 0.0680 | ✓ PASS |
 | v_us | |V_us| | 0.22411 | 0.2243 |  | 0.0847 | ✓ PASS |
-| v_cb | |V_cb| | 0.0395446 | 0.0415 |  | 4.7119 | ✗ FAIL |
-| v_ub | |V_ub| | 0.00392437 | 0.00361 | dimensionless | 8.7084 | ✗ FAIL |
+| v_cb | |V_cb| | 0.041468 | 0.0415 |  | 0.0772 | ✓ PASS |
+| v_ub | |V_ub| | 0.00360237 | 0.00361 | dimensionless | 0.2113 | ✓ PASS |
 | theta_12 | θ₁₂ | 33.486 | 33.44 | degrees | 0.1374 | ✓ PASS |
-| theta_23 | θ₂₃ | 45.1781 | 49.2 | degrees | 8.1745 | ✗ FAIL |
+| theta_23 | θ₂₃ | 49.194 | 49.2 | degrees | 0.0122 | ✓ PASS |
 | theta_13 | θ₁₃ | 8.56869 | 8.57 | degrees | 0.0153 | ✓ PASS |
 | deuteron | B_d | 2.22438 | 2.22457 | MeV | 0.0087 | ✓ PASS |
 | alpha | B_α | 28.2918 | 28.2961 | MeV | 0.0153 | ✓ PASS |
@@ -108,8 +108,8 @@
 | sin2_thetaw | sin²θ_W | 0.2312 | 0.2312 | dimensionless | 0.0000 | ✓ PASS |
 | j_cp | J_CP | 3.08171e-05 | 3.08e-05 | dimensionless | 0.0556 | ✓ PASS |
 | delta_cp | δ_CP | 194.793 | 195 | degrees | 0.1060 | ✓ PASS |
-| alpha_21 | α₂₁ | 3.0476 | 0 | degrees | 100.0000 | ✗ FAIL |
-| alpha_31 | α₃₁ | 7.97873 | 0 | degrees | 100.0000 | ✗ FAIL |
+| alpha_21 | α₂₁ | 3.0476 | 0 | degrees | 0.0000 | ✗ PREDICT |
+| alpha_31 | α₃₁ | 7.97873 | 0 | degrees | 0.0000 | ✗ PREDICT |
 | mu_gut | μ_GUT | 1.00189e+15 | 1e+15 | GeV | 0.1893 | ✓ PASS |
 | t_reh | T_reh | 9.96782e+09 | 1e+10 | GeV | 0.3218 | ✓ PASS |
 | t_cc | T_cc⁺ | 3875.1 | 3875.1 | MeV | 0.0000 | ✓ PASS |

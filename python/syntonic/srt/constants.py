@@ -52,6 +52,13 @@ from syntonic.exact import (
     PHI_NUMERIC,
     E_STAR_NUMERIC,
     Q_DEFICIT_NUMERIC,
+    PI_NUMERIC,
+    # Prime sequences (Five Operators)
+    FERMAT_PRIMES,
+    MERSENNE_EXPONENTS,
+    LUCAS_SEQUENCE,
+    LUCAS_PRIMES,
+    M11_BARRIER,
     # Structure dimensions
     STRUCTURE_DIMENSIONS,
     # Functions
@@ -63,6 +70,22 @@ from syntonic.exact import (
     GoldenExact,
     Rational,
 )
+
+# =============================================================================
+# THE SIX AXIOMS OF SRT
+# =============================================================================
+
+AXIOMS = {
+    "A1_RECURSION_SYMMETRY": "S[Ψ ∘ R] = φ·S[Ψ]",
+    "A2_SYNTONY_BOUND": "S[Ψ] ≤ φ",
+    "A3_TOROIDAL_TOPOLOGY": "T⁴ = S¹₇ × S¹₈ × S¹₉ × S¹_{10}",
+    "A4_SUB_GAUSSIAN_MEASURE": "w(n) = e^{-|n|²/φ}",
+    "A5_HOLOMORPHIC_GLUING": "Möbius identification at τ = i",
+    "A6_PRIME_SYNTONY": "Stability iff M_p = 2^p - 1 is prime",
+}
+
+# Modular volume of fundamental domain
+MODULAR_VOLUME: float = PI_NUMERIC / 3  # Vol(F) = π/3
 
 # Import hierarchy constants from Rust backend
 from syntonic._core import (
@@ -362,6 +385,15 @@ __all__ = [
     "golden_number",
     "GoldenExact",
     "Rational",
+    # SRT axioms and constants
+    "AXIOMS",
+    "MODULAR_VOLUME",
+    # Prime sequences (Five Operators of Existence)
+    "FERMAT_PRIMES",
+    "MERSENNE_EXPONENTS",
+    "LUCAS_SEQUENCE",
+    "LUCAS_PRIMES",
+    "M11_BARRIER",
     # SRT-specific constants
     "TORUS_DIMENSIONS",
     "E8_ROOTS",

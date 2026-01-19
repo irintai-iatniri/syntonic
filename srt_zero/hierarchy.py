@@ -88,6 +88,74 @@ N_GEN: int = 3  # Number of generations
 
 
 # =============================================================================
+# PRIME SEQUENCES - THE FIVE OPERATORS OF EXISTENCE
+# =============================================================================
+
+# Fermat Primes (The Architect - Differentiation/Force separation)
+# F_n = 2^{2^n} + 1 is prime only for n = 0,1,2,3,4
+FERMAT_PRIMES: tuple = (3, 5, 17, 257, 65537)
+FERMAT_COMPOSITE_5 = 4294967297  # 641 × 6700417 - No 6th force
+
+# Mersenne Primes (The Builder - Harmonization/Matter stability)
+# M_p = 2^p - 1 for prime p
+MERSENNE_EXPONENTS: dict = {
+    2: 3,  # Generation 1 (e, u, d)
+    3: 7,  # Generation 2 (μ, c, s)
+    5: 31,  # Generation 3 (τ, b)
+    7: 127,  # Heavy anchor (t, Higgs)
+    # 11: 2047 = 23 × 89 - COMPOSITE, 4th gen forbidden
+}
+M11_BARRIER = 2047  # The barrier preventing 4th generation
+
+# Lucas Sequence (The Shadow - Balance/Dark sector)
+# L_n = φ^n + (1-φ)^n
+LUCAS_SEQUENCE: tuple = (
+    2,
+    1,
+    3,
+    4,
+    7,
+    11,
+    18,
+    29,
+    47,
+    76,
+    123,
+    199,
+    322,
+    521,
+    843,
+    1364,
+    2207,
+    3571,
+    5778,
+)
+LUCAS_PRIMES_INDICES: tuple = (
+    0,
+    2,
+    4,
+    5,
+    7,
+    8,
+    11,
+    13,
+    16,
+    17,
+)  # indices where L_n is prime
+
+# Fibonacci Prime Gates (Transcendence thresholds)
+FIBONACCI_PRIME_GATES: dict = {
+    3: (2, "Binary/Logic emergence"),
+    4: (3, "Material realm - the 'anomaly'"),  # Composite index!
+    5: (5, "Physics/Life code"),
+    7: (13, "Matter solidification"),
+    11: (89, "Chaos/Complexity"),
+    13: (233, "Consciousness emergence"),
+    17: (1597, "Great Filter - hyperspace"),
+}
+
+
+# =============================================================================
 # CORRECTION LEVEL ENUMERATION
 # =============================================================================
 
@@ -857,6 +925,24 @@ def apply_special(value: float, correction_type: str) -> float:
     Returns:
         Corrected value
     """
+    # Handle special cases that don't follow (1 + ...) pattern BEFORE CUDA
+    # These cases have subtraction or non-standard patterns that CUDA may not handle correctly
+    if correction_type == "2_plus_6q":
+        # Special case: multiply by (2 + 6q), not (1 + ...)
+        return value * (2 + 6 * Q)
+    elif correction_type == "2q_minus":
+        # (1 - 2q) ≈ 0.945 - for W width and similar
+        return value * (1 - 2 * Q)
+    elif correction_type == "4q_minus":
+        # (1 - 4q) ≈ 0.89 - T⁴ CP violation
+        return value * (1 - 4 * Q)
+    elif correction_type == "1_minus_4q":
+        # Alias for 4q_minus
+        return value * (1 - 4 * Q)
+    elif correction_type == "q_phi_minus":
+        # (1 - qφ) ≈ 0.956 - common CKM correction
+        return value * (1 - Q * PHI)
+    
     if _USE_CUDA:
         # Use Rust/CUDA backend
         result = batch_apply_special_correction([value], [correction_type])
