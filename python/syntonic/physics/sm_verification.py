@@ -13,7 +13,7 @@ from typing import Dict
 
 import syntonic.exact as exact
 import syntonic.physics.bosons.gauge as gauge
-import syntonic.physics.constants as constants
+import python.syntonic.core.constants as constants
 import syntonic.physics.fermions.leptons as leptons
 import syntonic.physics.fermions.quarks as quarks
 import syntonic.physics.hadrons.masses as hadrons

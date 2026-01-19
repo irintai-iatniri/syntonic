@@ -63,8 +63,8 @@ class ScaleModule(sn.Module):
         self.norm2 = SyntonicNorm(dim)
 
         # Retrocausal Evolver for this plane
-        # Create template tensor for evolver initialization
-        template = ResonantTensor([0.0] * dim, [dim])
+        # Create template tensor matching differentiated dimension (dim*4)
+        template = ResonantTensor([0.0] * (dim * 4), [dim * 4])
         self.evolver = create_retrocausal_evolver(
             template=template,
             population_size=32,
@@ -99,10 +99,24 @@ class ScaleModule(sn.Module):
         diff = self.diff_proj(self.norm2.forward(x))
         diff.gelu()  # In-place activation
 
-        # Harmonization with Retrocausal Pull
-        # Unwrap for Rust backend
-        harm_input_inner = self.evolver.harmonize(diff._inner)
-        harm_input = ResonantTensor._wrap(harm_input_inner, device=diff.device)
+        # Harmonization with Retrocausal Pull (Option C: feature-space attractors)
+        # Reduce to feature-space representative via mean
+        if len(diff.shape) > 1:
+            mean_repr = diff.mean(dim=0)  # [dim*4] - single representative
+        else:
+            mean_repr = diff
+
+        # Harmonize the representative (matches evolver template)
+        harm_pull_inner = self.evolver.harmonize(mean_repr._inner)
+        harm_pull = ResonantTensor._wrap(harm_pull_inner, device=diff.device)
+
+        # Broadcast pull back to full shape as position-independent bias
+        if len(diff.shape) > 1:
+            harm_input = diff.clone() if hasattr(diff, 'clone') else ResonantTensor(diff.to_floats(), list(diff.shape))
+            harm_input.add_bias(harm_pull)  # In-place broadcast add
+        else:
+            harm_input = diff + harm_pull
+
         harm = self.harm_collapse(harm_input)
         out = x + harm
 
@@ -179,9 +193,10 @@ class DeterministicSuperposition(sn.Module):
             [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0], [8]
         )
 
-    def forward(self, x: ResonantTensor, input_winding: ResonantTensor):
+    def forward(self, x: ResonantTensor, input_winding: ResonantTensor, is_inference: bool = False):
         # 1. Embed into Shared Substrate (Quantum Foam Activation)
         base = self.substrate(x)
+        winding = input_winding  # Preserve for return
 
         # 2. Compute Hooking Coefficients with Input Winding
         c_photon = hooking_coefficient(input_winding, self.photon_winding)
@@ -197,11 +212,12 @@ class DeterministicSuperposition(sn.Module):
         # Electron: Prob Form (Noise) + Det Action (Logic Gate)
         noise = randn_like(base, scale=0.1)
         electron_noisy = base + noise
-        electron_relu = electron_noisy.relu()
-        electron = electron_relu.scalar_mul(c_electron)
+        electron_noisy.relu()  # In-place ReLU activation
+        electron = electron_noisy.scalar_mul(c_electron)
 
         # Quark: Confinement (Sigmoid to [0,1]) + Strong Hooking
-        quark_sig = base.sigmoid()
+        quark_sig = tensor_clone(base)  # Clone before in-place operation
+        quark_sig.sigmoid()  # In-place sigmoid activation
         quark = quark_sig.scalar_mul(c_quark)
 
         # 4. Coherence Measurement (Which Reality Dominates?)
@@ -216,7 +232,7 @@ class DeterministicSuperposition(sn.Module):
 
         # 6. Gravity Emergence: Interaction with Spacetime
         gravity_pull = collapsed.mean(dim=-1, keepdim=True)
-        return collapsed + gravity_pull
+        return collapsed + gravity_pull, winding  # Return tuple to match ScaleModule interface
 
 
 class GnosticOuroboros(sn.Module):
@@ -246,8 +262,8 @@ class GnosticOuroboros(sn.Module):
         self.recursion_head = ResonantLinear(dim, 2)
         self.decoder = ResonantLinear(dim, dim)
 
-        # Global Attractors (Cross-plane pull)
-        template = ResonantTensor([0.0] * (dim * PLANES), [dim * PLANES])
+        # Global Attractors (Cross-plane pull) - using [dim] for position-wise aggregation
+        template = ResonantTensor([0.0] * dim, [dim])
         self.global_evolver = create_retrocausal_evolver(
             template=template,
             attractor_capacity=ATTRACTOR_CAPACITY * PLANES,
@@ -292,17 +308,22 @@ class GnosticOuroboros(sn.Module):
                     if hook_val > PHI:
                         x = x + prev_module.crystallized
 
-            # Global Pull - flatten and reshape
-            x_flat = (
-                x.view(self.dim * PLANES)
-                if len(x.to_floats()) == self.dim * PLANES
-                else x
-            )
-            x_inner = self.global_evolver.pull(x_flat._inner)
-            x = ResonantTensor._wrap(x_inner, device=x.device)
-            # Reshape back if needed
-            if x.shape != [self.dim]:
-                x = x.view(self.dim)
+            # Global Pull (Option C: feature-space aggregation)
+            # Compute mean representation for global attractor
+            if len(x.shape) > 1:
+                x_mean = x.mean(dim=0)  # [dim]
+            else:
+                x_mean = x
+
+            # Apply global pull to mean
+            x_pull_inner = self.global_evolver.pull(x_mean._inner)
+            x_pull = ResonantTensor._wrap(x_pull_inner, device=x.device)
+
+            # Broadcast pull back to all positions
+            if len(x.shape) > 1:
+                x.add_bias(x_pull)  # In-place broadcast add
+            else:
+                x = x + x_pull
 
         # Consciousness Check (Gamma Lock Analog)
         if self._check_consciousness():

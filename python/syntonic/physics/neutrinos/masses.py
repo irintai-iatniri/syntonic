@@ -15,7 +15,7 @@ a distinctive prediction of SRT.
 import math
 
 from syntonic.exact import E_STAR_NUMERIC, Q_DEFICIT_NUMERIC, get_correction_factor
-from syntonic.physics.constants import RHO_LAMBDA_QUARTER
+from python.syntonic.core.constants import RHO_LAMBDA_QUARTER
 
 
 def m_nu3() -> float:

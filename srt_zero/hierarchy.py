@@ -36,123 +36,34 @@ from syntonic.exact import (
     STRUCTURE_DIMENSIONS,
 )
 
-# Constants for high-precision calculations
-PHI = PHI_NUMERIC  # φ ≈ 1.618...
-E_STAR = E_STAR_NUMERIC  # e^π - π ≈ 19.999...
-Q = Q_DEFICIT_NUMERIC  # Universal syntony deficit ≈ 0.0274
-
-PHI_INV = 1.0 / PHI  # φ⁻¹ ≈ 0.618...
-PI = PI_NUMERIC  # π ≈ 3.14159...
-E = E_NUMERIC  # e ≈ 2.71828...
-
+# Import constants from syntonic core constants module
+from syntonic.core.constants import (
+    PHI, PHI_INV, PI, E, E_STAR, Q,
+    H_E8, DIM_E8, ROOTS_E8, ROOTS_E8_POS, RANK_E8,
+    H_E7, DIM_E7, DIM_E7_FUND, ROOTS_E7, ROOTS_E7_POS, RANK_E7,
+    H_E6, DIM_E6, DIM_E6_FUND, ROOTS_E6_POS, RANK_E6,
+    K_D4, DIM_D4, RANK_D4,
+    DIM_F4, DIM_G2,
+    DIM_T4, N_GEN,
+    FERMAT_PRIMES, FERMAT_COMPOSITE_5,
+    MERSENNE_EXPONENTS, M11_BARRIER,
+    LUCAS_SEQUENCE, LUCAS_PRIMES_INDICES,
+    FIBONACCI_PRIME_GATES,
+    GEOMETRIC_DIVISORS, FIBONACCI,
+)
 
 # =============================================================================
 # GROUP THEORY CONSTANTS
 # =============================================================================
 
-# E₈ Lattice (The Vacuum)
-H_E8: int = 30  # Coxeter number h(E₈)
-DIM_E8: int = 248  # dim(E₈) adjoint representation
-ROOTS_E8: int = 240  # Total roots
-ROOTS_E8_POS: int = 120  # Positive roots |Φ⁺(E₈)|
-RANK_E8: int = 8  # Cartan subalgebra dimension
-
-# E₇ Lattice (Intermediate Unification)
-H_E7: int = 18  # Coxeter number h(E₇)
-DIM_E7: int = 133  # dim(E₇) adjoint
-DIM_E7_FUND: int = 56  # dim(E₇) fundamental
-ROOTS_E7: int = 126  # Total roots
-ROOTS_E7_POS: int = 63  # Positive roots
-RANK_E7: int = 7  # Cartan subalgebra
-
-# E₆ Lattice (The Gauge Sector)
-H_E6: int = 12  # Coxeter number h(E₆)
-DIM_E6: int = 78  # dim(E₆)
-DIM_E6_FUND: int = 27  # E₆ fundamental representation
-ROOTS_E6: int = 72  # Total roots
-ROOTS_E6_POS: int = 36  # Positive roots |Φ⁺(E₆)| = Golden Cone
-RANK_E6: int = 6  # Cartan subalgebra
-
-# D₄ Lattice (Spacetime Projection)
-K_D4: int = 24  # Kissing number K(D₄)
-DIM_D4: int = 28  # dim(SO(8))
-RANK_D4: int = 4  # Rank
-
-# Other Exceptional
-DIM_F4: int = 52  # dim(F₄)
-DIM_G2: int = 14  # dim(G₂)
-
-# Topological Constants
-DIM_T4: int = 4  # T⁴ dimensions
-N_GEN: int = 3  # Number of generations
+# Constants moved to constants.py - imported above
 
 
 # =============================================================================
 # PRIME SEQUENCES - THE FIVE OPERATORS OF EXISTENCE
 # =============================================================================
 
-# Fermat Primes (The Architect - Differentiation/Force separation)
-# F_n = 2^{2^n} + 1 is prime only for n = 0,1,2,3,4
-FERMAT_PRIMES: tuple = (3, 5, 17, 257, 65537)
-FERMAT_COMPOSITE_5 = 4294967297  # 641 × 6700417 - No 6th force
-
-# Mersenne Primes (The Builder - Harmonization/Matter stability)
-# M_p = 2^p - 1 for prime p
-MERSENNE_EXPONENTS: dict = {
-    2: 3,  # Generation 1 (e, u, d)
-    3: 7,  # Generation 2 (μ, c, s)
-    5: 31,  # Generation 3 (τ, b)
-    7: 127,  # Heavy anchor (t, Higgs)
-    # 11: 2047 = 23 × 89 - COMPOSITE, 4th gen forbidden
-}
-M11_BARRIER = 2047  # The barrier preventing 4th generation
-
-# Lucas Sequence (The Shadow - Balance/Dark sector)
-# L_n = φ^n + (1-φ)^n
-LUCAS_SEQUENCE: tuple = (
-    2,
-    1,
-    3,
-    4,
-    7,
-    11,
-    18,
-    29,
-    47,
-    76,
-    123,
-    199,
-    322,
-    521,
-    843,
-    1364,
-    2207,
-    3571,
-    5778,
-)
-LUCAS_PRIMES_INDICES: tuple = (
-    0,
-    2,
-    4,
-    5,
-    7,
-    8,
-    11,
-    13,
-    16,
-    17,
-)  # indices where L_n is prime
-
-# Fibonacci Prime Gates (Transcendence thresholds)
-FIBONACCI_PRIME_GATES: dict = {
-    3: (2, "Binary/Logic emergence"),
-    4: (3, "Material realm - the 'anomaly'"),  # Composite index!
-    5: (5, "Physics/Life code"),
-    7: (13, "Matter solidification"),
-    11: (89, "Chaos/Complexity"),
-    13: (233, "Consciousness emergence"),
-    17: (1597, "Great Filter - hyperspace"),
-}
+# Constants moved to constants.py - imported above
 
 
 # =============================================================================
@@ -294,60 +205,7 @@ class CorrectionInfo:
 # GEOMETRIC DIVISOR REFERENCE TABLE
 # =============================================================================
 
-GEOMETRIC_DIVISORS: Dict[str, float] = {
-    # E₈ Structure
-    "h_E8_cubed_27": float(1000),  # 30³/27 = 1000
-    "coxeter_kissing": float(720),  # 30 × 24 = 720
-    "cone_cycles": float(360),  # 10 × 36 = 360
-    "dim_E8": float(248),  # dim(E₈)
-    "roots_E8_full": float(240),  # |Φ(E₈)|
-    "roots_E8": float(120),  # |Φ⁺(E₈)|
-    "h_E8": float(30),  # h(E₈)
-    "rank_E8": float(8),  # rank(E₈)
-    # E₇ Structure
-    "dim_E7": float(133),  # dim(E₇)
-    "roots_E7_full": float(126),  # |Φ(E₇)|
-    "roots_E7": float(63),  # |Φ⁺(E₇)|
-    "fund_E7": float(56),  # dim(E₇ fund)
-    "h_E7": float(18),  # h(E₇)
-    "rank_E7": float(7),  # rank(E₇)
-    # E₆ Structure
-    "dim_E6": float(78),  # dim(E₆)
-    "roots_E6_full": float(72),  # |Φ(E₆)|
-    "roots_E6": float(36),  # |Φ⁺(E₆)|
-    "fund_E6": float(27),  # dim(E₆ fund)
-    "rank_E6": float(6),  # rank(E₆)
-    # Other Exceptional
-    "dim_F4": float(52),  # dim(F₄)
-    "dim_G2": float(14),  # dim(G₂)
-    "dim_SO8": float(28),  # dim(SO(8))
-    "kissing_D4": float(24),  # K(D₄)
-    # QCD Loop Factors
-    "six_loop": 6 * PI,  # 6π
-    "five_loop": 5 * PI,  # 5π
-    "one_loop": 4 * PI,  # 4π
-    "three_loop": 3 * PI,  # 3π
-    "half_loop": 2 * PI,  # 2π
-    "circular_loop": PI,  # π
-    # Topological/Generation
-    "topology_gen": float(12),  # 12
-    "generation_sq": float(9),  # 9
-    "sub_generation": float(6),  # 6
-    "quarter_layer": float(4),  # 4
-    "single_gen": float(3),  # 3
-    "half_layer": float(2),  # 2
-    "single_layer": float(1),  # 1
-    # Golden Ratio Based
-    "phi": PHI,  # φ
-    "phi_inv": PHI_INV,  # 1/φ
-    "phi_cubed": PHI**3,  # φ³
-    "phi_squared": PHI**2,  # φ²
-    "phi_fourth": PHI**4,  # φ⁴
-    "phi_fifth": PHI**5,  # φ⁵
-    # Binary
-    "binary_5": float(32),  # 2⁵
-    "binary_4": float(16),  # 2⁴
-}
+# Constants moved to constants.py - imported above
 
 
 # =============================================================================
@@ -1245,21 +1103,7 @@ def apply_corrections(
 # FIBONACCI SEQUENCE (used for particle integers)
 # =============================================================================
 
-
-def fibonacci(n: int) -> int:
-    """Return the nth Fibonacci number (1-indexed: F₁=1, F₂=1, F₃=2, ...)."""
-    if n <= 0:
-        raise ValueError("Fibonacci index must be positive")
-    if n <= 2:
-        return 1
-    a, b = 1, 1
-    for _ in range(n - 2):
-        a, b = b, a + b
-    return b
-
-
-# Pre-computed Fibonacci numbers used in SRT
-FIBONACCI: Dict[int, int] = {i: fibonacci(i) for i in range(1, 20)}
+# Constants moved to constants.py - imported above
 
 
 # =============================================================================
@@ -1326,24 +1170,6 @@ def compute_kaon_mass() -> DerivationResult:
 # =============================================================================
 
 __all__ = [
-    # Constants
-    "PHI",
-    "PHI_INV",
-    "PI",
-    "E",
-    "E_STAR",
-    "Q",
-    "H_E8",
-    "DIM_E8",
-    "ROOTS_E8",
-    "ROOTS_E8_POS",
-    "RANK_E8",
-    "DIM_E6",
-    "DIM_E6_FUND",
-    "ROOTS_E6_POS",
-    "K_D4",
-    "DIM_T4",
-    "N_GEN",
     # Enums
     "CorrectionLevel",
     "CorrectionCategory",
@@ -1352,9 +1178,7 @@ __all__ = [
     "CorrectionRecord",
     "DerivationResult",
     # Tables
-    "GEOMETRIC_DIVISORS",
     "CORRECTION_HIERARCHY",
-    "FIBONACCI",
     # Functions
     "apply_correction",
     "apply_correction_by_name",
@@ -1364,7 +1188,6 @@ __all__ = [
     "apply_double_inverse",
     "apply_fixed_point_penalty",
     "apply_corrections",
-    "fibonacci",
     "compute_E_star_N",
     "compute_proton_mass",
     "compute_neutron_mass",

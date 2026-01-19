@@ -20,7 +20,7 @@ from typing import Any
 from tqdm import tqdm
 from .config import get_config
 from .engine import DerivationEngine, MassMiner
-from .constants import UniverseSeeds
+from syntonic.core.constants import UniverseSeeds
 from .geometry import GeometricInvariants
 from .catalog import PARTICLE_CATALOG, get_particle
 from .hierarchy import Q, E_STAR, PHI

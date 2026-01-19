@@ -25,7 +25,7 @@ Usage:
 from __future__ import annotations
 
 # Core modules
-from .hierarchy import (
+from syntonic.core.constants import (
     # Constants
     PHI,
     PHI_INV,
@@ -38,12 +38,36 @@ from .hierarchy import (
     ROOTS_E8,
     ROOTS_E8_POS,
     RANK_E8,
+    H_E7,
+    DIM_E7,
+    DIM_E7_FUND,
+    ROOTS_E7,
+    ROOTS_E7_POS,
+    RANK_E7,
+    H_E6,
     DIM_E6,
     DIM_E6_FUND,
     ROOTS_E6_POS,
+    RANK_E6,
     K_D4,
+    DIM_D4,
+    RANK_D4,
+    DIM_F4,
+    DIM_G2,
     DIM_T4,
     N_GEN,
+    FERMAT_PRIMES,
+    FERMAT_COMPOSITE_5,
+    MERSENNE_EXPONENTS,
+    M11_BARRIER,
+    LUCAS_SEQUENCE,
+    LUCAS_PRIMES_INDICES,
+    FIBONACCI_PRIME_GATES,
+    GEOMETRIC_DIVISORS,
+    FIBONACCI,
+)
+
+from .hierarchy import (
     # Enums
     CorrectionLevel,
     CorrectionCategory,
@@ -52,9 +76,7 @@ from .hierarchy import (
     CorrectionRecord,
     DerivationResult,
     # Tables
-    GEOMETRIC_DIVISORS,
     CORRECTION_HIERARCHY,
-    FIBONACCI,
     # Functions
     apply_correction,
     apply_special,
@@ -70,7 +92,7 @@ from .hierarchy import (
     compute_kaon_mass,
 )
 
-from .constants import UniverseSeeds
+from syntonic.core.constants import UniverseSeeds
 
 from .geometry import GeometricInvariants
 

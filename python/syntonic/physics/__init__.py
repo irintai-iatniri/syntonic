@@ -37,7 +37,7 @@ from syntonic.physics import (
     validation,
 )
 from syntonic.physics.bosons import GaugeSector, HiggsSector
-from syntonic.physics.constants import (
+from python.syntonic.core.constants import (
     ALPHA_EM_0,
     M_H_PDG,
     M_W_PDG,

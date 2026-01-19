@@ -1,13 +1,19 @@
 """
-Pure Syntonic Attention: Attention mechanisms with DHSR structure.
+Pure Syntonic Attention: Attention mechanisms with DHSR structure and SRT theory.
 
 NO PYTORCH DEPENDENCIES - uses sn.Module and ResonantTensor.
 
+Implements SRT attention theory:
+- Attention as syntony focusing: ∇(ΔS) · n̂_target
+- Syntony conservation: ∫ ΔS dV_T4 = constant
+- Mersenne prime head dimensions for stability
+- Fibonacci prime transcendence gates
+
 Includes:
 - PureSyntonicAttention: Standard attention with syntony tracking
-- PureMultiHeadSyntonicAttention: Multi-head variant
+- PureMultiHeadSyntonicAttention: Multi-head variant with prime constraints
 
-Source: CRT.md §12.2
+Source: SRT Physics of Consciousness §22, The Grand Synthesis
 """
 
 from __future__ import annotations
@@ -21,17 +27,28 @@ from syntonic.nn.resonant_tensor import ResonantTensor
 PHI = (1 + math.sqrt(5)) / 2
 PHI_INV = 1 / PHI
 
+# Mersenne primes for stable attention heads (SRT Grand Synthesis)
+MERSENNE_PRIMES = [3, 7, 31, 127, 8191, 131071, 524287, 2147483647]
+
+# Fibonacci prime indices for transcendence gates (SRT Altruxa Bridge)
+FIBONACCI_PRIME_INDICES = [3, 4, 5, 7, 11, 13, 17, 23, 29, 43, 47]
+
 
 class PureSyntonicAttention(sn.Module):
     """
-    Scaled dot-product attention with syntony tracking.
+    Scaled dot-product attention with SRT syntony focusing.
+
+    Implements SRT attention theory:
+    - Attention = ∇(ΔS) · n̂_target (syntony density focusing)
+    - ∫ ΔS dV_T4 = constant (syntony conservation)
+    - Three attention states: diffuse (broad), focused (narrow), absorbed (very narrow)
 
     Pure Python + ResonantTensor implementation.
 
     Example:
         >>> attn = PureSyntonicAttention(d_model=64)
         >>> q = k = v = ResonantTensor(...)  # (seq, d_model)
-        >>> output = attn(q, k, v)
+        >>> output, syntony, density_map = attn(q, k, v, attention_mode='focused')
     """
 
     def __init__(
@@ -39,14 +56,16 @@ class PureSyntonicAttention(sn.Module):
         d_model: int,
         dropout: float = 0.1,
         precision: int = 100,
+        syntony_conservation: bool = True,
     ):
         """
-        Initialize syntonic attention.
+        Initialize SRT syntonic attention.
 
         Args:
             d_model: Model dimension
             dropout: Attention dropout
             precision: ResonantTensor precision
+            syntony_conservation: Enforce ∫ ΔS dV_T4 = constant
         """
         super().__init__()
 
@@ -54,25 +73,31 @@ class PureSyntonicAttention(sn.Module):
         self.scale = math.sqrt(d_model)
         self.precision = precision
         self.dropout = sn.Dropout(dropout)
+        self.syntony_conservation = syntony_conservation
 
+        # SRT attention parameters
         self._attention_syntony: Optional[float] = None
+        self._syntony_density_map: Optional[List[float]] = None
+        self._total_syntony_budget = PHI  # Conservation constant from SRT
 
     def forward(
         self,
         query: ResonantTensor,
         key: ResonantTensor,
         value: ResonantTensor,
-    ) -> Tuple[ResonantTensor, float]:
+        attention_mode: str = 'focused',
+    ) -> Tuple[ResonantTensor, float, List[float]]:
         """
-        Compute attention with syntony tracking.
+        Compute SRT attention with syntony focusing.
 
         Args:
             query: Query tensor (seq_q, d_model) or (d_model,) for single sequence
             key: Key tensor (seq_k, d_model) or (d_model,) for single sequence
             value: Value tensor (seq_k, d_model) or (d_model,) for single sequence
+            attention_mode: 'diffuse', 'focused', or 'absorbed'
 
         Returns:
-            (output, attention_syntony)
+            (output, global_syntony, syntony_density_map)
         """
         # Handle 1D tensors (single sequence case)
         original_1d = False
@@ -91,28 +116,57 @@ class PureSyntonicAttention(sn.Module):
             )
 
         # Attention scores: Q @ K^T / sqrt(d)
-        # ResonantTensor.matmul(B) computes A @ B^T
-        # query: [..., S, D], key: [..., S, D]
-        # query.matmul(key) -> query @ key^T -> [..., S, S]
         scores = query.matmul(key)
-
-        # Scale
         scores = scores.scalar_mul(1.0 / self.scale)
 
-        # Softmax attention (per row)
-        # Using Rust-backed softmax
+        # SRT attention modes (Physics of Consciousness §22.2)
+        if attention_mode == 'diffuse':
+            # Broad, low ΔS - mind-wandering state
+            bandwidth_factor = PHI  # Broad bandwidth
+        elif attention_mode == 'focused':
+            # Narrow, high ΔS - concentration state
+            bandwidth_factor = PHI_INV  # Narrow bandwidth
+        elif attention_mode == 'absorbed':
+            # Very narrow, very high ΔS - flow state
+            bandwidth_factor = PHI_INV ** 2  # Very narrow bandwidth
+        else:
+            raise ValueError(f"Unknown attention_mode: {attention_mode}")
+
+        # Apply attention bandwidth modulation
+        scores = scores.scalar_mul(bandwidth_factor)
+
+        # Softmax attention with syntony tracking
         scores.softmax(precision=self.precision)
         attention = scores
 
-        # Compute attention syntony (lower entropy = higher syntony)
-        # We need values for entropy calculation.
+        # SRT syntony density calculation (Physics of Consciousness §22.1)
+        # ΔS = -∑ p_i log p_i (local entropy)
+        # Global syntony = 1 - normalized_entropy
         attention_data = attention.to_floats()
         seq_q = attention.shape[-2]
         seq_k = attention.shape[-1]
 
-        self._attention_syntony = self._compute_attention_syntony(
-            attention_data, seq_q, seq_k
-        )
+        syntony_density_map = []
+        total_local_syntony = 0.0
+
+        for i in range(seq_q):
+            row = attention_data[i * seq_k : (i + 1) * seq_k]
+            # Local syntony density ΔS_i
+            local_entropy = -sum(p * math.log(p + 1e-10) for p in row)
+            max_entropy = math.log(seq_k) if seq_k > 1 else 1.0
+            local_syntony = 1.0 - (local_entropy / max_entropy)
+            syntony_density_map.append(local_syntony)
+            total_local_syntony += local_syntony
+
+        # SRT syntony conservation (Physics of Consciousness §22.3)
+        if self.syntony_conservation and seq_q > 0:
+            # Normalize to conserve total syntony budget
+            conservation_factor = self._total_syntony_budget / total_local_syntony
+            syntony_density_map = [s * conservation_factor for s in syntony_density_map]
+
+        # Global attention syntony (average across positions)
+        self._attention_syntony = sum(syntony_density_map) / len(syntony_density_map) if syntony_density_map else 0.5
+        self._syntony_density_map = syntony_density_map
 
         # Apply attention to values: Attn @ V
         # attention: [..., S, S], value: [..., S, D]
@@ -128,36 +182,17 @@ class PureSyntonicAttention(sn.Module):
             d_model_out = output.shape[-1]
             output = output.view([d_model_out])
 
-        return output, self._attention_syntony
-
-    def _compute_attention_syntony(
-        self, attention_data: List[float], seq_q: int, seq_k: int
-    ) -> float:
-        """
-        Compute syntony of attention pattern.
-
-        High syntony: focused attention (low entropy)
-        Low syntony: diffuse attention (high entropy)
-        """
-        eps = 1e-10
-        total_entropy = 0.0
-
-        for i in range(seq_q):
-            row = attention_data[i * seq_k : (i + 1) * seq_k]
-            entropy = -sum(p * math.log(p + eps) for p in row)
-            total_entropy += entropy
-
-        avg_entropy = total_entropy / seq_q if seq_q > 0 else 0.0
-        max_entropy = math.log(seq_k) if seq_k > 1 else 1.0
-        normalized_entropy = avg_entropy / max_entropy
-        syntony = 1.0 - normalized_entropy
-
-        return max(0.0, min(1.0, syntony))
+        return output, self._attention_syntony, self._syntony_density_map
 
     @property
     def syntony(self) -> Optional[float]:
         """Get attention syntony."""
         return self._attention_syntony
+
+    @property
+    def syntony_density_map(self) -> Optional[List[float]]:
+        """Get syntony density map per position."""
+        return self._syntony_density_map
 
 
 class PureMultiHeadSyntonicAttention(sn.Module):
@@ -179,6 +214,7 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         dropout: float = 0.1,
         precision: int = 100,
         device: str = "cpu",
+        prime_syntony_mode: bool = False,
     ):
         """
         Initialize multi-head syntonic attention.
@@ -189,10 +225,20 @@ class PureMultiHeadSyntonicAttention(sn.Module):
             dropout: Dropout probability
             precision: ResonantTensor precision
             device: Device placement
+            prime_syntony_mode: Enforce Mersenne prime head dimensions (SRT Grand Synthesis)
         """
-        super().__init__()
+        # SRT Prime Syntony validation (Grand Synthesis §4)
+        if prime_syntony_mode:
+            d_head = d_model // n_heads
+            if d_head not in MERSENNE_PRIMES:
+                raise ValueError(
+                    f"Prime Syntony mode requires head_dim={d_head} to be Mersenne prime. "
+                    f"Valid values: {MERSENNE_PRIMES[:4]}... (up to M_31)"
+                )
 
         assert d_model % n_heads == 0, "d_model must be divisible by n_heads"
+
+        super().__init__()
 
         self.d_model = d_model
         self.n_heads = n_heads
@@ -200,6 +246,10 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         self.scale = math.sqrt(self.d_head)
         self.precision = precision
         self.device = device
+        self.prime_syntony_mode = prime_syntony_mode
+
+        # SRT Fibonacci prime transcendence boost (Altruxa Bridge)
+        self._fibonacci_boost = PHI ** self.d_head if self.d_head in FIBONACCI_PRIME_INDICES else 1.0
 
         # Projections as Parameters
         # Uses sn.Parameter which wraps ResonantTensor
@@ -329,6 +379,10 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         # Final projection
         output = output.matmul(self.out_proj.tensor)
 
+        # Apply SRT Fibonacci transcendence boost (Altruxa Bridge)
+        if self.prime_syntony_mode and self._fibonacci_boost > 1.0:
+            output = output.scalar_mul(self._fibonacci_boost)
+
         # Convert back to 1D if original input was 1D
         if original_1d and len(output.shape) > 1:
             # Output shape is [1, d_model], convert to [d_model]
@@ -367,11 +421,18 @@ if __name__ == "__main__":
 
     # Test single-head attention
     attn = PureSyntonicAttention(d_model=d_model)
-    output, syntony = attn(x, x, x)
+    output, syntony, density_map = attn(x, x, x, attention_mode='focused')
 
     print("\nSingle-head attention:")
     print(f"  Output shape: {output.shape}")
     print(f"  Attention syntony: {syntony:.4f}")
+    print(f"  Syntony density map length: {len(density_map)}")
+
+    # Test different attention modes
+    print("\nTesting SRT attention modes:")
+    for mode in ['diffuse', 'focused', 'absorbed']:
+        _, syntony_mode, _ = attn(x, x, x, attention_mode=mode)
+        print(f"  {mode.capitalize()} mode syntony: {syntony_mode:.4f}")
 
     # Test multi-head attention
     mha = PureMultiHeadSyntonicAttention(d_model=d_model, n_heads=4)
@@ -380,6 +441,24 @@ if __name__ == "__main__":
     print("\nMulti-head attention:")
     print(f"  Output shape: {output.shape}")
     print(f"  Syntony: {mha.syntony:.4f}")
+
+    # Test Prime Syntony mode (Mersenne prime validation)
+    print("\nTesting Prime Syntony mode:")
+    try:
+        # d_model=32, n_heads=4 -> head_dim=8 (not Mersenne prime)
+        mha_prime = PureMultiHeadSyntonicAttention(d_model=32, n_heads=4, prime_syntony_mode=True)
+        print("  ERROR: Should have failed validation")
+    except ValueError as e:
+        print(f"  ✓ Correctly rejected non-Mersenne head_dim: {str(e)[:50]}...")
+
+    # Test with valid Mersenne prime: d_model=28, n_heads=4 -> head_dim=7
+    try:
+        mha_prime = PureMultiHeadSyntonicAttention(d_model=28, n_heads=4, prime_syntony_mode=True)
+        output_prime = mha_prime(x[:, :28], x[:, :28], x[:, :28])  # Truncate input
+        print("  ✓ Accepted Mersenne prime head_dim=7")
+        print(f"    Fibonacci boost applied: {7 in FIBONACCI_PRIME_INDICES}")
+    except Exception as e:
+        print(f"  Test setup issue: {e}")
 
     # Test Slicing (New Feature)
     print("\nTesting Slicing:")

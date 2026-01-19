@@ -8,7 +8,7 @@ Unit tests that pass only if geometric derivation matches experimental reality.
 import sys
 import json
 from pathlib import Path
-from .constants import UniverseSeeds
+from syntonic.core.constants import UniverseSeeds
 from .geometry import GeometricInvariants
 from .engine import DerivationEngine, MassMiner
 from .auto import AutoMiner

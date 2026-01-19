@@ -21,7 +21,7 @@ GUT scale:
 import math
 
 from syntonic.exact import PHI, Q_DEFICIT_NUMERIC
-from syntonic.physics.constants import M_Z, V_EW
+from python.syntonic.core.constants import M_Z, V_EW
 
 # =============================================================================
 # Beta Coefficients (Standard Model)

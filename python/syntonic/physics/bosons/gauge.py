@@ -20,7 +20,7 @@ Charge Quantization (from winding numbers):
 import math
 
 from syntonic.exact import E_STAR_NUMERIC, PHI, Q_DEFICIT_NUMERIC, get_correction_factor
-from syntonic.physics.constants import V_EW
+from python.syntonic.core.constants import V_EW
 
 
 def weinberg_angle() -> float:
