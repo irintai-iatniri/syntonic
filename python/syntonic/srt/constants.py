@@ -6,9 +6,9 @@ SRT-specific dimensional constants derived from Lie group geometry.
 
 Core Constants:
     PHI, PHI_SQUARED, PHI_INVERSE - Exact golden ratio forms
-    PHI_NUMERIC - Float approximation of φ ≈ 1.618033988749895
+    PHI - Float approximation of φ ≈ 1.618033988749895
     E_STAR_NUMERIC - Spectral constant e^π - π ≈ 20.1408
-    Q_DEFICIT_NUMERIC - Universal syntony deficit q ≈ 0.0274
+    Q - Universal syntony deficit q ≈ 0.0274
 
 Lie Group Dimensions (Newly Exposed):
     E8_ROOTS - E₈ root count (240) - Exceptional unification
@@ -44,21 +44,16 @@ Geometric Constants:
 """
 
 from syntonic.exact import (
-    E_STAR_NUMERIC,
     # Prime sequences (Five Operators)
     FERMAT_PRIMES,
     LUCAS_PRIMES,
     LUCAS_SEQUENCE,
     M11_BARRIER,
     MERSENNE_EXPONENTS,
-    # Exact golden ratio constants
+    # Exact golden ratio constants (types only, not values)
     PHI,
     PHI_INVERSE,
-    # Numeric constants
-    PHI_NUMERIC,
     PHI_SQUARED,
-    PI_NUMERIC,
-    Q_DEFICIT_NUMERIC,
     # Structure dimensions
     STRUCTURE_DIMENSIONS,
     # Types
@@ -69,7 +64,34 @@ from syntonic.exact import (
     fibonacci,
     golden_number,
     lucas,
+    get_correction_factor,
 )
+
+# Import runtime constants from Rust backend
+from syntonic._core import (
+    srt_q_deficit,
+    srt_pi,
+    srt_e,
+    py_e_star,
+)
+
+import math
+
+# Get constants from Rust backend (single source of truth)
+Q = srt_q_deficit()
+PI_NUMERIC = srt_pi()
+E_NUMERIC = srt_e()
+E_STAR_NUMERIC = py_e_star()
+
+# For PHI, use the exact type's evaluate method
+PHI_NUMERIC = PHI.eval()  # Convert GoldenExact to float
+
+# Backward compatibility aliases
+PHI_INV = PHI_INVERSE
+Q_DEFICIT_NUMERIC = Q  # Alias for compatibility
+PI = PI_NUMERIC
+E = E_NUMERIC
+E_STAR = E_STAR_NUMERIC
 
 # =============================================================================
 # THE SIX AXIOMS OF SRT
@@ -370,14 +392,329 @@ WINDING_INDICES = (7, 8, 9, 10)  # Physical dimension labels
 # Root norm (all E8 roots have |lambda|^2 = 2)
 E8_ROOT_NORM_SQUARED: int = 2
 
+class UniverseSeeds:
+    """
+    The four geometric constants {φ, π, e, 1} from which all physics emerges.
+    """
+
+    def __init__(self):
+        # The Four Seeds
+        self.phi: GoldenExact = PHI
+        self.pi: float = PI_NUMERIC
+        self.e: float = E_NUMERIC
+        self.one: float = 1.0
+
+        # Derived Constants
+        self.E_star: float = E_STAR_NUMERIC
+        self.q: float = Q
+
+        # Three-Term Decomposition of E*
+        self.E_bulk: float = self._calculate_E_bulk()
+        self.E_torsion: float = self._calculate_E_torsion()
+        self.E_cone: float = self._calculate_E_cone()
+        self.Delta: float = self._calculate_residual()
+
+    def _calculate_E_bulk(self) -> float:
+        """Bulk term: Γ(1/4)² ≈ 13.14504720659687"""
+        from scipy.special import gamma
+
+        return float(gamma(0.25) ** 2)
+
+    def _calculate_E_torsion(self) -> float:
+        """Torsion term: π(π - 1) ≈ 6.72801174749952"""
+        return self.pi * (self.pi - 1)
+
+    def _calculate_E_cone(self) -> float:
+        """Cone term: (35/12)e^(-π) ≈ 0.12604059493600"""
+        return (35.0 / 12.0) * (self.e ** (-self.pi))
+
+    def _calculate_residual(self) -> float:
+        """
+        Residual Δ = E* - E_bulk - E_torsion - E_cone
+        Expected: Δ ≈ 4.30 × 10⁻⁷
+
+        Physical meaning: The 0.02% that doesn't crystallize—
+        the "engine of time" driving cosmic evolution.
+        """
+        return self.E_star - self.E_bulk - self.E_torsion - self.E_cone
+
+    def validate(self) -> dict:
+        """
+        Validation checks against theoretical values.
+        Returns dict of {constant: (computed, expected, match)}.
+        """
+        results = {}
+
+        # E* validation
+        E_star_expected = 19.999099979189475767
+        E_star_match = abs(self.E_star - E_star_expected) < 1e-15
+        results["E_star"] = (self.E_star, E_star_expected, E_star_match)
+
+        # q validation
+        q_expected = 0.0273951469201761
+        q_match = abs(self.q - q_expected) < 1e-12
+        results["q"] = (self.q, q_expected, q_match)
+
+        # Δ validation (should be ~4.30 × 10⁻⁷)
+        Delta_expected = 4.30e-7
+        Delta_match = abs(self.Delta - Delta_expected) / Delta_expected < 0.01
+        results["Delta"] = (self.Delta, Delta_expected, Delta_match)
+
+        # Three-term decomposition validation
+        decomposition_sum = self.E_bulk + self.E_torsion + self.E_cone + self.Delta
+        decomposition_match = abs(decomposition_sum - self.E_star) < 1e-50
+        results["decomposition"] = (decomposition_sum, self.E_star, decomposition_match)
+
+        return results
+
+    def __repr__(self) -> str:
+        return f"""UniverseSeeds:
+  φ  = {self.phi.eval():.20f}
+  π  = {self.pi:.20f}
+  e  = {self.e:.20f}
+  E* = {self.E_star:.20f}
+  q  = {self.q:.20f}
+  Δ  = {self.Delta:.10e}"""
+
+
+# Module-level constants for direct import (backward compatibility)
+phi = PHI
+phi_inv = PHI_INVERSE
+pi = PI_NUMERIC
+e = E_NUMERIC
+E_star = E_STAR_NUMERIC
+q = Q
+
+# Group constants
+h_E8 = E8_COXETER_NUMBER
+K_D4 = D4_KISSING
+dim_E8 = E8_DIMENSION
+rank_E8 = E8_RANK
+roots_E8 = E8_ROOTS
+dim_E6 = E6_DIMENSION
+dim_E6_fund = E6_FUNDAMENTAL
+roots_E6 = E6_POSITIVE_ROOTS
+dim_T4 = TORUS_DIMENSIONS
+N_gen = 3  # Number of generations
+
+# Additional group constants
+h_E7 = E7_COXETER
+dim_E7 = E7_DIMENSION
+dim_E7_fund = E7_FUNDAMENTAL
+roots_E7 = E7_ROOTS
+roots_E7_pos = E7_POSITIVE_ROOTS
+rank_E7 = E7_RANK
+h_E6 = E6_COXETER
+roots_E6_full = E6_ROOTS  # Alias for compatibility
+rank_E6 = E6_RANK
+dim_D4 = D4_DIMENSION
+rank_D4 = D4_RANK
+dim_F4 = F4_DIMENSION
+dim_G2 = G2_DIMENSION
+
+# Prime sequences
+fermat_primes = FERMAT_PRIMES
+fermat_composite_5 = 4294967297  # 641 × 6700417 - No 6th force
+mersenne_exponents = MERSENNE_EXPONENTS
+m11_barrier = M11_BARRIER
+lucas_sequence = LUCAS_SEQUENCE
+lucas_primes_indices = LUCAS_PRIMES
+fibonacci_prime_gates = {
+    3: (2, "Binary/Logic emergence"),
+    4: (3, "Material realm - the 'anomaly'"),  # Composite index!
+    5: (5, "Physics/Life code"),
+    7: (13, "Matter solidification"),
+    11: (89, "Chaos/Complexity"),
+    13: (233, "Consciousness emergence"),
+    17: (1597, "Great Filter - hyperspace"),
+}
+
+# Reference tables
+geometric_divisors = {
+    # E₈ Structure
+    "h_E8_cubed_27": float(1000),  # 30³/27 = 1000
+    "coxeter_kissing": float(720),  # 30 × 24 = 720
+    "cone_cycles": float(360),  # 10 × 36 = 360
+    "dim_E8": float(248),  # dim(E₈)
+    "roots_E8_full": float(240),  # |Φ(E₈)|
+    "roots_E8": float(120),  # |Φ⁺(E₈)|
+    "h_E8": float(30),  # h(E₈)
+    "rank_E8": float(8),  # rank(E₈)
+    # E₇ Structure
+    "dim_E7": float(133),  # dim(E₇)
+    "roots_E7_full": float(126),  # |Φ(E₇)|
+    "roots_E7": float(63),  # |Φ⁺(E₇)|
+    "fund_E7": float(56),  # dim(E₇ fund)
+    "h_E7": float(18),  # h(E₇)
+    "rank_E7": float(7),  # rank(E₇)
+    # E₆ Structure
+    "dim_E6": float(78),  # dim(E₆)
+    "roots_E6_full": float(72),  # |Φ(E₆)|
+    "roots_E6": float(36),  # |Φ⁺(E₆)|
+    "fund_E6": float(27),  # dim(E₆ fund)
+    "rank_E6": float(6),  # rank(E₆)
+    # Other Exceptional
+    "dim_F4": float(52),  # dim(F₄)
+    "dim_G2": float(14),  # dim(G₂)
+    "dim_SO8": float(28),  # dim(SO(8))
+    "kissing_D4": float(24),  # K(D₄)
+    # QCD Loop Factors
+    "six_loop": 6 * PI_NUMERIC,  # 6π
+    "five_loop": 5 * PI_NUMERIC,  # 5π
+    "one_loop": 4 * PI_NUMERIC,  # 4π
+    "three_loop": 3 * PI_NUMERIC,  # 3π
+    "half_loop": 2 * PI_NUMERIC,  # 2π
+    "circular_loop": PI_NUMERIC,  # π
+    # Topological/Generation
+    "topology_gen": float(12),  # 12
+    "generation_sq": float(9),  # 9
+    "sub_generation": float(6),  # 6
+    "quarter_layer": float(4),  # 4
+    "single_gen": float(3),  # 3
+    "half_layer": float(2),  # 2
+    "single_layer": float(1),  # 1
+    # Golden Ratio Based
+    "phi": PHI.eval(),  # φ
+    "phi_inv": PHI_INVERSE.eval(),  # 1/φ
+    "phi_cubed": PHI_SQUARED.eval(),  # φ² (since φ³ = φ² + φ)
+    "phi_squared": PHI_SQUARED.eval(),  # φ²
+    "phi_fourth": (PHI_SQUARED * PHI_SQUARED).eval(),  # φ⁴
+    "phi_fifth": (PHI_SQUARED * PHI_SQUARED * PHI).eval(),  # φ⁵
+    # Binary
+    "binary_5": float(32),  # 2⁵
+    "binary_4": float(16),  # 2⁴
+}
+
+fibonacci = {
+    1: 1, 2: 1, 3: 2, 4: 3, 5: 5, 6: 8, 7: 13, 8: 21, 9: 34, 10: 55,
+    11: 89, 12: 144, 13: 233, 14: 377, 15: 610, 16: 987, 17: 1597, 18: 2584, 19: 4181
+}
+
+# PDG reference values
+M_Z = 91.1876  # GeV, Z boson mass
+M_W_PDG = 80.377  # GeV, W boson mass
+M_H_PDG = 125.25  # GeV, Higgs mass
+ALPHA_EM_0 = 1 / 137.035999084  # Fine structure constant at q=0
+ALPHA_S_MZ = 0.1179  # Strong coupling at M_Z
+
+# Electroweak scale
+V_EW = 246.22  # GeV, Higgs VEV (v = (√2 G_F)^{-1/2})
+
+# =============================================================================
+# Derived Scales from SRT
+# =============================================================================
+
+
+def gut_scale() -> float:
+    """
+    GUT unification scale.
+
+    μ_GUT = v × e^(φ⁷) ≈ 1.0 × 10¹⁵ GeV
+
+    Returns:
+        GUT scale in GeV
+    """
+    import math
+    phi = PHI.eval()  # Convert to float for math.exp
+    return V_EW * math.exp(phi**7)
+
+
+def planck_scale_reduced() -> float:
+    """
+    Reduced Planck mass scale.
+
+    M_Pl / √(8π) ≈ 2.4 × 10¹⁸ GeV
+
+    Returns:
+        Reduced Planck mass in GeV
+    """
+    return 2.435e18  # GeV
+
+
+def electroweak_symmetry_breaking_scale() -> float:
+    """
+    Electroweak symmetry breaking scale.
+
+    Returns V_EW (the Higgs VEV).
+
+    Returns:
+        EWSB scale in GeV
+    """
+    return V_EW
+
+
+def qcd_scale() -> float:
+    """
+    QCD confinement scale Λ_QCD.
+
+    Derived from SRT via dimensional transmutation.
+
+    Returns:
+        QCD scale in MeV
+    """
+    # Λ_QCD ≈ 217 MeV from SRT
+    phi = PHI.eval()  # Convert to float for exponentiation
+    # Correction factor: C9 (q/120)
+    return E_STAR_NUMERIC * 11 * (1 - get_correction_factor(9))  # ≈ 217 MeV
+
+
+# =============================================================================
+# Cosmological Constants (for neutrino sector)
+# =============================================================================
+
+RHO_LAMBDA_QUARTER = 2.3e-3  # eV, (ρ_Λ)^{1/4} dark energy density
+PHYSICS_STRUCTURE_MAP = {
+    "chiral_suppression": "E8_positive",  # 120 - chiral fermions
+    "generation_crossing": "E6_positive",  # 36 - golden cone
+    "fundamental_rep": "E6_fundamental",  # 27 - 27 of E6
+    "consciousness": "D4_kissing",  # 24 - D4 kissing number
+    "cartan": "G2_dim",  # 8 - rank(E8)
+}
+
+# Group theory aliases (added after definitions)
+H_E8 = E8_COXETER_NUMBER
+DIM_E8 = E8_DIMENSION
+ROOTS_E8 = E8_ROOTS
+ROOTS_E8_POS = E8_POSITIVE_ROOTS
+RANK_E8 = E8_RANK
+
+H_E7 = E7_COXETER
+DIM_E7 = E7_DIMENSION
+DIM_E7_FUND = E7_FUNDAMENTAL
+ROOTS_E7 = E7_ROOTS
+ROOTS_E7_POS = E7_POSITIVE_ROOTS
+RANK_E7 = E7_RANK
+
+H_E6 = E6_COXETER
+DIM_E6 = E6_DIMENSION
+DIM_E6_FUND = E6_FUNDAMENTAL
+ROOTS_E6_POS = E6_POSITIVE_ROOTS
+RANK_E6 = E6_RANK
+
+K_D4 = D4_KISSING
+DIM_D4 = D4_DIMENSION
+RANK_D4 = D4_RANK
+
+DIM_F4 = F4_DIMENSION
+DIM_G2 = G2_DIMENSION
+
+DIM_T4 = TORUS_DIMENSIONS
+N_GEN = 3  # Number of generations
+
+# Additional backward compatibility aliases for srt_zero
+FERMAT_COMPOSITE_5 = fermat_composite_5
+LUCAS_PRIMES_INDICES = lucas_primes_indices
+FIBONACCI_PRIME_GATES = fibonacci_prime_gates
+GEOMETRIC_DIVISORS = geometric_divisors
+FIBONACCI = fibonacci
+
 __all__ = [
     # From exact module
     "PHI",
     "PHI_SQUARED",
     "PHI_INVERSE",
-    "PHI_NUMERIC",
     "E_STAR_NUMERIC",
-    "Q_DEFICIT_NUMERIC",
+    "Q",
     "STRUCTURE_DIMENSIONS",
     "fibonacci",
     "lucas",
@@ -385,6 +722,7 @@ __all__ = [
     "golden_number",
     "GoldenExact",
     "Rational",
+    "get_correction_factor",
     # SRT axioms and constants
     "AXIOMS",
     "MODULAR_VOLUME",
@@ -436,4 +774,99 @@ __all__ = [
     "WINDING_10",
     "WINDING_INDICES",
     "E8_ROOT_NORM_SQUARED",
+    # UniverseSeeds class
+    "UniverseSeeds",
+    # Seeds (lowercase)
+    "phi",
+    "phi_inv",
+    "pi",
+    "e",
+    "E_star",
+    "q",
+    # Group constants (lowercase)
+    "h_E8",
+    "K_D4",
+    "dim_E8",
+    "rank_E8",
+    "roots_E8",
+    "dim_E6",
+    "dim_E6_fund",
+    "roots_E6",
+    "dim_T4",
+    "N_gen",
+    # Additional group constants (lowercase)
+    "h_E7",
+    "dim_E7",
+    "dim_E7_fund",
+    "roots_E7",
+    "roots_E7_pos",
+    "rank_E7",
+    "h_E6",
+    "roots_E6_full",
+    "rank_E6",
+    "dim_D4",
+    "rank_D4",
+    "dim_F4",
+    "dim_G2",
+    # Prime sequences (lowercase)
+    "fermat_primes",
+    "fermat_composite_5",
+    "mersenne_exponents",
+    "m11_barrier",
+    "lucas_sequence",
+    "lucas_primes_indices",
+    "fibonacci_prime_gates",
+    # Reference tables (lowercase)
+    "geometric_divisors",
+    "fibonacci",
+    # Uppercase versions
+    "PHI_INV",
+    "PI",
+    "E",
+    "E_STAR",
+    "Q",
+    "H_E8",
+    "DIM_E8",
+    "ROOTS_E8",
+    "ROOTS_E8_POS",
+    "RANK_E8",
+    "H_E7",
+    "DIM_E7",
+    "DIM_E7_FUND",
+    "ROOTS_E7",
+    "ROOTS_E7_POS",
+    "RANK_E7",
+    "H_E6",
+    "DIM_E6",
+    "DIM_E6_FUND",
+    "ROOTS_E6_POS",
+    "K_D4",
+    "DIM_D4",
+    "RANK_D4",
+    "DIM_F4",
+    "DIM_G2",
+    "DIM_T4",
+    "N_GEN",
+    "FERMAT_COMPOSITE_5",
+    "LUCAS_PRIMES_INDICES",
+    "FIBONACCI_PRIME_GATES",
+    "GEOMETRIC_DIVISORS",
+    "FIBONACCI",
+    # PDG reference values
+    "M_Z",
+    "M_W_PDG",
+    "M_H_PDG",
+    "ALPHA_EM_0",
+    "ALPHA_S_MZ",
+    # Electroweak scale
+    "V_EW",
+    # Scale functions
+    "gut_scale",
+    "planck_scale_reduced",
+    "electroweak_symmetry_breaking_scale",
+    "qcd_scale",
+    # Cosmological
+    "RHO_LAMBDA_QUARTER",
+    # Structure map
+    "PHYSICS_STRUCTURE_MAP",
 ]

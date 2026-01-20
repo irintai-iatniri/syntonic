@@ -7,6 +7,12 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Regenerate SRT constants from exact Rust infrastructure
+echo "Regenerating srt_constants.cuh from exact Rust infrastructure..."
+cd ..
+cargo run --bin generate_srt_constants --release
+cd "$SCRIPT_DIR"
+
 # Get CUDA version
 if [ -z "$CUDA_PATH" ]; then
     CUDA_PATH="/usr/local/cuda"
@@ -47,6 +53,19 @@ KERNEL_FILES=(
     "winding_ops"
     "hierarchy"
     "golden_gelu"
+    "wmma_syntonic"
+    "sgemm_native"
+    "dgemm_native"
+    "scatter_gather_srt"
+    "trilinear"
+    "complex_ops"
+    "attention"
+    "reduction"
+    "prime_selection"
+    "prime_ops"
+    "gnosis"
+    "autograd"
+    "attractor"
 )
 
 # Compute capabilities to compile for
@@ -88,3 +107,15 @@ echo "  - dhsr.cu           : DHSR cycle operations (differentiation, harmonizat
 echo "  - corrections.cu    : SRT correction factors (1 ± q/N)"
 echo "  - resonant_d.cu     : Resonant D-phase operations (flux generation, noise, syntony)"
 echo "  - hierarchy.cu      : SRT-Zero hierarchy corrections (batched q/divisor, special, suppression)"
+echo "  - wmma_syntonic.cu  : Tensor Core WMMA operations (fp16/bf16, φ-scaled, golden-weighted)"
+echo "  - sgemm_native.cu   : SRT Native BLAS SGEMM (register-blocked, high-performance)"
+echo "  - dgemm_native.cu   : SRT Native BLAS DGEMM (double precision, register-blocked)"
+echo "  - scatter_gather_srt.cu : SRT theory-aligned scatter/gather operations"
+echo "  - trilinear.cu      : SRT trilinear interpolation with causal/retrocausal modes"
+echo "  - complex_ops.cu    : SRT complex operations (i≈π postulate, phase, wave functions)"
+echo "  - attention.cu      : SRT Flash Attention (standard, syntony, golden, causal, retrocausal, mersenne)"
+echo "  - reduction.cu      : Parallel reductions (sum, mean, max, min, norm, golden-weighted, syntony)"
+echo "  - prime_selection.cu: Prime number selection for Fibonacci gates"
+echo "  - gnosis.cu         : Gnosis metric computation (syntony × complexity)"
+echo "  - autograd.cu       : Standard backward pass kernels (Push/Calculus for layers 32-37)"
+echo "  - attractor.cu      : Retrocausal attractor kernels (Pull/Topology for Gnostic layers)"

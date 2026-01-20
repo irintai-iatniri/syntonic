@@ -13,14 +13,25 @@ mod tensor;
 mod transcendence;
 mod winding;
 
-use hypercomplex::{Octonion, Quaternion};
+use hypercomplex::{Octonion, Quaternion, Sedenion};
 #[cfg(feature = "cuda")]
 use tensor::cuda::{AsyncTensorTransfer, TransferComputeOverlap};
 use tensor::srt_kernels;
 use tensor::storage::{
     cuda_device_count, cuda_is_available, srt_apply_correction, srt_compute_syntony,
-    srt_dhsr_cycle, srt_e8_batch_projection, srt_golden_gaussian_weights, srt_scale_phi,
-    srt_theta_series, TensorStorage,
+    srt_dhsr_cycle, srt_e8_batch_projection, srt_golden_gaussian_weights,
+    srt_scale_phi, srt_theta_series, TensorStorage,
+};
+
+// SRT Inflationary Broadcasting
+use tensor::broadcast::{
+    py_inflationary_broadcast, py_golden_inflationary_broadcast,
+    py_consciousness_inflationary_broadcast,
+};
+
+// Causal History DAG for DHSR tracking
+use tensor::causal_history::{
+    PyCausalHistoryTracker, create_causal_tracker, d4_consciousness_threshold,
 };
 #[cfg(feature = "cuda")]
 use tensor::storage::{
@@ -311,6 +322,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // === Hypercomplex Numbers ===
     m.add_class::<Quaternion>()?;
     m.add_class::<Octonion>()?;
+    m.add_class::<Sedenion>()?;
 
     // === SRT Constants ===
     m.add_function(wrap_pyfunction!(srt_phi, m)?)?;
@@ -388,6 +400,16 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(srt_theta_series, m)?)?;
     m.add_function(wrap_pyfunction!(srt_compute_syntony, m)?)?;
     m.add_function(wrap_pyfunction!(srt_dhsr_cycle, m)?)?;
+
+    // === SRT Inflationary Broadcasting ===
+    m.add_function(wrap_pyfunction!(py_inflationary_broadcast, m)?)?;
+    m.add_function(wrap_pyfunction!(py_golden_inflationary_broadcast, m)?)?;
+    m.add_function(wrap_pyfunction!(py_consciousness_inflationary_broadcast, m)?)?;
+
+    // === Causal History DAG (DHSR Tracking) ===
+    m.add_class::<PyCausalHistoryTracker>()?;
+    m.add_function(wrap_pyfunction!(create_causal_tracker, m)?)?;
+    m.add_function(wrap_pyfunction!(d4_consciousness_threshold, m)?)?;
 
     // === SRT Memory Transfer Statistics ===
     #[cfg(feature = "cuda")]

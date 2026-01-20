@@ -7,6 +7,7 @@ from syntonic._core import (
     Octonion,
     # Hypercomplex
     Quaternion,
+    Sedenion,
     # Exact arithmetic
     Rational,
     RESConfig,
@@ -247,6 +248,7 @@ __all__ = [
     # Hypercomplex
     "Quaternion",
     "Octonion",
+    "Sedenion",
     # Winding
     "WindingState",
     "WindingStateIterator",

@@ -16,9 +16,11 @@ use cudarc::driver::safe::CudaContext as CudaDevice;
 #[cfg(feature = "cuda")]
 use cudarc::driver::PushKernelArg;
 #[cfg(feature = "cuda")]
-use cudarc::driver::{CudaSlice, DevicePtr, LaunchConfig};
+use cudarc::driver::{CudaFunction, CudaSlice, DevicePtr, LaunchConfig};
 #[cfg(feature = "cuda")]
 use pyo3::prelude::*;
+#[cfg(feature = "cuda")]
+use std::collections::HashMap;
 #[cfg(feature = "cuda")]
 use std::sync::Arc;
 
@@ -212,6 +214,100 @@ const PTX_CONV_OPS_SM86: &str = include_str!("../../kernels/ptx/conv_ops_sm86.pt
 #[cfg(feature = "cuda")]
 const PTX_CONV_OPS_SM90: &str = include_str!("../../kernels/ptx/conv_ops_sm90.ptx");
 
+#[cfg(feature = "cuda")]
+const PTX_WMMA_SYNTONIC_SM75: &str = include_str!("../../kernels/ptx/wmma_syntonic_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_WMMA_SYNTONIC_SM80: &str = include_str!("../../kernels/ptx/wmma_syntonic_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_WMMA_SYNTONIC_SM86: &str = include_str!("../../kernels/ptx/wmma_syntonic_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_WMMA_SYNTONIC_SM90: &str = include_str!("../../kernels/ptx/wmma_syntonic_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_SGEMM_NATIVE_SM75: &str = include_str!("../../kernels/ptx/sgemm_native_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_SGEMM_NATIVE_SM80: &str = include_str!("../../kernels/ptx/sgemm_native_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_SGEMM_NATIVE_SM86: &str = include_str!("../../kernels/ptx/sgemm_native_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_SGEMM_NATIVE_SM90: &str = include_str!("../../kernels/ptx/sgemm_native_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_DGEMM_NATIVE_SM75: &str = include_str!("../../kernels/ptx/dgemm_native_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_DGEMM_NATIVE_SM80: &str = include_str!("../../kernels/ptx/dgemm_native_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_DGEMM_NATIVE_SM86: &str = include_str!("../../kernels/ptx/dgemm_native_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_DGEMM_NATIVE_SM90: &str = include_str!("../../kernels/ptx/dgemm_native_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_SCATTER_GATHER_SRT_SM75: &str =
+    include_str!("../../kernels/ptx/scatter_gather_srt_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_SCATTER_GATHER_SRT_SM80: &str =
+    include_str!("../../kernels/ptx/scatter_gather_srt_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_SCATTER_GATHER_SRT_SM86: &str =
+    include_str!("../../kernels/ptx/scatter_gather_srt_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_SCATTER_GATHER_SRT_SM90: &str =
+    include_str!("../../kernels/ptx/scatter_gather_srt_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_REDUCTION_SM75: &str = include_str!("../../kernels/ptx/reduction_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_REDUCTION_SM80: &str = include_str!("../../kernels/ptx/reduction_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_REDUCTION_SM86: &str = include_str!("../../kernels/ptx/reduction_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_REDUCTION_SM90: &str = include_str!("../../kernels/ptx/reduction_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_TRILINEAR_SM75: &str = include_str!("../../kernels/ptx/trilinear_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_TRILINEAR_SM80: &str = include_str!("../../kernels/ptx/trilinear_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_TRILINEAR_SM86: &str = include_str!("../../kernels/ptx/trilinear_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_TRILINEAR_SM90: &str = include_str!("../../kernels/ptx/trilinear_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_COMPLEX_OPS_SM75: &str = include_str!("../../kernels/ptx/complex_ops_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_COMPLEX_OPS_SM80: &str = include_str!("../../kernels/ptx/complex_ops_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_COMPLEX_OPS_SM86: &str = include_str!("../../kernels/ptx/complex_ops_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_COMPLEX_OPS_SM90: &str = include_str!("../../kernels/ptx/complex_ops_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_ATTENTION_SM75: &str = include_str!("../../kernels/ptx/attention_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_ATTENTION_SM80: &str = include_str!("../../kernels/ptx/attention_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_ATTENTION_SM86: &str = include_str!("../../kernels/ptx/attention_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_ATTENTION_SM90: &str = include_str!("../../kernels/ptx/attention_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_AUTOGRAD_SM75: &str = include_str!("../../kernels/ptx/autograd_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_AUTOGRAD_SM80: &str = include_str!("../../kernels/ptx/autograd_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_AUTOGRAD_SM86: &str = include_str!("../../kernels/ptx/autograd_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_AUTOGRAD_SM90: &str = include_str!("../../kernels/ptx/autograd_sm90.ptx");
+
+#[cfg(feature = "cuda")]
+const PTX_ATTRACTOR_SM75: &str = include_str!("../../kernels/ptx/attractor_sm75.ptx");
+#[cfg(feature = "cuda")]
+const PTX_ATTRACTOR_SM80: &str = include_str!("../../kernels/ptx/attractor_sm80.ptx");
+#[cfg(feature = "cuda")]
+const PTX_ATTRACTOR_SM86: &str = include_str!("../../kernels/ptx/attractor_sm86.ptx");
+#[cfg(feature = "cuda")]
+const PTX_ATTRACTOR_SM90: &str = include_str!("../../kernels/ptx/attractor_sm90.ptx");
+
 // =============================================================================
 // Kernel Function Lists
 // =============================================================================
@@ -313,6 +409,16 @@ const DHSR_FUNCS: &[&str] = &[
     "adaptive_gnosis_mask_kernel_f32",
     "fractal_gnosis_mask_kernel_f32",
     "temporal_gnosis_mask_kernel_f32",
+    // New accelerated DHSR operators
+    "fourier_project_single_f64",
+    "fourier_project_batch_f64",
+    "laplacian_1d_f64",
+    "laplacian_2d_f64",
+    "differentiation_full_f64",
+    "damping_cascade_f64",
+    "syntony_projection_f64",
+    "harmonization_full_f64",
+    "dhsr_step_fused_f64",
 ];
 
 /// DHSR gravity functions
@@ -594,6 +700,33 @@ const CONV_OPS_FUNCS: &[&str] = &[
     "conv2d_backward_f64",
 ];
 
+/// Autograd kernel functions (standard backward pass)
+#[cfg(feature = "cuda")]
+const AUTOGRAD_FUNCS: &[&str] = &[
+    "backward_add_f64",
+    "backward_add_f32",
+    "backward_mul_f64",
+    "backward_mul_f32",
+    "backward_matmul_f64",
+    "backward_matmul_f32",
+    "backward_softmax_f64",
+    "backward_softmax_f32",
+    "backward_layernorm_f64",
+    "backward_layernorm_f32",
+    "backward_elementwise_f64",
+    "backward_elementwise_f32",
+];
+
+/// Attractor kernel functions (retrocausal backward pass)
+#[cfg(feature = "cuda")]
+const ATTRACTOR_FUNCS: &[&str] = &[
+    "attractor_memory_update_f64",
+    "hooking_coefficient_f64",
+    "retrocausal_harmonize_f64",
+    "attractor_distance_f64",
+    "attractor_centroid_f64",
+];
+
 // =============================================================================
 // PTX Selection Based on Compute Capability
 // =============================================================================
@@ -861,6 +994,34 @@ fn select_conv_ops_ptx(major: i32, minor: i32) -> &'static str {
         PTX_CONV_OPS_SM80
     } else {
         PTX_CONV_OPS_SM75
+    }
+}
+
+#[cfg(feature = "cuda")]
+fn select_autograd_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_AUTOGRAD_SM90
+    } else if cc >= 86 {
+        PTX_AUTOGRAD_SM86
+    } else if cc >= 80 {
+        PTX_AUTOGRAD_SM80
+    } else {
+        PTX_AUTOGRAD_SM75
+    }
+}
+
+#[cfg(feature = "cuda")]
+fn select_attractor_ptx(major: i32, minor: i32) -> &'static str {
+    let cc = major * 10 + minor;
+    if cc >= 90 {
+        PTX_ATTRACTOR_SM90
+    } else if cc >= 86 {
+        PTX_ATTRACTOR_SM86
+    } else if cc >= 80 {
+        PTX_ATTRACTOR_SM80
+    } else {
+        PTX_ATTRACTOR_SM75
     }
 }
 
@@ -1469,6 +1630,339 @@ pub fn cuda_dhsr_cycle_inplace_c128(
     }
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
+    let mut host_num = [0.0f64];
+    let mut host_den = [0.0f64];
+    device
+        .default_stream()
+        .memcpy_dtoh(&new_num, &mut host_num)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+    device
+        .default_stream()
+        .memcpy_dtoh(&new_den, &mut host_den)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    if host_den[0] < 1e-15 {
+        Ok(syntony)
+    } else {
+        Ok(host_num[0] / host_den[0])
+    }
+}
+
+// =============================================================================
+// Accelerated DHSR Operators (NEW)
+// =============================================================================
+
+/// Batch Fourier projection with weights: Σᵢ αᵢ P̂ᵢ[Ψ]
+/// - out: output complex array (interleaved [re0, im0, re1, im1, ...])
+/// - in_data: input complex array
+/// - modes: array of mode indices
+/// - weights: αᵢ(S) weights for each mode
+/// - num_modes: number of modes to project
+/// - size: number of complex elements
+#[cfg(feature = "cuda")]
+pub fn cuda_fourier_project_batch_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    in_data: &CudaSlice<f64>,
+    modes: &CudaSlice<i32>,
+    weights: &CudaSlice<f64>,
+    num_modes: usize,
+    size: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load dhsr kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("fourier_project_batch_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(in_data)
+            .arg(modes)
+            .arg(weights)
+            .arg(&(num_modes as i32))
+            .arg(&(size as i32))
+            .launch(launch_cfg_256(size))
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// 1D Discrete Laplacian with periodic boundary: ∇²[Ψ]ᵢ = Ψᵢ₋₁ - 2Ψᵢ + Ψᵢ₊₁
+/// - out: output complex array
+/// - in_data: input complex array
+/// - size: number of complex elements
+#[cfg(feature = "cuda")]
+pub fn cuda_laplacian_1d_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    in_data: &CudaSlice<f64>,
+    size: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load dhsr kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("laplacian_1d_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(in_data)
+            .arg(&(size as i32))
+            .launch(launch_cfg_256(size))
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Full Differentiation Operator: D̂[Ψ] = Ψ + α(S) Σᵢ P̂ᵢ[Ψ] + ζ(S) ∇²[Ψ]
+/// - out: output complex array
+/// - in_data: input complex array
+/// - fourier_contribution: pre-computed Σᵢ αᵢ P̂ᵢ[Ψ]
+/// - laplacian: pre-computed ∇²[Ψ]
+/// - alpha_0, zeta_0: base coefficients
+/// - syntony: current syntony value [0, 1]
+/// - size: number of complex elements
+#[cfg(feature = "cuda")]
+pub fn cuda_differentiation_full_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    in_data: &CudaSlice<f64>,
+    fourier_contribution: &CudaSlice<f64>,
+    laplacian: &CudaSlice<f64>,
+    alpha_0: f64,
+    zeta_0: f64,
+    syntony: f64,
+    size: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load dhsr kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("differentiation_full_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(in_data)
+            .arg(fourier_contribution)
+            .arg(laplacian)
+            .arg(&alpha_0)
+            .arg(&zeta_0)
+            .arg(&syntony)
+            .arg(&(size as i32))
+            .launch(launch_cfg_256(size))
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Damping Cascade: Ĥ high-frequency damping with syntony-dependent decay
+/// - out: output complex array
+/// - in_data: input complex array
+/// - mode_norm_sq: |n|² for each mode
+/// - beta_0: base damping coefficient
+/// - syntony: current syntony value
+/// - delta_d: differentiation magnitude
+/// - num_dampers: number of damping levels
+/// - size: number of complex elements
+#[cfg(feature = "cuda")]
+pub fn cuda_damping_cascade_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    in_data: &CudaSlice<f64>,
+    mode_norm_sq: &CudaSlice<f64>,
+    beta_0: f64,
+    syntony: f64,
+    delta_d: f64,
+    num_dampers: usize,
+    size: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load dhsr kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("damping_cascade_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(in_data)
+            .arg(mode_norm_sq)
+            .arg(&beta_0)
+            .arg(&syntony)
+            .arg(&delta_d)
+            .arg(&(num_dampers as i32))
+            .arg(&(size as i32))
+            .launch(launch_cfg_256(size))
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Syntony Projection: Project toward syntony-promoting target
+/// - out: output complex array
+/// - in_data: input complex array
+/// - target: normalized mean (syntony-promoting target)
+/// - gamma: projection strength coefficient
+/// - syntony: current syntony value
+/// - size: number of complex elements
+#[cfg(feature = "cuda")]
+pub fn cuda_syntony_projection_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    in_data: &CudaSlice<f64>,
+    target: &CudaSlice<f64>,
+    gamma: f64,
+    syntony: f64,
+    size: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load dhsr kernels: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("syntony_projection_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(in_data)
+            .arg(target)
+            .arg(&gamma)
+            .arg(&syntony)
+            .arg(&(size as i32))
+            .launch(launch_cfg_256(size))
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Fused DHSR Step: Single kernel for D̂→Ĥ with syntony recomputation
+/// Returns the new syntony value after the step
+/// - out: output complex array
+/// - in_data: input complex array
+/// - mode_norm_sq: |n|² for each mode
+/// - alpha_0, zeta_0: D̂ parameters
+/// - beta_0, gamma_0: Ĥ parameters
+/// - syntony: current syntony value
+/// - size: number of complex elements
+#[cfg(feature = "cuda")]
+pub fn cuda_dhsr_step_fused_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    in_data: &CudaSlice<f64>,
+    mode_norm_sq: &CudaSlice<f64>,
+    alpha_0: f64,
+    zeta_0: f64,
+    beta_0: f64,
+    gamma_0: f64,
+    syntony: f64,
+    size: usize,
+) -> PyResult<f64> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_dhsr_ptx(major, minor)))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load dhsr kernels: {}",
+                e
+            ))
+        })?;
+
+    // Allocate syntony accumulators
+    let mut new_num: CudaSlice<f64> = device
+        .default_stream()
+        .alloc_zeros(1)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+    let mut new_den: CudaSlice<f64> = device
+        .default_stream()
+        .alloc_zeros(1)
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    let func = module
+        .load_function("dhsr_step_fused_f64")
+        .map_err(|_| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Kernel not found"))?;
+
+    // Shared memory for reduction: 2 * blockDim.x * sizeof(double)
+    let cfg = launch_cfg_reduce(size, 2 * std::mem::size_of::<f64>());
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(in_data)
+            .arg(mode_norm_sq)
+            .arg(&alpha_0)
+            .arg(&zeta_0)
+            .arg(&beta_0)
+            .arg(&gamma_0)
+            .arg(&syntony)
+            .arg(&mut new_num)
+            .arg(&mut new_den)
+            .arg(&(size as i32))
+            .launch(cfg)
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    // Read back syntony
     let mut host_num = [0.0f64];
     let mut host_den = [0.0f64];
     device
@@ -2242,6 +2736,627 @@ pub fn cuda_complex_div_c128(
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
+}
+
+/// WMMA matrix multiplication for fp16 tensors
+#[cfg(feature = "cuda")]
+pub fn cuda_wmma_fp16_matmul(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<crate::tensor::cuda::memory_pool::CudaF16>,
+    a: &CudaSlice<crate::tensor::cuda::memory_pool::CudaF16>,
+    b: &CudaSlice<crate::tensor::cuda::memory_pool::CudaF16>,
+    m: usize,
+    n: usize,
+    k: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_wmma_syntonic_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load WMMA kernel: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("launch_wmma_syntonic_fp16")
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load WMMA function: {}",
+                e
+            ))
+        })?;
+
+    let cfg = LaunchConfig {
+        grid_dim: (m.div_ceil(16) as u32, n.div_ceil(16) as u32, 1),
+        block_dim: (256, 1, 1),
+        shared_mem_bytes: 0,
+    };
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(c)
+            .arg(a)
+            .arg(b)
+            .arg(&(m as i32))
+            .arg(&(n as i32))
+            .arg(&(k as i32))
+            .arg(&(false as i32))
+            .launch(cfg)
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Select WMMA syntonic PTX based on compute capability
+#[cfg(feature = "cuda")]
+fn select_wmma_syntonic_ptx(major: i32, minor: i32) -> &'static str {
+    match major {
+        9 => PTX_WMMA_SYNTONIC_SM90,
+        8 => {
+            if minor >= 6 {
+                PTX_WMMA_SYNTONIC_SM86
+            } else {
+                PTX_WMMA_SYNTONIC_SM80
+            }
+        }
+        7 => {
+            if minor >= 5 {
+                PTX_WMMA_SYNTONIC_SM75
+            } else {
+                PTX_WMMA_SYNTONIC_SM75 // fallback
+            }
+        }
+        _ => PTX_WMMA_SYNTONIC_SM75, // fallback
+    }
+}
+
+/// SRT Native SGEMM: High-performance register-blocked matrix multiplication
+#[cfg(feature = "cuda")]
+pub fn cuda_sgemm_native_f32(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f32>,
+    a: &CudaSlice<f32>,
+    b: &CudaSlice<f32>,
+    m: usize,
+    n: usize,
+    k: usize,
+    alpha: f32,
+    beta: f32,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_sgemm_native_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load SRT Native SGEMM kernel: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("launch_sgemm_native_f32")
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load SRT Native SGEMM function: {}",
+                e
+            ))
+        })?;
+
+    // Grid: (N/BLOCK_N, M/BLOCK_M)
+    let grid_x = (n + 127) / 128; // BLOCK_N = 128
+    let grid_y = (m + 127) / 128; // BLOCK_M = 128
+
+    let cfg = LaunchConfig {
+        grid_dim: (grid_x as u32, grid_y as u32, 1),
+        block_dim: (16, 16, 1), // 256 threads
+        shared_mem_bytes: 0,    // Shared memory allocated in kernel
+    };
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(c)
+            .arg(a)
+            .arg(b)
+            .arg(&(m as i32))
+            .arg(&(n as i32))
+            .arg(&(k as i32))
+            .arg(&alpha)
+            .arg(&beta)
+            .launch(cfg)
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// SRT Native DGEMM: High-performance double-precision matrix multiplication
+#[cfg(feature = "cuda")]
+pub fn cuda_dgemm_native_f64(
+    device: &Arc<CudaDevice>,
+    c: &mut CudaSlice<f64>,
+    a: &CudaSlice<f64>,
+    b: &CudaSlice<f64>,
+    m: usize,
+    n: usize,
+    k: usize,
+    alpha: f64,
+    beta: f64,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_dgemm_native_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load SRT Native DGEMM kernel: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("launch_dgemm_native_f64")
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load SRT Native DGEMM function: {}",
+                e
+            ))
+        })?;
+
+    // Grid: (N/BLOCK_N, M/BLOCK_M) with BLOCK_M=64, BLOCK_N=64
+    let grid_x = (n + 63) / 64;
+    let grid_y = (m + 63) / 64;
+
+    let cfg = LaunchConfig {
+        grid_dim: (grid_x as u32, grid_y as u32, 1),
+        block_dim: (8, 16, 1), // 128 threads
+        shared_mem_bytes: 0,   // Shared memory allocated in kernel
+    };
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(c)
+            .arg(a)
+            .arg(b)
+            .arg(&(m as i32))
+            .arg(&(n as i32))
+            .arg(&(k as i32))
+            .arg(&alpha)
+            .arg(&beta)
+            .launch(cfg)
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Select SRT Native SGEMM PTX based on compute capability
+#[cfg(feature = "cuda")]
+fn select_sgemm_native_ptx(major: i32, minor: i32) -> &'static str {
+    match major {
+        9 => PTX_SGEMM_NATIVE_SM90,
+        8 => {
+            if minor >= 6 {
+                PTX_SGEMM_NATIVE_SM86
+            } else {
+                PTX_SGEMM_NATIVE_SM80
+            }
+        }
+        7 => {
+            if minor >= 5 {
+                PTX_SGEMM_NATIVE_SM75
+            } else {
+                PTX_SGEMM_NATIVE_SM75 // fallback
+            }
+        }
+        _ => PTX_SGEMM_NATIVE_SM75, // fallback
+    }
+}
+
+/// Select SRT Native DGEMM PTX based on compute capability
+#[cfg(feature = "cuda")]
+fn select_dgemm_native_ptx(major: i32, minor: i32) -> &'static str {
+    match major {
+        9 => PTX_DGEMM_NATIVE_SM90,
+        8 => {
+            if minor >= 6 {
+                PTX_DGEMM_NATIVE_SM86
+            } else {
+                PTX_DGEMM_NATIVE_SM80
+            }
+        }
+        7 => {
+            if minor >= 5 {
+                PTX_DGEMM_NATIVE_SM75
+            } else {
+                PTX_DGEMM_NATIVE_SM75 // fallback
+            }
+        }
+        _ => PTX_DGEMM_NATIVE_SM75, // fallback
+    }
+}
+
+/// SRT Scatter/Gather operations: Theory-aligned index operations
+#[cfg(feature = "cuda")]
+pub fn cuda_gather_phi_weighted_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load SRT Scatter/Gather kernel: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("launch_gather_phi_weighted_f64")
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load gather function: {}",
+                e
+            ))
+        })?;
+
+    let cfg = LaunchConfig {
+        grid_dim: (((n + 255) / 256) as u32, 1, 1),
+        block_dim: (256, 1, 1),
+        shared_mem_bytes: 0,
+    };
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Select SRT Scatter/Gather PTX based on compute capability
+#[cfg(feature = "cuda")]
+fn select_scatter_gather_srt_ptx(major: i32, minor: i32) -> &'static str {
+    match major {
+        9 => PTX_SCATTER_GATHER_SRT_SM90,
+        8 => {
+            if minor >= 6 {
+                PTX_SCATTER_GATHER_SRT_SM86
+            } else {
+                PTX_SCATTER_GATHER_SRT_SM80
+            }
+        }
+        7 => {
+            if minor >= 5 {
+                PTX_SCATTER_GATHER_SRT_SM75
+            } else {
+                PTX_SCATTER_GATHER_SRT_SM75 // fallback
+            }
+        }
+        _ => PTX_SCATTER_GATHER_SRT_SM75, // fallback
+    }
+}
+
+/// SRT Trilinear Interpolation: Theory-aligned grid sampling
+#[cfg(feature = "cuda")]
+pub fn cuda_trilinear_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    grid: &CudaSlice<f64>,   // [D, H, W]
+    coords: &CudaSlice<f64>, // [N, 3] (x, y, z)
+    d: usize,
+    h: usize,
+    w: usize,
+    n: usize,
+    boundary_mode: i32,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_trilinear_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load SRT Trilinear kernel: {}",
+                e
+            ))
+        })?;
+
+    let func = module.load_function("launch_trilinear_f64").map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+            "Failed to load trilinear function: {}",
+            e
+        ))
+    })?;
+
+    let cfg = LaunchConfig {
+        grid_dim: (((n + 255) / 256) as u32, 1, 1),
+        block_dim: (256, 1, 1),
+        shared_mem_bytes: 0,
+    };
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(grid)
+            .arg(coords)
+            .arg(&(d as i32))
+            .arg(&(h as i32))
+            .arg(&(w as i32))
+            .arg(&(n as i32))
+            .arg(&boundary_mode)
+            .launch(cfg)
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Select SRT Trilinear PTX based on compute capability
+#[cfg(feature = "cuda")]
+fn select_trilinear_ptx(major: i32, minor: i32) -> &'static str {
+    match major {
+        9 => PTX_TRILINEAR_SM90,
+        8 => {
+            if minor >= 6 {
+                PTX_TRILINEAR_SM86
+            } else {
+                PTX_TRILINEAR_SM80
+            }
+        }
+        7 => {
+            if minor >= 5 {
+                PTX_TRILINEAR_SM75
+            } else {
+                PTX_TRILINEAR_SM75 // fallback
+            }
+        }
+        _ => PTX_TRILINEAR_SM75, // fallback
+    }
+}
+
+/// SRT Complex Operations: Theory-aligned complex arithmetic
+#[cfg(feature = "cuda")]
+pub fn cuda_arg_c128(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    z: &CudaSlice<f64>,
+    n: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_complex_ops_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load SRT Complex Ops kernel: {}",
+                e
+            ))
+        })?;
+
+    let func = module.load_function("launch_arg_c128").map_err(|e| {
+        PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+            "Failed to load arg function: {}",
+            e
+        ))
+    })?;
+
+    let cfg = LaunchConfig {
+        grid_dim: (((n + 255) / 256) as u32, 1, 1),
+        block_dim: (256, 1, 1),
+        shared_mem_bytes: 0,
+    };
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(z)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// SRT Phase Syntony Operation: z * e^{iπS} (i≈π postulate)
+#[cfg(feature = "cuda")]
+pub fn cuda_phase_syntony_c128(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    z: &CudaSlice<f64>,
+    syntony: &CudaSlice<f64>,
+    n: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_complex_ops_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load SRT Complex Ops kernel: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("launch_phase_syntony_c128")
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load phase_syntony function: {}",
+                e
+            ))
+        })?;
+
+    let cfg = LaunchConfig {
+        grid_dim: (((n + 255) / 256) as u32, 1, 1),
+        block_dim: (256, 1, 1),
+        shared_mem_bytes: 0,
+    };
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(z)
+            .arg(syntony)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Select SRT Complex Ops PTX based on compute capability
+#[cfg(feature = "cuda")]
+fn select_complex_ops_ptx(major: i32, minor: i32) -> &'static str {
+    match major {
+        9 => PTX_COMPLEX_OPS_SM90,
+        8 => {
+            if minor >= 6 {
+                PTX_COMPLEX_OPS_SM86
+            } else {
+                PTX_COMPLEX_OPS_SM80
+            }
+        }
+        7 => {
+            if minor >= 5 {
+                PTX_COMPLEX_OPS_SM75
+            } else {
+                PTX_COMPLEX_OPS_SM75 // fallback
+            }
+        }
+        _ => PTX_COMPLEX_OPS_SM75, // fallback
+    }
+}
+
+/// Select SRT Attention PTX based on compute capability
+#[cfg(feature = "cuda")]
+fn select_attention_ptx(major: i32, minor: i32) -> &'static str {
+    match major {
+        9 => PTX_ATTENTION_SM90,
+        8 => {
+            if minor >= 6 {
+                PTX_ATTENTION_SM86
+            } else {
+                PTX_ATTENTION_SM80
+            }
+        }
+        7 => {
+            if minor >= 5 {
+                PTX_ATTENTION_SM75
+            } else {
+                PTX_ATTENTION_SM75 // fallback
+            }
+        }
+        _ => PTX_ATTENTION_SM75, // fallback
+    }
+}
+
+/// SRT Theory-Correct Reductions: Mersenne-stable sum
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_mersenne_stable_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> PyResult<()> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load SRT reduction kernel: {}",
+                e
+            ))
+        })?;
+
+    let func = module
+        .load_function("launch_reduce_sum_mersenne_stable_f64")
+        .map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to load reduction function: {}",
+                e
+            ))
+        })?;
+
+    let cfg = LaunchConfig {
+        grid_dim: (((n + 255) / 256) as u32, 1, 1),
+        block_dim: (256, 1, 1),
+        shared_mem_bytes: 0,
+    };
+
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Select SRT reduction PTX based on compute capability
+#[cfg(feature = "cuda")]
+fn select_reduction_ptx(major: i32, minor: i32) -> &'static str {
+    match major {
+        9 => PTX_REDUCTION_SM90,
+        8 => {
+            if minor >= 6 {
+                PTX_REDUCTION_SM86
+            } else {
+                PTX_REDUCTION_SM80
+            }
+        }
+        7 => {
+            if minor >= 5 {
+                PTX_REDUCTION_SM75
+            } else {
+                PTX_REDUCTION_SM75 // fallback
+            }
+        }
+        _ => PTX_REDUCTION_SM75, // fallback
+    }
 }
 
 // =============================================================================
@@ -3255,6 +4370,134 @@ pub fn apply_geodesic_gravity_f64(
             .arg(&gravity)
             .arg(&temperature)
             .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+// =============================================================================
+// SRT Autograd Kernels (Standard Backward Pass)
+// =============================================================================
+
+/// Load SRT Autograd kernels for backward pass operations
+#[cfg(feature = "cuda")]
+pub fn load_autograd_kernels(
+    device: &Arc<CudaDevice>,
+) -> Result<HashMap<String, CudaFunction>, String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_autograd_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load autograd kernels: {}", e))?;
+
+    let mut functions = HashMap::new();
+    for &func_name in AUTOGRAD_FUNCS {
+        let func = module
+            .load_function(func_name)
+            .map_err(|_| format!("Kernel {} not found", func_name))?;
+        functions.insert(func_name.to_string(), func);
+    }
+
+    Ok(functions)
+}
+
+/// Backward pass for element-wise addition
+#[cfg(feature = "cuda")]
+pub fn cuda_backward_add_f32(
+    device: &Arc<CudaDevice>,
+    grad_output: &CudaSlice<f32>,
+    grad_x: &mut CudaSlice<f32>,
+    grad_y: &mut CudaSlice<f32>,
+    size: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_autograd_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load autograd kernels: {}", e))?;
+
+    let func = module
+        .load_function("backward_add_f32")
+        .map_err(|_| "Kernel backward_add_f32 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(size as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(grad_output)
+            .arg(grad_x)
+            .arg(grad_y)
+            .arg(&(size as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+// =============================================================================
+// SRT Attractor Kernels (Retrocausal Backward Pass)
+// =============================================================================
+
+/// Load SRT Attractor kernels for retrocausal operations
+#[cfg(feature = "cuda")]
+pub fn load_attractor_kernels(
+    device: &Arc<CudaDevice>,
+) -> Result<HashMap<String, CudaFunction>, String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_attractor_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load attractor kernels: {}", e))?;
+
+    let mut functions = HashMap::new();
+    for &func_name in ATTRACTOR_FUNCS {
+        let func = module
+            .load_function(func_name)
+            .map_err(|_| format!("Kernel {} not found", func_name))?;
+        functions.insert(func_name.to_string(), func);
+    }
+
+    Ok(functions)
+}
+
+/// Store high-syntony states in attractor memory
+#[cfg(feature = "cuda")]
+pub fn cuda_attractor_memory_update_f64(
+    device: &Arc<CudaDevice>,
+    attractor_memory: &mut CudaSlice<f64>,
+    attractor_syntony: &mut CudaSlice<f64>,
+    attractor_count: &mut CudaSlice<i32>,
+    state: &CudaSlice<f64>,
+    syntony: f64,
+    state_dim: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_attractor_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load attractor kernels: {}", e))?;
+
+    let func = module
+        .load_function("attractor_memory_update_f64")
+        .map_err(|_| "Kernel attractor_memory_update_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(1);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(attractor_memory)
+            .arg(attractor_syntony)
+            .arg(attractor_count)
+            .arg(state)
+            .arg(&syntony)
+            .arg(&(state_dim as i32))
             .launch(cfg)
     }
     .map(|_| ())

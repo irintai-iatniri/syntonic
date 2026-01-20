@@ -12,10 +12,9 @@
 //! - Memory-efficient streaming for large datasets
 
 use std::fs::File;
-use std::io::{self, BufReader, Read};
+use std::io::{BufReader, Read};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-use std::thread;
 
 /// Data loading result
 pub type DataResult<T> = Result<T, DataLoadError>;

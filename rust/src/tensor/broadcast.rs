@@ -6,6 +6,13 @@
 //! 1. If tensors have different number of dimensions, prepend 1s to the smaller shape
 //! 2. For each dimension, sizes must be equal or one of them must be 1
 //! 3. The tensor with size 1 is "stretched" to match the other
+//!
+//! Also includes SRT-aligned Inflationary Broadcasting:
+//! - `inflationary_broadcast`: Expand using golden ratio scaling
+//! - `golden_inflationary_broadcast`: Pure φ-scaling expansion
+//! - `consciousness_inflationary_broadcast`: Syntony-weighted expansion
+
+use pyo3::prelude::*;
 
 /// Compute the broadcast shape for two shapes.
 ///
@@ -377,6 +384,70 @@ pub fn inplace_abs(data: &mut [f64]) {
     for x in data.iter_mut() {
         *x = x.abs();
     }
+}
+
+// =============================================================================
+// PyO3 Bindings for SRT Inflationary Broadcasting
+// =============================================================================
+
+/// Python-exposed inflationary broadcast with golden ratio scaling.
+///
+/// Expands a seed tensor to a target shape using φ-weighted inflation.
+/// Implements the cosmological inflation principle in tensor space.
+///
+/// Args:
+///     seed: Source tensor data (flattened)
+///     seed_shape: Shape of source tensor
+///     target_shape: Desired output shape
+///     inflation_factor: Optional custom factor (default: φ ≈ 1.618)
+///
+/// Returns:
+///     Tuple of (inflated_data, output_shape) or None if incompatible
+#[pyfunction]
+#[pyo3(name = "inflationary_broadcast")]
+pub fn py_inflationary_broadcast(
+    seed: Vec<f64>,
+    seed_shape: Vec<usize>,
+    target_shape: Vec<usize>,
+    inflation_factor: Option<f64>,
+) -> Option<(Vec<f64>, Vec<usize>)> {
+    inflationary_broadcast(&seed, &seed_shape, &target_shape, inflation_factor)
+}
+
+/// Python-exposed golden inflationary broadcast (pure φ scaling).
+///
+/// Expands tensor using the golden ratio, implementing the growth
+/// pattern observed in biological systems and consciousness expansion.
+#[pyfunction]
+#[pyo3(name = "golden_inflationary_broadcast")]
+pub fn py_golden_inflationary_broadcast(
+    seed: Vec<f64>,
+    seed_shape: Vec<usize>,
+    target_shape: Vec<usize>,
+) -> Option<(Vec<f64>, Vec<usize>)> {
+    golden_inflationary_broadcast(&seed, &seed_shape, &target_shape)
+}
+
+/// Python-exposed consciousness inflationary broadcast.
+///
+/// Expands tensor with syntony-weighted scaling. Higher syntony elements
+/// propagate more effectively, implementing the principle that coherent
+/// patterns expand better than incoherent ones.
+///
+/// Args:
+///     seed: Source tensor data
+///     syntony_values: Syntony score for each seed element
+///     seed_shape: Shape of source tensor
+///     target_shape: Desired output shape
+#[pyfunction]
+#[pyo3(name = "consciousness_inflationary_broadcast")]
+pub fn py_consciousness_inflationary_broadcast(
+    seed: Vec<f64>,
+    syntony_values: Vec<f64>,
+    seed_shape: Vec<usize>,
+    target_shape: Vec<usize>,
+) -> Option<(Vec<f64>, Vec<usize>)> {
+    consciousness_inflationary_broadcast(&seed, &syntony_values, &seed_shape, &target_shape)
 }
 
 #[cfg(test)]

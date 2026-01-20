@@ -112,9 +112,9 @@ pub struct RESConfig {
     #[pyo3(get, set)]
     pub attractor_decay_rate: f64,
 
-    /// CUDA device index for GPU acceleration (-1 to disable)
+    /// CUDA device indices for multi-GPU acceleration (empty to disable)
     #[pyo3(get, set)]
-    pub cuda_device_idx: i32,
+    pub cuda_device_indices: Vec<i32>,
 }
 
 impl Default for RESConfig {
@@ -134,7 +134,7 @@ impl Default for RESConfig {
             attractor_pull_strength: 0.3,
             attractor_min_syntony: 0.7,
             attractor_decay_rate: 0.98,
-            cuda_device_idx: -1, // -1 = disabled
+            cuda_device_indices: vec![], // empty = disabled
         }
     }
 }
@@ -175,6 +175,12 @@ impl RESConfig {
         attractor_decay_rate: f64,
         cuda_device_idx: i32,
     ) -> Self {
+        let cuda_device_indices = if cuda_device_idx >= 0 {
+            vec![cuda_device_idx]
+        } else {
+            vec![]
+        };
+
         RESConfig {
             population_size,
             survivor_count,
@@ -189,19 +195,19 @@ impl RESConfig {
             attractor_pull_strength,
             attractor_min_syntony,
             attractor_decay_rate,
-            cuda_device_idx,
+            cuda_device_indices,
         }
     }
 
     fn __repr__(&self) -> String {
         format!(
-            "RESConfig(pop={}, survivors={}, λ={:.6}, mut_scale={}, prec={}, cuda_device={})",
+            "RESConfig(pop={}, survivors={}, λ={:.6}, mut_scale={}, prec={}, cuda_devices={:?})",
             self.population_size,
             self.survivor_count,
             self.lambda_val,
             self.mutation_scale,
             self.precision,
-            self.cuda_device_idx
+            self.cuda_device_indices
         )
     }
 }
@@ -531,6 +537,50 @@ impl ResonantEvolver {
         Ok(results)
     }
 
+    /// Evaluate survivors using multiple CUDA devices for distributed computation.
+    pub fn evaluate_survivors_multi_cuda(
+        &self,
+        survivors: &[ResonantTensor],
+    ) -> Result<Vec<(ResonantTensor, f64)>, ResonantError> {
+        if survivors.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let num_devices = self.config.cuda_device_indices.len();
+        if num_devices == 1 {
+            // Single device case
+            let device_idx = self.config.cuda_device_indices[0] as usize;
+            let device =
+                crate::tensor::cuda::device_manager::get_device(device_idx).map_err(|e| {
+                    ResonantError::CudaError(format!("Failed to get device {}: {}", device_idx, e))
+                })?;
+            return self.evaluate_survivors_cuda(&survivors, device);
+        }
+
+        // Multi-device case: distribute survivors across devices
+        let survivors_per_device = (survivors.len() + num_devices - 1) / num_devices; // Ceiling division
+        let mut results = Vec::with_capacity(survivors.len());
+
+        for (i, device_idx) in self.config.cuda_device_indices.iter().enumerate() {
+            let start = i * survivors_per_device;
+            let end = (start + survivors_per_device).min(survivors.len());
+            if start >= end {
+                break;
+            }
+
+            let chunk = &survivors[start..end];
+            let device = crate::tensor::cuda::device_manager::get_device(*device_idx as usize)
+                .map_err(|e| {
+                    ResonantError::CudaError(format!("Failed to get device {}: {}", device_idx, e))
+                })?;
+
+            let mut chunk_results = self.evaluate_survivors_cuda(chunk, device)?;
+            results.append(&mut chunk_results);
+        }
+
+        Ok(results)
+    }
+
     /// Generate Gaussian noise using Box-Muller transform.
     ///
     /// Uses CUDA acceleration if available, otherwise falls back to CPU.
@@ -629,9 +679,9 @@ impl ResonantEvolver {
     pub fn generate_gaussian_noise(&self, count: usize) -> Vec<f64> {
         #[cfg(feature = "cuda")]
         {
-            if self.config.cuda_device_idx >= 0 {
+            if !self.config.cuda_device_indices.is_empty() {
                 if let Ok(device) = crate::tensor::cuda::device_manager::get_device(
-                    self.config.cuda_device_idx as usize,
+                    self.config.cuda_device_indices[0] as usize,
                 ) {
                     match self.generate_gaussian_noise_cuda(count, Some(&device)) {
                         Ok(noise) => return noise,
@@ -727,34 +777,17 @@ impl ResonantEvolver {
         }
 
         // Step 4: Evaluate survivors (CUDA if available, else CPU)
-        let evaluated = if self.config.cuda_device_idx >= 0 {
+        let evaluated = if !self.config.cuda_device_indices.is_empty() {
             #[cfg(feature = "cuda")]
             {
-                match crate::tensor::cuda::device_manager::get_device(
-                    self.config.cuda_device_idx as usize,
-                ) {
-                    Ok(device) => {
-                        match self.evaluate_survivors_cuda(&survivors, device) {
-                            Ok(results) => results,
-                            Err(_) => {
-                                // Fall back to CPU on CUDA error
-                                self.evaluate_survivors_cpu(survivors)
-                            }
-                        }
-                    }
-                    Err(_) => {
-                        // Fall back to CPU if device not available
-                        self.evaluate_survivors_cpu(survivors)
-                    }
-                }
+                self.evaluate_survivors_multi_cuda(&survivors)
+                    .unwrap_or_else(|_| self.evaluate_survivors_cpu(survivors.clone()))
             }
             #[cfg(not(feature = "cuda"))]
             {
-                // CUDA not compiled in, use CPU
                 self.evaluate_survivors_cpu(survivors)
             }
         } else {
-            // CUDA disabled, use CPU
             self.evaluate_survivors_cpu(survivors)
         };
 

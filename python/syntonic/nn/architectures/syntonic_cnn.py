@@ -362,8 +362,8 @@ class PureSyntonicCNN1d(sn.Module):
             )
             ch = out_ch
 
-        # Classifier
-        self.classifier = sn.Parameter([ch, num_classes], init="kaiming", device=device)
+        # Classifier - shape [out_features, in_features] for matmul(X @ W.T)
+        self.classifier = sn.Parameter([num_classes, ch], init="kaiming", device=device)
 
     def forward(self, x: ResonantTensor) -> ResonantTensor:
         """
@@ -408,6 +408,220 @@ class PureSyntonicCNN1d(sn.Module):
         return sum(syntonies) / len(syntonies) if syntonies else 0.5
 
 
+class PureSyntonicCNN2d(sn.Module):
+    """
+    Simple 2D CNN for image classification.
+
+    Pure Python + ResonantTensor implementation using Rust conv2d backend.
+
+    Architecture:
+    - Stack of 2D convolutions with max pooling
+    - Global average pooling
+    - Linear classifier
+
+    Example:
+        >>> model = PureSyntonicCNN2d(in_channels=3, num_classes=10)
+        >>> x = ResonantTensor(...)  # (batch, height, width, in_channels)
+        >>> logits = model(x)
+    """
+
+    def __init__(
+        self,
+        in_channels: int = 3,
+        num_classes: int = 10,
+        hidden_channels: List[int] = [32, 64, 128],
+        kernel_size: int = 3,
+        pool_size: int = 2,
+        precision: int = 100,
+        device: str = "cpu",
+    ):
+        """
+        Initialize 2D syntonic CNN.
+
+        Args:
+            in_channels: Input image channels (e.g., 3 for RGB)
+            num_classes: Number of output classes
+            hidden_channels: List of hidden channel sizes for conv layers
+            kernel_size: Convolution kernel size
+            pool_size: Max pooling kernel size
+            precision: ResonantTensor precision
+            device: Device placement
+        """
+        super().__init__()
+
+        self.precision = precision
+        self.device = device
+        self.pool_size = pool_size
+        self.num_classes = num_classes
+
+        # Build conv layers
+        self.convs = sn.ModuleList()
+        ch = in_channels
+        for out_ch in hidden_channels:
+            self.convs.append(
+                PureSyntonicConv2d(
+                    ch,
+                    out_ch,
+                    kernel_size,
+                    padding=kernel_size // 2,
+                    precision=precision,
+                    device=device,
+                )
+            )
+            ch = out_ch
+
+        self.final_channels = ch
+
+        # Classifier weight - shape [out_features, in_features] for matmul(X @ W.T)
+        self.classifier = sn.Parameter(
+            [num_classes, ch], init="kaiming", device=device
+        )
+
+    def _max_pool2d(
+        self, data: List[float], batch: int, h: int, w: int, c: int, pool_size: int
+    ) -> Tuple[List[float], int, int]:
+        """
+        Apply 2D max pooling.
+
+        Args:
+            data: Flattened input (batch * h * w * c)
+            batch: Batch size
+            h: Height
+            w: Width
+            c: Channels
+            pool_size: Pooling kernel size
+
+        Returns:
+            (pooled_data, out_h, out_w)
+        """
+        out_h = h // pool_size
+        out_w = w // pool_size
+
+        output = []
+        for b in range(batch):
+            for oh in range(out_h):
+                for ow in range(out_w):
+                    for ch in range(c):
+                        # Find max in pooling window
+                        max_val = float("-inf")
+                        for ph in range(pool_size):
+                            for pw in range(pool_size):
+                                ih = oh * pool_size + ph
+                                iw = ow * pool_size + pw
+                                if ih < h and iw < w:
+                                    idx = b * (h * w * c) + ih * (w * c) + iw * c + ch
+                                    if idx < len(data):
+                                        max_val = max(max_val, data[idx])
+                        output.append(max_val if max_val != float("-inf") else 0.0)
+
+        return output, out_h, out_w
+
+    def _global_avg_pool2d(
+        self, data: List[float], batch: int, h: int, w: int, c: int
+    ) -> List[float]:
+        """
+        Apply global average pooling.
+
+        Args:
+            data: Flattened input (batch * h * w * c)
+            batch: Batch size
+            h: Height
+            w: Width
+            c: Channels
+
+        Returns:
+            Pooled data (batch * c)
+        """
+        output = []
+        spatial_size = h * w
+
+        for b in range(batch):
+            for ch in range(c):
+                total = 0.0
+                for ih in range(h):
+                    for iw in range(w):
+                        idx = b * (h * w * c) + ih * (w * c) + iw * c + ch
+                        if idx < len(data):
+                            total += data[idx]
+                output.append(total / spatial_size if spatial_size > 0 else 0.0)
+
+        return output
+
+    def forward(self, x: ResonantTensor) -> ResonantTensor:
+        """
+        Forward pass.
+
+        Args:
+            x: Input (batch, height, width, in_channels) or (height, width, in_channels)
+
+        Returns:
+            Logits (batch, num_classes) or (num_classes,)
+        """
+        shape = x.shape
+
+        # Track if we need to squeeze batch dim at the end
+        squeeze_batch = len(shape) == 3
+
+        # Ensure 4D input
+        if len(shape) == 3:
+            h, w, c = shape
+            # Reshape to add batch dimension
+            data = x.to_floats()
+            mode_norms = [float(i * i) for i in range(len(data))]
+            x = ResonantTensor(data, [1, h, w, c], mode_norms, self.precision)
+
+        # Apply conv layers with pooling
+        for i, conv in enumerate(self.convs):
+            x = conv(x)
+
+            # Apply max pooling after each conv (except maybe the last)
+            if self.pool_size > 1:
+                data = x.to_floats()
+                batch, h, w, c = x.shape
+
+                # Only pool if spatial dimensions are large enough
+                if h >= self.pool_size and w >= self.pool_size:
+                    pooled_data, out_h, out_w = self._max_pool2d(
+                        data, batch, h, w, c, self.pool_size
+                    )
+                    mode_norms = [float(i * i) for i in range(len(pooled_data))]
+                    x = ResonantTensor(
+                        pooled_data, [batch, out_h, out_w, c], mode_norms, self.precision
+                    )
+
+        # Global average pooling
+        data = x.to_floats()
+        batch, h, w, c = x.shape
+        pooled = self._global_avg_pool2d(data, batch, h, w, c)
+
+        # Create tensor for classifier input: (batch, channels)
+        pooled_rt = ResonantTensor(
+            pooled,
+            [batch, c],
+            [float(i * i) for i in range(len(pooled))],
+            self.precision,
+        )
+
+        # Apply classifier: (batch, channels) @ (channels, num_classes) -> (batch, num_classes)
+        logits = pooled_rt.matmul(self.classifier.tensor)
+
+        # Squeeze batch if input was 3D
+        if squeeze_batch:
+            logits_data = logits.to_floats()
+            mode_norms = [float(i * i) for i in range(self.num_classes)]
+            logits = ResonantTensor(
+                logits_data, [self.num_classes], mode_norms, self.precision
+            )
+
+        return logits
+
+    @property
+    def syntony(self) -> float:
+        """Get average syntony across conv layers."""
+        syntonies = [conv.syntony for conv in self.convs if conv.syntony is not None]
+        return sum(syntonies) / len(syntonies) if syntonies else 0.5
+
+
 if __name__ == "__main__":
     import random
 
@@ -444,11 +658,29 @@ if __name__ == "__main__":
     print(f"  Logits shape: {logits.shape}")
     print(f"  Model syntony: {model.syntony:.4f}")
 
-    # Test 2D conv stub
-    print("\n2D Conv (stub):")
-    conv2d = PureSyntonicConv2d(3, 64, kernel_size=3)
-    print("  Created (API only, forward raises NotImplementedError)")
+    # Test 2D conv
+    print("\n2D Conv:")
+    img_h, img_w, img_c = 8, 8, 3
+    img_data = [random.gauss(0, 0.5) for _ in range(img_h * img_w * img_c)]
+    img_mode_norms = [float(i * i) for i in range(len(img_data))]
+    img = ResonantTensor(img_data, [img_h, img_w, img_c], img_mode_norms, 100)
+
+    conv2d = PureSyntonicConv2d(img_c, 32, kernel_size=3)
+    y2d = conv2d(img)
+    print(f"  Input shape: {img.shape}")
+    print(f"  Output shape: {y2d.shape}")
+    print(f"  Layer syntony: {conv2d.syntony:.4f}")
+
+    # Test full 2D CNN
+    print("\n2D CNN:")
+    model2d = PureSyntonicCNN2d(
+        in_channels=img_c, num_classes=10, hidden_channels=[16, 32], pool_size=2
+    )
+    logits2d = model2d(img)
+    print(f"  Input shape: {img.shape}")
+    print(f"  Logits shape: {logits2d.shape}")
+    print(f"  Model syntony: {model2d.syntony:.4f}")
 
     print("\n" + "=" * 70)
-    print("✓ Pure Syntonic CNN (1D) verified! 2D requires CUDA kernels.")
+    print("All Pure Syntonic CNN tests passed (1D and 2D).")
     print("=" * 70)

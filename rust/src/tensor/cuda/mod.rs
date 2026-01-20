@@ -29,8 +29,12 @@ pub use device_manager::{CudaError, DeviceManager, StreamKind};
 #[cfg(feature = "cuda")]
 pub use async_transfer::{AsyncTensorTransfer, AsyncTransfer, TransferComputeOverlap};
 
+// Half-precision types exported for future WMMA/tensor core support
 #[cfg(feature = "cuda")]
-pub use memory_pool::{CudaComplex64, MemoryPool, PoolConfig, PoolStats, PooledSlice};
+#[allow(unused_imports)]
+pub use memory_pool::{
+    CudaBF16, CudaComplex64, CudaF16, MemoryPool, PoolConfig, PoolStats, PooledSlice,
+};
 
 #[cfg(feature = "cuda")]
 pub use multi_gpu::{gather, peer_copy, scatter, ReduceOp};

@@ -93,6 +93,8 @@ S_TARGET = PHI - Q_DEFICIT
 __all__ = [
     # Core Tensor
     "ResonantTensor",
+    # Activations
+    "GoldenGELU",
     # Layers
     "DifferentiationLayer",
     "DifferentiationModule",

@@ -16,6 +16,44 @@ pub struct CudaComplex64(pub Complex64);
 unsafe impl DeviceRepr for CudaComplex64 {}
 unsafe impl ValidAsZeroBits for CudaComplex64 {}
 
+/// Half-precision float wrapper for CUDA operations
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
+pub struct CudaF16(pub half::f16);
+
+unsafe impl DeviceRepr for CudaF16 {}
+unsafe impl ValidAsZeroBits for CudaF16 {}
+
+impl From<half::f16> for CudaF16 {
+    fn from(f: half::f16) -> Self {
+        CudaF16(f)
+    }
+}
+impl From<CudaF16> for half::f16 {
+    fn from(f: CudaF16) -> Self {
+        f.0
+    }
+}
+
+/// Brain float 16 wrapper for CUDA operations
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
+pub struct CudaBF16(pub half::bf16);
+
+unsafe impl DeviceRepr for CudaBF16 {}
+unsafe impl ValidAsZeroBits for CudaBF16 {}
+
+impl From<half::bf16> for CudaBF16 {
+    fn from(f: half::bf16) -> Self {
+        CudaBF16(f)
+    }
+}
+impl From<CudaBF16> for half::bf16 {
+    fn from(f: CudaBF16) -> Self {
+        f.0
+    }
+}
+
 impl From<Complex64> for CudaComplex64 {
     fn from(c: Complex64) -> Self {
         CudaComplex64(c)
@@ -89,6 +127,8 @@ pub struct MemoryPool {
     free_blocks_f64: RwLock<HashMap<usize, Vec<CudaSlice<f64>>>>,
     free_blocks_c128: RwLock<HashMap<usize, Vec<CudaSlice<CudaComplex64>>>>,
     free_blocks_i32: RwLock<HashMap<usize, Vec<CudaSlice<i32>>>>,
+    free_blocks_f16: RwLock<HashMap<usize, Vec<CudaSlice<CudaF16>>>>,
+    free_blocks_bf16: RwLock<HashMap<usize, Vec<CudaSlice<CudaBF16>>>>,
     /// Total cached bytes
     cached_bytes: AtomicUsize,
     /// Statistics
@@ -111,6 +151,8 @@ impl MemoryPool {
             free_blocks_f64: RwLock::new(HashMap::new()),
             free_blocks_c128: RwLock::new(HashMap::new()),
             free_blocks_i32: RwLock::new(HashMap::new()),
+            free_blocks_f16: RwLock::new(HashMap::new()),
+            free_blocks_bf16: RwLock::new(HashMap::new()),
             cached_bytes: AtomicUsize::new(0),
             cache_hits: AtomicUsize::new(0),
             cache_misses: AtomicUsize::new(0),
@@ -130,6 +172,8 @@ impl MemoryPool {
             free_blocks_f64: RwLock::new(HashMap::new()),
             free_blocks_c128: RwLock::new(HashMap::new()),
             free_blocks_i32: RwLock::new(HashMap::new()),
+            free_blocks_f16: RwLock::new(HashMap::new()),
+            free_blocks_bf16: RwLock::new(HashMap::new()),
             cached_bytes: AtomicUsize::new(0),
             cache_hits: AtomicUsize::new(0),
             cache_misses: AtomicUsize::new(0),
@@ -407,6 +451,108 @@ impl MemoryPool {
             .push(slice);
     }
 
+    /// Allocate typed memory from pool (CudaF16)
+    pub fn alloc_f16(&self, count: usize) -> Result<CudaSlice<CudaF16>, CudaError> {
+        let size_bytes = count * std::mem::size_of::<CudaF16>();
+        let bucket_size_bytes = self.round_size(size_bytes);
+        let bucket_size_elements = bucket_size_bytes / std::mem::size_of::<CudaF16>();
+
+        self.total_allocations.fetch_add(1, Ordering::Relaxed);
+        self.total_bytes.fetch_add(size_bytes, Ordering::Relaxed);
+
+        {
+            let mut blocks = self.free_blocks_f16.write().unwrap();
+            if let Some(bucket) = blocks.get_mut(&bucket_size_bytes) {
+                if let Some(slice) = bucket.pop() {
+                    self.cached_bytes
+                        .fetch_sub(bucket_size_bytes, Ordering::Relaxed);
+                    self.cache_hits.fetch_add(1, Ordering::Relaxed);
+                    return Ok(slice);
+                }
+            }
+        }
+
+        self.cache_misses.fetch_add(1, Ordering::Relaxed);
+
+        self.device
+            .default_stream()
+            .alloc_zeros::<CudaF16>(bucket_size_elements)
+            .map_err(|e| CudaError::AllocationFailed(e.to_string()))
+    }
+
+    /// Allocate typed memory from pool (CudaBF16)
+    pub fn alloc_bf16(&self, count: usize) -> Result<CudaSlice<CudaBF16>, CudaError> {
+        let size_bytes = count * std::mem::size_of::<CudaBF16>();
+        let bucket_size_bytes = self.round_size(size_bytes);
+        let bucket_size_elements = bucket_size_bytes / std::mem::size_of::<CudaBF16>();
+
+        self.total_allocations.fetch_add(1, Ordering::Relaxed);
+        self.total_bytes.fetch_add(size_bytes, Ordering::Relaxed);
+
+        {
+            let mut blocks = self.free_blocks_bf16.write().unwrap();
+            if let Some(bucket) = blocks.get_mut(&bucket_size_bytes) {
+                if let Some(slice) = bucket.pop() {
+                    self.cached_bytes
+                        .fetch_sub(bucket_size_bytes, Ordering::Relaxed);
+                    self.cache_hits.fetch_add(1, Ordering::Relaxed);
+                    return Ok(slice);
+                }
+            }
+        }
+
+        self.cache_misses.fetch_add(1, Ordering::Relaxed);
+
+        self.device
+            .default_stream()
+            .alloc_zeros::<CudaBF16>(bucket_size_elements)
+            .map_err(|e| CudaError::AllocationFailed(e.to_string()))
+    }
+
+    /// Return f16 to pool
+    pub fn free_f16(&self, slice: CudaSlice<CudaF16>) {
+        let elements = slice.len();
+        let bytes = elements * std::mem::size_of::<CudaF16>();
+
+        if bytes > self.config.max_cacheable_size {
+            return;
+        }
+        let current = self.cached_bytes.load(Ordering::Relaxed);
+        if current + bytes > self.config.max_cached_bytes {
+            return;
+        }
+
+        self.cached_bytes.fetch_add(bytes, Ordering::Relaxed);
+        self.free_blocks_f16
+            .write()
+            .unwrap()
+            .entry(bytes)
+            .or_default()
+            .push(slice);
+    }
+
+    /// Return bf16 to pool
+    pub fn free_bf16(&self, slice: CudaSlice<CudaBF16>) {
+        let elements = slice.len();
+        let bytes = elements * std::mem::size_of::<CudaBF16>();
+
+        if bytes > self.config.max_cacheable_size {
+            return;
+        }
+        let current = self.cached_bytes.load(Ordering::Relaxed);
+        if current + bytes > self.config.max_cached_bytes {
+            return;
+        }
+
+        self.cached_bytes.fetch_add(bytes, Ordering::Relaxed);
+        self.free_blocks_bf16
+            .write()
+            .unwrap()
+            .entry(bytes)
+            .or_default()
+            .push(slice);
+    }
+
     /// Clear all cached memory
     pub fn trim(&self) {
         self.free_blocks_u8.write().unwrap().clear();
@@ -414,6 +560,8 @@ impl MemoryPool {
         self.free_blocks_f64.write().unwrap().clear();
         self.free_blocks_c128.write().unwrap().clear();
         self.free_blocks_i32.write().unwrap().clear();
+        self.free_blocks_f16.write().unwrap().clear();
+        self.free_blocks_bf16.write().unwrap().clear();
         self.cached_bytes.store(0, Ordering::Relaxed);
     }
 
@@ -485,6 +633,24 @@ impl Poolable for i32 {
     }
     fn free_to_pool(pool: &MemoryPool, slice: CudaSlice<i32>) {
         pool.free_i32(slice)
+    }
+}
+
+impl Poolable for CudaF16 {
+    fn alloc_from_pool(pool: &MemoryPool, size: usize) -> Result<CudaSlice<CudaF16>, CudaError> {
+        pool.alloc_f16(size)
+    }
+    fn free_to_pool(pool: &MemoryPool, slice: CudaSlice<CudaF16>) {
+        pool.free_f16(slice)
+    }
+}
+
+impl Poolable for CudaBF16 {
+    fn alloc_from_pool(pool: &MemoryPool, size: usize) -> Result<CudaSlice<CudaBF16>, CudaError> {
+        pool.alloc_bf16(size)
+    }
+    fn free_to_pool(pool: &MemoryPool, slice: CudaSlice<CudaBF16>) {
+        pool.free_bf16(slice)
     }
 }
 

@@ -52,7 +52,6 @@ from syntonic.core import (
     RESResult,
     # State class
     State,
-    _debug_stress_pool_take,
     complex64,
     complex128,
     cpu,
@@ -190,13 +189,6 @@ __all__ = [
     "lucas",
     "correction_factor",
     "golden_number",
-    # Prime Selection (SRT/CRT Physics)
-    "FERMAT_PRIMES",
-    "MERSENNE_EXPONENTS",
-    "LUCAS_PRIMES",
-    "fermat_number",
-    "mersenne_number",
-    "lucas_number",
     # Consciousness
     "COLLAPSE_THRESHOLD",
     "is_conscious",

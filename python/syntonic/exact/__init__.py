@@ -526,6 +526,14 @@ __all__ = [
     "Q_DEFICIT_NUMERIC",
     "PI_NUMERIC",
     "E_NUMERIC",
+    # SRT computation functions (from Rust backend)
+    "srt_phi",
+    "srt_phi_inv",
+    "srt_pi",
+    "srt_e",
+    "srt_q_deficit",
+    "srt_correction_factor",
+    "srt_structure_dimension",
     # Prime sequence constants
     "FERMAT_PRIMES",
     "FERMAT_INDICES",
@@ -539,11 +547,16 @@ __all__ = [
     "STRUCTURE_DIMENSIONS",
     "CORRECTION_HIERARCHY",
     "SUPPRESSION_FACTORS",
+    # CORRECTION_FACTORS registry
+    "CORRECTION_FACTORS",
     # Functions
     "fibonacci",
     "lucas",
     "correction_factor",
     "get_correction_factor",
     "get_suppression_factor",
+    "get_geometric_factor",
     "golden_number",
+    "apply_nested_corrections",
+    "apply_unified_hierarchy",
 ]

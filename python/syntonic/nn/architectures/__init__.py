@@ -36,6 +36,7 @@ from python.syntonic.nn.architectures.syntonic_attention import (
 )
 from python.syntonic.nn.architectures.syntonic_cnn import (
     PureSyntonicCNN1d,
+    PureSyntonicCNN2d,
     PureSyntonicConv1d,
     PureSyntonicConv2d,
 )
@@ -44,6 +45,9 @@ from python.syntonic.nn.architectures.syntonic_cnn import (
 )
 from python.syntonic.nn.architectures.syntonic_cnn import (
     PureSyntonicCNN1d as SyntonicCNN,
+)
+from python.syntonic.nn.architectures.syntonic_cnn import (
+    PureSyntonicCNN2d as SyntonicCNN2d,
 )
 from python.syntonic.nn.architectures.syntonic_cnn import (
     PureSyntonicConv2d as SyntonicConv2d,
@@ -83,8 +87,11 @@ __all__ = [
     "SyntonicConv2d",
     "RecursionConvBlock",
     "SyntonicCNN",
+    "SyntonicCNN2d",
     "PureSyntonicConv1d",
+    "PureSyntonicConv2d",
     "PureSyntonicCNN1d",
+    "PureSyntonicCNN2d",
     # Embeddings
     "SyntonicEmbedding",
     "WindingEmbedding",

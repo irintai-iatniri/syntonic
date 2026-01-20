@@ -339,8 +339,8 @@ fn mm_cpu_dispatch(
     k: usize,
     n: usize,
 ) -> Result<TensorStorage, MatmulError> {
-    debug_assert_eq!(a.shape(), vec![m, k], "A shape mismatch in cpu dispatch");
-    debug_assert_eq!(b.shape(), vec![k, n], "B shape mismatch in cpu dispatch");
+    debug_assert_eq!(a.shape(),vec![m, k], "A shape mismatch in cpu dispatch");
+    debug_assert_eq!(b.shape(),vec![k, n], "B shape mismatch in cpu dispatch");
 
     let a_cpu = a
         .ensure_cpu_internal()

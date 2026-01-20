@@ -9,7 +9,11 @@
 //! - Enables Retrocausal Feedback (future Syntony informing past states)
 //! - Implements Gnosis Checkpoints (locked high-syntony states)
 
+// Allow dead code - this module defines a complete API that will be incrementally integrated
+#![allow(dead_code)]
+
 use crate::ResonantTensor;
+use pyo3::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
@@ -356,4 +360,137 @@ impl Default for SharedCausalHistory {
     fn default() -> Self {
         Self::new()
     }
+}
+
+// =============================================================================
+// PyO3 Bindings for Python Accessibility
+// =============================================================================
+
+/// Python-accessible wrapper for CausalHistory tracking DHSR operations.
+///
+/// This provides a simplified interface for Python code to track the
+/// Differentiation-Harmonization-Syntony-Recursion cycle and access
+/// retrocausal feedback mechanisms.
+#[pyclass(name = "CausalHistoryTracker")]
+pub struct PyCausalHistoryTracker {
+    inner: SharedCausalHistory,
+    current_phase: f64,
+}
+
+#[pymethods]
+impl PyCausalHistoryTracker {
+    /// Create a new causal history tracker.
+    #[new]
+    pub fn new() -> Self {
+        Self {
+            inner: SharedCausalHistory::new(),
+            current_phase: 0.0,
+        }
+    }
+
+    /// Get the current phase time (τ).
+    #[getter]
+    pub fn phase_time(&self) -> f64 {
+        self.current_phase
+    }
+
+    /// Advance phase time by the given amount.
+    pub fn advance_phase(&mut self, delta: f64) {
+        self.current_phase += delta;
+    }
+
+    /// Get the gnosis threshold (D₄ kissing number = 24).
+    #[getter]
+    pub fn gnosis_threshold(&self) -> f64 {
+        self.inner.with_history(|h| h.gnosis_threshold)
+    }
+
+    /// Set a custom gnosis threshold.
+    #[setter]
+    pub fn set_gnosis_threshold(&self, threshold: f64) {
+        self.inner.with_history(|h| {
+            h.gnosis_threshold = threshold;
+        });
+    }
+
+    /// Get the number of recorded nodes.
+    pub fn node_count(&self) -> usize {
+        self.inner.with_history(|h| h.nodes.len())
+    }
+
+    /// Get timeline length.
+    pub fn timeline_length(&self) -> usize {
+        self.inner.with_history(|h| h.phase_timeline.len())
+    }
+
+    /// Get all tensor IDs in chronological order.
+    pub fn get_timeline(&self) -> Vec<u64> {
+        self.inner.with_history(|h| {
+            h.phase_timeline.iter().map(|id| id.0).collect()
+        })
+    }
+
+    /// Get syntony scores for all nodes.
+    pub fn get_syntony_scores(&self) -> Vec<(u64, f64)> {
+        self.inner.with_history(|h| {
+            h.nodes.iter()
+                .map(|(id, node)| (id.0, node.syntony_score))
+                .collect()
+        })
+    }
+
+    /// Get all gnosis-locked (high-syntony) tensor IDs.
+    pub fn get_gnosis_locked(&self) -> Vec<u64> {
+        self.inner.with_history(|h| {
+            h.nodes.iter()
+                .filter(|(_, node)| node.gnosis_locked)
+                .map(|(id, _)| id.0)
+                .collect()
+        })
+    }
+
+    /// Get predecessors of a given tensor.
+    pub fn get_predecessors(&self, tensor_id: u64) -> Vec<u64> {
+        self.inner.with_history(|h| {
+            h.nodes.get(&TensorId(tensor_id))
+                .map(|node| node.predecessors.iter().map(|id| id.0).collect())
+                .unwrap_or_default()
+        })
+    }
+
+    /// Get successors of a given tensor.
+    pub fn get_successors(&self, tensor_id: u64) -> Vec<u64> {
+        self.inner.with_history(|h| {
+            h.nodes.get(&TensorId(tensor_id))
+                .map(|node| node.successors.iter().map(|id| id.0).collect())
+                .unwrap_or_default()
+        })
+    }
+
+    /// Clear all history (reset the DAG).
+    pub fn clear(&mut self) {
+        self.inner = SharedCausalHistory::new();
+        self.current_phase = 0.0;
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "CausalHistoryTracker(phase={:.3}, nodes={}, gnosis_threshold={:.1})",
+            self.current_phase,
+            self.node_count(),
+            self.gnosis_threshold()
+        )
+    }
+}
+
+/// Create a new causal history tracker.
+#[pyfunction]
+pub fn create_causal_tracker() -> PyCausalHistoryTracker {
+    PyCausalHistoryTracker::new()
+}
+
+/// Get the D₄ consciousness threshold (kissing number = 24).
+#[pyfunction]
+pub fn d4_consciousness_threshold() -> f64 {
+    24.0
 }

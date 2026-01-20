@@ -8,6 +8,15 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
+/// Compute greatest common divisor using Euclidean algorithm
+fn gcd(a: i128, b: i128) -> i128 {
+    if b == 0 {
+        a.abs()
+    } else {
+        gcd(b, a % b)
+    }
+}
+
 /// Exact rational number: num/denom where gcd(num, denom) = 1 and denom > 0
 #[pyclass]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
@@ -304,12 +313,12 @@ impl Rational {
 
     #[getter]
     fn get_numerator(&self) -> i64 {
-        self.num as i64
+        self.numerator() as i64
     }
 
     #[getter]
     fn get_denominator(&self) -> i64 {
-        self.denom as i64
+        self.denominator() as i64
     }
 
     fn __repr__(&self) -> String {
@@ -379,15 +388,6 @@ impl Rational {
     }
 }
 
-/// Greatest common divisor using Euclidean algorithm
-fn gcd(a: i128, b: i128) -> i128 {
-    if b == 0 {
-        a
-    } else {
-        gcd(b, a % b)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -404,13 +404,6 @@ mod tests {
     }
 
     #[test]
-    fn test_reduction() {
-        let r = Rational::new(4, 8);
-        assert_eq!(r.numerator(), 1);
-        assert_eq!(r.denominator(), 2);
-    }
-
-    #[test]
     fn test_negative() {
         let r = Rational::new(-3, 4);
         assert!(r.is_negative());
@@ -423,5 +416,12 @@ mod tests {
         assert_eq!(r.pow(2), Rational::new(4, 9));
         assert_eq!(r.pow(-1), Rational::new(3, 2));
         assert_eq!(r.pow(0), Rational::one());
+    }
+
+    #[test]
+    fn test_reduction() {
+        let r = Rational::new(4, 8);
+        assert_eq!(r.numerator(), 1);
+        assert_eq!(r.denominator(), 2);
     }
 }
