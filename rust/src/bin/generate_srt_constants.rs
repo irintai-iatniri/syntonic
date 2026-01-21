@@ -17,6 +17,7 @@ fn main() {
     let q_deficit = 0.0072973525693; // Fine structure constant deficit
     let e_star = 2.7182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274274663919320030599218174135966290435729003342952605956307381323286279434907632338298807531952510190115738341879307021540891499348841675092447614606680822637200302134934470462844069344977836228416466860857;
     let pi = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870;
+    let two_pi = 2.0 * pi;
     let euler = 0.5772156649015328606065120900824024310421593359399235988057672348848677267776646709369470632917467495146314472498070824809605045149997699828760462674488852090766454357239622770165505005469067546159086453550705546370944296878014626055419342749157990864763489646632024184568478874849370494496960216063845650298;
 
     // Generate φ powers using exact Fibonacci recurrence
@@ -145,6 +146,8 @@ __device__ __forceinline__ double warp_reduce_max_f64(double val) {{
 // Fundamental Constants
 #define PI_F32                  {:.17}f
 #define PI_F64                  {:.17}
+#define TWO_PI_F32              {:.17}f
+#define TWO_PI_F64              {:.17}
 #define EULER_F32               {:.17}f
 #define EULER_F64               {:.17}
 #define E_STAR_F32              {:.17}f
@@ -154,6 +157,7 @@ __device__ __forceinline__ double warp_reduce_max_f64(double val) {{
 #define PROJ_NORM_F32           {:.17}f
 #define PROJ_NORM_F64           {:.17}
 #define Q_DEFICIT_F64           {:.17}
+#define Q_DEFICIT_F32           {:.17}f
 
 // Golden Ratio Powers (φ^n for n=0..32) - individual constants for CUDA compatibility
 {}
@@ -187,6 +191,8 @@ __device__ __forceinline__ double warp_reduce_max_f64(double val) {{
         phi_inv_sq,
         pi,
         pi,
+        two_pi,
+        two_pi,
         euler,
         euler,
         e_star,
@@ -195,6 +201,7 @@ __device__ __forceinline__ double warp_reduce_max_f64(double val) {{
         sqrt5,
         proj_norm,
         proj_norm,
+        q_deficit,
         q_deficit,
         phi_powers_section,
         pisano_section,

@@ -1322,9 +1322,9 @@ dhsr_step_fused_f64(double *__restrict__ out, const double *__restrict__ in,
                     double beta_0, double gamma_0, // Ĥ params
                     double syntony, double *__restrict__ new_syntony_num,
                     double *__restrict__ new_syntony_den, int size) {
-  extern __shared__ double sdata[];
-  double *s_num = sdata;
-  double *s_den = sdata + blockDim.x;
+  extern __shared__ double sdata_d[];
+  double *s_num = sdata_d;
+  double *s_den = sdata_d + blockDim.x;
 
   int tid = threadIdx.x;
   int i = blockIdx.x * blockDim.x + threadIdx.x;

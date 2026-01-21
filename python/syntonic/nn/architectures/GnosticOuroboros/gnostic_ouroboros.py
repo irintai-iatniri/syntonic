@@ -293,6 +293,7 @@ class GnosticOuroboros(sn.Module):
         injection_plane: int = 1,
         is_training: bool = False,
         chain: WindingChain = WindingChain(DIM),
+        recursion_depth: int = 0,
     ):
         x = x_token
         winding = winding_init
