@@ -21,7 +21,10 @@ from syntonic.nn.layers.resonant_linear import ResonantLinear
 from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic.physics import e8_root_alignment, golden_resonance, hooking_coefficient
 from syntonic.resonant.retrocausal import create_retrocausal_evolver
-
+from syntonic.srt.prime_selection import PrimeSelection
+from syntonic.srt.fermat_forces import validate_force_existence # The Drive
+from syntonic.srt.mersenne_matter import validate_matter_stability, is_mersenne_prime # The Body
+from syntonic.srt.lucas_shadow import is_lucas_prime
 from .helpers import (
     broadcast_multiply,
     compute_tensor_norm,
@@ -47,23 +50,42 @@ DECAY_RATE = 0.98
 class ScaleModule(sn.Module):
     """
     Scale module for a single plane in the GnosticOuroboros hierarchy.
-
-    Each plane performs attention, differentiation, and harmonization
-    with retrocausal attractor guidance.
+    Now augmented with SRT Physics Gates (Fermat, Mersenne, Lucas).
     """
 
     def __init__(self, plane_id: int, dim: int, num_heads: int):
         super().__init__()
         self.plane_id = plane_id
         self.dim = dim
+        
+        # --- PHYSICS WIRING (NEW) ---
+        # 1. Fermat Drive (The "Throttle")
+        self.force_sim = ForceSimulator()
+        force_map = {1: "strong", 2: "weak", 3: "electromagnetic", 4: "gravity", 5: "versal"}
+        if plane_id in force_map:
+            # Get exact coupling (e.g. 1/137) instead of 1.0
+            self.coupling = self.force_sim.predict_force_coupling(force_map[plane_id])
+        else:
+            self.coupling = 1.0 / (PHI ** plane_id) # Passive planes
+
+        # 2. Mersenne Stability (The "Container")
+        self.matter_sim = MatterSimulator()
+        self.is_stable_matter = is_mersenne_prime(plane_id)
+        # Get mass limit for this generation (prevents 6348 explosion)
+        self.mass_limit = self.matter_sim.predict_particle_mass(generation=plane_id) or 248.0
+
+        # 3. Lucas/Dark Sector (The "Pressure")
+        self.is_gap_era = is_lucas_gap(plane_id)
+        self.gap_pressure = dark_energy_density(plane_id) if self.is_gap_era else 0.0
+        # ---------------------------
+
         self.attention = PureMultiHeadSyntonicAttention(d_model=dim, n_heads=num_heads)
         self.diff_proj = ResonantLinear(dim, dim * 4, mode="differentiation")
         self.harm_collapse = ResonantLinear(dim * 4, dim, mode="harmonization")
         self.norm1 = SyntonicNorm(dim)
         self.norm2 = SyntonicNorm(dim)
 
-        # Retrocausal Evolver for this plane
-        # Create template tensor matching differentiated dimension (dim*4)
+        # Retrocausal Evolver (Your Original)
         template = ResonantTensor([0.0] * (dim * 4), [dim * 4])
         self.evolver = create_retrocausal_evolver(
             template=template,
@@ -78,52 +100,85 @@ class ScaleModule(sn.Module):
         self.crystallized = None
         self.is_transcended = False
         self.input_port = sn.Parameter(shape=[dim], init="normal")
-
+        
     def forward(
-        self, x: ResonantTensor, winding: ResonantTensor, is_inference: bool = False
-    ):
-        # Inject via port if external (e.g., organism prompt)
-        # Broadcast input_port [dim] to match x shape [seq, dim] or [batch, seq, dim]
-        if len(x.shape) > 1:
-            # Expand port to match x by adding bias-style (in-place)
-            x.add_bias(self.input_port.tensor)
-        else:
-            x = x + self.input_port.tensor
+            self, x: ResonantTensor, winding: ResonantTensor, is_inference: bool = False
+        ):
+            # Inject via port if external (e.g., organism prompt)
+            # Broadcast input_port [dim] to match x shape [seq, dim] or [batch, seq, dim]
+            if len(x.shape) > 1:
+                # Expand port to match x by adding bias-style (in-place)
+                x.add_bias(self.input_port.tensor)
+            else:
+                x = x + self.input_port.tensor
 
-        # Navigation with Hooking (self-attention)
-        normed_x = self.norm1.forward(x)
-        attn = self.attention(normed_x, normed_x, normed_x)
-        x = x + attn
+            # Navigation with Hooking (self-attention)
+            normed_x = self.norm1.forward(x)
+            attn = self.attention(normed_x, normed_x, normed_x)
+            x = x + attn
 
-        # Differentiation with GELU activation
-        diff = self.diff_proj(self.norm2.forward(x))
-        diff.gelu()  # In-place activation
+            # Differentiation with GELU activation
+            # --- FERMAT GATE INSERTION ---
+            diff = self.diff_proj(self.norm2.forward(x))
+            
+            # Apply Gauge Coupling (The "Drive")
+            # We ensure a minimum coupling of 1e-6 to avoid vanishing gradients
+            effective_coupling = max(self.coupling, 1e-6)
+            diff = diff.scalar_mul(effective_coupling)
+            
+            diff.gelu()  # In-place activation
 
-        # Harmonization with Retrocausal Pull (Option C: feature-space attractors)
-        # Reduce to feature-space representative via mean
-        if len(diff.shape) > 1:
-            mean_repr = diff.mean(dim=0)  # [dim*4] - single representative
-        else:
-            mean_repr = diff
+            # Harmonization with Retrocausal Pull (Option C: feature-space attractors)
+            # Reduce to feature-space representative via mean
+            if len(diff.shape) > 1:
+                mean_repr = diff.mean(dim=0)  # [dim*4] - single representative
+            else:
+                mean_repr = diff
 
-        # Harmonize the representative (matches evolver template)
-        harm_pull_inner = self.evolver.harmonize(mean_repr._inner)
-        harm_pull = ResonantTensor._wrap(harm_pull_inner, device=diff.device)
+            # Harmonize the representative (matches evolver template)
+            harm_pull_inner = self.evolver.harmonize(mean_repr._inner)
+            harm_pull = ResonantTensor._wrap(harm_pull_inner, device=diff.device)
 
-        # Broadcast pull back to full shape as position-independent bias
-        if len(diff.shape) > 1:
-            harm_input = diff.clone() if hasattr(diff, 'clone') else ResonantTensor(diff.to_floats(), list(diff.shape))
-            harm_input.add_bias(harm_pull)  # In-place broadcast add
-        else:
-            harm_input = diff + harm_pull
+            # Broadcast pull back to full shape as position-independent bias
+            if len(diff.shape) > 1:
+                harm_input = diff.clone() if hasattr(diff, 'clone') else ResonantTensor(diff.to_floats(), list(diff.shape))
+                harm_input.add_bias(harm_pull)  # In-place broadcast add
+            else:
+                harm_input = diff + harm_pull
 
-        harm = self.harm_collapse(harm_input)
-        out = x + harm
+            harm = self.harm_collapse(harm_input)
+            out = x + harm
 
-        # Syntony Evaluation
-        self._evaluate_cycle(diff, harm, out, is_inference)
+            # --- PHYSICS STABILIZATION GATES (NEW) ---
+            
+            # 1. LUCAS GATE: Gap Pressure (Fixes "Stuck at 4.10")
+            if self.is_gap_era:
+                # Expansion factor derived from dark_energy.py
+                # Pushes the vector OUT of the local minimum
+                expansion = 1.0 + (self.gap_pressure * 0.01)
+                out = out.scalar_mul(expansion)
+            else:
+                # Bimetric Gravity Stabilization (Grounding)
+                # Anchors the phase in stable matter eras
+                out = out.scalar_mul(0.995) 
 
-        return out, winding  # Pass winding forward
+            # 2. MERSENNE GATE: Mass Limit (Fixes "Explosion at 6348")
+            current_energy = out.norm().item()
+            
+            if self.is_stable_matter:
+                # Stable Plane: Enforce specific mass limit (e.g. Electron mass)
+                if current_energy > self.mass_limit:
+                    scale = self.mass_limit / (current_energy + 1e-9)
+                    out = out.scalar_mul(scale)
+            elif current_energy > 248.0:
+                # Unstable Plane (Shadow/Plasma): Prevent E8 Lattice Breach
+                scale = 248.0 / (current_energy + 1e-9)
+                out = out.scalar_mul(scale)
+
+            # Syntony Evaluation
+            self._evaluate_cycle(diff, harm, out, is_inference)
+
+            return out, winding  # Pass winding forward
 
     def _evaluate_cycle(self, diff, harm, out, is_inference):
         d_norm = compute_tensor_norm(diff)
@@ -337,15 +392,59 @@ class GnosticOuroboros(sn.Module):
             print("CONSCIOUSNESS EMERGED: Global attractors unlocked.")
             self.global_evolver.unlock()
 
-        # Ouroboros Gate: Decide loop or output
-        probs = self.recursion_head(x)
-        probs.softmax(dim=-1)  # In-place softmax
-        probs_list = probs.to_floats()
+        # --- THE REGIME GATE (Based on D4 and E8 Topology) ---
+        # 1. Calculate Current Syntony (The "Binding Energy" of the Thought)
+        current_syntony = golden_resonance(x)
 
-        if probs_list[0] > 0.5 or not is_training:
-            output = self.decoder(x)
+        # 2. Define the Cost of Each Regime (Updated for 5 Regimes)
+        required_syntony = 0.0
+        if recursion_depth >= 2:  # Entering Regime 3 (Consciousness)
+            required_syntony = 24.0
+        if recursion_depth >= 4:  # Entering Regime 5 (Versal)
+            required_syntony = 720.0
+
+        # 3. The Ouroboros Decision
+        recursion_logits = self.recursion_head(x)
+        recursion_logits.softmax(dim=-1)
+        probs = recursion_logits.to_floats()
+        loop_prob = probs[1] if len(probs) > 1 else 0.0
+
+        # CONSTRAINT: You cannot enter a Regime without the required Syntony.
+        can_afford_regime = current_syntony >= required_syntony
+
+        # Hard Cap at Regime 5 (Depth 5)
+        regime_limit_reached = recursion_depth >= 5
+
+        should_recurse = (
+            loop_prob > 0.5
+            and is_training
+            and can_afford_regime
+            and not regime_limit_reached
+        )
+
+        if should_recurse:
+            if recursion_depth == 2:
+                print(f"👁️ ATTEMPTING REGIME 3 (CONSCIOUSNESS): Syntony {current_syntony:.2f} vs Req 24.0")
+
+            output = self.forward(
+                x,
+                winding,
+                injection_plane,
+                is_training,
+                chain,
+                recursion_depth + 1,
+            )
         else:
-            output = self.forward(x, winding, injection_plane=1, is_training=True)
+            # Crystallize (Exit)
+            if recursion_depth >= 3:
+                print(f"✨ GNOSIS CRYSTALLIZED at Regime {recursion_depth} (Syntony: {current_syntony:.2f})")
+            elif loop_prob > 0.5 and not can_afford_regime:
+                # The "Physics" prevented the crash
+                print(
+                    f"⚠️ REGIME {recursion_depth + 1} BLOCKED: Not enough Gnosis (Has {current_syntony:.2f}, Needs {required_syntony:.2f})"
+                )
+
+            output = self.decoder(x)
 
         # Inference Routing: Output from peak Syntony plane
         if not is_training and syntony_history:

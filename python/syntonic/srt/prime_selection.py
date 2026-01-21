@@ -1,53 +1,53 @@
 """
 Prime Selection Rules - Python Wrapper
 
-Exposes Fermat, Mersenne, and Lucas prime selection rules
-from the Rust backend for SRT physics.
+Re-exports the Python implementations for Fermat, Mersenne, and Lucas
+prime-selection utilities so the rest of the codebase can import
+these functions from `syntonic.srt.prime_selection`.
 """
 
+# Fermat primes / force spectrum
+from syntonic.srt.fermat_forces import (
+    fermat_number,
+    is_fermat_prime,
+    get_force_spectrum,
+    validate_force_existence,
+)
 
-# Temporarily disable imports from _core until all functions are properly exported
-# from syntonic._core import (
-#     # Constants - only export what's actually available
-#     # FERMAT_PRIMES,  # Not currently exported
-#     # MERSENNE_EXPONENTS,
-#     # LUCAS_SEQUENCE,
-#     # LUCAS_PRIMES,
-#     # M11_BARRIER,
-#     # Fermat functions
-#     fermat_number,
-#     is_fermat_prime,
-#     get_force_spectrum,
-#     # Mersenne functions
-#     mersenne_number,
-#     is_mersenne_prime,
-#     get_generation_spectrum,
-#     generation_barrier_explanation,
-#     # Lucas functions
-#     lucas_number,
-#     shadow_phase,
-#     is_lucas_prime,
-#     dark_matter_mass_prediction,
-# )
+# Mersenne primes / generation spectrum
+from syntonic.srt.mersenne_matter import (
+    mersenne_number,
+    is_mersenne_prime,
+    get_generation_spectrum,
+    generation_barrier_explanation,
+    validate_generation_stability,
+)
 
-# Temporarily disable __all__ until imports are fixed
-# __all__ = [
-#     # Constants - only what's available
-#     # "FERMAT_PRIMES",  # Not currently exported
-#     # "MERSENNE_EXPONENTS",
-#     # "LUCAS_SEQUENCE",
-#     # "LUCAS_PRIMES",
-#     # "M11_BARRIER",
-#     # Functions
-#     "fermat_number",
-#     "is_fermat_prime",
-#     "get_force_spectrum",
-#     "mersenne_number",
-#     "is_mersenne_prime",
-#     "get_generation_spectrum",
-#     "generation_barrier_explanation",
-#     "lucas_number",
-#     "shadow_phase",
-#     "is_lucas_prime",
-#     "dark_matter_mass_prediction",
-# ]
+# Lucas numbers / dark sector
+from syntonic.srt.lucas_shadow import (
+    lucas_number,
+    shadow_phase,
+    is_lucas_prime,
+    dark_matter_mass_prediction,
+    get_shadow_spectrum,
+)
+
+__all__ = [
+    # Fermat
+    "fermat_number",
+    "is_fermat_prime",
+    "get_force_spectrum",
+    "validate_force_existence",
+    # Mersenne
+    "mersenne_number",
+    "is_mersenne_prime",
+    "get_generation_spectrum",
+    "generation_barrier_explanation",
+    "validate_generation_stability",
+    # Lucas
+    "lucas_number",
+    "shadow_phase",
+    "is_lucas_prime",
+    "dark_matter_mass_prediction",
+    "get_shadow_spectrum",
+]
