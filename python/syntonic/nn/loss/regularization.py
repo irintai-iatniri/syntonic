@@ -38,7 +38,7 @@ def compute_weight_decay(
         Total weight decay loss
     """
     decay_loss = 0.0
-    n_layers = len(weights)
+    # n_layers = len(weights)
 
     for i, w in enumerate(weights):
         if golden_scaling:

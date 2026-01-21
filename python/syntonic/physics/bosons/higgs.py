@@ -16,7 +16,7 @@ Self-coupling enhancement:
 import math
 
 from syntonic.exact import PHI, Q_DEFICIT_NUMERIC
-from python.syntonic.core.constants import V_EW
+from syntonic.core.constants import V_EW
 
 
 def higgs_mass_tree(v: float = V_EW) -> float:

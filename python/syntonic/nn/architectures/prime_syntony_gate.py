@@ -6,7 +6,7 @@ Operates directly on the ResonantTensor/State storage via Rust backend.
 """
 
 import syntonic.sn as sn
-from python.syntonic.core.constants import PHI
+from syntonic.core.constants import PHI
 from syntonic.nn.resonant_tensor import ResonantTensor
 
 

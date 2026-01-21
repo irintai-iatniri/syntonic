@@ -20,7 +20,7 @@ import math
 
 from syntonic.exact import (
     E_STAR_NUMERIC,
-    PHI,
+    # PHI,
     PHI_INVERSE,
     Q_DEFICIT_NUMERIC,
     get_correction_factor,
@@ -183,7 +183,7 @@ def jarlskog_invariant() -> float:
     Returns:
         J_CP
     """
-    phi = PHI.eval()
+    # phi = PHI.eval()
 
     # Correction factors from hierarchy: C52 (4q), C49 (qφ²), C40 (q/φ³)
     return (

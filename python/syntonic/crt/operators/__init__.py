@@ -42,6 +42,23 @@ from syntonic.crt.operators.syntony import (
     syntony_quick,
     syntony_spectral,
 )
+from syntonic.crt.operators.mobius import (
+    apply_mobius_mask,
+    check_m11_stability,
+    compute_mobius_mask,
+    get_composite_barrier_indices,
+    get_squarefree_indices,
+    mobius,
+)
+from syntonic.crt.dhsr_fused.dhsr_loop import (
+    DHSRLoop,
+    compute_optimal_alpha,
+    compute_optimal_strength,
+    differentiate_step,
+    evolve_state,
+    harmonize_step,
+    single_dhsr_cycle,
+)
 
 __all__ = [
     "OperatorBase",
@@ -63,4 +80,19 @@ __all__ = [
     "GnosisComputer",
     "default_gnosis_computer",
     "K_D4",
+    # Mobius filter
+    "mobius",
+    "apply_mobius_mask",
+    "check_m11_stability",
+    "compute_mobius_mask",
+    "get_squarefree_indices",
+    "get_composite_barrier_indices",
+    # DHSR loop
+    "DHSRLoop",
+    "evolve_state",
+    "single_dhsr_cycle",
+    "differentiate_step",
+    "harmonize_step",
+    "compute_optimal_alpha",
+    "compute_optimal_strength",
 ]

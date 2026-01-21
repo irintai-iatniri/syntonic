@@ -13,7 +13,7 @@ from typing import Dict
 
 import syntonic.exact as exact
 import syntonic.physics.bosons.gauge as gauge
-import python.syntonic.core.constants as constants
+import syntonic.core.constants as constants
 import syntonic.physics.fermions.leptons as leptons
 import syntonic.physics.fermions.quarks as quarks
 import syntonic.physics.hadrons.masses as hadrons
@@ -896,7 +896,7 @@ def geometric_validation() -> Dict:
     try:
         # Golden ratio relationships
         phi = exact.PHI.eval()
-        phi_inv = 1 / phi
+        # phi_inv = 1 / phi
         phi_sq = phi**2
 
         validations.append(

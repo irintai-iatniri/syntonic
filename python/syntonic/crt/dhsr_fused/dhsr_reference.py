@@ -34,12 +34,13 @@ from syntonic.core.state import State
 from syntonic.exact import PHI_NUMERIC, Q_DEFICIT_NUMERIC
 from syntonic.srt.geometry import (
     WindingState,
-    enumerate_windings,
 )
 from syntonic.srt.spectral import (
     theta_series,
 )
-
+from syntonic.core import (
+    enumerate_windings,
+)
 # =============================================================================
 # CONSTANTS
 # =============================================================================
@@ -226,7 +227,8 @@ def differentiate(
     # Use Theta Series for spectral analysis (our "Syntonic FFT")
     theta = theta_series(phi=PHI, max_norm=int(math.sqrt(N)))
     theta_value = theta.evaluate(1.0)  # Get theta series value
-    theta_values = [theta_value] * N  # Simplified - use same value for all components
+    # Exposed for analysis
+    print(f"DEBUG: Theta series value at 1.0: {theta_value}")
 
     # Add structured noise modulated by syntony
     # This replaces the FFT-based noise addition
@@ -472,8 +474,8 @@ def verify_implementation():
     psi_after = recurse(psi)
     S_after = compute_syntony(psi_after)
 
-    print(".6f")
-    print(".6f")
+    print(f"Syntony Before: {S_before:.6f}")
+    print(f"Syntony After:  {S_after:.6f}")
 
     # Test 2: Golden measure convergence
     print("\n--- Test 2: Golden Measure Projection ---")
@@ -494,10 +496,10 @@ def verify_implementation():
         sum((a - t) ** 2 for a, t in zip(H_psi_amplitudes, target_amplitudes))
     )
 
-    print(".6f")
-    print(".6f")
+    print(f"Distance Before: {dist_before:.6f}")
+    print(f"Distance After:  {dist_after:.6f}")
     improvement = (1 - dist_after / dist_before) * 100 if dist_before > 0 else 0
-    print(".1f")
+    print(f"Improvement:     {improvement:.1f}%")
 
     # Test 3: Evolution
     print("\n--- Test 3: DHSR Evolution ---")
@@ -511,11 +513,11 @@ def verify_implementation():
 
     final, traj = evolve(psi, n_steps=100, verbose=False)
 
-    print(".6f")
-    print(".6f")
-    print(".6f")
+    print(f"Initial Syntony: {traj.syntony_values[0]:.6f}")
+    print(f"Final Syntony:   {traj.syntony_values[-1]:.6f}")
+    print(f"Target (φ⁻¹):    {PHI_INV:.6f}")
     deviation = abs(traj.syntony_values[-1] - PHI_INV)
-    print(".6f")
+    print(f"Deviation:       {deviation:.6f}")
     print(f"Converged:       {traj.converged}")
 
     # Test 4: Multiple runs
@@ -532,16 +534,16 @@ def verify_implementation():
 
         _, traj = evolve(psi, n_steps=200, verbose=False)
         final_syntonies.append(traj.syntony_values[-1])
-        print(".6f")
+        print(f"Run {seed}: {traj.syntony_values[-1]:.6f}")
 
     mean_S = sum(final_syntonies) / len(final_syntonies)
     std_S = math.sqrt(
         sum((s - mean_S) ** 2 for s in final_syntonies) / len(final_syntonies)
     )
-    print(".6f")
-    print(".6f")
+    print(f"Mean Syntony:    {mean_S:.6f}")
+    print(f"Std Deviation:   {std_S:.6f}")
     agreement = (1 - abs(mean_S - PHI_INV) / PHI_INV) * 100
-    print(".1f")
+    print(f"Agreement:       {agreement:.1f}%")
 
     print("\n" + "=" * 60)
 

@@ -90,7 +90,7 @@ class QuadraticForm:
         # P_perp projects onto the eigenspace of -1/phi
 
         phi = self._phi
-        sqrt5 = math.sqrt(5)
+        # sqrt5 = math.sqrt(5)
 
         # Normalized projection coefficients
         # These come from the golden ratio eigenvector structure

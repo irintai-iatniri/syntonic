@@ -13,8 +13,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 if TYPE_CHECKING:
-    from python.syntonic.crt.operators.gnosis import GnosisComputer
-    from python.syntonic.crt.operators.syntony import SyntonyComputer
+    from syntonic.crt.operators.gnosis import GnosisComputer
+    from syntonic.crt.operators.syntony import SyntonyComputer
     from syntonic.core.state import State
     from syntonic.crt.operators.recursion import RecursionOperator
 
@@ -203,7 +203,7 @@ class DHSREvolver:
     def gnosis_computer(self) -> "GnosisComputer":
         """Get gnosis computer, creating default if needed."""
         if self._gnosis_computer is None:
-            from python.syntonic.crt.operators.gnosis import default_gnosis_computer
+            from syntonic.crt.operators.gnosis import default_gnosis_computer
 
             self._gnosis_computer = default_gnosis_computer()
         return self._gnosis_computer

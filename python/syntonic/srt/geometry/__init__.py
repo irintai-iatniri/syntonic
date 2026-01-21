@@ -20,6 +20,7 @@ from syntonic.srt.geometry.torus import (
 from syntonic.srt.geometry.winding import (
     WindingState,
     winding_state,
+    count_windings,
 )
 
 # Alias for consistency with other factory functions

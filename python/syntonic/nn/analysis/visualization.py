@@ -27,12 +27,8 @@ S_TARGET = PHI - Q_DEFICIT
 
 def _check_matplotlib():
     """Check if matplotlib is available."""
-    try:
-        import matplotlib.pyplot as plt
-
-        return True
-    except ImportError:
-        return False
+    import importlib.util
+    return importlib.util.find_spec("matplotlib") is not None
 
 
 def plot_syntony_history(
@@ -138,7 +134,7 @@ def plot_layer_syntonies(
         for s in layer_syntonies
     ]
 
-    bars = ax.bar(x, layer_syntonies, color=colors, alpha=0.7)
+    ax.bar(x, layer_syntonies, color=colors, alpha=0.7)
 
     # Target line
     ax.axhline(y=target, color="g", linestyle="--", label="Target")

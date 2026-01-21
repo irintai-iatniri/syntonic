@@ -24,18 +24,18 @@ Example:
     >>> y_exact = model.forward_exact(windings)
 """
 
-from python.syntonic.nn.winding.resonant_embedding import PureResonantWindingEmbedding
+from syntonic.nn.winding.resonant_embedding import PureResonantWindingEmbedding
 
 # Pure (PyTorch-free) versions
-from python.syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
-from python.syntonic.nn.winding.prime_selection import (
+from syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
+from syntonic.nn.winding.prime_selection import (
     PurePrimeSelectionLayer as PrimeSelectionLayer,
 )
-from python.syntonic.nn.winding.syntony import PureWindingSyntonyComputer
-from python.syntonic.nn.winding.syntony import (
+from syntonic.nn.winding.syntony import PureWindingSyntonyComputer
+from syntonic.nn.winding.syntony import (
     PureWindingSyntonyComputer as WindingSyntonyComputer,
 )
-from python.syntonic.nn.winding.winding_net import PureWindingNet as WindingNet
+from syntonic.nn.winding.winding_net import PureWindingNet as WindingNet
 from syntonic.nn.winding.dhsr_block import WindingDHSRBlock
 from syntonic.nn.winding.embedding import WindingStateEmbedding
 from syntonic.nn.winding.fibonacci_hierarchy import FibonacciHierarchy

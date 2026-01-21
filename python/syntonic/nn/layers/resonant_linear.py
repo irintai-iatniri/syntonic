@@ -154,7 +154,7 @@ class ResonantLinear(sn.Module):
         # Assuming .fill_diagonal_() or similar exists in Rust backend,
         # or we re-create the tensor data.
         # For now, we simulate by re-initializing data:
-        current_data = self.weight.tensor.to_list()  # Hypothetical accessor
+        # current_data = self.weight.tensor.to_list()  # Hypothetical accessor
 
         # Set the 'Resonant Frequency' of the matrix
         # In a linear layer, the spectral radius (largest eigenvalue) determines the scaling.

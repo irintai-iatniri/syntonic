@@ -145,7 +145,7 @@ class PeriodicTable:
         for orbital in order:
             if remaining <= 0:
                 break
-            n = int(orbital[0])
+            # n = int(orbital[0])  # Unused
             l_letter = orbital[1]
             capacity = capacities[l_letter]
 

@@ -7,63 +7,63 @@ Pre-built architectures that embed the DHSR cycle throughout:
 - CRTTransformer: Transformer with syntonic attention
 """
 
-from python.syntonic.nn.architectures.embeddings import (
+from syntonic.nn.architectures.embeddings import (
     PurePositionalEncoding,
     PureSyntonicEmbedding,
     PureWindingEmbedding,
 )
-from python.syntonic.nn.architectures.embeddings import (
+from syntonic.nn.architectures.embeddings import (
     PurePositionalEncoding as PositionalEncoding,
 )
-from python.syntonic.nn.architectures.embeddings import (
+from syntonic.nn.architectures.embeddings import (
     PureSyntonicEmbedding as SyntonicEmbedding,
 )
-from python.syntonic.nn.architectures.embeddings import (
+from syntonic.nn.architectures.embeddings import (
     PureWindingEmbedding as WindingEmbedding,
 )
-from python.syntonic.nn.architectures.syntonic_attention import (
+from syntonic.nn.architectures.syntonic_attention import (
     PureMultiHeadSyntonicAttention,
     PureSyntonicAttention,
 )
-from python.syntonic.nn.architectures.syntonic_attention import (
+from syntonic.nn.architectures.syntonic_attention import (
     PureMultiHeadSyntonicAttention as MultiHeadSyntonicAttention,
 )
-from python.syntonic.nn.architectures.syntonic_attention import (
+from syntonic.nn.architectures.syntonic_attention import (
     PureSyntonicAttention as GnosisAttention,
 )
-from python.syntonic.nn.architectures.syntonic_attention import (
+from syntonic.nn.architectures.syntonic_attention import (
     PureSyntonicAttention as SyntonicAttention,
 )
-from python.syntonic.nn.architectures.syntonic_cnn import (
+from syntonic.nn.architectures.syntonic_cnn import (
     PureSyntonicCNN1d,
     PureSyntonicCNN2d,
     PureSyntonicConv1d,
     PureSyntonicConv2d,
 )
-from python.syntonic.nn.architectures.syntonic_cnn import (
+from syntonic.nn.architectures.syntonic_cnn import (
     PureSyntonicCNN1d as RecursionConvBlock,
 )
-from python.syntonic.nn.architectures.syntonic_cnn import (
+from syntonic.nn.architectures.syntonic_cnn import (
     PureSyntonicCNN1d as SyntonicCNN,
 )
-from python.syntonic.nn.architectures.syntonic_cnn import (
+from syntonic.nn.architectures.syntonic_cnn import (
     PureSyntonicCNN2d as SyntonicCNN2d,
 )
-from python.syntonic.nn.architectures.syntonic_cnn import (
+from syntonic.nn.architectures.syntonic_cnn import (
     PureSyntonicConv2d as SyntonicConv2d,
 )
-from python.syntonic.nn.architectures.syntonic_mlp import (
+from syntonic.nn.architectures.syntonic_mlp import (
     PureDeepSyntonicMLP,
     PureSyntonicLinear,
     PureSyntonicMLP,
 )
-from python.syntonic.nn.architectures.syntonic_mlp import (
+from syntonic.nn.architectures.syntonic_mlp import (
     PureSyntonicLinear as SyntonicLinear,
 )
-from python.syntonic.nn.architectures.syntonic_mlp import (
+from syntonic.nn.architectures.syntonic_mlp import (
     PureSyntonicMLP as SyntonicMLP,
 )
-from python.syntonic.nn.architectures.syntonic_transformer import (
+from syntonic.nn.architectures.syntonic_transformer import (
     PureDHTransformerLayer,
     PureSyntonicTransformer,
     PureSyntonicTransformerEncoder,

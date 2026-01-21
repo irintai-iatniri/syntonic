@@ -132,7 +132,7 @@ class Superconductivity:
         Returns:
             Coherence length in meters
         """
-        hbar = 6.582e-16  # eV·s
+        # hbar = 6.582e-16  # eV·s
         gap_J = gap * 1.602e-19  # Convert to J
         hbar_J = 1.055e-34  # J·s
         return hbar_J * v_F / (math.pi * gap_J)

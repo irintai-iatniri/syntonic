@@ -24,6 +24,9 @@ PHI_INV = 1.0 / PHI  # φ⁻¹ ≈ 0.618...
 PI = PI_NUMERIC  # π ≈ 3.14159...
 E = E_NUMERIC  # e ≈ 2.71828...
 
+# Crystallization Thresholds
+SYNTONY_THRESHOLD = 0.99  # Threshold for Gnosis crystallization
+
 
 # =============================================================================
 # GROUP THEORY CONSTANTS
@@ -358,6 +361,7 @@ fibonacci = FIBONACCI
 M_Z = 91.1876  # GeV, Z boson mass
 M_W_PDG = 80.377  # GeV, W boson mass
 M_H_PDG = 125.25  # GeV, Higgs mass
+V_EW = 246.22  # GeV, Higgs VEV (electroweak symmetry breaking scale)
 ALPHA_EM_0 = 1 / 137.035999084  # Fine structure constant at q=0
 ALPHA_S_MZ = 0.1179  # Strong coupling at M_Z
 

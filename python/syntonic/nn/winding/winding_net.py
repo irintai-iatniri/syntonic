@@ -20,10 +20,10 @@ from __future__ import annotations
 import math
 from typing import Dict, List
 
-from python.syntonic.nn.winding.resonant_embedding import PureResonantWindingEmbedding
+from syntonic.nn.winding.resonant_embedding import PureResonantWindingEmbedding
 
 import syntonic.sn as sn
-from python.syntonic.nn.architectures.syntonic_mlp import PureSyntonicLinear
+from syntonic.nn.architectures.syntonic_mlp import PureSyntonicLinear
 from syntonic._core import ResonantTensor, WindingState
 from syntonic.nn.layers.syntonic_gate import SyntonicGate
 from syntonic.nn.winding.fibonacci_hierarchy import FibonacciHierarchy

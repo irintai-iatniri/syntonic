@@ -63,7 +63,7 @@ def _phase_alignment_spectral(
     total_var = outputs.var()
 
     # Golden target variance
-    target_var = PHI_INV  # 1/φ ≈ 0.618
+    # target_var = PHI_INV  # 1/φ ≈ 0.618
 
     # Map variance to phase estimate
     # Low variance → concentrated spectrum → phase near 0
@@ -179,8 +179,8 @@ class IPiConstraint:
             return 0.0
 
         # Use variance-based orthogonality check
-        n_features = shape[1]
-        n_pairs = n_features // 2
+        # n_features = shape[1]
+        # n_pairs = n_features // 2
 
         # Check variance balance between first and second half
         # For i ≃ π: should be balanced (orthogonal components)

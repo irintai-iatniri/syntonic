@@ -300,7 +300,7 @@ This geometry makes microtubules ideal for:
         thermal_energy = k_B * temperature_K
 
         # Energy gap from tubulin conformational states
-        E_gap = 1e-21  # ~1 meV (approximate)
+        # E_gap = 1e-21  # ~1 meV (approximate)
 
         # Decoherence time scales as ħ/(kT) for thermal noise
         tau = h / thermal_energy

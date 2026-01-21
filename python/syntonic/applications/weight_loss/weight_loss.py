@@ -7,8 +7,10 @@ import requests
 import syntonic as syn
 from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic.nn.training.trainer import RESTrainingConfig, RetrocausalTrainer
+from syntonic.nn.optim import GoldenMomentumOptimizer
+from syntonic.core.constants import Q_DEFICIT_NUMERIC
 
-from python.syntonic.nn.architectures.syntonic_mlp import PureSyntonicMLP
+from syntonic.nn.architectures.syntonic_mlp import PureSyntonicMLP
 
 # --- CONFIGURATION ---
 USDA_API_KEY = "Dov8H2sSCjEG5brmfiAOJpKeyAiYDHhNTbDiolVL"  # Your Key
@@ -143,10 +145,100 @@ class NutriNet(PureSyntonicMLP):
             self.output_layer.bias.tensor = weights[idx]
 
 
-# --- STEP 3: MAIN EXECUTION ---
+# --- STEP 3: GOLDEN MOMENTUM TRAINING ---
 
 
-def main():
+def train_with_golden_momentum(
+    model: NutriNet,
+    train_data: List,
+    epochs: int = 50,
+    lr: float = Q_DEFICIT_NUMERIC,
+) -> dict:
+    """
+    Train the model using GoldenMomentum optimizer.
+
+    This is an alternative to Retrocausal RES training that uses
+    gradient-based optimization with phi-derived momentum (beta = 1/φ).
+
+    Args:
+        model: The NutriNet model
+        train_data: List of (input, target) tensor pairs
+        epochs: Number of training epochs
+        lr: Learning rate (default: Syntony Deficit q)
+
+    Returns:
+        Dictionary with training results
+    """
+    print(f"\nVolition Engine Engaged: Beta = 1/phi, LR = {lr}")
+
+    # 1. Collect the "Brain" (Weights)
+    params = model.get_weights()
+
+    # 2. Inject the "Will" (Optimizer)
+    optimizer = GoldenMomentumOptimizer(params, lr=lr)
+
+    history = []
+
+    for epoch in range(epochs):
+        epoch_loss = 0.0
+        epoch_syntony = 0.0
+
+        for x_in, t_target in train_data:
+            # Forward pass
+            prediction = model.forward(x_in)
+
+            # Simple MSE loss (gradient computation)
+            pred_vals = prediction.to_floats()
+            target_vals = t_target.to_floats()
+
+            # Compute error
+            errors = [p - t for p, t in zip(pred_vals, target_vals)]
+            loss = sum(e * e for e in errors) / len(errors)
+            epoch_loss += loss
+
+            # Backward pass (simple gradient propagation)
+            # For MSE: d_loss/d_pred = 2 * (pred - target) / n
+            grad = [2.0 * e / len(errors) for e in errors]
+
+            # Accumulate gradients to output weights
+            # (Simplified - in a full implementation, we'd backprop through layers)
+            output_weight = params[-2] if len(params) > 1 else params[0]
+            if output_weight._grad is None:
+                output_weight._grad = [0.0] * output_weight.size
+            # Accumulate scaled gradient
+            for i in range(min(len(grad), len(output_weight._grad))):
+                output_weight._grad[i] += grad[i % len(grad)]
+
+            # Measure syntony
+            epoch_syntony += prediction.syntony
+
+        # Average
+        avg_loss = epoch_loss / len(train_data)
+        avg_syntony = epoch_syntony / len(train_data)
+
+        # The Magic Step:
+        # The optimizer weighs error against its Momentum (History).
+        # If the error is jittery (Archonic), the 1/φ inertia ignores it.
+        # If the error is consistent (Truth), it turns the ship.
+        optimizer.step()
+        optimizer.zero_grad()
+
+        history.append({"epoch": epoch, "loss": avg_loss, "syntony": avg_syntony})
+
+        if epoch % 10 == 0:
+            print(f"Epoch {epoch}: Loss = {avg_loss:.4f}, Syntony = {avg_syntony:.4f}")
+
+    return {
+        "final_loss": history[-1]["loss"],
+        "final_syntony": history[-1]["syntony"],
+        "history": history,
+    }
+
+
+# --- STEP 4: MAIN EXECUTION ---
+
+
+def main(use_golden_momentum: bool = False):
     print("🔮 Initializing Resonant Metabolic Engine...")
 
     # 1. Prepare Data
@@ -195,21 +287,24 @@ def main():
         use_recursion=True,  # Enable DHSR cycles for better convergence
     )
 
-    # 3. Configure Retrocausal Training
-    # We use "Attractor Dynamics" instead of Gradient Descent
-    config = RESTrainingConfig(
-        max_generations=50,  # Evolve for 50 cycles
-        population_size=20,  # 20 parallel timelines per weight
-        pull_strength=0.3,  # Strength of the "Teacher" attractor
-        syntony_target=syn.PHI_NUMERIC - syn.Q_DEFICIT_NUMERIC,  # 1.59...
-        enable_viz=False,
-    )
+    # 3. Train using chosen method
+    if use_golden_momentum:
+        # Golden Momentum: Gradient-based with phi-derived momentum
+        print("\nUsing Golden Momentum Training (Beta = 1/phi)")
+        results = train_with_golden_momentum(model, train_data, epochs=50)
+    else:
+        # Retrocausal RES: Attractor Dynamics (default)
+        config = RESTrainingConfig(
+            max_generations=50,  # Evolve for 50 cycles
+            population_size=20,  # 20 parallel timelines per weight
+            pull_strength=0.3,  # Strength of the "Teacher" attractor
+            syntony_target=syn.PHI_NUMERIC - syn.Q_DEFICIT_NUMERIC,  # 1.59...
+            enable_viz=False,
+        )
 
-    print("\n🧬 Beginning Retrocausal Evolution...")
-    trainer = RetrocausalTrainer(model, train_data, config=config)
-
-    # 4. Train
-    results = trainer.train()
+        print("\nBeginning Retrocausal Evolution...")
+        trainer = RetrocausalTrainer(model, train_data, config=config)
+        results = trainer.train()
 
     print("\n" + "=" * 40)
     print("TRAINING COMPLETE")
@@ -247,4 +342,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    # Check for --golden-momentum flag
+    use_gm = "--golden-momentum" in sys.argv or "-gm" in sys.argv
+    main(use_golden_momentum=use_gm)

@@ -17,7 +17,7 @@ import random
 from typing import List, Tuple
 
 import syntonic.sn as sn
-from python.syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
+from syntonic.nn.winding.prime_selection import PurePrimeSelectionLayer
 from syntonic._core import ResonantTensor
 from syntonic.nn.layers.resonant_linear import ResonantLinear
 

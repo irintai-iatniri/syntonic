@@ -427,7 +427,7 @@ class NetworkHealth:
     def _check_activations(self, inputs: torch.Tensor) -> tuple:
         """Check activation health."""
         warnings = []
-        activation_stats = []
+        # activation_stats = []
 
         # Hook to capture activations
         activations = []
@@ -459,6 +459,12 @@ class NetworkHealth:
             std = act.std().item()
             dead_fraction = (act.abs() < 1e-6).float().mean().item()
             saturated_fraction = (act.abs() > 10).float().mean().item()
+
+            # Check distribution stats
+            if abs(mean) > 10.0:
+                 warnings.append(f"Layer {i}: High mean activation ({mean:.2f})")
+            if std > 20.0:
+                 warnings.append(f"Layer {i}: High activation variance ({std:.2f})")
 
             # Check for dead units
             if dead_fraction > 0.5:

@@ -193,7 +193,7 @@ Example Usage:
 """
 
 # Evolution
-from syntonic.crt.dhsr_evolution import (
+from syntonic.crt.dhsr_fused.dhsr_evolution import (
     DHSREvolver,
     SyntonyTrajectory,
     default_evolver,

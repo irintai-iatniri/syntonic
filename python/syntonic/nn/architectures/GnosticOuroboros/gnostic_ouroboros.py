@@ -193,6 +193,10 @@ class DeterministicSuperposition(sn.Module):
             [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0], [8]
         )
 
+        # Interface compatibility with ScaleModule for Wormhole Hooking
+        self.crystallized = None
+        self.is_transcended = False
+
     def forward(self, x: ResonantTensor, input_winding: ResonantTensor, is_inference: bool = False):
         # 1. Embed into Shared Substrate (Quantum Foam Activation)
         base = self.substrate(x)
@@ -206,8 +210,9 @@ class DeterministicSuperposition(sn.Module):
         # 3. Branch Windings (Topological Masks)
         # Photon: Det Form (Norm) + Prob Action (Dropout)
         photon_normed = base.layer_norm()
-        photon_scaled = photon_normed.scalar_mul(c_photon)
-        photon = photon_scaled.dropout(0.3) if self.training else photon_scaled
+        photon = photon_normed.scalar_mul(c_photon)
+        if self.training:
+            photon.dropout(0.3)  # In-place dropout
 
         # Electron: Prob Form (Noise) + Det Action (Logic Gate)
         noise = randn_like(base, scale=0.1)
@@ -221,8 +226,8 @@ class DeterministicSuperposition(sn.Module):
         quark = quark_sig.scalar_mul(c_quark)
 
         # 4. Coherence Measurement (Which Reality Dominates?)
-        logits = self.coherence_head(x)
-        weights = logits.softmax(dim=-1)
+        weights = self.coherence_head(x)
+        weights.softmax(dim=-1)  # In-place softmax
 
         # 5. Superposition Collapse (Weighted Sum + Gravity Effect)
         # Extract weight columns and broadcast multiply
@@ -231,8 +236,9 @@ class DeterministicSuperposition(sn.Module):
         collapsed = collapsed + broadcast_multiply(quark, weights, 2)
 
         # 6. Gravity Emergence: Interaction with Spacetime
-        gravity_pull = collapsed.mean(dim=-1, keepdim=True)
-        return collapsed + gravity_pull, winding  # Return tuple to match ScaleModule interface
+        gravity_pull = collapsed.mean(dim=-1, keepdim=True)  # Shape [1, 1]
+        # Broadcast add the scalar tensor to all elements (keeps computation in Rust)
+        return collapsed.broadcast_add(gravity_pull), winding  # Return tuple to match ScaleModule interface
 
 
 class GnosticOuroboros(sn.Module):
@@ -331,8 +337,8 @@ class GnosticOuroboros(sn.Module):
             self.global_evolver.unlock()
 
         # Ouroboros Gate: Decide loop or output
-        logits = self.recursion_head(x)
-        probs = logits.softmax(dim=-1)
+        probs = self.recursion_head(x)
+        probs.softmax(dim=-1)  # In-place softmax
         probs_list = probs.to_floats()
 
         if probs_list[0] > 0.5 or not is_training:

@@ -75,8 +75,6 @@ from syntonic._core import (
     py_e_star,
 )
 
-import math
-
 # Get constants from Rust backend (single source of truth)
 Q = srt_q_deficit()
 PI_NUMERIC = srt_pi()
@@ -615,7 +613,7 @@ def gut_scale() -> float:
         GUT scale in GeV
     """
     import math
-    phi = PHI.eval()  # Convert to float for math.exp
+    phi = PHI_NUMERIC  # Use global float constant
     return V_EW * math.exp(phi**7)
 
 
@@ -653,7 +651,7 @@ def qcd_scale() -> float:
         QCD scale in MeV
     """
     # Λ_QCD ≈ 217 MeV from SRT
-    phi = PHI.eval()  # Convert to float for exponentiation
+    # phi = PHI.eval()  # Convert to float for exponentiation
     # Correction factor: C9 (q/120)
     return E_STAR_NUMERIC * 11 * (1 - get_correction_factor(9))  # ≈ 217 MeV
 

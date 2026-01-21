@@ -20,7 +20,7 @@ Note: Light quark masses are MS-bar at 2 GeV scale.
 
 from syntonic.exact import (
     E_STAR_NUMERIC,
-    PHI,
+    # PHI,
     get_correction_factor,
 )
 
@@ -113,7 +113,7 @@ def top_mass(loop_order: int = 2) -> float:
     if loop_order == 0:
         return m_tree
 
-    phi = PHI.eval()
+    # phi = PHI.eval()
 
     # 1-loop QCD correction: C35 (qφ/4π)
     m_1loop = m_tree * (1 + get_correction_factor(35))

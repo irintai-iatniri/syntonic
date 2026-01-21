@@ -288,7 +288,7 @@ class PureMultiHeadSyntonicAttention(sn.Module):
         if len(value.shape) == 1:
             value = value.view([1, value.shape[0]])
 
-        batch_size = query.shape[0] if len(query.shape) > 2 else 1
+        # batch_size = query.shape[0] if len(query.shape) > 2 else 1
         seq_q = query.shape[0] if len(query.shape) == 2 else query.shape[1]
         seq_k = key.shape[0] if len(key.shape) == 2 else key.shape[1]
 

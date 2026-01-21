@@ -19,7 +19,7 @@ import math
 from typing import TYPE_CHECKING, Optional, Tuple
 
 if TYPE_CHECKING:
-    from python.syntonic.crt.operators.syntony import SyntonyComputer
+    from syntonic.crt.operators.syntony import SyntonyComputer
     from syntonic.core.state import State
     from syntonic.crt.operators.recursion import RecursionOperator
 
@@ -153,7 +153,7 @@ class GnosisComputer:
         base_phase = 3 * math.pi * S
 
         # Modulate by state "quality" (low entropy = more phase)
-        from python.syntonic.crt.operators.syntony import syntony_entropy
+        from syntonic.crt.operators.syntony import syntony_entropy
 
         entropy_syntony = syntony_entropy(state)
 

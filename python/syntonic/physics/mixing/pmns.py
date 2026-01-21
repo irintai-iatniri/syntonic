@@ -20,7 +20,7 @@ is a key prediction of SRT.
 import math
 
 from syntonic.exact import (
-    PHI,
+    # PHI,
     PHI_INVERSE,
     get_correction_factor,
     get_suppression_factor,
@@ -122,7 +122,7 @@ def theta_13() -> float:
         θ₁₃ in degrees
     """
     phi_hat = PHI_INVERSE.eval()
-    phi = PHI.eval()
+    # phi = PHI.eval()
 
     # Base formula: sin θ₁₃⁰ = φ̂^(3/2) × (1 - qφ)^(1/2) × e^(qφ/2) / π
     phi_hat_3_2 = phi_hat**1.5  # 0.486

@@ -22,7 +22,7 @@ from syntonic.exact import (
     fibonacci,
     get_correction_factor,
 )
-from python.syntonic.core.constants import V_EW
+from syntonic.core.constants import V_EW
 
 
 def mass_from_depth(k: int, winding_norm_sq: float, v: float = V_EW) -> float:

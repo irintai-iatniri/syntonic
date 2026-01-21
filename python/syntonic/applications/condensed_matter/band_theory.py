@@ -175,7 +175,7 @@ class BandStructure:
         Returns:
             Fermi level position (eV from valence band)
         """
-        k_B = 8.617e-5  # eV/K
+        # k_B = 8.617e-5  # eV/K
 
         # Intrinsic approximation
         return E_g / 2

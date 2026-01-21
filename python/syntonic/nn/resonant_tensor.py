@@ -16,6 +16,7 @@ from typing import List, Optional, Union
 
 from syntonic._core import GoldenExact
 from syntonic._core import ResonantTensor as _RustResonantTensor
+from syntonic._core import py_broadcast_add, py_broadcast_mul
 from syntonic.exact import FERMAT_PRIMES, LUCAS_SEQUENCE, MERSENNE_PRIMES
 
 
@@ -98,6 +99,94 @@ class ResonantTensor:
             self._inner = _RustResonantTensor(data, shape, mode_norm_sq, precision)
 
         self._device_str = device
+
+        # Gradient storage for optimization
+        self._grad: Optional[List[float]] = None
+        self._requires_grad: bool = False
+
+    # =========================================================================
+    # Gradient Support for Optimization
+    # =========================================================================
+
+    @property
+    def grad(self) -> Optional["ResonantTensor"]:
+        """
+        Get the gradient tensor if it exists.
+
+        Returns:
+            ResonantTensor containing gradients, or None if no gradient computed
+        """
+        if self._grad is None:
+            return None
+        return ResonantTensor(self._grad, list(self.shape), device=self.device)
+
+    @grad.setter
+    def grad(self, value: Optional["ResonantTensor"]) -> None:
+        """Set the gradient from a ResonantTensor or None."""
+        if value is None:
+            self._grad = None
+        else:
+            self._grad = value.to_floats()
+
+    @property
+    def requires_grad(self) -> bool:
+        """Check if this tensor requires gradient computation."""
+        return self._requires_grad
+
+    @requires_grad.setter
+    def requires_grad(self, value: bool) -> None:
+        """Set whether this tensor requires gradient computation."""
+        self._requires_grad = value
+
+    def zero_grad(self) -> None:
+        """
+        Zero out the gradient.
+
+        Call this before each forward/backward pass to clear accumulated gradients.
+        """
+        if self._grad is not None:
+            self._grad = [0.0] * len(self._grad)
+
+    def accumulate_grad(self, grad_data: List[float]) -> None:
+        """
+        Accumulate gradient from a backward pass.
+
+        Args:
+            grad_data: List of gradient values to accumulate
+        """
+        if self._grad is None:
+            self._grad = grad_data[:]
+        else:
+            self._grad = [g + dg for g, dg in zip(self._grad, grad_data)]
+
+    def get_data_list(self) -> List[float]:
+        """
+        Get raw data as a mutable list for in-place optimization.
+
+        Returns:
+            List of float values (copy of internal data)
+        """
+        return self.to_floats()
+
+    def set_data_list(self, data: List[float]) -> None:
+        """
+        Set data from a list (reconstructs the tensor).
+
+        Args:
+            data: New data values
+        """
+        # Reconstruct the tensor with new data
+        self._inner = _RustResonantTensor(
+            data, list(self.shape), self.get_mode_norms(), self.precision
+        )
+
+    @property
+    def size(self) -> int:
+        """Get total number of elements."""
+        result = 1
+        for d in self.shape:
+            result *= d
+        return result
 
     # =========================================================================
     # Properties
@@ -718,6 +807,59 @@ class ResonantTensor:
         result = self._inner.elementwise_add(other._inner)
         return ResonantTensor._wrap(result, device=self.device)
 
+    def broadcast_add(self, other: "ResonantTensor") -> "ResonantTensor":
+        """
+        Broadcast addition: self + other with NumPy-style broadcasting.
+
+        Adds a smaller tensor to a larger tensor by broadcasting the smaller
+        tensor across dimensions. Keeps computation in Rust backend without
+        extracting to Python floats.
+
+        Args:
+            other: Tensor to broadcast-add (e.g., shape [1,1] broadcasts to [batch, features])
+
+        Returns:
+            New tensor with broadcast sum
+
+        Examples:
+            >>> x = ResonantTensor.randn([4, 248])  # [batch, features]
+            >>> scalar = ResonantTensor([1.5], [1, 1])  # Scalar as tensor
+            >>> result = x.broadcast_add(scalar)  # Adds 1.5 to all elements
+        """
+        a_data = self.to_floats()
+        b_data = other.to_floats()
+        a_shape = [int(d) for d in self.shape]
+        b_shape = [int(d) for d in other.shape]
+
+        result = py_broadcast_add(a_data, a_shape, b_data, b_shape)
+        if result is None:
+            raise ValueError(f"Shapes not broadcastable: {a_shape} vs {b_shape}")
+
+        result_data, result_shape = result
+        return ResonantTensor(result_data, result_shape, device=self.device)
+
+    def broadcast_mul(self, other: "ResonantTensor") -> "ResonantTensor":
+        """
+        Broadcast multiplication: self * other with NumPy-style broadcasting.
+
+        Args:
+            other: Tensor to broadcast-multiply
+
+        Returns:
+            New tensor with broadcast product
+        """
+        a_data = self.to_floats()
+        b_data = other.to_floats()
+        a_shape = [int(d) for d in self.shape]
+        b_shape = [int(d) for d in other.shape]
+
+        result = py_broadcast_mul(a_data, a_shape, b_data, b_shape)
+        if result is None:
+            raise ValueError(f"Shapes not broadcastable: {a_shape} vs {b_shape}")
+
+        result_data, result_shape = result
+        return ResonantTensor(result_data, result_shape, device=self.device)
+
     def elementwise_mul(self, other: "ResonantTensor") -> "ResonantTensor":
         """
         Element-wise multiplication (Hadamard product): self * other.
@@ -982,7 +1124,7 @@ class ResonantTensor:
             pass
 
         # Get the module that contains ResonantTensor
-        core_module = sys.modules["syntonic._core"]
+        # core_module = sys.modules["syntonic._core"]
 
         # Create Py references for PyO3
         from syntonic._core import ResonantTensor as _RT

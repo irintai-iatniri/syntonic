@@ -46,7 +46,7 @@ import random
 from typing import List, Optional
 
 import syntonic.sn as sn
-from python.syntonic.nn.architectures.syntonic_attention import (
+from syntonic.nn.architectures.syntonic_attention import (
     PureMultiHeadSyntonicAttention,
 )
 from syntonic.nn.layers import SyntonicNorm
@@ -397,7 +397,7 @@ class PureSyntonicTransformerLM(sn.Module):
         self.device = device
 
         # Import embedding classes
-        from python.syntonic.nn.architectures.embeddings import (
+        from syntonic.nn.architectures.embeddings import (
             PurePositionalEncoding,
             PureSyntonicEmbedding,
             PureWindingEmbedding,

@@ -242,13 +242,13 @@ class ArchonicEarlyStop(Callback):
 
     def _trigger_escape(self, trainer: "RetrocausalTrainer"):
         """Inject noise to escape archonic pattern (pure Python version)."""
-        import random
+        # import random
 
         if hasattr(trainer, "weights") and trainer.weights is not None:
             # Get weight data and add noise
-            data = trainer.weights.to_list()
-            noise_scale = self.escape_noise_scale
-            noisy = [v + random.gauss(0, noise_scale) for v in data]
+            # data = trainer.weights.to_list()
+            # noise_scale = self.escape_noise_scale
+            # noisy = [v + random.gauss(0, noise_scale) for v in data]
             # Update via evolver if available
             if hasattr(trainer, "evolver") and trainer.evolver is not None:
                 # The evolver will handle the next mutation

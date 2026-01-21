@@ -29,7 +29,7 @@ from syntonic._core import (
 from syntonic.nn.loss.syntony_metrics import SyntonyTracker
 from syntonic.nn.resonant_tensor import ResonantTensor
 from syntonic.resonant.retrocausal import (
-    RetrocausalConfig,
+    # RetrocausalConfig,
     create_retrocausal_evolver,
 )
 from syntonic.viz import server as viz_server
@@ -221,15 +221,15 @@ class RetrocausalTrainer:
         start_time = time.time()
 
         # Create retrocausal config
-        res_config = RetrocausalConfig(
-            population_size=self.config.population_size,
-            max_generations=self.config.max_generations,
-            # Note: syntony_threshold is used for evaluation, not RES evolution
-            attractor_capacity=self.config.attractor_capacity,
-            attractor_pull_strength=self.config.pull_strength,
-            attractor_min_syntony=self.config.attractor_min_syntony,
-            attractor_decay_rate=self.config.attractor_decay_rate,
-        ).to_res_config()
+        # res_config = RetrocausalConfig(
+        #     population_size=self.config.population_size,
+        #     max_generations=self.config.max_generations,
+        #     # Note: syntony_threshold is used for evaluation, not RES evolution
+        #     attractor_capacity=self.config.attractor_capacity,
+        #     attractor_pull_strength=self.config.pull_strength,
+        #     attractor_min_syntony=self.config.attractor_min_syntony,
+        #     attractor_decay_rate=self.config.attractor_decay_rate,
+        # ).to_res_config()
 
         # Evolve each weight tensor
         all_results = []

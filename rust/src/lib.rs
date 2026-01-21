@@ -33,6 +33,9 @@ use tensor::broadcast::{
 use tensor::causal_history::{
     PyCausalHistoryTracker, create_causal_tracker, d4_consciousness_threshold,
 };
+
+// Golden Momentum optimizer
+use tensor::srt_optimization::GoldenMomentum;
 #[cfg(feature = "cuda")]
 use tensor::storage::{
     srt_memory_resonance, srt_pool_stats, srt_reserve_memory, srt_transfer_stats,
@@ -284,6 +287,9 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ResonantEvolver>()?;
     m.add_class::<RESConfig>()?;
     m.add_class::<RESResult>()?;
+
+    // === Golden Momentum Optimizer ===
+    m.add_class::<GoldenMomentum>()?;
 
     // === Phi-Residual Operations ===
     m.add_class::<resonant::PhiResidualMode>()?;

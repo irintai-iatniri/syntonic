@@ -13,10 +13,7 @@ pip install .
 
 # Install with optional dependencies
 pip install ".[dev]"      # Development (pytest, ruff, mypy, black, hypothesis)
-pip install ".[numpy]"    # NumPy interop
-pip install ".[scipy]"    # SciPy (for expm, logm)
-pip install ".[torch]"    # PyTorch (for neural network modules)
-pip install ".[all]"      # NumPy + SciPy
+pip install ".[all]"
 pip install ".[docs]"     # Documentation (Sphinx)
 
 # Run tests
@@ -30,6 +27,8 @@ ruff check python/
 black python/
 mypy python/syntonic/
 ```
+## Limitations
+Do not use PyTorch, NumPY, SciPy, or any other external libraries. Use only the libraries provided in this repository. If the code requires these libraries, do not use them. If a function is needed from one of these libraries implement it in the CUDA kernels and Rust. 
 
 ## Architecture
 

@@ -216,11 +216,11 @@ class PureWindingEmbedding:
         if isinstance(token_indices[0], list):
             flat_indices = [idx for batch in token_indices for idx in batch]
             batch_size = len(token_indices)
-            seq_len = len(token_indices[0])
+            _seq_len = len(token_indices[0])
         else:
             flat_indices = token_indices
             batch_size = 1
-            seq_len = len(token_indices)
+            _seq_len = len(token_indices)
 
         # Compute winding features for each token
         all_features = []
