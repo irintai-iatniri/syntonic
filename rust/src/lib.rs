@@ -19,19 +19,22 @@ use tensor::cuda::{AsyncTensorTransfer, TransferComputeOverlap};
 use tensor::srt_kernels;
 use tensor::storage::{
     cuda_device_count, cuda_is_available, srt_apply_correction, srt_compute_syntony,
-    srt_dhsr_cycle, srt_e8_batch_projection, srt_golden_gaussian_weights,
-    srt_scale_phi, srt_theta_series, TensorStorage,
+    srt_dhsr_cycle, srt_e8_batch_projection, srt_golden_gaussian_weights, srt_scale_phi,
+    srt_theta_series, TensorStorage,
 };
+
+// SRT CUDA operations (toroidal math, gnosis masks, autograd, GEMM)
+// Kernel loader functions are registered directly in the module function
 
 // SRT Inflationary Broadcasting
 use tensor::broadcast::{
-    py_inflationary_broadcast, py_golden_inflationary_broadcast,
-    py_consciousness_inflationary_broadcast,
+    py_consciousness_inflationary_broadcast, py_golden_inflationary_broadcast,
+    py_inflationary_broadcast,
 };
 
 // Causal History DAG for DHSR tracking
 use tensor::causal_history::{
-    PyCausalHistoryTracker, create_causal_tracker, d4_consciousness_threshold,
+    create_causal_tracker, d4_consciousness_threshold, PyCausalHistoryTracker,
 };
 
 // Golden Momentum optimizer
@@ -407,10 +410,40 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(srt_compute_syntony, m)?)?;
     m.add_function(wrap_pyfunction!(srt_dhsr_cycle, m)?)?;
 
+    // === SRT Scatter/Gather Operations ===
+    #[cfg(feature = "cuda")]
+    {
+        use tensor::py_srt_cuda_ops::{
+            py_gather_f32, py_gather_f64, py_reduce_max_f32, py_reduce_max_f64, py_reduce_mean_f32,
+            py_reduce_mean_f64, py_reduce_min_f32, py_reduce_min_f64, py_reduce_norm_l2_f32,
+            py_reduce_norm_l2_f64, py_reduce_sum_f32, py_reduce_sum_f64,
+            py_reduce_sum_golden_weighted_f64, py_scatter_add_f64, py_scatter_f32, py_scatter_f64,
+        };
+        m.add_function(wrap_pyfunction!(py_gather_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_gather_f32, m)?)?;
+        m.add_function(wrap_pyfunction!(py_scatter_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_scatter_f32, m)?)?;
+        m.add_function(wrap_pyfunction!(py_scatter_add_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_sum_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_mean_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_mean_f32, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_max_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_max_f32, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_min_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_min_f32, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_norm_l2_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_norm_l2_f32, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_sum_golden_weighted_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_sum_f32, m)?)?;
+    }
+
     // === SRT Inflationary Broadcasting ===
     m.add_function(wrap_pyfunction!(py_inflationary_broadcast, m)?)?;
     m.add_function(wrap_pyfunction!(py_golden_inflationary_broadcast, m)?)?;
-    m.add_function(wrap_pyfunction!(py_consciousness_inflationary_broadcast, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        py_consciousness_inflationary_broadcast,
+        m
+    )?)?;
 
     // === Causal History DAG (DHSR Tracking) ===
     m.add_class::<PyCausalHistoryTracker>()?;
@@ -435,6 +468,21 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     #[cfg(feature = "cuda")]
     m.add_function(wrap_pyfunction!(srt_kernels::validate_kernels, m)?)?;
+    // Kernel loaders (direct function calls from py_srt_cuda_ops module)
+    #[cfg(feature = "cuda")]
+    {
+        use tensor::py_srt_cuda_ops::{
+            py_load_attention_kernels, py_load_complex_ops_kernels, py_load_reduction_kernels,
+            py_load_scatter_gather_kernels, py_load_trilinear_kernels,
+            py_load_wmma_syntonic_kernels,
+        };
+        m.add_function(wrap_pyfunction!(py_load_wmma_syntonic_kernels, m)?)?;
+        m.add_function(wrap_pyfunction!(py_load_scatter_gather_kernels, m)?)?;
+        m.add_function(wrap_pyfunction!(py_load_reduction_kernels, m)?)?;
+        m.add_function(wrap_pyfunction!(py_load_trilinear_kernels, m)?)?;
+        m.add_function(wrap_pyfunction!(py_load_complex_ops_kernels, m)?)?;
+        m.add_function(wrap_pyfunction!(py_load_attention_kernels, m)?)?;
+    }
 
     // === Winding State ===
     m.add_class::<WindingState>()?;

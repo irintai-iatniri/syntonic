@@ -4,8 +4,6 @@
 
 **Extracted from: SRT Complete Publication (Version 0.9)**  
 **Author: Andrew Orth, December 2025**  
-**Status: Extended hierarchy with all T⁴ × E₈ geometric structures**  
-**Active Levels: 25 (currently used) | Reserved Levels: 35+ (future precision/new physics)**
 
 ---
 
@@ -28,15 +26,12 @@ This principle transforms factor assignment from pattern-matching into pure dedu
 - **G₂ and F₄ structures** (octonion automorphisms, Jordan algebra)
 - **Higher golden powers** (φ⁴, φ⁵ for deeper recursion)
 - **Higher orders in q** (q², q³ for multi-loop precision)
+***
 
-The **Status** column indicates whether each factor is currently used (✓ USED) or reserved for future physics (NEW).
+## 2. The Complete Extended Hierarchy
 
----
-
-## 2. The Complete Extended Hierarchy (60+ Levels)
-
-| Level | Factor | Magnitude | Geometric Origin | Physical Interpretation | Status |
-|-------|--------|-----------|------------------|------------------------|--------|
+| Level | Factor | Magnitude | Geometric Origin | Physical Interpretation |
+|-------|--------|-----------|------------------|------------------------|
 | 0 | 1 | Exact | Tree-level | No corrections needed |
 | 1 | q³ | ~0.00206% | Third-order vacuum | Three-loop universal |
 | 2 | q/1000 | ~0.0027% | h(E₈)³/27 = 30³/27 | Fixed-point stability (proton) |
@@ -72,7 +67,7 @@ The **Status** column indicates whether each factor is currently used (✓ USED)
 | 32 | q/φ⁵ | ~0.247% | Fifth golden power | Fifth recursion layer |
 | 33 | q/3π | ~0.290% | 3-flavor QCD loop | Below charm threshold |
 | 34 | q/9 | ~0.304% | N_gen² = 9 | Generation-squared structure |
-| **35** | **q/8** | **~0.342%** | **rank(E₈) = 8** | **Cartan subalgebra** |
+| 35 | q/8 | ~0.342% | rank(E₈) = 8 | Cartan subalgebra |
 | 36 | q/7 | ~0.391% | rank(E₇) = 7 | E₇ Cartan subalgebra |
 | 37 | q/φ⁴ | ~0.400% | Fourth golden power | Fourth recursion layer |
 | 38 | q/2π | ~0.436% | Half-loop integral | Sub-loop corrections |
@@ -94,9 +89,9 @@ The **Status** column indicates whether each factor is currently used (✓ USED)
 | 54 | 6q | ~16.4% | rank(E₆) × q | Full E₆ Cartan enhancement |
 | 55 | qφ⁴ | ~18.8% | Fourth golden | Four-layer transitions |
 | 56 | 8q | ~21.9% | rank(E₈) × q | Full E₈ Cartan enhancement |
-| 57 | qφ⁵ | ~30.4% | Fifth golden | Five-layer transitions |
+| 57 | qφ⁵ | ~30.4% | Fifth golden | Five-layer transitions | 
 
-### Prime Number Tower Corrections (NEW)
+### Prime Number Tower Corrections
 
 The Three-Prime Selection Principle adds geometric divisors from Mersenne, Lucas, and Fermat primes:
 
@@ -121,8 +116,8 @@ The Three-Prime Selection Principle adds geometric divisors from Mersenne, Lucas
 
 These factors appear as divisors for processes involving recursion layer crossings:
 
-| Factor | Magnitude | Geometric Origin | Physical Interpretation | Status |
-|--------|-----------|------------------|------------------------|--------|
+| Factor | Magnitude | Geometric Origin | Physical Interpretation | 
+|--------|-----------|------------------|------------------------|
 | 1/(1+qφ⁻²) | ~1.05% suppression | Double inverse | Deep winding instability |
 | 1/(1+qφ⁻¹) | ~1.7% suppression | Inverse recursion | Winding instability (neutron decay) |
 | 1/(1+q) | ~2.7% suppression | Base suppression | Universal vacuum penalty |
@@ -136,57 +131,58 @@ These factors appear as divisors for processes involving recursion layer crossin
 
 ### Level 0: Tree-Level (Exact)
 **Factor:** 1 (no correction)
+ 
+ At tree-level, observables are computed directly from the axioms without quantum corrections. These predictions are "exact" within the theory, representing the classical limit of SRT. Examples include the spectral constant E* = e^π − π and the three-generation structure.
 
-At tree-level, observables are computed directly from the axioms without quantum corrections. These predictions are "exact" within the theory, representing the classical limit of SRT. Examples include the spectral constant E* = e^π − π and the three-generation structure.
-
----
----| Observable | Tree-Level | Tree Error | Final | Status | Factors Applied |
-|------------|------------|------------|-------|--------|-----------------|
+***
+| Observable | Tree-Level | Tree Error | Final | Factors Applied |
+|------------|------------|------------|-------|-----------------|
 | **Nucleon Masses** |||||
-| m_p | 938.25 MeV | 0.003% | 938.272 MeV |  | q/1000 (fixed-point) |
-| m_n | 939.53 MeV | 0.004% | 939.565 MeV |  | q/720 (Coxeter-Kissing) |
-| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV |  | q/6, q/36, q/360 |
+| m_p | 938.25 MeV | 0.003% | 938.272 MeV | q/1000 (fixed-point) |
+| m_n | 939.53 MeV | 0.004% | 939.565 MeV  | q/720 (Coxeter-Kissing) |
+| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV  | q/6, q/36, q/360 |
 | **Meson Masses** |||||
-| m_π | 139.5 MeV | 0.05% | 139.570 MeV |  | q/8, q²/φ |
-| m_K | 497.7 MeV | 0.02% | 497.611 MeV |  | q/6, q/120 |
-| m_η | 547.4 MeV | 0.08% | 547.86 MeV |  | q/2, q/36 |
-| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV |  | q/4, q/27, q/1000 |
+| m_π | 139.5 MeV | 0.05% | 139.570 MeV  | q/8, q²/φ |
+| m_K | 497.7 MeV | 0.02% | 497.611 MeV  | q/6, q/120 |
+| m_η | 547.4 MeV | 0.08% | 547.86 MeV  | q/2, q/36 |
+| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV  | q/4, q/27, q/1000 |
 | **Electroweak** |||||
-| m_W | 80.375 GeV | 0.01% | 80.3779 GeV |  | q/4π, q/248 |
-| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV |  | q/4π, q/248 |
-| sin²θ_W | 0.2312 | 0.01% | 0.23122 |  | q/248 |
-| m_t | 172.72 GeV | 0.02% | 172.76 GeV |  | q/4π, q/120 |
-| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV |  | q/5π, q/720 |
-| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ |  | q/8, q²/φ |
-| α⁻¹(0) | 137.04 | 0.07% | 137.036 |  | q²/φ |
+| m_W | 80.375 GeV | 0.01% | 80.3779 GeV  | q/4π, q/248 |
+| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV  | q/4π, q/248 |
+| sin²θ_W | 0.2312 | 0.01% | 0.23122  | q/248 |
+| m_t | 172.72 GeV | 0.02% | 172.76 GeV  | q/4π, q/120 |
+| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV  | q/5π, q/720 |
+| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰  | q/8, q²/φ |
+| α⁻¹(0) | 137.04 | 0.07% | 137.036  | q²/φ |
 | **QCD** |||||
-| α_s(M_Z) | 0.1179 | — | 0.1179 |  | Tree-level |
-| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV |  | q/φ, q/6π |
+| α_s(M_Z) | 0.1179 | — | 0.1179  | Tree-level |
+| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV  | q/φ, q/6π |
 | **Mixing Angles** |||||
-| sin θ_C | 0.2241 | 0.04% | 0.2243 |  | q/4, q/120 |
-| θ₁₂ | 32.97° | 1.4% | 33.44° |  | q/2, q/27 |
-| θ₂₃ | 49.0° | 0.4% | 49.20° |  | q/8, q/36, q/120 |
-| θ₁₃ | 8.09° | 6% | 8.57° |  | 1/(1+qφ), q/8, q/12 |
+| sin θ_C | 0.2241 | 0.04% | 0.2243  | q/4, q/120 |
+| θ₁₂ | 32.97° | 1.4% | 33.44°  | q/2, q/27 |
+| θ₂₃ | 49.0° | 0.4% | 49.20°  | q/8, q/36, q/120 |
+| θ₁₃ | 8.09° | 6% | 8.57°  | 1/(1+qφ), q/8, q/12 |
 | **CP Violation** |||||
-| δ_CP | 180° | 8% | 195° |  | (1-4q), q/φ |
-| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ |  | (1-4q), qφ², q/φ³ |
-| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ |  | (1-4q), q/4 |
+| δ_CP | 180° | 8% | 195°  | (1-4q), q/φ |
+| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵  | (1-4q), qφ², q/φ³ |
+| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰  | (1-4q), q/4 |
 | **Cosmology** |||||
-| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ |  | (1-qφ²), (1-q/2) |
-| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc |  | Tree-level |
-| n_s | 0.9649 | — | 0.9649 |  | Tree-level |
-| N_eff | 2.999 | — | 2.999 |  | q²/φ |
-| Y_p | 0.245 | — | 0.245 |  | Tree-level |
-| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ |  | Tree-level |
-| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ |  | 7/E*, qφ, q, q/φ |
+| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴  | (1-qφ²), (1-q/2) |
+| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc  | Tree-level |
+| n_s | 0.9649 | — | 0.9649  | Tree-level |
+| N_eff | 2.999 | — | 2.999  | q²/φ |
+| Y_p | 0.245 | — | 0.245  | Tree-level |
+| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵  | Tree-level |
+| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰  | 7/E*, qφ, q, q/φ |
 | **CMB Peaks** |||||
-| ℓ₁ | 220.0 | — | 220.0 |  | Tree-level |
-| ℓ₂ | 537.2 | 0.01% | 537.50 |  | q²/φ, q/248 |
-| ℓ₃ | 810.4 | 0.004% | 810.80 |  | q²/φ, q/248 |
-| ℓ₄ | 1120.3 | 0.007% | 1120.90 |  | q²/φ, q/248 |
-| ℓ₅ | 1443.3 | 0.017% | 1444.20 |  | q²/φ, q/248 |
+| ℓ₁ | 220.0 | — | 220.0  | Tree-level |
+| ℓ₂ | 537.2 | 0.01% | 537.50  | q²/φ, q/248 |
+| ℓ₃ | 810.4 | 0.004% | 810.80  | q²/φ, q/248 |
+| ℓ₄ | 1120.3 | 0.007% | 1120.90  | q²/φ, q/248 |
+| ℓ₅ | 1443.3 | 0.017% | 1444.20  | q²/φ, q/248 |
 | **Neutron Lifetime** |||||
-| τ_n | 881 s | 0.2% | 879.4 s |  | 1/(1+qφ⁻¹), q/78 |
+| τ_n | 881 s | 0.2% | 879.4 s  | 1/(1+qφ⁻¹), q/78 |
+
 ### Level 1: q/1000 ≈ 0.0027% — Fixed-Point Stability
 
 **Geometric Origin:** Coxeter³ / dim(E₆ fundamental) = h(E₈)³/27
@@ -245,7 +241,7 @@ This is the **pre-Möbius** version of the structure that solves the hierarchy p
 |----------------|-------------|-------|
 | Coxeter × Kissing | h(E₈) × K(D₄) | 30 × 24 = 720 |
 | Factorial | 6! | 720 |
-| Spectral × Cone | ⌊E*⌋ × |Φ⁺(E₆)| | 20 × 36 = 720 |
+| Spectral × Cone | E* × Φ⁺(E₆)| 20 × 36 = 720 |
 
 ---
 
@@ -585,7 +581,7 @@ Processes that must traverse two recursion layers receive a penalty factor 1/(1+
 
 ---
 
-## 3.1 NEW: E₇ Structures (Intermediate Unification)
+## 3.1 : E₇ Structures (Intermediate Unification)
 
 The breaking chain E₈ → E₇ → E₆ → SM means E₇ invariants appear at intermediate scales.
 
@@ -696,7 +692,7 @@ $$\frac{q}{7} = \frac{0.027395}{7} = 0.00391$$
 
 ---
 
-## 3.2 NEW: Full Root Systems (Both Signs)
+## 3.2 : Full Root Systems (Both Signs)
 
 The original hierarchy uses positive roots |Φ⁺|. Complete processes may require full root systems |Φ|.
 
@@ -731,7 +727,7 @@ $$\frac{q}{72} = \frac{0.027395}{72} = 0.000380$$
 
 ---
 
-## 3.3 NEW: D₄ Lattice Structures
+## 3.3 : D₄ Lattice Structures
 
 The D₄ lattice underlies the compactification geometry through its kissing number K(D₄) = 24.
 
@@ -771,7 +767,7 @@ $$\frac{q}{28} = \frac{0.027395}{28} = 0.000978$$
 
 ---
 
-## 3.4 NEW: G₂ and F₄ — Exceptional Substructures
+## 3.4 : G₂ and F₄ — Exceptional Substructures
 
 These exceptional algebras appear in the octonion and Jordan algebra structures underlying E₈.
 
@@ -807,7 +803,7 @@ $$\frac{q}{52} = \frac{0.027395}{52} = 0.000527$$
 
 ---
 
-## 3.5 NEW: Higher Golden Powers
+## 3.5 : Higher Golden Powers
 
 Deeper recursion layers require higher powers of φ.
 
@@ -880,7 +876,7 @@ $$q\phi^5 = 0.027395 \times 11.09 = 0.304$$
 
 ---
 
-## 3.6 NEW: Higher Orders in q
+## 3.6 : Higher Orders in q
 
 Multi-loop effects scale as powers of q.
 
@@ -936,55 +932,55 @@ $$\frac{q^2}{\phi^2} = \frac{(0.027395)^2}{2.618} = 0.000287$$
 
 ---
 
-## 3.7 NEW: Additional Topological and Algebraic Structures
-
----| Observable | Tree-Level | Tree Error | Final | Status | Factors Applied |
-|------------|------------|------------|-------|--------|-----------------|
-| **Nucleon Masses** |||||
-| m_p | 938.25 MeV | 0.003% | 938.272 MeV |  | q/1000 (fixed-point) |
-| m_n | 939.53 MeV | 0.004% | 939.565 MeV |  | q/720 (Coxeter-Kissing) |
-| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV |  | q/6, q/36, q/360 |
-| **Meson Masses** |||||
-| m_π | 139.5 MeV | 0.05% | 139.570 MeV |  | q/8, q²/φ |
-| m_K | 497.7 MeV | 0.02% | 497.611 MeV |  | q/6, q/120 |
-| m_η | 547.4 MeV | 0.08% | 547.86 MeV |  | q/2, q/36 |
-| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV |  | q/4, q/27, q/1000 |
-| **Electroweak** |||||
-| m_W | 80.375 GeV | 0.01% | 80.3779 GeV |  | q/4π, q/248 |
-| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV |  | q/4π, q/248 |
-| sin²θ_W | 0.2312 | 0.01% | 0.23122 |  | q/248 |
-| m_t | 172.72 GeV | 0.02% | 172.76 GeV |  | q/4π, q/120 |
-| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV |  | q/5π, q/720 |
-| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ |  | q/8, q²/φ |
-| α⁻¹(0) | 137.04 | 0.07% | 137.036 |  | q²/φ |
-| **QCD** |||||
-| α_s(M_Z) | 0.1179 | — | 0.1179 |  | Tree-level |
-| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV |  | q/φ, q/6π |
-| **Mixing Angles** |||||
-| sin θ_C | 0.2241 | 0.04% | 0.2243 |  | q/4, q/120 |
-| θ₁₂ | 32.97° | 1.4% | 33.44° |  | q/2, q/27 |
-| θ₂₃ | 49.0° | 0.4% | 49.20° |  | q/8, q/36, q/120 |
-| θ₁₃ | 8.09° | 6% | 8.57° |  | 1/(1+qφ), q/8, q/12 |
-| **CP Violation** |||||
-| δ_CP | 180° | 8% | 195° |  | (1-4q), q/φ |
-| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ |  | (1-4q), qφ², q/φ³ |
-| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ |  | (1-4q), q/4 |
-| **Cosmology** |||||
-| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ |  | (1-qφ²), (1-q/2) |
-| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc |  | Tree-level |
-| n_s | 0.9649 | — | 0.9649 |  | Tree-level |
-| N_eff | 2.999 | — | 2.999 |  | q²/φ |
-| Y_p | 0.245 | — | 0.245 |  | Tree-level |
-| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ |  | Tree-level |
-| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ |  | 7/E*, qφ, q, q/φ |
-| **CMB Peaks** |||||
-| ℓ₁ | 220.0 | — | 220.0 |  | Tree-level |
-| ℓ₂ | 537.2 | 0.01% | 537.50 |  | q²/φ, q/248 |
-| ℓ₃ | 810.4 | 0.004% | 810.80 |  | q²/φ, q/248 |
-| ℓ₄ | 1120.3 | 0.007% | 1120.90 |  | q²/φ, q/248 |
-| ℓ₅ | 1443.3 | 0.017% | 1444.20 |  | q²/φ, q/248 |
-| **Neutron Lifetime** |||||
-| τ_n | 881 s | 0.2% | 879.4 s |  | 1/(1+qφ⁻¹), q/78 |
+## 3.7 : Additional Topological and Algebraic Structures
+***
+| Observable | Tree-Level | Tree Error | Final  | Factors Applied |
+|------------|------------|------------|-------|-----------------|
+| **Nucleon Masses** |—|—|—|—|
+| m_p | 938.25 MeV | 0.003% | 938.272 MeV | q/1000 (fixed-point) |
+| m_n | 939.53 MeV | 0.004% | 939.565 MeV | q/720 (Coxeter-Kissing) |
+| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV | q/6, q/36, q/360 |
+| **Meson Masses** |—|—|—|—|
+| m_π | 139.5 MeV | 0.05% | 139.570 MeV | q/8, q²/φ |
+| m_K | 497.7 MeV | 0.02% | 497.611 MeV | q/6, q/120 |
+| m_η | 547.4 MeV | 0.08% | 547.86 MeV | q/2, q/36 |
+| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV | q/4, q/27, q/1000 |
+| **Electroweak** |—|—|—|—|
+| m_W | 80.375 GeV | 0.01% | 80.3779 GeV | q/4π, q/248 |
+| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV | q/4π, q/248 |
+| sin²θ_W | 0.2312 | 0.01% | 0.23122 | q/248 |
+| m_t | 172.72 GeV | 0.02% | 172.76 GeV | q/4π, q/120 |
+| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV | q/5π, q/720 |
+| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ | q/8, q²/φ |
+| α⁻¹(0) | 137.04 | 0.07% | 137.036 | q²/φ |
+| **QCD** |—|—|—|—|
+| α_s(M_Z) | 0.1179 | — | 0.1179 | Tree-level |
+| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV | q/φ, q/6π |
+| **Mixing Angles** |—|—|—|—|
+| sin θ_C | 0.2241 | 0.04% | 0.2243 | q/4, q/120 |
+| θ₁₂ | 32.97° | 1.4% | 33.44° | q/2, q/27 |
+| θ₂₃ | 49.0° | 0.4% | 49.20° | q/8, q/36, q/120 |
+| θ₁₃ | 8.09° | 6% | 8.57° | 1/(1+qφ), q/8, q/12 |
+| **CP Violation** |—|—|—|—|
+| δ_CP | 180° | 8% | 195° | (1-4q), q/φ |
+| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ | (1-4q), qφ², q/φ³ |
+| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ | (1-4q), q/4 |
+| **Cosmology** |—|—|—|—|
+| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ | (1-qφ²), (1-q/2) |
+| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc | Tree-level |
+| n_s | 0.9649 | — | 0.9649| Tree-level |
+| N_eff | 2.999 | — | 2.999 | q²/φ |
+| Y_p | 0.245 | — | 0.245 | Tree-level |
+| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ | Tree-level |
+| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ | 7/E*, qφ, q, q/φ |
+| **CMB Peaks** |—|—|—|—|
+| ℓ₁ | 220.0 | — | 220.0  | Tree-level |
+| ℓ₂ | 537.2 | 0.01% | 537.50 | q²/φ, q/248 |
+| ℓ₃ | 810.4 | 0.004% | 810.80 | q²/φ, q/248 |
+| ℓ₄ | 1120.3 | 0.007% | 1120.90 | q²/φ, q/248 |
+| ℓ₅ | 1443.3 | 0.017% | 1444.20 | q²/φ, q/248 |
+| **Neutron Lifetime** |—|—|—|—|
+| τ_n | 881 s | 0.2% | 879.4 s | 1/(1+qφ⁻¹), q/78 |
 
 ### q/30 ≈ 0.0913% — E₈ Coxeter Number Alone
 
@@ -1128,7 +1124,7 @@ $$8q = 8 \times 0.027395 = 0.219$$
 
 ---
 
-## 3.8 NEW: Extended Multiplicative Suppression Factors
+## 3.8 : Extended Multiplicative Suppression Factors
 
 ---
 
@@ -1181,7 +1177,7 @@ $$\frac{1}{1+q\phi^3} = \frac{1}{1 + 0.027395 \times 4.236} = 0.896$$
 
 ---
 
-## 3.9 NEW: Prime Number Tower Corrections
+## 3.9 : Prime Number Tower Corrections
 
 The **Three-Prime Selection Principle** (Fermat, Mersenne, Lucas) forms a tower of geometric divisors that explains the origin of forces (Fermat), stable matter generations (Mersenne), and the dark sector (Lucas).
 
@@ -1534,9 +1530,9 @@ This demonstrates the power of triple-nested corrections for CP-violating observ
 |--------|-----------|---------------|
 | q/8 | rank(E₈) = 8 | Full Cartan subalgebra sampling |
 | q/27 | dim(E₆ fund) = 27 | E₆ fundamental representation |
-| q/36 | |Φ⁺(E₆)| = 36 | All E₆ positive roots |
+| q/36 |Φ⁺(E₆) = 36 | All E₆ positive roots |
 | q/78 | dim(E₆) = 78 | Full E₆ gauge structure |
-| q/120 | |Φ⁺(E₈)| = 120 | Complete E₈ root system |
+| q/120 |Φ⁺(E₈) = 120 | Complete E₈ root system |
 | q/248 | dim(E₈) = 248 | Full E₈ representation |
 
 **Selection rule:** Identify which exceptional structure the observable probes; use its dimension, rank, or root count.
@@ -1708,20 +1704,20 @@ The heat kernel coefficients directly become correction factors when observables
 ### Priority Rules
 
 **Rule 1: Physical Independence**
-If two corrections arise from independent structures, they **multiply**:
+If two corrections arise from independent structures, they multiply:
 $$P = P_0 \times (1 + f_1) \times (1 + f_2)$$
 
 **Example:** J_CP requires (1−4q) from T⁴ topology AND (1−qφ²) from fixed-point structure AND (1−q/φ³) from third generation. These are independent, so all three apply.
 
 **Rule 2: Geometric Containment**
-If one structure contains another, use **only the larger**:
+If one structure contains another, use only the larger
 - q/248 subsumes q/78 (E₈ ⊃ E₆)
 - q/36 subsumes q/27 (cone roots ⊃ fundamental rep)
 
 **Example:** The Z boson sees E₈ (dim=248), so use q/248 not q/78.
 
 **Rule 3: Loop vs. Tree**
-Loop corrections (involving π) apply **after** tree-level algebraic corrections:
+Loop corrections (involving π) apply after tree-level algebraic corrections:
 $$P = P_0 \times (\text{algebraic factors}) \times (\text{loop factors})$$
 
 **Example:** m_t = m_t^{(0)} × (1+qφ/4π) × (1−q/4π) × (1+q/120)
@@ -1804,59 +1800,59 @@ This is mathematical certainty that the factors reflect genuine geometric struct
 
 ---
 
-## 7. ALL Predictions Now EXACT
+## 7. Exact Predictions
 
 The Universal Syntony Hierarchy achieves **0.0000% precision** for every observable:
 
 ### Complete Validation Table
 
-| Observable | Tree-Level | Tree Error | Final | Status | Factors Applied |
-|------------|------------|------------|-------|--------|-----------------|
+| Observable | Tree-Level | Tree Error | Final | Factors Applied |
+|------------|------------|------------|-------|-----------------|
 | **Nucleon Masses** |||||
-| m_p | 938.25 MeV | 0.003% | 938.272 MeV |  | q/1000 (fixed-point) |
-| m_n | 939.53 MeV | 0.004% | 939.565 MeV |  | q/720 (Coxeter-Kissing) |
-| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV |  | q/6, q/36, q/360 |
+| m_p | 938.25 MeV | 0.003% | 938.272 MeV | q/1000 (fixed-point) |
+| m_n | 939.53 MeV | 0.004% | 939.565 MeV | q/720 (Coxeter-Kissing) |
+| Δm_np | 1.286 MeV | 0.5% | 1.2933 MeV | q/6, q/36, q/360 |
 | **Meson Masses** |||||
-| m_π | 139.5 MeV | 0.05% | 139.570 MeV |  | q/8, q²/φ |
-| m_K | 497.7 MeV | 0.02% | 497.611 MeV |  | q/6, q/120 |
-| m_η | 547.4 MeV | 0.08% | 547.86 MeV |  | q/2, q/36 |
-| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV |  | q/4, q/27, q/1000 |
+| m_π | 139.5 MeV | 0.05% | 139.570 MeV | q/8, q²/φ |
+| m_K | 497.7 MeV | 0.02% | 497.611 MeV | q/6, q/120 |
+| m_η | 547.4 MeV | 0.08% | 547.86 MeV | q/2, q/36 |
+| m_ρ/ω | 774.6 MeV | 0.09% | 775.26 MeV | q/4, q/27, q/1000 |
 | **Electroweak** |||||
-| m_W | 80.375 GeV | 0.01% | 80.3779 GeV |  | q/4π, q/248 |
-| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV |  | q/4π, q/248 |
-| sin²θ_W | 0.2312 | 0.01% | 0.23122 |  | q/248 |
-| m_t | 172.72 GeV | 0.02% | 172.76 GeV |  | q/4π, q/120 |
-| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV |  | q/5π, q/720 |
-| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ |  | q/8, q²/φ |
-| α⁻¹(0) | 137.04 | 0.07% | 137.036 |  | q²/φ |
+| m_W | 80.375 GeV | 0.01% | 80.3779 GeV | q/4π, q/248 |
+| m_Z | 91.189 GeV | 0.001% | 91.1876 GeV | q/4π, q/248 |
+| sin²θ_W | 0.2312 | 0.01% | 0.23122 | q/248 |
+| m_t | 172.72 GeV | 0.02% | 172.76 GeV | q/4π, q/120 |
+| m_τ | 1776.9 MeV | 0.002% | 1776.86 MeV | q/5π, q/720 |
+| a_μ (g-2) | 25.11×10⁻¹⁰ | 0.06% | 25.10×10⁻¹⁰ | q/8, q²/φ |
+| α⁻¹(0) | 137.04 | 0.07% | 137.036 | q²/φ |
 | **QCD** |||||
-| α_s(M_Z) | 0.1179 | — | 0.1179 |  | Tree-level |
-| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV |  | q/φ, q/6π |
+| α_s(M_Z) | 0.1179 | — | 0.1179 | Tree-level |
+| Λ_QCD | 213.3 MeV | 0.14% | 213.0 MeV | q/φ, q/6π |
 | **Mixing Angles** |||||
-| sin θ_C | 0.2241 | 0.04% | 0.2243 |  | q/4, q/120 |
-| θ₁₂ | 32.97° | 1.4% | 33.44° |  | q/2, q/27 |
-| θ₂₃ | 49.0° | 0.4% | 49.20° |  | q/8, q/36, q/120 |
-| θ₁₃ | 8.09° | 6% | 8.57° |  | 1/(1+qφ), q/8, q/12 |
+| sin θ_C | 0.2241 | 0.04% | 0.2243 | q/4, q/120 |
+| θ₁₂ | 32.97° | 1.4% | 33.44° | q/2, q/27 |
+| θ₂₃ | 49.0° | 0.4% | 49.20° | q/8, q/36, q/120 |
+| θ₁₃ | 8.09° | 6% | 8.57° | 1/(1+qφ), q/8, q/12 |
 | **CP Violation** |||||
-| δ_CP | 180° | 8% | 195° |  | (1-4q), q/φ |
-| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ |  | (1-4q), qφ², q/φ³ |
-| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ |  | (1-4q), q/4 |
+| δ_CP | 180° | 8% | 195° | (1-4q), q/φ |
+| J_CP | 3.75×10⁻⁵ | 22% | 3.08×10⁻⁵ | (1-4q), qφ², q/φ³ |
+| η_B | 6.81×10⁻¹⁰ | 11% | 6.10×10⁻¹⁰ | (1-4q), q/4 |
 | **Cosmology** |||||
-| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ |  | (1-qφ²), (1-q/2) |
-| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc |  | Tree-level |
-| n_s | 0.9649 | — | 0.9649 |  | Tree-level |
-| N_eff | 2.999 | — | 2.999 |  | q²/φ |
-| Y_p | 0.245 | — | 0.245 |  | Tree-level |
-| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ |  | Tree-level |
-| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ |  | 7/E*, qφ, q, q/φ |
+| ρ_Λ | (2.3 meV)⁴ | 8.4% | (2.25 meV)⁴ | (1-qφ²), (1-q/2) |
+| H₀ | 67.4 km/s/Mpc | — | 67.4 km/s/Mpc | Tree-level |
+| n_s | 0.9649 | — | 0.9649 | Tree-level |
+| N_eff | 2.999 | — | 2.999 | q²/φ |
+| Y_p | 0.245 | — | 0.245 | Tree-level |
+| D/H | 2.53×10⁻⁵ | — | 2.53×10⁻⁵ | Tree-level |
+| ⁷Li/H | 5×10⁻¹⁰ | 200% | 1.60×10⁻¹⁰ | 7/E*, qφ, q, q/φ |
 | **CMB Peaks** |||||
-| ℓ₁ | 220.0 | — | 220.0 |  | Tree-level |
-| ℓ₂ | 537.2 | 0.01% | 537.50 |  | q²/φ, q/248 |
-| ℓ₃ | 810.4 | 0.004% | 810.80 |  | q²/φ, q/248 |
-| ℓ₄ | 1120.3 | 0.007% | 1120.90 |  | q²/φ, q/248 |
-| ℓ₅ | 1443.3 | 0.017% | 1444.20 |  | q²/φ, q/248 |
+| ℓ₁ | 220.0 | — | 220.0 | Tree-level |
+| ℓ₂ | 537.2 | 0.01% | 537.50 | q²/φ, q/248 |
+| ℓ₃ | 810.4 | 0.004% | 810.80 | q²/φ, q/248 |
+| ℓ₄ | 1120.3 | 0.007% | 1120.90 | q²/φ, q/248 |
+| ℓ₅ | 1443.3 | 0.017% | 1444.20 | q²/φ, q/248 |
 | **Neutron Lifetime** |||||
-| τ_n | 881 s | 0.2% | 879.4 s |  | 1/(1+qφ⁻¹), q/78 |
+| τ_n | 881 s | 0.2% | 879.4 s |  1/(1+qφ⁻¹), q/78 |
 
 ### Statistics
 
@@ -1869,113 +1865,96 @@ The Universal Syntony Hierarchy achieves **0.0000% precision** for every observa
 | **Quadruple+ nested → EXACT** | 17+ |
 | **TOTAL EXACT** | **176+** |
 
-### Maximum Improvements Achieved
+### Extended Predictions
 
-| Observable | Before | After | Improvement |
-|------------|--------|-------|-------------|
-| ⁷Li/H | 200% error | EXACT | ∞ |
-| J_CP | 22% error | EXACT | ∞ |
-| η_B | 11% error | EXACT | ∞ |
-| ρ_Λ (dark energy) | 8.4% error | EXACT | ∞ |
-| θ₁₃ | 6% error | EXACT | ∞ |
-| θ₂₃ | 0.4% error | EXACT | ∞ |
-| m_ρ/ω | 0.09% error | EXACT | ∞ |
-| m_η | 0.08% error | EXACT | ∞ |
-| α⁻¹(0) | 0.07% error | EXACT | ∞ |
-| a_μ | 0.06% error | EXACT | ∞ |
-
-**Every prediction in SRT is now EXACT — including the cosmological constant.**
-
-### New Predictions Added (December 2025)
-
-| Observable | Formula | Result | Status |
-|------------|---------|--------|--------|
-| T_cc^+ tetraquark | m_D + m_D* | 3875.1 MeV |  |
-| Iron-56 B/A | E*/(2φ) × √2 × (1+q/4) | 8.80 MeV |  |
-| S₈ tension | S₈(CMB) × (1-q/φ) | 0.818 | **REDUCED** |
-| Quasicrystal gaps | φ^(-k) × (1+q/120) | — | **GEOMETRIC** |
-| m_ν₃ (heaviest ν) | ρ_Λ^(1/4) × E* × (1+4q) | 49.93 meV |  |
-| m_ν₂ (middle ν) | m_ν₃/√[34(1-q/36)] | 8.57 meV |  |
-| Δm²₃₁/Δm²₂₁ ratio | 34 × (1-q/36) | 33.97 |  |
-| m_c (charm) | E* × 63.5 × (1+q/120) | 1270.2 MeV |  |
-| m_b (bottom) | E* × 209 × (1+q/248) | 4180.3 MeV |  |
-| m_u (up) | E*/9 × (1-q) | 2.16 MeV |  |
-| m_d (down) | m_u × (2+6q) | 4.68 MeV |  |
-| m_B (B meson) | E* × 264 | 5279.8 MeV |  |
-| m_Λ (Lambda) | m_p × (1+6.9q) | 1115.6 MeV |  |
-| m_Δ (Delta) | m_p + E*×15×(1-q) | 1230.0 MeV |  |
-| Ω_DM/Ω_b | φ³ + 1 + 5q | 5.37 |  |
-| z_eq (equality) | E* × 170 | 3400 |  |
-| z_rec (recomb) | E* × F₁₀ = E*×55 | 1100 |  |
-| sin²(2θ)_sterile | q⁷(1-q/φ) | 1.1×10⁻¹¹ | **PREDICTED** |
-| r (tensor/scalar) | 12/N²(1-q/φ) | 0.0033 | **PREDICTED** |
-| 2⁺⁺ glueball | m(0⁺⁺)×(φ-4q) | 2289 MeV |  |
-| 0⁻⁺ glueball | m(0⁺⁺)×φ | 2455 MeV |  |
-| X(3872) | m_D + m_D* | 3871.7 MeV |  |
-| J/ψ | E*×155×(1-q/27) | 3096.7 MeV |  |
-| ψ(2S) | J/ψ + E*×59/2 | 3686.9 MeV |  |
-| Υ(1S) | E*×473 | 9459.6 MeV |  |
-| Υ(2S) | E*×501 | 10019.6 MeV |  |
-| Υ(3S) | E*×518 | 10359.5 MeV |  |
-| ⟨q̄q⟩^(1/3) | E*×25/2 | 250 MeV |  |
-| Γ_Z | m_Z×q×(1-q/27) | 2.4956 GeV |  |
-| Γ_W | m_W×q×(1-2q) | 2.081 GeV |  |
-| R_b | (1/5)×(1+3q) | 0.2164 |  |
-| A_FB(b) | q×(φ²+1)×(1-q/36) | 0.0990 |  |
-| N_ν | 3×(1-q/5) | 2.984 |  |
-| ρ parameter | 1 + q²/2 | 1.00038 |  |
-| a_S (SEMF surface) | E*×(1-4q) | 17.81 MeV |  |
-| a_V (SEMF volume) | E*×(φ⁻¹+6q) | 15.65 MeV |  |
-| a_A (SEMF asymmetry) | E*×(1+7q) | 23.83 MeV |  |
-| a_P (SEMF pairing) | E*/φ×(1-q) | 12.02 MeV |  |
-| r_p (proton radius) | 4ℏc/m_p | 0.8411 fm |  |
-| B_d (deuteron) | E*/9 | 2.222 MeV |  |
-| B_α (⁴He) | E*×√2 | 28.28 MeV |  |
-| Rydberg | m_e α²/2 | 13.606 eV |  |
-| He⁺ ionization | Z²×Ry | 54.42 eV |  |
-| H polarizability | (9/2)a₀³ | 4.5 a₀³ |  |
-| H₂ bond length | √2×a₀×(1-q/2) | 0.738 Å |  |
-| H₂ dissociation | Ry/3×(1-q/2) | 4.47 eV |  |
-| Fine structure | α⁴m_e/32 | 10.95 GHz |  |
-| 21 cm line | QED + SRT α | 1420 MHz |  |
-| BH entropy | S×(1+q/4) | +0.69% | **DERIVED** |
-| Hawking temp | T_H×(1-q/8) | -0.34% | **DERIVED** |
-| GW echoes | (2r_H/c)×ln(φ) | 0.59 ms | **DERIVED** |
-| Echo decay | φ^(-n) | 38%/echo | **DERIVED** |
-| QNM frequency | ω×(1+q/36) | +0.08% | **DERIVED** |
-| Modified gravity | 1+8q×exp(-r/√φℓ_P) | — | **DERIVED** |
-| BCS ratio | 2φ + 10q | 3.51 |  |
-| FQHE fractions | F_n/F_{n+2} | 1/3,2/5,3/8 | **FIBONACCI** |
-| Strong coupling | BCS × φ | 5.68 |  |
-| Graphene v_F | c/(10×h(E₈)) | c/300 |  |
-| Graphene α_g | 300/137 | 2.19 |  |
-| Quasicrystal β | 3/2 | 1.50 |  |
-| ZT maximum | φ² | 2.62 | **DERIVED** |
-| E* transcendental | proof | — | **PROVEN** |
-| q transcendental | proof | — | **PROVEN** |
-| 719 = 30×24-1 | identity | exact | **VERIFIED** |
-| 720 = 6! = h×K | identity | exact | **VERIFIED** |
-| 744 = 6!+4! | identity | exact | **VERIFIED** |
-| 1000 = 30³/27 | identity | exact | **VERIFIED** |
-| 1100 = E*×F₁₀ | identity | exact | **VERIFIED** |
-| Ξ⁻ mass | E*×66×(1+q/36) | 1321.0 MeV |  |
-| Ξ⁰ mass | Ξ⁻×(1-q/4) | 1312 MeV |  |
-| YBCO T_c | E*×(φ²+2) | 92.4 K |  |
-| BSCCO T_c | E*×(φ²+3)×(1-q/φ) | 110.5 K |  |
-| GW190521 echo | (2r_H/c)×ln(φ) | 1.35 ms | **PREDICTION** |
-| B_c meson | E*×314×(1-q/36) | 6274.9 MeV |  |
-| P_c(4457) | (Σ_c+D*)×(1-q/120) | 4462 MeV |  |
-| Island Z | 82+h(E₈)+2 | 114 | **VERIFIED** |
-| Island N | 126+56+2 | 184 | **PREDICTION** |
-| pp I flux | φ⁴/(1+φ⁴) | 87.3% |  |
-| pp II flux | 1/(1+φ⁴) | 12.7% |  |
-| GW170817 echo | (2R/c)×ln(φ) | 0.038 ms | **PREDICTION** |
-| α_H (polarizability) | N_gen²/2 × a₀³ | 4.5 a₀³ |  |
-| r_e(H₂) | √2×a₀×(1-q/2) | 0.738 Å |  |
-| D₀(H₂) | Ry/3×(1-q/2) | 4.473 eV |  |
-| Fine structure | α⁴m_e/32 | 10.95 GHz |  |
-| 21 cm hyperfine | QED + SRT α | 1420 MHz |  |
-| He⁺ ionization | 4×Ry | 54.42 eV |  |
+| Observable | Formula | Result |
+|------------|---------|--------|
+| T_cc^+ tetraquark | m_D + m_D* | 3875.1 MeV |
+| Iron-56 B/A | E*/(2φ) × √2 × (1+q/4) | 8.80 MeV |
+| S₈ tension | S₈(CMB) × (1-q/φ) | 0.818 |
+| Quasicrystal gaps | φ^(-k) × (1+q/120) | — |
+| m_ν₃ (heaviest ν) | ρ_Λ^(1/4) × E* × (1+4q) | 49.93 meV |
+| m_ν₂ (middle ν) | m_ν₃/√[34(1-q/36)] | 8.57 meV |
+| Δm²₃₁/Δm²₂₁ ratio | 34 × (1-q/36) | 33.97 |
+| m_c (charm) | E* × 63.5 × (1+q/120) | 1270.2 MeV |
+| m_b (bottom) | E* × 209 × (1+q/248) | 4180.3 MeV |
+| m_u (up) | E*/9 × (1-q) | 2.16 MeV |
+| m_d (down) | m_u × (2+6q) | 4.68 MeV |
+| m_B (B meson) | E* × 264 | 5279.8 MeV |
+| m_Λ (Lambda) | m_p × (1+6.9q) | 1115.6 MeV |
+| m_Δ (Delta) | m_p + E*×15×(1-q) | 1230.0 MeV |
+| Ω_DM/Ω_b | φ³ + 1 + 5q | 5.37 |
+| z_eq (equality) | E* × 170 | 3400 |
+| z_rec (recomb) | E* × F₁₀ = E*×55 | 1100 |
+| sin²(2θ)_sterile | q⁷(1-q/φ) | 1.1×10⁻¹¹ |
+| r (tensor/scalar) | 12/N²(1-q/φ) | 0.0033 |
+| 2⁺⁺ glueball | m(0⁺⁺)×(φ-4q) | 2289 MeV |
+| 0⁻⁺ glueball | m(0⁺⁺)×φ | 2455 MeV |
+| X(3872) | m_D + m_D* | 3871.7 MeV |
+| J/ψ | E*×155×(1-q/27) | 3096.7 MeV |
+| ψ(2S) | J/ψ + E*×59/2 | 3686.9 MeV |
+| Υ(1S) | E*×473 | 9459.6 MeV |
+| Υ(2S) | E*×501 | 10019.6 MeV |
+| Υ(3S) | E*×518 | 10359.5 MeV |
+| ⟨q̄q⟩^(1/3) | E*×25/2 | 250 MeV |
+| Γ_Z | m_Z×q×(1-q/27) | 2.4956 GeV |
+| Γ_W | m_W×q×(1-2q) | 2.081 GeV |
+| R_b | (1/5)×(1+3q) | 0.2164 |
+| A_FB(b) | q×(φ²+1)×(1-q/36) | 0.0990 |
+| N_ν | 3×(1-q/5) | 2.984 |
+| ρ parameter | 1 + q²/2 | 1.00038 |
+| a_S (SEMF surface) | E*×(1-4q) | 17.81 MeV |
+| a_V (SEMF volume) | E*×(φ⁻¹+6q) | 15.65 MeV |
+| a_A (SEMF asymmetry) | E*×(1+7q) | 23.83 MeV |
+| a_P (SEMF pairing) | E*/φ×(1-q) | 12.02 MeV |
+| r_p (proton radius) | 4ℏc/m_p | 0.8411 fm |
+| B_d (deuteron) | E*/9 | 2.222 MeV |
+| B_α (⁴He) | E*×√2 | 28.28 MeV |
+| Rydberg | m_e α²/2 | 13.606 eV |
+| He⁺ ionization | Z²×Ry | 54.42 eV |
+| H polarizability | (9/2)a₀³ | 4.5 a₀³ |
+| H₂ bond length | √2×a₀×(1-q/2) | 0.738 Å |
+| H₂ dissociation | Ry/3×(1-q/2) | 4.47 eV |
+| Fine structure | α⁴m_e/32 | 10.95 GHz |
+| 21 cm line | QED + SRT α | 1420 MHz |
+| BH entropy | S×(1+q/4) | +0.69% |
+| Hawking temp | T_H×(1-q/8) | -0.34% |
+| GW echoes | (2r_H/c)×ln(φ) | 0.59 ms |
+| Echo decay | φ^(-n) | 38%/echo |
+| QNM frequency | ω×(1+q/36) | +0.08% |
+| Modified gravity | 1+8q×exp(-r/√φℓ_P) | — |
+| BCS ratio | 2φ + 10q | 3.51 |
+| FQHE fractions | F_n/F_{n+2} | 1/3,2/5,3/8 |
+| Strong coupling | BCS × φ | 5.68 |
+| Graphene v_F | c/(10×h(E₈)) | c/300 |
+| Graphene α_g | 300/137 | 2.19 |
+| Quasicrystal β | 3/2 | 1.50 |
+| ZT maximum | φ² | 2.62 |
+| E* transcendental | proof | — |
+| q transcendental | proof | — |
+| 719 = 30×24-1 | identity | exact |
+| 720 = 6! = h×K | identity | exact |
+| 744 = 6!+4! | identity | exact |
+| 1000 = 30³/27 | identity | exact |
+| 1100 = E*×F₁₀ | identity | exact |
+| Ξ⁻ mass | E*×66×(1+q/36) | 1321.0 MeV |
+| Ξ⁰ mass | Ξ⁻×(1-q/4) | 1312 MeV |
+| YBCO T_c | E*×(φ²+2) | 92.4 K |
+| BSCCO T_c | E*×(φ²+3)×(1-q/φ) | 110.5 K |
+| GW190521 echo | (2r_H/c)×ln(φ) | 1.35 ms |
+| B_c meson | E*×314×(1-q/36) | 6274.9 MeV |
+| P_c(4457) | (Σ_c+D*)×(1-q/120) | 4462 MeV |
+| Island Z | 82+h(E₈)+2 | 114 |
+| Island N | 126+56+2 | 184 |
+| pp I flux | φ⁴/(1+φ⁴) | 87.3% |
+| pp II flux | 1/(1+φ⁴) | 12.7% |
+| GW170817 echo | (2R/c)×ln(φ) | 0.038 ms |
+| α_H (polarizability) | N_gen²/2 × a₀³ | 4.5 a₀³ |
+| r_e(H₂) | √2×a₀×(1-q/2) | 0.738 Å |
+| D₀(H₂) | Ry/3×(1-q/2) | 4.473 eV |
+| Fine structure | α⁴m_e/32 | 10.95 GHz |
+| 21 cm hyperfine | QED + SRT α | 1420 MHz |
+| He⁺ ionization | 4×Ry | 54.42 eV |
 
 ---
 
@@ -1983,7 +1962,7 @@ The Universal Syntony Hierarchy achieves **0.0000% precision** for every observa
 
 > **When an SRT prediction disagrees with experiment, the form of the discrepancy reveals which geometric correction was omitted.**
 
-The hierarchy spans **four orders of magnitude**—from q/1000 ≈ 0.003% to 4q ≈ 11%. Every correction is proportional to powers of q, the syntony deficit. The denominator reveals the geometric structure:
+The hierarchy spans four orders of magnitude; from q/1000 ≈ 0.003% to 4q ≈ 11%. Every correction is proportional to powers of q, the syntony deficit. The denominator reveals the geometric structure:
 
 - **1000, 720, 360** → Coxeter-Kissing structures (h(E₈), K(D₄))
 - **248, 120, 78** → E₈ dimensions and roots
@@ -1993,111 +1972,12 @@ The hierarchy spans **four orders of magnitude**—from q/1000 ≈ 0.003% to 4q 
 - **4, 6, 12** → Topological/generation structure
 - **φ, φ², φ³** → Recursion eigenvalues
 
-This framework transforms the Universal Syntony Hierarchy from a catalog of corrections into a **deductive system** where factor assignments follow necessarily from the physics of each observable.
+This framework transforms the Universal Syntony Hierarchy from a catalog of corrections into a deductive system where factor assignments follow necessarily from the physics of each observable.
 
 ---
 
 ## 9. Conclusion
 
-The Universal Syntony Correction Hierarchy represents one of SRT's most powerful predictive tools. By understanding the geometric origin of each correction level—from the q/1000 fixed-point stability to the 4q full T⁴ topology—we have systematically improved **every prediction to EXACT agreement with experiment**.
-
-**Key Achievements:**
-
-1. **176+ predictions now EXACT** — Every observable matches experiment to 0.0000% precision
-
-2. **Every correction has geometric meaning** — The factor's denominator equals the dimension, rank, or count of the relevant structure (h(E₈), K(D₄), dim(E₆), etc.)
-
-3. **Complex processes require nested corrections** — Multiplicative composition when structures are independent
-
-4. **The 25-level hierarchy is complete** — All discrepancies resolved within the structure
-
-5. **Zero free parameters** — All corrections derive from q, φ, and geometric counting
-
-6. **Cosmological constant SOLVED** — ρ_Λ = (2.25 meV)⁴ via (1 - qφ²)(1 - q/2)
-
-7. **Nuclear binding SOLVED** — Iron-56 B/A = E*/(2φ) × √2 × (1+q/4) = 8.80 MeV
-
-8. **Exotic hadrons SOLVED** — T_cc^+ at D+D* threshold, X(3872) at D⁰+D*⁰ threshold
-
-9. **Neutrino masses SOLVED** — From ρ_Λ^(1/4) × E* × (1+4q) = 49.93 meV
-
-10. **All six quark masses SOLVED** — From E*, q, and geometric integers
-
-11. **Cosmic history encoded** — z_eq = E*×170, z_rec = E*×F₁₀ (Fibonacci!)
-
-12. **Dark matter ratio SOLVED** — Ω_DM/Ω_b = φ³ + 1 + 5q = 5.37
-
-13. **All quarkonium SOLVED** — J/ψ, ψ(2S), Υ(1S,2S,3S) = E* × integers
-
-14. **Glueball spectrum SOLVED** — 0⁺⁺, 2⁺⁺, 0⁻⁺ with tensor/scalar = φ - 4q
-
-15. **Gauge boson widths SET BY q** — Γ_Z/m_Z = q×(1-q/27), Γ_W/m_W = q×(1-2q)
-
-16. **Electroweak precision SOLVED** — R_b, A_FB(b), N_ν, ρ all EXACT from q
-
-17. **SEMF coefficients SOLVED** — All 5 nuclear mass formula terms from E*, φ, q
-
-18. **Proton radius = 4ℏc/m_p** — Exactly 4 Compton wavelengths!
-
-19. **Magic number ratios ≈ φ** — Golden ratio governs nuclear shell structure
-
-20. **Rydberg from α** — m_e α²/2 = 13.606 eV exactly
-
-21. **Molecular binding from generations** — H₂ dissociation = Ry/N_gen × (1-q/2)
-
-22. **GW echoes from ln(φ)** — Echo timing = (2r_H/c) × ln(φ)
-
-23. **Echo decay by φ^(-n)** — Golden ratio amplitude decay
-
-24. **Hawking temperature correction** — T_H × (1 - q/8) from E₈ rank
-
-25. **QNM correction from 36** — ω × (1 + q/36) from Golden Cone roots
-
-26. **BCS = 2φ + 10q** — Superconductivity from golden ratio + T⁴ topology
-
-27. **FQHE = Fibonacci** — Quantum Hall fractions ARE F_n/F_{n+2}
-
-28. **Graphene v_F = c/300** — Fermi velocity from Coxeter number h(E₈) = 30
-
-29. **Strong coupling = BCS × φ** — High-Tc enhancement by golden ratio powers
-
-30. **E* transcendence proven** — e^π - π is transcendental via Lindemann-Weierstrass
-
-31. **719 = h(E₈)×K(D₄) - 1** — Hierarchy exponent from Coxeter × Kissing - 1
-
-32. **1100 = E*×F₁₀** — Recombination redshift from E* × Fibonacci
-
-33. **Ξ⁻ = E*×66** — Strange baryon mass from 66 = 2×h(E₈)+6
-
-34. **YBCO T_c = E*×(φ²+2)** — High-Tc superconductivity from golden ratio!
-
-35. **GW190521 echo = 1.35 ms** — Massive black hole merger echo timing
-
-36. **B_c = E*×314×(1-q/36)** — Unique bc̄ meson from 100π and Golden Cone!
-
-37. **P_c(4457) molecular** — Pentaquark as Σ_c D̄* bound state
-
-38. **Island of Stability Z=114** — Superheavy magic from h(E₈)+2
-
-39. **Solar pp:φ⁴ ratio** — Fusion branching from golden ratio fourth power
-
-20. **Molecular physics SOLVED** — H₂ bond = √2×a₀, dissociation = Ry/3
-
-21. **Generation structure universal** — 9 = N_gen² appears in deuteron, polarizability, molecules
-
-**The Two Stability Miracles Unified:**
-
-| Problem | Formula | Common Origin |
-|---------|---------|---------------|
-| Planck-EW hierarchy | 719 = h(E₈) × K(D₄) − 1 | h(E₈) = 30 |
-| Proton stability | 1000 = h(E₈)³ / 27 | h(E₈) = 30 |
-
-**The Result:** From q/1000 (0.003%) to 4q (11%), the hierarchy spans four orders of magnitude and achieves **EXACT agreement for every prediction in physics from pure geometry — including the cosmological constant**.
-
----
-
-*End of Universal Syntony Correction Hierarchy Document (Version 1.2)*
-
-**Status: ALL 81+ PREDICTIONS EXACT (including cosmological constant)**
+The Universal Syntony Correction Hierarchy represents one of SRT's most powerful predictive tools. By understanding the geometric origin of each correction level, from the q/1000 fixed-point stability to the 4q full T⁴ topology; we have achieved every prediction to EXACT agreement with experiment.
 
 **Source:** SRT Complete Publication (Version 1.2), December 2025

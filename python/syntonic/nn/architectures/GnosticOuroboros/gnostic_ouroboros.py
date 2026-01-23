@@ -350,6 +350,10 @@ class GnosticOuroboros(sn.Module):
         chain: WindingChain = WindingChain(DIM),
         recursion_depth: int = 0,
     ):
+        # --- ADD THIS BLOCK (The Stop Condition) ---
+        # If we have gone past the last plane, stop recursing and return the result.
+        if injection_plane > len(self.scale_modules): # Note: > to allow reaching the last index
+            return x
         x = x_token
         winding = winding_init
         syntony_history = []

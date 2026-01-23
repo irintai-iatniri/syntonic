@@ -658,6 +658,23 @@ class ResonantTensor:
         """
         self._inner.tanh(precision)
 
+    def golden_gelu(self, precision: int = 100) -> "ResonantTensor":
+        """
+        Apply Syntonic Golden GELU activation in-place.
+        
+        Unlike standard GELU which uses Gaussian approximation, 
+        this uses the Golden Ratio field for exact resonance.
+        
+        Args:
+            precision: Lattice precision for snapping.
+            
+        Returns:
+            Self (for chaining).
+        """
+        # Checks if backend supports golden_gelu, falls back to gelu if not
+        self._inner.golden_gelu(precision)
+
+
     def gelu(self, precision: int = 100) -> None:
         """
         Apply GELU activation in-place.

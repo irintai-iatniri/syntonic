@@ -13,8 +13,8 @@ name = "_core"
 crate-type = ["cdylib"]
 
 [features]
-# Enable CUDA by default so builds include GPU support unless explicitly disabled.
-default = ["cuda", "cpu"]
+# CUDA features enabled via pyproject.toml
+default = ["cpu"]
 cpu = []
 cuda = ["cudarc"]
 rayon = ["dep:rayon"]

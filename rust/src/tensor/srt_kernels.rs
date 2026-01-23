@@ -727,6 +727,106 @@ const ATTRACTOR_FUNCS: &[&str] = &[
     "attractor_centroid_f64",
 ];
 
+/// WMMA Syntonic kernel functions (tensor cores with golden weighting)
+#[cfg(feature = "cuda")]
+const WMMA_SYNTONIC_FUNCS: &[&str] = &["wmma_golden_weighted_fp16", "wmma_syntonic_fp16"];
+
+/// Scatter/Gather SRT kernel functions (index-based operations)
+#[cfg(feature = "cuda")]
+const SCATTER_GATHER_FUNCS: &[&str] = &[
+    "gather_f64",
+    "gather_f32",
+    "scatter_f64",
+    "scatter_f32",
+    "scatter_add_f64",
+    "scatter_add_f32",
+    "gather_phi_weighted_f64",
+    "scatter_golden_f64",
+    "scatter_mersenne_stable_f64",
+    "gather_lucas_shadow_f64",
+    "gather_pisano_hooked_f64",
+    "gather_e8_roots_f64",
+    "scatter_golden_cone_f64",
+    "gather_transcendence_gate_f64",
+    "scatter_consciousness_threshold_f64",
+];
+
+/// Reduction kernel functions (aggregation operations)
+#[cfg(feature = "cuda")]
+const REDUCTION_FUNCS: &[&str] = &[
+    "reduce_sum_f64",
+    "reduce_sum_f32",
+    "reduce_mean_f64",
+    "reduce_mean_f32",
+    "reduce_max_f64",
+    "reduce_max_f32",
+    "reduce_min_f64",
+    "reduce_min_f32",
+    "reduce_norm_l2_f64",
+    "reduce_norm_l2_f32",
+    "reduce_sum_golden_weighted_f64",
+    "reduce_syntony_f64",
+    "reduce_sum_rows_f64",
+    "reduce_sum_cols_f64",
+    "reduce_sum_phi_scaled_f64",
+    "reduce_variance_golden_target_f64",
+    "reduce_sum_c128",
+    "reduce_norm_c128",
+    "reduce_sum_mersenne_stable_f64",
+    "reduce_sum_lucas_shadow_f64",
+    "reduce_syntony_deviation_f64",
+    "reduce_consciousness_count_f64",
+    "reduce_sum_q_corrected_f64",
+    "reduce_e8_norm_f64",
+];
+
+/// Trilinear kernel functions (3D interpolation)
+#[cfg(feature = "cuda")]
+const TRILINEAR_FUNCS: &[&str] = &[
+    "trilinear_f64",
+    "trilinear_toroidal_f64",
+    "trilinear_phi_weighted_f64",
+    "trilinear_golden_decay_f64",
+    "trilinear_causal_f64",
+    "trilinear_retrocausal_f64",
+    "trilinear_symmetric_f64",
+    "trilinear_acausal_f64",
+    "bilinear_f64",
+];
+
+/// Complex operations kernel functions
+#[cfg(feature = "cuda")]
+const COMPLEX_OPS_FUNCS: &[&str] = &[
+    "arg_c128",
+    "arg_c64",
+    "normalize_phase_c128",
+    "normalize_phase_c64",
+    "rotate_phase_c128",
+    "rotate_phase_c64",
+    "quantize_phase_pi_c128",
+    "conj_c128",
+    "conj_c64",
+    "hermitian_inner_c128",
+    "phase_syntony_c128",
+    "berry_phase_c128",
+    "probability_c128",
+    "probability_c64",
+    "normalize_wavefunction_c128",
+    "golden_rotate_c128",
+    "phi_weighted_sum_c128",
+];
+
+/// Attention kernel functions (flash attention variants)
+#[cfg(feature = "cuda")]
+const ATTENTION_FUNCS: &[&str] = &[
+    "flash_attention_f32",
+    "flash_attention_syntony_f32",
+    "flash_attention_golden_f32",
+    "flash_attention_mersenne_127_f32",
+    "flash_attention_causal_f32",
+    "flash_attention_retrocausal_f32",
+];
+
 // =============================================================================
 // PTX Selection Based on Compute Capability
 // =============================================================================
@@ -3040,6 +3140,496 @@ pub fn cuda_gather_phi_weighted_f64(
     Ok(())
 }
 
+/// SRT Scatter/Gather: Basic gather operation (no weighting)
+#[cfg(feature = "cuda")]
+pub fn cuda_gather_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("gather_f64")
+        .map_err(|_| "Kernel gather_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Basic scatter operation
+#[cfg(feature = "cuda")]
+pub fn cuda_scatter_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("scatter_f64")
+        .map_err(|_| "Kernel scatter_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Scatter add operation (adds to existing values)
+#[cfg(feature = "cuda")]
+pub fn cuda_scatter_add_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("scatter_add_f64")
+        .map_err(|_| "Kernel scatter_add_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Scatter add operation (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_scatter_add_f32(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f32>,
+    src: &CudaSlice<f32>,
+    idx: &CudaSlice<i32>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("scatter_add_f32")
+        .map_err(|_| "Kernel scatter_add_f32 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Scatter with golden ratio weighting
+#[cfg(feature = "cuda")]
+pub fn cuda_scatter_golden_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("scatter_golden_f64")
+        .map_err(|_| "Kernel scatter_golden_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Scatter with Mersenne stable precision
+#[cfg(feature = "cuda")]
+pub fn cuda_scatter_mersenne_stable_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("scatter_mersenne_stable_f64")
+        .map_err(|_| "Kernel scatter_mersenne_stable_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Gather with Lucas shadow weighting
+#[cfg(feature = "cuda")]
+pub fn cuda_gather_lucas_shadow_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("gather_lucas_shadow_f64")
+        .map_err(|_| "Kernel gather_lucas_shadow_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Gather with Pisano hooked weighting
+#[cfg(feature = "cuda")]
+pub fn cuda_gather_pisano_hooked_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("gather_pisano_hooked_f64")
+        .map_err(|_| "Kernel gather_pisano_hooked_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Gather with E8 roots weighting
+#[cfg(feature = "cuda")]
+pub fn cuda_gather_e8_roots_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("gather_e8_roots_f64")
+        .map_err(|_| "Kernel gather_e8_roots_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Scatter with golden cone weighting
+#[cfg(feature = "cuda")]
+pub fn cuda_scatter_golden_cone_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("scatter_golden_cone_f64")
+        .map_err(|_| "Kernel scatter_golden_cone_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Gather with transcendence gate weighting
+#[cfg(feature = "cuda")]
+pub fn cuda_gather_transcendence_gate_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("gather_transcendence_gate_f64")
+        .map_err(|_| "Kernel gather_transcendence_gate_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Scatter with consciousness threshold
+#[cfg(feature = "cuda")]
+pub fn cuda_scatter_consciousness_threshold_f64(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f64>,
+    src: &CudaSlice<f64>,
+    idx: &CudaSlice<i64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("scatter_consciousness_threshold_f64")
+        .map_err(|_| "Kernel scatter_consciousness_threshold_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Basic gather operation (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_gather_f32(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f32>,
+    src: &CudaSlice<f32>,
+    idx: &CudaSlice<i32>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("gather_f32")
+        .map_err(|_| "Kernel gather_f32 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Scatter/Gather: Basic scatter operation (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_scatter_f32(
+    device: &Arc<CudaDevice>,
+    out: &mut CudaSlice<f32>,
+    src: &CudaSlice<f32>,
+    idx: &CudaSlice<i32>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let func = module
+        .load_function("scatter_f32")
+        .map_err(|_| "Kernel scatter_f32 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(out)
+            .arg(src)
+            .arg(idx)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
 /// Select SRT Scatter/Gather PTX based on compute capability
 #[cfg(feature = "cuda")]
 fn select_scatter_gather_srt_ptx(major: i32, minor: i32) -> &'static str {
@@ -3334,6 +3924,369 @@ pub fn cuda_reduce_sum_mersenne_stable_f64(
     .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(())
+}
+
+/// SRT Reduction: Sum reduction (basic)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_sum_f64")
+        .map_err(|_| "Kernel reduce_sum_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Mean reduction
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_mean_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_mean_f64")
+        .map_err(|_| "Kernel reduce_mean_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Mean reduction (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_mean_f32(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f32>,
+    input: &CudaSlice<f32>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_mean_f32")
+        .map_err(|_| "Kernel reduce_mean_f32 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Max reduction
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_max_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_max_f64")
+        .map_err(|_| "Kernel reduce_max_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Max reduction (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_max_f32(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f32>,
+    input: &CudaSlice<f32>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_max_f32")
+        .map_err(|_| "Kernel reduce_max_f32 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Min reduction
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_min_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_min_f64")
+        .map_err(|_| "Kernel reduce_min_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Min reduction (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_min_f32(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f32>,
+    input: &CudaSlice<f32>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_min_f32")
+        .map_err(|_| "Kernel reduce_min_f32 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Sum reduction (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_f32(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f32>,
+    input: &CudaSlice<f32>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_sum_f32")
+        .map_err(|_| "Kernel reduce_sum_f32 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: L2 norm reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_norm_l2_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_norm_l2_f64")
+        .map_err(|_| "Kernel reduce_norm_l2_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: L2 norm reduction (f32)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_norm_l2_f32(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f32>,
+    input: &CudaSlice<f32>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_norm_l2_f32")
+        .map_err(|_| "Kernel reduce_norm_l2_f32 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Sum with golden weighted reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_golden_weighted_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_sum_golden_weighted_f64")
+        .map_err(|_| "Kernel reduce_sum_golden_weighted_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
 }
 
 /// Select SRT reduction PTX based on compute capability
@@ -4456,6 +5409,138 @@ pub fn load_attractor_kernels(
 
     let mut functions = HashMap::new();
     for &func_name in ATTRACTOR_FUNCS {
+        let func = module
+            .load_function(func_name)
+            .map_err(|_| format!("Kernel {} not found", func_name))?;
+        functions.insert(func_name.to_string(), func);
+    }
+
+    Ok(functions)
+}
+
+#[cfg(feature = "cuda")]
+pub fn load_wmma_syntonic_kernels(
+    device: &Arc<CudaDevice>,
+) -> Result<HashMap<String, CudaFunction>, String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_wmma_syntonic_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load wmma_syntonic kernels: {}", e))?;
+
+    let mut functions = HashMap::new();
+    for &func_name in WMMA_SYNTONIC_FUNCS {
+        let func = module
+            .load_function(func_name)
+            .map_err(|_| format!("Kernel {} not found", func_name))?;
+        functions.insert(func_name.to_string(), func);
+    }
+
+    Ok(functions)
+}
+
+#[cfg(feature = "cuda")]
+pub fn load_scatter_gather_kernels(
+    device: &Arc<CudaDevice>,
+) -> Result<HashMap<String, CudaFunction>, String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_scatter_gather_srt_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load scatter_gather kernels: {}", e))?;
+
+    let mut functions = HashMap::new();
+    for &func_name in SCATTER_GATHER_FUNCS {
+        let func = module
+            .load_function(func_name)
+            .map_err(|_| format!("Kernel {} not found", func_name))?;
+        functions.insert(func_name.to_string(), func);
+    }
+
+    Ok(functions)
+}
+
+#[cfg(feature = "cuda")]
+pub fn load_reduction_kernels(
+    device: &Arc<CudaDevice>,
+) -> Result<HashMap<String, CudaFunction>, String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let mut functions = HashMap::new();
+    for &func_name in REDUCTION_FUNCS {
+        let func = module
+            .load_function(func_name)
+            .map_err(|_| format!("Kernel {} not found", func_name))?;
+        functions.insert(func_name.to_string(), func);
+    }
+
+    Ok(functions)
+}
+
+#[cfg(feature = "cuda")]
+pub fn load_trilinear_kernels(
+    device: &Arc<CudaDevice>,
+) -> Result<HashMap<String, CudaFunction>, String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_trilinear_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load trilinear kernels: {}", e))?;
+
+    let mut functions = HashMap::new();
+    for &func_name in TRILINEAR_FUNCS {
+        let func = module
+            .load_function(func_name)
+            .map_err(|_| format!("Kernel {} not found", func_name))?;
+        functions.insert(func_name.to_string(), func);
+    }
+
+    Ok(functions)
+}
+
+#[cfg(feature = "cuda")]
+pub fn load_complex_ops_kernels(
+    device: &Arc<CudaDevice>,
+) -> Result<HashMap<String, CudaFunction>, String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_complex_ops_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load complex_ops kernels: {}", e))?;
+
+    let mut functions = HashMap::new();
+    for &func_name in COMPLEX_OPS_FUNCS {
+        let func = module
+            .load_function(func_name)
+            .map_err(|_| format!("Kernel {} not found", func_name))?;
+        functions.insert(func_name.to_string(), func);
+    }
+
+    Ok(functions)
+}
+
+#[cfg(feature = "cuda")]
+pub fn load_attention_kernels(
+    device: &Arc<CudaDevice>,
+) -> Result<HashMap<String, CudaFunction>, String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_attention_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load attention kernels: {}", e))?;
+
+    let mut functions = HashMap::new();
+    for &func_name in ATTENTION_FUNCS {
         let func = module
             .load_function(func_name)
             .map_err(|_| format!("Kernel {} not found", func_name))?;

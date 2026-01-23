@@ -62,14 +62,18 @@ impl GoldenMomentum {
     /// Updated weights as a new vector
     pub fn step(&mut self, weights: Vec<f64>, gradients: Vec<f64>) -> PyResult<Vec<f64>> {
         if weights.len() != self.size {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                format!("Weight size {} doesn't match optimizer size {}", weights.len(), self.size)
-            ));
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                "Weight size {} doesn't match optimizer size {}",
+                weights.len(),
+                self.size
+            )));
         }
         if gradients.len() != self.size {
-            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                format!("Gradient size {} doesn't match optimizer size {}", gradients.len(), self.size)
-            ));
+            return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                "Gradient size {} doesn't match optimizer size {}",
+                gradients.len(),
+                self.size
+            )));
         }
 
         let mut new_weights = weights;

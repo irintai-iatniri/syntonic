@@ -425,15 +425,15 @@ impl PyCausalHistoryTracker {
 
     /// Get all tensor IDs in chronological order.
     pub fn get_timeline(&self) -> Vec<u64> {
-        self.inner.with_history(|h| {
-            h.phase_timeline.iter().map(|id| id.0).collect()
-        })
+        self.inner
+            .with_history(|h| h.phase_timeline.iter().map(|id| id.0).collect())
     }
 
     /// Get syntony scores for all nodes.
     pub fn get_syntony_scores(&self) -> Vec<(u64, f64)> {
         self.inner.with_history(|h| {
-            h.nodes.iter()
+            h.nodes
+                .iter()
                 .map(|(id, node)| (id.0, node.syntony_score))
                 .collect()
         })
@@ -442,7 +442,8 @@ impl PyCausalHistoryTracker {
     /// Get all gnosis-locked (high-syntony) tensor IDs.
     pub fn get_gnosis_locked(&self) -> Vec<u64> {
         self.inner.with_history(|h| {
-            h.nodes.iter()
+            h.nodes
+                .iter()
                 .filter(|(_, node)| node.gnosis_locked)
                 .map(|(id, _)| id.0)
                 .collect()
@@ -452,7 +453,8 @@ impl PyCausalHistoryTracker {
     /// Get predecessors of a given tensor.
     pub fn get_predecessors(&self, tensor_id: u64) -> Vec<u64> {
         self.inner.with_history(|h| {
-            h.nodes.get(&TensorId(tensor_id))
+            h.nodes
+                .get(&TensorId(tensor_id))
                 .map(|node| node.predecessors.iter().map(|id| id.0).collect())
                 .unwrap_or_default()
         })
@@ -461,7 +463,8 @@ impl PyCausalHistoryTracker {
     /// Get successors of a given tensor.
     pub fn get_successors(&self, tensor_id: u64) -> Vec<u64> {
         self.inner.with_history(|h| {
-            h.nodes.get(&TensorId(tensor_id))
+            h.nodes
+                .get(&TensorId(tensor_id))
                 .map(|node| node.successors.iter().map(|id| id.0).collect())
                 .unwrap_or_default()
         })
