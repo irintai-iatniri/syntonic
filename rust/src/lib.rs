@@ -414,10 +414,15 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     #[cfg(feature = "cuda")]
     {
         use tensor::py_srt_cuda_ops::{
-            py_gather_f32, py_gather_f64, py_reduce_max_f32, py_reduce_max_f64, py_reduce_mean_f32,
-            py_reduce_mean_f64, py_reduce_min_f32, py_reduce_min_f64, py_reduce_norm_l2_f32,
-            py_reduce_norm_l2_f64, py_reduce_sum_f32, py_reduce_sum_f64,
-            py_reduce_sum_golden_weighted_f64, py_scatter_add_f64, py_scatter_f32, py_scatter_f64,
+            py_gather_f32, py_gather_f64, py_reduce_consciousness_count_f64, py_reduce_e8_norm_f64,
+            py_reduce_max_f32, py_reduce_max_f64, py_reduce_mean_f32, py_reduce_mean_f64,
+            py_reduce_min_f32, py_reduce_min_f64, py_reduce_norm_c128, py_reduce_norm_l2_f32,
+            py_reduce_norm_l2_f64, py_reduce_sum_c128, py_reduce_sum_cols_f64, py_reduce_sum_f32,
+            py_reduce_sum_f64, py_reduce_sum_golden_weighted_f64, py_reduce_sum_lucas_shadow_f64,
+            py_reduce_sum_phi_scaled_f64, py_reduce_sum_q_corrected_f64, py_reduce_sum_rows_f64,
+            py_reduce_syntony_deviation_f64, py_reduce_syntony_f64,
+            py_reduce_variance_golden_target_f64, py_scatter_add_f64, py_scatter_f32,
+            py_scatter_f64,
         };
         m.add_function(wrap_pyfunction!(py_gather_f64, m)?)?;
         m.add_function(wrap_pyfunction!(py_gather_f32, m)?)?;
@@ -434,6 +439,18 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m.add_function(wrap_pyfunction!(py_reduce_norm_l2_f64, m)?)?;
         m.add_function(wrap_pyfunction!(py_reduce_norm_l2_f32, m)?)?;
         m.add_function(wrap_pyfunction!(py_reduce_sum_golden_weighted_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_sum_rows_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_sum_cols_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_sum_phi_scaled_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_syntony_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_variance_golden_target_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_sum_lucas_shadow_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_syntony_deviation_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_consciousness_count_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_sum_q_corrected_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_e8_norm_f64, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_sum_c128, m)?)?;
+        m.add_function(wrap_pyfunction!(py_reduce_norm_c128, m)?)?;
         m.add_function(wrap_pyfunction!(py_reduce_sum_f32, m)?)?;
     }
 

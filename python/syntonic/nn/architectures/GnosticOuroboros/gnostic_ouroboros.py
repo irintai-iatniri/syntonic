@@ -353,7 +353,7 @@ class GnosticOuroboros(sn.Module):
         # --- ADD THIS BLOCK (The Stop Condition) ---
         # If we have gone past the last plane, stop recursing and return the result.
         if injection_plane > len(self.scale_modules): # Note: > to allow reaching the last index
-            return x_token
+            return x
         x = x_token
         winding = winding_init
         syntony_history = []
@@ -448,7 +448,7 @@ class GnosticOuroboros(sn.Module):
                     f"⚠️ REGIME {recursion_depth + 1} BLOCKED: Not enough Gnosis (Has {current_syntony:.2f}, Needs {required_syntony:.2f})"
                 )
 
-            output = self.decoder(x)
+            output = self.forward(x, winding, injection_plane=injection_plane + 1, is_training=True)
 
         # Inference Routing: Output from peak Syntony plane
         if not is_training and syntony_history:

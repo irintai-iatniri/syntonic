@@ -17,6 +17,11 @@ use super::cuda::device_manager::get_device;
 #[cfg(feature = "cuda")]
 use cudarc::driver::CudaSlice;
 
+#[cfg(feature = "cuda")]
+use crate::tensor::cuda::CudaComplex64;
+#[cfg(feature = "cuda")]
+use num_complex::Complex64;
+
 // =============================================================================
 // Toroidal Math Functions (CPU fallbacks + CUDA)
 // =============================================================================
@@ -1443,6 +1448,517 @@ pub fn py_reduce_sum_golden_weighted_f64(input: Vec<f64>, device_idx: usize) -> 
     Ok(result[0])
 }
 
+/// Reduce syntony of array elements (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_syntony_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_syntony_f64(&device, &mut output_dev, &input_dev, input.len())
+        .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce sum rows of array elements (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_rows_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_sum_rows_f64(&device, &mut output_dev, &input_dev, input.len())
+        .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce sum columns of array elements (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_cols_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_sum_cols_f64(&device, &mut output_dev, &input_dev, input.len())
+        .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce sum with phi scaled reduction (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_phi_scaled_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_sum_phi_scaled_f64(
+        &device,
+        &mut output_dev,
+        &input_dev,
+        input.len(),
+    )
+    .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce variance with golden target reduction (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_variance_golden_target_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_variance_golden_target_f64(
+        &device,
+        &mut output_dev,
+        &input_dev,
+        input.len(),
+    )
+    .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce sum with Mersenne stable reduction (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_mersenne_stable_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_sum_mersenne_stable_f64(
+        &device,
+        &mut output_dev,
+        &input_dev,
+        input.len(),
+    )
+    .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce sum with Lucas shadow reduction (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_lucas_shadow_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_sum_lucas_shadow_f64(
+        &device,
+        &mut output_dev,
+        &input_dev,
+        input.len(),
+    )
+    .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce syntony deviation of array elements (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_syntony_deviation_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_syntony_deviation_f64(
+        &device,
+        &mut output_dev,
+        &input_dev,
+        input.len(),
+    )
+    .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce consciousness count of array elements (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_consciousness_count_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_consciousness_count_f64(
+        &device,
+        &mut output_dev,
+        &input_dev,
+        input.len(),
+    )
+    .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce sum with Q corrected reduction (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_q_corrected_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_sum_q_corrected_f64(
+        &device,
+        &mut output_dev,
+        &input_dev,
+        input.len(),
+    )
+    .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce E8 norm of array elements (f64)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_e8_norm_f64(input: Vec<f64>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_e8_norm_f64(&device, &mut output_dev, &input_dev, input.len())
+        .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
+
+/// Reduce sum of array elements (c128)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_c128(input: Vec<(f64, f64)>, device_idx: usize) -> PyResult<(f64, f64)> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Convert input to complex numbers
+    let complex_input: Vec<CudaComplex64> = input
+        .into_iter()
+        .map(|(re, im)| CudaComplex64(Complex64::new(re, im)))
+        .collect();
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&complex_input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<CudaComplex64> = pool
+        .alloc_c128(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_sum_c128(
+        &device,
+        &mut output_dev,
+        &input_dev,
+        complex_input.len(),
+    )
+    .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![CudaComplex64(Complex64::new(0.0, 0.0)); 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok((result[0].0.re, result[0].0.im))
+}
+
+/// Reduce norm of array elements (c128)
+#[cfg(feature = "cuda")]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_norm_c128(input: Vec<(f64, f64)>, device_idx: usize) -> PyResult<f64> {
+    if input.is_empty() {
+        return Err(PyRuntimeError::new_err("input cannot be empty"));
+    }
+
+    let device = get_device(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+    let pool = get_pool(device_idx).map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
+
+    // Convert input to complex numbers
+    let complex_input: Vec<CudaComplex64> = input
+        .into_iter()
+        .map(|(re, im)| CudaComplex64(Complex64::new(re, im)))
+        .collect();
+
+    // Allocate CUDA memory
+    let input_dev = device
+        .default_stream()
+        .clone_htod(&complex_input)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy input: {}", e)))?;
+    let mut output_dev: CudaSlice<f64> = pool
+        .alloc_f64(1)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to alloc output: {}", e)))?;
+
+    // Run reduction
+    super::srt_kernels::cuda_reduce_norm_c128(
+        &device,
+        &mut output_dev,
+        &input_dev,
+        complex_input.len(),
+    )
+    .map_err(|e| PyRuntimeError::new_err(e))?;
+
+    // Copy result back
+    let mut result = vec![0.0f64; 1];
+    device
+        .default_stream()
+        .memcpy_dtoh(&output_dev, &mut result)
+        .map_err(|e| PyRuntimeError::new_err(format!("Failed to copy result: {}", e)))?;
+
+    Ok(result[0])
+}
 /// Reduce sum of array elements (f32)
 #[cfg(feature = "cuda")]
 #[pyfunction]
@@ -1619,6 +2135,114 @@ pub fn py_reduce_norm_l2_f32(_input: Vec<f32>, _device_idx: usize) -> PyResult<f
 #[pyfunction]
 #[pyo3(signature = (input, device_idx=0))]
 pub fn py_reduce_sum_golden_weighted_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_syntony_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_rows_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_cols_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_phi_scaled_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_variance_golden_target_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_lucas_shadow_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_syntony_deviation_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_consciousness_count_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_q_corrected_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_e8_norm_f64(_input: Vec<f64>, _device_idx: usize) -> PyResult<f64> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_sum_c128(_input: Vec<(f64, f64)>, _device_idx: usize) -> PyResult<(f64, f64)> {
+    Err(PyRuntimeError::new_err(
+        "CUDA not available - compile with cuda feature",
+    ))
+}
+
+#[cfg(not(feature = "cuda"))]
+#[pyfunction]
+#[pyo3(signature = (input, device_idx=0))]
+pub fn py_reduce_norm_c128(_input: Vec<(f64, f64)>, _device_idx: usize) -> PyResult<f64> {
     Err(PyRuntimeError::new_err(
         "CUDA not available - compile with cuda feature",
     ))

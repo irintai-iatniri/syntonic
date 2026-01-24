@@ -4289,6 +4289,402 @@ pub fn cuda_reduce_sum_golden_weighted_f64(
     .map_err(|e| e.to_string())
 }
 
+/// SRT Reduction: Syntony reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_syntony_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_syntony_f64")
+        .map_err(|_| "Kernel reduce_syntony_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Sum rows reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_rows_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_sum_rows_f64")
+        .map_err(|_| "Kernel reduce_sum_rows_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Sum columns reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_cols_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_sum_cols_f64")
+        .map_err(|_| "Kernel reduce_sum_cols_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Sum with phi scaled reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_phi_scaled_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_sum_phi_scaled_f64")
+        .map_err(|_| "Kernel reduce_sum_phi_scaled_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Variance with golden target reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_variance_golden_target_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_variance_golden_target_f64")
+        .map_err(|_| "Kernel reduce_variance_golden_target_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Sum with Lucas shadow reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_lucas_shadow_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_sum_lucas_shadow_f64")
+        .map_err(|_| "Kernel reduce_sum_lucas_shadow_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Syntony deviation reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_syntony_deviation_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_syntony_deviation_f64")
+        .map_err(|_| "Kernel reduce_syntony_deviation_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Consciousness count reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_consciousness_count_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_consciousness_count_f64")
+        .map_err(|_| "Kernel reduce_consciousness_count_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Sum with Q corrected reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_q_corrected_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_sum_q_corrected_f64")
+        .map_err(|_| "Kernel reduce_sum_q_corrected_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: E8 norm reduction (f64)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_e8_norm_f64(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<f64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_e8_norm_f64")
+        .map_err(|_| "Kernel reduce_e8_norm_f64 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Sum reduction (c128)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_sum_c128(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<CudaComplex64>,
+    input: &CudaSlice<CudaComplex64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_sum_c128")
+        .map_err(|_| "Kernel reduce_sum_c128 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// SRT Reduction: Norm reduction (c128)
+#[cfg(feature = "cuda")]
+pub fn cuda_reduce_norm_c128(
+    device: &Arc<CudaDevice>,
+    output: &mut CudaSlice<f64>,
+    input: &CudaSlice<CudaComplex64>,
+    n: usize,
+) -> Result<(), String> {
+    let (major, minor) = get_compute_capability(device);
+    let module = device
+        .load_module(cudarc::nvrtc::Ptx::from_src(select_reduction_ptx(
+            major, minor,
+        )))
+        .map_err(|e| format!("Failed to load reduction kernels: {}", e))?;
+
+    let func = module
+        .load_function("reduce_norm_c128")
+        .map_err(|_| "Kernel reduce_norm_c128 not found".to_string())?;
+
+    let cfg = LaunchConfig::for_num_elems(n as u32);
+    unsafe {
+        device
+            .default_stream()
+            .launch_builder(&func)
+            .arg(output)
+            .arg(input)
+            .arg(&(n as i32))
+            .launch(cfg)
+    }
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
 /// Select SRT reduction PTX based on compute capability
 #[cfg(feature = "cuda")]
 fn select_reduction_ptx(major: i32, minor: i32) -> &'static str {
